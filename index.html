@@ -3,14 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>DNA · Content Analyzer</title>
+<title>DNA · Article Analyzer</title>
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Noto+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --ivory:#F8F7F6;--teal:#1A3948;--teal2:#24506A;--flame:#FF5400;
-  --stone:#B9CCCC;--honey:#FFC047;--green:#1f7a45;--purple:#6d5abd;
-  --coral:#e8593c;--amber:#b07d00;
+  --teal:#1A3948;--teal2:#24506A;--flame:#FF5400;--stone:#B9CCCC;
+  --honey:#FFC047;--green:#1f7a45;--purple:#6d5abd;--amber:#b07d00;
   --border:rgba(26,57,72,0.09);--muted:rgba(26,57,72,0.52);--soft:rgba(26,57,72,0.36);
   --glass:rgba(255,255,255,0.55);--glass-b:rgba(255,255,255,0.85);
   --gs:0 8px 32px rgba(26,57,72,0.10),0 1.5px 4px rgba(26,57,72,0.06);
@@ -21,208 +20,152 @@
 }
 html,body{min-height:100%;background:#F0EFED;}
 body{font-family:var(--sans);color:var(--teal);}
-
 .scene{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;background:#F0EFED;}
 .orb{position:absolute;border-radius:50%;filter:blur(90px);}
-.o1{width:580px;height:460px;top:-120px;left:-100px;background:radial-gradient(ellipse,rgba(255,84,0,0.26) 0%,rgba(255,140,60,0.10) 45%,transparent 70%);}
-.o2{width:460px;height:380px;top:35%;right:-120px;background:radial-gradient(ellipse,rgba(26,57,72,0.12) 0%,rgba(26,57,72,0.04) 55%,transparent 75%);}
-.o3{width:360px;height:300px;bottom:12%;left:28%;background:radial-gradient(ellipse,rgba(255,192,71,0.14) 0%,transparent 65%);}
-
-@keyframes rise{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+.o1{width:580px;height:460px;top:-120px;left:-100px;background:radial-gradient(ellipse,rgba(255,84,0,0.24) 0%,rgba(255,140,60,0.09) 45%,transparent 70%);}
+.o2{width:460px;height:380px;top:35%;right:-120px;background:radial-gradient(ellipse,rgba(26,57,72,0.10) 0%,rgba(26,57,72,0.03) 55%,transparent 75%);}
+.o3{width:360px;height:300px;bottom:12%;left:28%;background:radial-gradient(ellipse,rgba(255,192,71,0.12) 0%,transparent 65%);}
+@keyframes rise{from{opacity:0;transform:translateY(7px);}to{opacity:1;transform:translateY(0);}}
 @keyframes pring{0%,100%{box-shadow:0 0 0 0 rgba(255,84,0,0.4);}50%{box-shadow:0 0 0 5px rgba(255,84,0,0);}}
 @keyframes spin{to{transform:rotate(360deg);}}
 @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
 @keyframes scan{0%{left:-40%;}100%{left:110%;}}
 
-/* ── NAV ── */
+/* NAV */
 .nav-wrap{position:sticky;top:0;z-index:50;display:flex;justify-content:center;padding:14px 24px 0;pointer-events:none;}
-.nav-pill{display:inline-flex;align-items:center;gap:2px;background:rgba(26,57,72,0.82);backdrop-filter:blur(28px) saturate(2);-webkit-backdrop-filter:blur(28px) saturate(2);border:1px solid rgba(255,255,255,0.12);border-radius:100px;padding:5px;box-shadow:0 8px 32px rgba(0,0,0,0.20),0 2px 8px rgba(0,0,0,0.12),inset 0 1px 0 rgba(255,255,255,0.14),inset 0 -1px 0 rgba(0,0,0,0.16);pointer-events:all;}
+.nav-pill{display:inline-flex;align-items:center;gap:2px;background:rgba(26,57,72,0.82);backdrop-filter:blur(28px) saturate(2);-webkit-backdrop-filter:blur(28px) saturate(2);border:1px solid rgba(255,255,255,0.12);border-radius:100px;padding:5px;box-shadow:0 8px 32px rgba(0,0,0,0.20),inset 0 1px 0 rgba(255,255,255,0.14);pointer-events:all;}
 .wordmark{font-family:var(--serif);font-size:15px;color:rgba(248,247,246,0.92);padding:6px 14px 6px 10px;border-right:1px solid rgba(255,255,255,0.10);margin-right:4px;}
 .wordmark em{font-style:normal;color:var(--flame);font-weight:600;}
-.ntab{font-size:12px;font-weight:500;color:rgba(185,204,204,0.72);padding:7px 14px;border-radius:100px;cursor:pointer;transition:color 180ms,background 180ms;white-space:nowrap;}
+.ntab{font-size:12px;font-weight:500;color:rgba(185,204,204,0.72);padding:7px 14px;border-radius:100px;cursor:pointer;transition:color 180ms,background 180ms;}
 .ntab:hover{color:rgba(248,247,246,0.95);}
-.ntab.on{background:rgba(255,255,255,0.13);color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,0.18),inset 0 -1px 0 rgba(0,0,0,0.12);}
+.ntab.on{background:rgba(255,255,255,0.13);color:#fff;}
 
-/* ── WRAP ── */
-.wrap{position:relative;z-index:1;max-width:780px;margin:0 auto;padding:0 20px 80px;}
-
-/* ── HERO ── */
-.hero{padding:36px 0 24px;text-align:center;}
+/* LAYOUT */
+.wrap{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:0 20px 80px;}
+.hero{padding:36px 0 22px;text-align:center;}
 .eyebrow{font-size:10px;font-weight:600;letter-spacing:0.10em;text-transform:uppercase;color:var(--soft);margin-bottom:12px;display:flex;align-items:center;justify-content:center;gap:7px;}
 .pdot{width:6px;height:6px;border-radius:50%;background:var(--flame);animation:pring 2.5s ease-in-out infinite;}
 .hero h1{font-family:var(--serif);font-size:30px;font-weight:400;color:var(--teal);line-height:1.2;margin-bottom:8px;}
 .hero h1 em{font-style:italic;color:var(--flame);}
-.hero p{font-size:13px;color:var(--muted);max-width:460px;margin:0 auto;}
-
-/* ── CARD ── */
+.hero p{font-size:13px;color:var(--muted);max-width:440px;margin:0 auto;}
 .card{border-radius:18px;padding:20px 22px;background:var(--glass);backdrop-filter:blur(20px) saturate(1.8);-webkit-backdrop-filter:blur(20px) saturate(1.8);border:1px solid var(--glass-b);box-shadow:var(--gs),var(--gi);margin-bottom:12px;animation:rise 420ms var(--eo) both;}
 
-/* ── CONTENT TYPE SELECTOR ── */
-.type-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:18px;}
-.type-btn{
-  border-radius:14px;padding:16px 12px;
-  background:rgba(255,255,255,0.45);
-  border:2px solid rgba(255,255,255,0.75);
-  cursor:pointer;text-align:center;
-  transition:all 180ms var(--eo);
-  user-select:none;
-}
-.type-btn:hover{background:rgba(255,255,255,0.68);transform:translateY(-1px);}
-.type-btn.on{background:rgba(255,255,255,0.72);border-color:var(--teal2);box-shadow:0 0 0 3px rgba(26,57,72,0.08);}
-.type-icon{font-size:22px;margin-bottom:6px;}
-.type-name{font-size:12px;font-weight:700;color:var(--teal);margin-bottom:2px;}
-.type-desc{font-size:10px;color:var(--soft);}
-
-/* ── PLATFORM CHIPS ── */
-.platform-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;}
-.pchip{padding:6px 14px;border-radius:100px;font-size:12px;font-weight:600;border:1.5px solid var(--border);background:rgba(255,255,255,0.55);color:var(--muted);cursor:pointer;transition:all 150ms;user-select:none;display:flex;align-items:center;gap:5px;}
-.pchip.on{background:var(--teal);color:var(--ivory);border-color:var(--teal);}
-.pchip-icon{font-size:13px;}
-
-/* ── FORM ── */
+/* FORM */
 .fl{font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--soft);margin-bottom:7px;display:flex;align-items:center;justify-content:space-between;}
 .fl-hint{font-size:10px;font-weight:400;letter-spacing:0;text-transform:none;color:var(--stone);}
-textarea,input[type=text]{width:100%;font-family:var(--sans);font-size:13px;color:var(--teal);background:rgba(255,255,255,0.72);border:1px solid rgba(26,57,72,0.14);border-radius:10px;padding:10px 13px;transition:border-color 180ms,box-shadow 180ms;outline:none;resize:none;}
-textarea:focus,input:focus{border-color:rgba(255,84,0,0.45);box-shadow:0 0 0 3px rgba(255,84,0,0.09);}
+textarea,input[type=text],.fsel{width:100%;font-family:var(--sans);font-size:13px;color:var(--teal);background:rgba(255,255,255,0.72);border:1px solid rgba(26,57,72,0.14);border-radius:10px;padding:10px 13px;transition:border-color 180ms,box-shadow 180ms;outline:none;resize:none;}
+textarea:focus,input:focus,.fsel:focus{border-color:rgba(255,84,0,0.45);box-shadow:0 0 0 3px rgba(255,84,0,0.09);}
 textarea::placeholder,input::placeholder{color:var(--stone);}
-.or-divider{display:flex;align-items:center;gap:10px;margin:10px 0;font-size:11px;color:var(--stone);}
-.or-line{flex:1;height:1px;background:var(--border);}
+.fsel{cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' fill='none' stroke='%2324506A' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.wcount{font-size:10px;color:var(--stone);text-align:right;margin-top:4px;}
+.wcount.warn{color:var(--flame);}
+.wcount.ok{color:var(--green);}
 
-/* ── ANALYZE BTN ── */
-.analyze-btn{width:100%;padding:14px;border-radius:14px;background:var(--flame);color:#fff;font-family:var(--sans);font-size:14px;font-weight:700;border:none;cursor:pointer;box-shadow:0 4px 18px rgba(255,84,0,0.36),inset 0 1px 0 rgba(255,255,255,0.22);transition:transform 150ms var(--eo),box-shadow 150ms;margin-top:14px;}
-.analyze-btn:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(255,84,0,0.40);}
-.analyze-btn:active{transform:scale(0.98);}
-.analyze-btn:disabled{opacity:0.55;cursor:not-allowed;transform:none;}
+/* BUTTON */
+.analyze-btn{width:100%;padding:14px;border-radius:14px;background:var(--flame);color:#fff;font-family:var(--sans);font-size:14px;font-weight:700;border:none;cursor:pointer;box-shadow:0 4px 18px rgba(255,84,0,0.34),inset 0 1px 0 rgba(255,255,255,0.22);transition:transform 150ms var(--eo),box-shadow 150ms;margin-top:14px;}
+.analyze-btn:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(255,84,0,0.38);}
+.analyze-btn:disabled{opacity:0.50;cursor:not-allowed;transform:none;}
 
-/* ── LOADING ── */
-.loading-card{border-radius:18px;padding:32px 22px;background:rgba(26,57,72,0.88);backdrop-filter:blur(24px) saturate(2);-webkit-backdrop-filter:blur(24px) saturate(2);border:1px solid rgba(255,255,255,0.12);box-shadow:0 12px 40px rgba(0,0,0,0.20);text-align:center;animation:rise 400ms var(--eo) both;display:none;}
-.spinner{width:36px;height:36px;border:3px solid rgba(255,255,255,0.15);border-top-color:var(--flame);border-radius:50%;animation:spin 800ms linear infinite;margin:0 auto 16px;}
-.loading-stage{font-family:var(--serif);font-size:16px;color:rgba(248,247,246,0.90);margin-bottom:6px;font-style:italic;}
-.loading-sub{font-size:11px;color:rgba(185,204,204,0.60);}
-.scan-bar{height:2px;border-radius:100px;background:rgba(255,255,255,0.10);margin:16px 0 0;overflow:hidden;position:relative;}
+/* LOADING */
+.loading-card{border-radius:18px;padding:30px 22px;background:rgba(26,57,72,0.88);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,0.12);box-shadow:0 12px 40px rgba(0,0,0,0.20);text-align:center;display:none;animation:rise 380ms var(--eo) both;}
+.spinner{width:34px;height:34px;border:3px solid rgba(255,255,255,0.14);border-top-color:var(--flame);border-radius:50%;animation:spin 800ms linear infinite;margin:0 auto 14px;}
+.lstage{font-family:var(--serif);font-size:15px;color:rgba(248,247,246,0.90);margin-bottom:5px;font-style:italic;}
+.lsub{font-size:11px;color:rgba(185,204,204,0.55);}
+.scan-bar{height:2px;border-radius:100px;background:rgba(255,255,255,0.09);margin:14px 0 0;overflow:hidden;position:relative;}
 .scan-fill{position:absolute;top:0;left:-40%;width:40%;height:100%;background:linear-gradient(90deg,transparent,var(--flame),transparent);animation:scan 1.8s ease-in-out infinite;}
 
-/* ── RESULT CARD ── */
-.result-card{border-radius:22px;overflow:hidden;background:var(--glass);backdrop-filter:blur(28px) saturate(2);-webkit-backdrop-filter:blur(28px) saturate(2);border:1px solid var(--glass-b);box-shadow:var(--gs),var(--gi),0 24px 64px rgba(26,57,72,0.12);display:none;animation:rise 500ms var(--eo) both;}
+/* RESULT CARD */
+.result-card{border-radius:22px;overflow:hidden;background:var(--glass);backdrop-filter:blur(28px) saturate(2);-webkit-backdrop-filter:blur(28px) saturate(2);border:1px solid var(--glass-b);box-shadow:var(--gs),var(--gi),0 24px 64px rgba(26,57,72,0.10);display:none;animation:rise 500ms var(--eo) both;}
 .accent-bar{height:4px;background:linear-gradient(90deg,var(--l1) 0%,var(--l2) 25%,var(--l3) 50%,var(--l4) 75%,var(--l6) 100%);}
-
-/* ── RESULT HEADER ── */
-.rc-header{padding:22px 26px 18px;border-bottom:1px solid var(--border);}
-.rc-header-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;flex-wrap:wrap;}
+.rc-header{padding:20px 24px 16px;border-bottom:1px solid var(--border);}
+.rc-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;}
 .dna-badge{display:inline-flex;align-items:center;gap:7px;background:rgba(26,57,72,0.84);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.12);border-radius:100px;padding:5px 14px 5px 8px;font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:rgba(248,247,246,0.90);}
-.content-type-badge{font-size:10px;font-weight:700;padding:5px 12px;border-radius:100px;display:flex;align-items:center;gap:5px;}
-.ctb-web{background:rgba(26,57,72,0.08);color:var(--teal2);border:1px solid rgba(26,57,72,0.14);}
-.ctb-social{background:rgba(109,90,189,0.10);color:var(--purple);border:1px solid rgba(109,90,189,0.20);}
-.ctb-video{background:rgba(232,89,60,0.10);color:var(--coral);border:1px solid rgba(232,89,60,0.20);}
-.rc-title{font-family:var(--serif);font-size:18px;color:var(--teal);line-height:1.3;margin-bottom:10px;}
-.rc-meta{display:flex;gap:7px;flex-wrap:wrap;align-items:center;}
-.meta-pill{font-size:10px;font-weight:600;padding:3px 9px;border-radius:100px;background:rgba(26,57,72,0.07);color:var(--teal2);border:1px solid rgba(26,57,72,0.10);}
-.verdict-pill{padding:5px 14px;border-radius:100px;font-size:11px;font-weight:700;letter-spacing:0.04em;}
+.vp{padding:5px 13px;border-radius:100px;font-size:11px;font-weight:700;}
 .vp-strong{background:rgba(31,122,69,0.10);color:var(--green);border:1px solid rgba(31,122,69,0.22);}
 .vp-partial{background:rgba(255,192,71,0.14);color:var(--amber);border:1px solid rgba(255,192,71,0.26);}
 .vp-weak{background:rgba(255,84,0,0.10);color:var(--flame);border:1px solid rgba(255,84,0,0.20);}
+.rc-title{font-family:var(--serif);font-size:18px;color:var(--teal);line-height:1.3;margin-bottom:8px;}
+.rc-meta{display:flex;gap:6px;flex-wrap:wrap;}
+.mp{font-size:10px;font-weight:600;padding:3px 9px;border-radius:100px;background:rgba(26,57,72,0.07);color:var(--teal2);border:1px solid rgba(26,57,72,0.10);}
 
-/* ── SCORE ROW ── */
+/* SCORES */
 .score-row{display:grid;grid-template-columns:1fr 1fr 1fr;border-bottom:1px solid var(--border);}
-.score-cell{padding:14px 20px;border-right:1px solid var(--border);}
-.score-cell:last-child{border-right:none;}
-.score-label{font-size:9px;font-weight:700;letter-spacing:0.10em;text-transform:uppercase;color:var(--soft);margin-bottom:4px;}
-.score-val{font-family:var(--serif);font-size:18px;color:var(--teal);margin-bottom:2px;line-height:1;}
-.score-sub{font-size:10px;color:var(--muted);}
+.sc{padding:13px 18px;border-right:1px solid var(--border);}
+.sc:last-child{border-right:none;}
+.sc-label{font-size:9px;font-weight:700;letter-spacing:0.10em;text-transform:uppercase;color:var(--soft);margin-bottom:3px;}
+.sc-val{font-family:var(--serif);font-size:17px;margin-bottom:2px;line-height:1;}
+.sc-sub{font-size:10px;color:var(--muted);}
 
-/* ── TABS ── */
-.rc-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);padding:0 26px;overflow-x:auto;}
-.rc-tab{padding:12px 16px;font-size:12px;font-weight:600;color:var(--soft);cursor:pointer;border-bottom:2px solid transparent;transition:all 180ms;margin-bottom:-1px;white-space:nowrap;}
-.rc-tab:hover{color:var(--teal);}
-.rc-tab.on{color:var(--teal);border-bottom-color:var(--flame);}
-.tab-pane{display:none;padding:22px 26px;}
-.tab-pane.on{display:block;animation:fadeIn 250ms var(--eo) both;}
+/* TABS */
+.tabs{display:flex;border-bottom:1px solid var(--border);padding:0 24px;}
+.tab{padding:11px 15px;font-size:12px;font-weight:600;color:var(--soft);cursor:pointer;border-bottom:2px solid transparent;transition:all 180ms;margin-bottom:-1px;white-space:nowrap;}
+.tab:hover{color:var(--teal);}
+.tab.on{color:var(--teal);border-bottom-color:var(--flame);}
+.tab-pane{display:none;padding:20px 24px;}
+.tab-pane.on{display:block;animation:fadeIn 220ms var(--eo) both;}
 
-/* ── LAYER ROWS ── */
-.layer-block{border-radius:14px;overflow:hidden;border:1px solid rgba(255,255,255,0.75);background:rgba(255,255,255,0.38);margin-bottom:8px;transition:all 180ms var(--eo);}
+/* LAYER BLOCKS */
+.layer-block{border-radius:13px;overflow:hidden;border:1px solid rgba(255,255,255,0.75);background:rgba(255,255,255,0.38);margin-bottom:7px;transition:background 180ms;}
 .layer-block:hover{background:rgba(255,255,255,0.55);}
-.lb-head{display:grid;grid-template-columns:28px 1fr auto auto 18px;align-items:center;gap:10px;padding:11px 14px;cursor:pointer;}
-.lb-num{width:24px;height:24px;border-radius:8px;font-size:10px;font-weight:700;color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.lb-name{font-size:10px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:var(--soft);}
-.lb-finding{font-family:var(--serif);font-size:13px;color:var(--teal);margin-top:1px;}
-.lb-type{font-size:10px;font-weight:600;padding:3px 9px;border-radius:100px;background:rgba(255,255,255,0.70);color:var(--teal2);border:1px solid rgba(26,57,72,0.12);white-space:nowrap;flex-shrink:0;}
-.lb-status{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
-.ls-ok{background:var(--green);}
-.ls-warn{background:var(--honey);}
-.ls-gap{background:var(--flame);}
-.ls-na{background:rgba(26,57,72,0.20);}
-.lb-chevron{font-size:10px;color:var(--stone);transition:transform 200ms var(--eo);}
-.lb-chevron.open{transform:rotate(180deg);}
-.lb-body{display:none;border-top:1px solid rgba(26,57,72,0.06);padding:14px 16px;background:rgba(255,255,255,0.20);}
-.lb-body.open{display:grid;grid-template-columns:1fr 1fr;gap:12px;animation:fadeIn 220ms var(--eo) both;}
-.lbd-label{font-size:9px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--soft);margin-bottom:7px;display:flex;align-items:center;gap:6px;}
-.lbd-label::after{content:'';flex:1;height:1px;background:var(--border);}
-.finding-box{border-radius:9px;padding:10px 12px;background:rgba(26,57,72,0.04);border:1px solid rgba(26,57,72,0.08);}
-.fb-text{font-size:12px;color:var(--teal2);line-height:1.65;}
-.fb-text strong{color:var(--teal);}
-.gap-box{border-radius:9px;padding:10px 12px;background:rgba(255,84,0,0.04);border-left:3px solid rgba(255,84,0,0.28);border-top:1px solid rgba(255,84,0,0.10);border-right:1px solid rgba(255,84,0,0.10);border-bottom:1px solid rgba(255,84,0,0.10);}
-.gap-label{font-size:9px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,84,0,0.60);margin-bottom:4px;}
-.gap-text{font-family:var(--serif);font-size:12px;color:var(--teal);line-height:1.65;font-style:italic;}
-.na-box{border-radius:9px;padding:10px 12px;background:rgba(26,57,72,0.03);border:1px dashed rgba(26,57,72,0.14);}
-.na-text{font-size:12px;color:var(--soft);line-height:1.5;font-style:italic;}
+.lb-head{display:grid;grid-template-columns:26px 1fr auto auto 16px;align-items:center;gap:9px;padding:10px 13px;cursor:pointer;}
+.lb-num{width:22px;height:22px;border-radius:7px;font-size:10px;font-weight:700;color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.lb-name{font-size:9px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:var(--soft);}
+.lb-finding{font-family:var(--serif);font-size:12.5px;color:var(--teal);margin-top:1px;}
+.lb-type{font-size:10px;font-weight:600;padding:2px 8px;border-radius:100px;background:rgba(255,255,255,0.70);color:var(--teal2);border:1px solid rgba(26,57,72,0.12);white-space:nowrap;flex-shrink:0;}
+.lb-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.ld-ok{background:var(--green);}
+.ld-warn{background:var(--honey);}
+.ld-gap{background:var(--flame);}
+.lb-chev{font-size:9px;color:var(--stone);transition:transform 200ms var(--eo);}
+.lb-chev.open{transform:rotate(180deg);}
+.lb-body{display:none;border-top:1px solid rgba(26,57,72,0.06);padding:13px 14px;background:rgba(255,255,255,0.20);}
+.lb-body.open{display:grid;grid-template-columns:1fr 1fr;gap:10px;animation:fadeIn 200ms var(--eo) both;}
+.lbd-lbl{font-size:9px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--soft);margin-bottom:6px;display:flex;align-items:center;gap:5px;}
+.lbd-lbl::after{content:'';flex:1;height:1px;background:var(--border);}
+.f-box{border-radius:8px;padding:9px 11px;background:rgba(26,57,72,0.04);border:1px solid rgba(26,57,72,0.08);}
+.f-txt{font-size:12px;color:var(--teal2);line-height:1.62;}
+.gap-box{border-radius:8px;padding:9px 11px;background:rgba(255,84,0,0.04);border-left:3px solid rgba(255,84,0,0.28);border-top:1px solid rgba(255,84,0,0.10);border-right:1px solid rgba(255,84,0,0.10);border-bottom:1px solid rgba(255,84,0,0.10);}
+.gap-lbl{font-size:9px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,84,0,0.60);margin-bottom:3px;}
+.gap-txt{font-family:var(--serif);font-size:12px;color:var(--teal);line-height:1.62;font-style:italic;}
 
 /* PACING VIZ */
-.pacing-viz{display:flex;gap:3px;height:20px;border-radius:6px;overflow:hidden;margin:6px 0 4px;}
-.pz{display:flex;align-items:center;justify-content:center;font-size:7.5px;font-weight:700;color:rgba(255,255,255,0.90);letter-spacing:0.04em;}
-.pz-absent{opacity:0.22;border:1.5px dashed rgba(255,84,0,0.45);background:rgba(255,84,0,0.07)!important;color:var(--flame);}
+.pacing-viz{display:flex;gap:3px;height:18px;border-radius:5px;overflow:hidden;margin:6px 0 3px;}
+.pz{display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;color:rgba(255,255,255,0.90);}
+.pz-absent{opacity:0.20;border:1.5px dashed rgba(255,84,0,0.40);background:rgba(255,84,0,0.06)!important;color:var(--flame);}
 
-/* ── BRIEF ── */
-.brief-block{margin:0 26px 20px;border-radius:16px;overflow:hidden;background:rgba(26,57,72,0.05);border:1px solid rgba(26,57,72,0.09);}
-.bb-head{padding:10px 16px;border-bottom:1px solid rgba(26,57,72,0.07);display:flex;align-items:center;gap:8px;}
-.bb-icon{width:20px;height:20px;border-radius:6px;background:var(--teal);display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;}
-.bb-label{font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--teal2);}
-.bb-sublabel{font-size:10px;color:var(--soft);margin-left:auto;}
-.bb-text{padding:16px;font-family:var(--serif);font-size:13px;color:var(--teal);line-height:1.82;font-style:italic;}
-.bb-text strong{font-style:normal;font-weight:600;}
+/* BRIEF */
+.brief-block{margin:0 24px 18px;border-radius:14px;overflow:hidden;background:rgba(26,57,72,0.05);border:1px solid rgba(26,57,72,0.09);}
+.bb-head{padding:9px 14px;border-bottom:1px solid rgba(26,57,72,0.07);display:flex;align-items:center;gap:7px;}
+.bb-icon{width:18px;height:18px;border-radius:5px;background:var(--teal);display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;}
+.bb-lbl{font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--teal2);}
+.bb-sub{font-size:10px;color:var(--soft);margin-left:auto;}
+.bb-txt{padding:14px;font-family:var(--serif);font-size:13px;color:var(--teal);line-height:1.80;font-style:italic;}
 
-/* ── FORMAT ADAPT NOTE ── */
-.adapt-note{margin:0 26px 16px;padding:12px 16px;border-radius:12px;background:rgba(109,90,189,0.06);border:1px solid rgba(109,90,189,0.18);font-size:12px;color:var(--teal2);line-height:1.6;}
-.an-label{font-size:9px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--purple);margin-bottom:4px;}
-
-/* ── FOOTER ── */
-.rc-footer{padding:14px 26px;border-top:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:rgba(255,255,255,0.20);}
-.footer-note{font-size:10px;color:var(--soft);flex:1;font-style:italic;}
-.abtn{font-family:var(--sans);font-size:12px;font-weight:600;color:var(--teal);padding:7px 16px;border-radius:100px;border:1.5px solid rgba(26,57,72,0.20);background:rgba(255,255,255,0.72);cursor:pointer;transition:all 150ms var(--eo);}
-.abtn:hover{background:var(--teal);color:var(--ivory);border-color:transparent;}
+/* FOOTER */
+.rc-footer{padding:13px 24px;border-top:1px solid var(--border);display:flex;align-items:center;gap:7px;flex-wrap:wrap;background:rgba(255,255,255,0.18);}
+.fn{font-size:10px;color:var(--soft);flex:1;font-style:italic;}
+.abtn{font-family:var(--sans);font-size:12px;font-weight:600;color:var(--teal);padding:7px 15px;border-radius:100px;border:1.5px solid rgba(26,57,72,0.20);background:rgba(255,255,255,0.72);cursor:pointer;transition:all 150ms var(--eo);}
+.abtn:hover{background:var(--teal);color:#F8F7F6;border-color:transparent;}
 .abtn.done{background:rgba(31,122,69,0.10);color:var(--green);border-color:rgba(31,122,69,0.22);}
 .abtn.primary{background:var(--flame);color:#fff;border-color:var(--flame);}
 .abtn.primary:hover{background:#e04800;}
 
-/* ── COMPARE VIEW ── */
-.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.cmp-card{border-radius:12px;padding:14px 16px;background:rgba(255,255,255,0.45);border:1px solid rgba(255,255,255,0.80);}
-.cmp-label{font-size:9px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--soft);margin-bottom:5px;}
-.cmp-val{font-family:var(--serif);font-size:16px;color:var(--teal);margin-bottom:3px;}
-.cmp-sub{font-size:11px;color:var(--muted);}
+/* HISTORY */
+.hist-item{display:flex;align-items:center;gap:11px;padding:12px 15px;border-radius:13px;background:rgba(255,255,255,0.45);border:1px solid var(--glass-b);margin-bottom:7px;cursor:pointer;transition:all 150ms;}
+.hist-item:hover{background:rgba(255,255,255,0.70);transform:translateX(2px);}
+.hi-icon{width:32px;height:32px;border-radius:9px;background:rgba(26,57,72,0.07);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.hi-body{flex:1;min-width:0;}
+.hi-title{font-family:var(--serif);font-size:12.5px;color:var(--teal);margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.hi-meta{font-size:10px;color:var(--soft);}
+.hi-tags{display:flex;gap:4px;margin-top:4px;}
+.htag{font-size:9px;font-weight:600;padding:2px 6px;border-radius:100px;background:rgba(26,57,72,0.07);color:var(--teal2);}
 
-/* ── HISTORY ── */
-.hist-item{display:flex;align-items:center;gap:12px;padding:13px 16px;border-radius:14px;background:rgba(255,255,255,0.45);border:1px solid var(--glass-b);margin-bottom:8px;cursor:pointer;transition:all 150ms;}
-.hist-item:hover{background:rgba(255,255,255,0.72);transform:translateX(3px);}
-.hist-icon{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
-.hist-body{flex:1;min-width:0;}
-.hist-title{font-family:var(--serif);font-size:13px;color:var(--teal);margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.hist-meta{font-size:11px;color:var(--soft);}
-.hist-tags{display:flex;gap:4px;margin-top:5px;flex-wrap:wrap;}
-.htag{font-size:10px;font-weight:600;padding:2px 7px;border-radius:100px;background:rgba(26,57,72,0.07);color:var(--teal2);}
-
-/* ── SDIV ── */
-.sdiv{display:flex;align-items:center;gap:12px;margin:22px 0 10px;}
-.sdiv h2{font-family:var(--serif);font-size:15px;font-weight:400;color:var(--teal);white-space:nowrap;}
-.rule{flex:1;height:1px;background:var(--border);}
-.uchip{font-size:10px;font-weight:700;color:var(--flame);background:rgba(255,84,0,0.08);border:1px solid rgba(255,84,0,0.16);padding:2px 9px;border-radius:100px;}
-
-@media(max-width:580px){
-  .type-grid{grid-template-columns:1fr 1fr 1fr;}
-  .lb-body.open{grid-template-columns:1fr;}
-  .compare-grid{grid-template-columns:1fr;}
-  .score-row{grid-template-columns:1fr;}
-  .score-cell{border-right:none;border-bottom:1px solid var(--border);}
-  .score-cell:last-child{border-bottom:none;}
+@media(max-width:560px){
+  .two-col,.lb-body.open,.score-row{grid-template-columns:1fr;}
+  .sc{border-right:none;border-bottom:1px solid var(--border);}
+  .sc:last-child{border-bottom:none;}
+  .lb-type{display:none;}
 }
 @media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important;}}
 </style>
@@ -230,589 +173,342 @@ textarea::placeholder,input::placeholder{color:var(--stone);}
 <body>
 <div class="scene"><div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div></div>
 
-<!-- NAV -->
 <div class="nav-wrap">
   <div class="nav-pill">
     <div class="wordmark">DNA<em>.</em>Analyzer</div>
-    <div class="ntab on" onclick="showSection('analyze')">Analyze</div>
-    <div class="ntab" onclick="showSection('history')">History <span id="hist-badge" style="font-size:10px;font-weight:700;background:rgba(255,84,0,0.20);color:var(--flame);padding:1px 6px;border-radius:100px;margin-left:3px;display:none">0</span></div>
+    <div class="ntab on" onclick="showSec('analyze')">Analyze</div>
+    <div class="ntab" onclick="showSec('history')">History <span id="hbadge" style="font-size:10px;font-weight:700;background:rgba(255,84,0,0.20);color:var(--flame);padding:1px 6px;border-radius:100px;margin-left:3px;display:none">0</span></div>
   </div>
 </div>
 
 <div class="wrap">
 
-<!-- ══════════════════════════════════════
-     ANALYZE SECTION
-══════════════════════════════════════ -->
-<div id="section-analyze">
-
-<div class="hero">
-  <div class="eyebrow"><div class="pdot"></div> Structural Analysis · Published Content</div>
-  <h1>DNA <em>Analyzer</em></h1>
-  <p>Feed it any published piece — article, social post, or video. It returns the structural DNA: what was built, what's missing, what the library shows about comparable content.</p>
-</div>
-
-<!-- INPUT CARD -->
-<div class="card" style="animation-delay:40ms">
-
-  <!-- CONTENT TYPE -->
-  <div class="fl" style="margin-bottom:10px;">Content type</div>
-  <div class="type-grid">
-    <div class="type-btn on" id="type-web" onclick="setType('web')">
-      <div class="type-icon">📰</div>
-      <div class="type-name">Web article</div>
-      <div class="type-desc">News, features, investigations</div>
-    </div>
-    <div class="type-btn" id="type-social" onclick="setType('social')">
-      <div class="type-icon">📱</div>
-      <div class="type-name">Social post</div>
-      <div class="type-desc">Instagram, X, Facebook, Telegram</div>
-    </div>
-    <div class="type-btn" id="type-video" onclick="setType('video')">
-      <div class="type-icon">🎬</div>
-      <div class="type-name">Video</div>
-      <div class="type-desc">YouTube, TikTok, Instagram Reels</div>
-    </div>
+<!-- ANALYZE -->
+<div id="sec-analyze">
+  <div class="hero">
+    <div class="eyebrow"><div class="pdot"></div> Structural Analysis · Web Articles</div>
+    <h1>DNA <em>Analyzer</em></h1>
+    <p>Paste any published article. Get the structural DNA back — six layers, what was built, what's missing.</p>
   </div>
 
-  <!-- WEB INPUTS -->
-  <div id="inputs-web">
-    <div class="fl">Article URL <span class="fl-hint">paste the full URL</span></div>
-    <input type="text" id="web-url" placeholder="https://www.rferl.org/a/…">
-    <div class="or-divider"><div class="or-line"></div><span>or paste text directly</span><div class="or-line"></div></div>
-    <div class="fl">Full article text <span class="fl-hint">headline + body</span></div>
-    <textarea id="web-text" rows="5" placeholder="Paste the full text of the article here — headline, byline, body. The more complete the text, the more precise the extraction…"></textarea>
-    <div style="height:10px"></div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+  <div class="card" style="animation-delay:40ms">
+    <div class="fl">Article text <span style="color:var(--flame)">*</span><span class="fl-hint">paste headline + body · 200–600 words works best</span></div>
+    <textarea id="article" rows="8" placeholder="Paste the full article here — headline, byline, body text…" oninput="updateCount()"></textarea>
+    <div class="wcount" id="wcount">0 words</div>
+    <div style="height:12px"></div>
+    <div class="two-col">
       <div>
-        <div class="fl">Publication / service</div>
-        <input type="text" id="web-pub" placeholder="e.g. Radio Farda, RFE/RL English…">
+        <div class="fl">Publication / service<span class="fl-hint" style="margin-left:6px;">optional</span></div>
+        <input type="text" id="pub" placeholder="e.g. Radio Farda, RFE/RL English…">
       </div>
       <div>
-        <div class="fl">Declared format</div>
-        <select id="web-format" style="width:100%;font-family:var(--sans);font-size:13px;color:var(--teal);background:rgba(255,255,255,0.72);border:1px solid rgba(26,57,72,0.14);border-radius:10px;padding:10px 13px;outline:none;cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2712%27 height=%2712%27 viewBox=%270 0 12 12%27%3E%3Cpath d=%27M2 4l4 4 4-4%27 fill=%27none%27 stroke=%27%2324506A%27 stroke-width=%271.5%27/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 12px center;">
-          <option value="">Not sure — detect from structure</option>
-          <option value="Reported feature">Reported feature</option>
-          <option value="Investigation">Investigation</option>
-          <option value="Explainer">Explainer</option>
-          <option value="Analysis">Analysis</option>
-          <option value="Profile">Profile</option>
-          <option value="Accountability">Accountability</option>
+        <div class="fl">Declared format<span class="fl-hint" style="margin-left:6px;">optional</span></div>
+        <select id="fmt" class="fsel">
+          <option value="">Detect from structure</option>
+          <option>Reported feature</option>
+          <option>Investigation</option>
+          <option>Explainer</option>
+          <option>Analysis</option>
+          <option>Profile</option>
+          <option>Accountability</option>
+          <option>News brief</option>
         </select>
       </div>
     </div>
+    <button class="analyze-btn" id="analyze-btn" onclick="run()">✦ Analyze DNA</button>
   </div>
 
-  <!-- SOCIAL INPUTS -->
-  <div id="inputs-social" style="display:none">
-    <div class="fl" style="margin-bottom:8px;">Platform</div>
-    <div class="platform-row" id="platform-row">
-      <div class="pchip on" onclick="setPlatform(this,'Instagram')"><span class="pchip-icon">📸</span>Instagram</div>
-      <div class="pchip" onclick="setPlatform(this,'X / Twitter')"><span class="pchip-icon">𝕏</span>X / Twitter</div>
-      <div class="pchip" onclick="setPlatform(this,'Facebook')"><span class="pchip-icon">👥</span>Facebook</div>
-      <div class="pchip" onclick="setPlatform(this,'Telegram')"><span class="pchip-icon">✈️</span>Telegram</div>
-      <div class="pchip" onclick="setPlatform(this,'WhatsApp')"><span class="pchip-icon">💬</span>WhatsApp</div>
-      <div class="pchip" onclick="setPlatform(this,'LinkedIn')"><span class="pchip-icon">💼</span>LinkedIn</div>
-    </div>
-    <div class="fl">Post text <span class="fl-hint">paste the full caption or post</span></div>
-    <textarea id="social-text" rows="5" placeholder="Paste the full social media post here — caption, hashtags, link text if any…"></textarea>
-    <div style="height:10px"></div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-      <div>
-        <div class="fl">Account / service</div>
-        <input type="text" id="social-account" placeholder="e.g. @RadioFarda, RFE/RL Persian…">
+  <!-- LOADING -->
+  <div class="loading-card" id="loading-card">
+    <div class="spinner"></div>
+    <div class="lstage" id="lstage">Reading the opening move…</div>
+    <div class="lsub" id="lsub">Extracting structural layers</div>
+    <div class="scan-bar"><div class="scan-fill"></div></div>
+  </div>
+
+  <!-- RESULT -->
+  <div class="result-card" id="result-card">
+    <div class="accent-bar"></div>
+    <div class="rc-header">
+      <div class="rc-top">
+        <div class="dna-badge"><div class="pdot"></div> DNA Analysis</div>
+        <div id="verdict-pill"></div>
       </div>
-      <div>
-        <div class="fl">Post URL <span class="fl-hint">optional</span></div>
-        <input type="text" id="social-url" placeholder="https://instagram.com/p/…">
-      </div>
+      <div class="rc-title" id="rc-title">—</div>
+      <div class="rc-meta" id="rc-meta"></div>
     </div>
-  </div>
-
-  <!-- VIDEO INPUTS -->
-  <div id="inputs-video" style="display:none">
-    <div class="fl">Video URL</div>
-    <input type="text" id="video-url" placeholder="https://youtube.com/watch?v=… or TikTok, Instagram Reels URL">
-    <div class="or-divider"><div class="or-line"></div><span>paste what you have</span><div class="or-line"></div></div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
-      <div>
-        <div class="fl">Video title</div>
-        <input type="text" id="video-title" placeholder="Paste the full video title…">
-      </div>
-      <div>
-        <div class="fl">Platform</div>
-        <div class="platform-row" id="video-platform-row" style="margin-bottom:0">
-          <div class="pchip on" onclick="setPlatform(this,'YouTube','video-platform-row')"><span class="pchip-icon">▶️</span>YouTube</div>
-          <div class="pchip" onclick="setPlatform(this,'TikTok','video-platform-row')"><span class="pchip-icon">🎵</span>TikTok</div>
-          <div class="pchip" onclick="setPlatform(this,'Instagram Reels','video-platform-row')"><span class="pchip-icon">🎞️</span>Reels</div>
-        </div>
-      </div>
+    <div class="score-row" id="score-row"></div>
+    <div class="tabs">
+      <div class="tab on" onclick="switchTab('layers',this)">Six layers</div>
+      <div class="tab" onclick="switchTab('brief',this)">Structural brief</div>
     </div>
-    <div class="fl">Description / transcript <span class="fl-hint">paste as much as available</span></div>
-    <textarea id="video-desc" rows="5" placeholder="Paste the video description, auto-generated transcript, or any available text. Even a partial transcript significantly improves the analysis…"></textarea>
-    <div style="height:10px"></div>
-    <input type="text" id="video-channel" placeholder="Channel name / service…" style="font-family:var(--sans);font-size:13px;color:var(--teal);background:rgba(255,255,255,0.72);border:1px solid rgba(26,57,72,0.14);border-radius:10px;padding:10px 13px;outline:none;width:100%;">
-  </div>
-
-  <button class="analyze-btn" id="analyze-btn" onclick="runAnalysis()">✦ Analyze DNA</button>
-</div>
-
-<!-- LOADING -->
-<div class="loading-card" id="loading-card">
-  <div class="spinner"></div>
-  <div class="loading-stage" id="loading-stage">Reading the opening move…</div>
-  <div class="loading-sub" id="loading-sub">Extracting structural layers</div>
-  <div class="scan-bar"><div class="scan-fill"></div></div>
-</div>
-
-<!-- RESULT -->
-<div class="result-card" id="result-card">
-  <div class="accent-bar"></div>
-
-  <!-- HEADER -->
-  <div class="rc-header">
-    <div class="rc-header-top">
-      <div class="dna-badge"><div class="pdot"></div> DNA Analysis</div>
-      <div id="rc-type-badge"></div>
+    <div class="tab-pane on" id="tab-layers"><div id="layers-wrap"></div></div>
+    <div class="tab-pane" id="tab-brief">
+      <div style="font-family:var(--serif);font-size:13.5px;color:var(--teal);line-height:1.82;font-style:italic;" id="brief-tab">—</div>
     </div>
-    <div class="rc-title" id="rc-title">—</div>
-    <div class="rc-meta" id="rc-meta"></div>
-  </div>
-
-  <!-- SCORE -->
-  <div class="score-row" id="score-row"></div>
-
-  <!-- TABS -->
-  <div class="rc-tabs">
-    <div class="rc-tab on" onclick="switchTab('layers',this)">Six layers</div>
-    <div class="rc-tab" onclick="switchTab('brief',this)">Structural brief</div>
-    <div class="rc-tab" onclick="switchTab('compare',this)">Library comparison</div>
-  </div>
-
-  <!-- TAB: LAYERS -->
-  <div class="tab-pane on" id="tab-layers">
-    <div id="layers-container"></div>
-  </div>
-
-  <!-- TAB: BRIEF -->
-  <div class="tab-pane" id="tab-brief">
-    <div class="bb-text" id="brief-text" style="padding:0;"></div>
-  </div>
-
-  <!-- TAB: COMPARE -->
-  <div class="tab-pane" id="tab-compare">
-    <div class="compare-grid" id="compare-grid"></div>
-  </div>
-
-  <!-- FORMAT NOTE -->
-  <div class="adapt-note" id="adapt-note" style="display:none">
-    <div class="an-label">Format note</div>
-    <div id="adapt-note-text"></div>
-  </div>
-
-  <!-- BRIEF BLOCK -->
-  <div class="brief-block">
-    <div class="bb-head">
-      <div class="bb-icon">✦</div>
-      <div class="bb-label">Structural brief</div>
-      <div class="bb-sublabel">If this piece were being commissioned today</div>
+    <div class="brief-block">
+      <div class="bb-head"><div class="bb-icon">✦</div><div class="bb-lbl">Structural brief</div><div class="bb-sub">Editor to journalist</div></div>
+      <div class="bb-txt" id="bb-txt">—</div>
     </div>
-    <div class="bb-text" id="bb-brief-text">—</div>
-  </div>
-
-  <!-- FOOTER -->
-  <div class="rc-footer">
-    <div class="footer-note">Analysis reflects structural patterns — not editorial judgement about the journalism itself.</div>
-    <button class="abtn" id="copy-btn" onclick="copyAnalysis()">Copy card</button>
-    <button class="abtn" onclick="saveToHistory()">Save</button>
-    <button class="abtn primary" onclick="resetForm()">Analyze another ↗</button>
+    <div class="rc-footer">
+      <div class="fn">Analysis reflects structural patterns — not editorial judgement about the journalism itself.</div>
+      <button class="abtn" id="copy-btn" onclick="copyCard()">Copy card</button>
+      <button class="abtn" id="save-btn" onclick="saveHist()">Save</button>
+      <button class="abtn primary" onclick="reset()">Analyze another ↗</button>
+    </div>
   </div>
 </div>
 
-</div><!-- /section-analyze -->
-
-<!-- ══════════════════════════════════════
-     HISTORY SECTION
-══════════════════════════════════════ -->
-<div id="section-history" style="display:none">
-  <div class="hero" style="padding-top:34px;">
+<!-- HISTORY -->
+<div id="sec-history" style="display:none">
+  <div class="hero" style="padding-top:32px;">
     <div class="eyebrow"><div class="pdot"></div> Past analyses</div>
     <h1>Analysis <em>History</em></h1>
-    <p>Click any entry to view the full DNA card again.</p>
+    <p>Click any entry to view the full card again.</p>
   </div>
-  <div id="hist-empty" style="text-align:center;padding:48px 20px;color:var(--soft);font-size:13px;">No analyses saved yet — analyze a piece and hit Save.</div>
+  <div id="hist-empty" style="text-align:center;padding:44px 20px;color:var(--soft);font-size:13px;">No saved analyses yet — analyze an article and hit Save.</div>
   <div id="hist-list"></div>
 </div>
 
 </div><!-- /wrap -->
 
 <script>
-// ─── STATE ────────────────────────────────────────────────────────────────────
-var currentType='web';
-var currentPlatform='Instagram';
-var currentVideoPlatform='YouTube';
-var history=[];
-var lastAnalysis=null;
-
-// ─── TYPE / PLATFORM ─────────────────────────────────────────────────────────
-function setType(t){
-  currentType=t;
-  ['web','social','video'].forEach(x=>{
-    document.getElementById('type-'+x).classList.toggle('on',x===t);
-    document.getElementById('inputs-'+x).style.display=x===t?'block':'none';
-  });
-}
-
-function setPlatform(el,name,rowId){
-  const row=rowId||'platform-row';
-  document.querySelectorAll('#'+row+' .pchip').forEach(c=>c.classList.remove('on'));
-  el.classList.add('on');
-  if(rowId==='video-platform-row') currentVideoPlatform=name;
-  else currentPlatform=name;
-}
-
-// ─── ANALYSIS RUNNER ─────────────────────────────────────────────────────────
-var loadingMessages=[
-  ['Reading the opening move…','Identifying hook type and transition'],
-  ['Extracting the angle…','Testing for shift, revelation, contradiction, consequence'],
-  ['Mapping source architecture…','Assigning source functions and identifying gaps'],
-  ['Testing the evidence ladder…','Checking claim-to-evidence bridges'],
-  ['Measuring pacing zones…','Locating opening move, depth, anchor, complication, resolution'],
-  ['Identifying format fingerprint…','Matching structure to declared vs actual format'],
-  ['Composing structural brief…','Writing the editor-to-journalist brief'],
+var hist=[], last=null;
+var stages=[
+  ['Reading the opening move…','Identifying hook type and forward momentum'],
+  ['Extracting the angle…','Shift, revelation, contradiction, or consequence'],
+  ['Mapping source architecture…','Assigning source functions, finding gaps'],
+  ['Testing the evidence ladder…','Claim-to-evidence bridges'],
+  ['Measuring pacing zones…','Opening, depth, anchor, complication, resolution'],
+  ['Identifying format fingerprint…','Actual vs declared format'],
 ];
-var loadingIdx=0, loadingTimer=null;
+var sIdx=0, sTimer=null;
 
-async function runAnalysis(){
-  // Collect inputs
-  let content='', meta={};
+function updateCount(){
+  const w=document.getElementById('article').value.trim().split(/\s+/).filter(Boolean).length;
+  const el=document.getElementById('wcount');
+  el.textContent=w+' words';
+  el.className='wcount'+(w>800?' warn':w>=100?' ok':'');
+}
 
-  if(currentType==='web'){
-    const url=document.getElementById('web-url').value.trim();
-    const text=document.getElementById('web-text').value.trim();
-    const pub=document.getElementById('web-pub').value.trim();
-    const fmt=document.getElementById('web-format').value;
-    if(!url&&!text){alert('Please paste a URL or article text.');return;}
-    content=text||`Article URL: ${url}`;
-    meta={type:'web',pub:pub||'Unknown publication',format:fmt||'',url};
-  } else if(currentType==='social'){
-    const text=document.getElementById('social-text').value.trim();
-    const account=document.getElementById('social-account').value.trim();
-    const url=document.getElementById('social-url').value.trim();
-    if(!text){alert('Please paste the social media post text.');return;}
-    content=text;
-    meta={type:'social',platform:currentPlatform,account:account||'Unknown',url};
-  } else {
-    const url=document.getElementById('video-url').value.trim();
-    const title=document.getElementById('video-title').value.trim();
-    const desc=document.getElementById('video-desc').value.trim();
-    const channel=document.getElementById('video-channel').value.trim();
-    if(!url&&!title&&!desc){alert('Please paste a video URL, title, or description.');return;}
-    content=`Title: ${title}\n\nDescription/Transcript:\n${desc}\n\nURL: ${url}`;
-    meta={type:'video',platform:currentVideoPlatform,channel:channel||'Unknown',url,title};
-  }
+function setStage(){
+  const s=stages[sIdx];
+  document.getElementById('lstage').textContent=s[0];
+  document.getElementById('lsub').textContent=s[1];
+}
 
-  // Show loading
+async function run(){
+  const articleFull=document.getElementById('article').value.trim();
+  if(!articleFull){alert('Please paste an article.');return;}
+
+  // Hard cap at 600 words to avoid timeouts
+  const words=articleFull.split(/\s+/);
+  const article=words.slice(0,600).join(' ');
+  const wasTruncated=words.length>600;
+
+  const pub=document.getElementById('pub').value.trim();
+  const fmt=document.getElementById('fmt').value;
+
   document.getElementById('loading-card').style.display='block';
   document.getElementById('result-card').style.display='none';
   document.getElementById('analyze-btn').disabled=true;
-  loadingIdx=0;
-  updateLoadingStage();
-  loadingTimer=setInterval(()=>{loadingIdx=(loadingIdx+1)%loadingMessages.length;updateLoadingStage();},2000);
+  sIdx=0; setStage();
+  sTimer=setInterval(()=>{sIdx=(sIdx+1)%stages.length;setStage();},2200);
 
-  // Build prompt
-  const prompt=buildPrompt(content,meta);
+  // Lean system prompt — precise JSON schema, minimal description
+  const system=`You are a journalism structural analyst using the DNA framework (Depth, Narrative, Architecture). Analyze the article and return ONLY a valid JSON object — no markdown fences, no text before or after, just the JSON.
+
+{"title":"headline text","verdict":"Strong|Partial|Weak","verdictReason":"one sentence","scores":[{"label":"Angle clarity","val":"one word","sub":"brief detail","color":"green|amber|flame"},{"label":"Source depth","val":"one word","sub":"brief detail","color":"green|amber|flame"},{"label":"Critical gap","val":"one word","sub":"brief detail","color":"green|amber|flame"}],"layers":[{"num":1,"name":"Opening Move","color":"#FF5400","type":"Scene|Paradox|Direct claim|Protagonist in motion|The gap|Statistic","finding":"one line","status":"ok|warn|gap","analysis":"2 sentences","gap":"one sentence or empty string","pacingZones":null},{"num":2,"name":"Angle","color":"#6d5abd","type":"Revelation|Shift|Contradiction|Consequence","finding":"one line","status":"ok|warn|gap","analysis":"2 sentences","gap":"one sentence or empty string","pacingZones":null},{"num":3,"name":"Source Architecture","color":"#24506A","type":"brief label","finding":"one line","status":"ok|warn|gap","analysis":"2 sentences","gap":"one sentence or empty string","pacingZones":null},{"num":4,"name":"Evidence Ladder","color":"#1f7a45","type":"Deductive|Inductive|Circumstantial|Testimonial","finding":"one line","status":"ok|warn|gap","analysis":"2 sentences","gap":"one sentence or empty string","pacingZones":null},{"num":5,"name":"Pacing Architecture","color":"#b07d00","type":"X of 5 zones","finding":"one line","status":"ok|warn|gap","analysis":"2 sentences","gap":"one sentence or empty string","pacingZones":{"om":true,"fd":true,"ha":false,"co":false,"ri":true}},{"num":6,"name":"Format Fingerprint","color":"#e8593c","type":"actual format name","finding":"one line","status":"ok|warn|gap","analysis":"2 sentences","gap":"one sentence or empty string","pacingZones":null}],"brief":"80 words max, editor to journalist, specific and direct","formatActual":"what it structurally is","formatDeclared":"what it claims to be"}`;
+
+  const user=`Analyze this article${pub?' from '+pub:''}${fmt?' (declared: '+fmt+')':''}${wasTruncated?' [first 600 words only]':''}:\n\n${article}`;
 
   try{
     const res=await fetch('/api/analyze',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        system:`You are a journalism structural analyst. Analyze the given content using the DNA framework (Depth, Narrative, Architecture) across six layers.
-
-Return ONLY valid JSON, no markdown:
-{
-  "title": "content title",
-  "verdict": "Strong|Partial|Weak",
-  "verdictReason": "one sentence",
-  "scores": [
-    {"label":"Angle clarity","val":"word","sub":"detail","color":"green|amber|flame"},
-    {"label":"Source depth","val":"word","sub":"detail","color":"green|amber|flame"},
-    {"label":"Critical gap","val":"word","sub":"detail","color":"green|amber|flame"}
-  ],
-  "layers": [
-    {"num":1,"name":"Opening Move","color":"#FF5400","type":"type","finding":"one line","status":"ok|warn|gap|na","analysis":"2-3 sentences","gap":"gap or empty","na":"","pacingZones":null},
-    {"num":2,"name":"Angle","color":"#6d5abd","type":"type","finding":"one line","status":"ok|warn|gap|na","analysis":"2-3 sentences","gap":"","na":"","pacingZones":null},
-    {"num":3,"name":"Source Architecture","color":"#24506A","type":"type","finding":"one line","status":"ok|warn|gap|na","analysis":"2-3 sentences","gap":"","na":"","pacingZones":null},
-    {"num":4,"name":"Evidence Ladder","color":"#1f7a45","type":"type","finding":"one line","status":"ok|warn|gap|na","analysis":"2-3 sentences","gap":"","na":"","pacingZones":null},
-    {"num":5,"name":"Pacing Architecture","color":"#b07d00","type":"type","finding":"one line","status":"ok|warn|gap|na","analysis":"2-3 sentences","gap":"","na":"","pacingZones":{"om":true,"fd":true,"ha":false,"co":false,"ri":true}},
-    {"num":6,"name":"Format Fingerprint","color":"#e8593c","type":"type","finding":"one line","status":"ok|warn|gap|na","analysis":"2-3 sentences","gap":"","na":"","pacingZones":null}
-  ],
-  "brief": "100 words max, editor to journalist tone",
-  "comparison": [
-    {"label":"Library match","val":"—","sub":""},
-    {"label":"Topic category","val":"—","sub":""},
-    {"label":"Format match","val":"—","sub":""},
-    {"label":"Key pattern","val":"—","sub":""}
-  ],
-  "adaptNote": "",
-  "formatActual": "actual format",
-  "formatDeclared": "declared format"
-}`,
-        messages:[{role:'user',content:prompt}]
-      })
+      body:JSON.stringify({system,messages:[{role:'user',content:user}]})
     });
 
-    const data=await res.json();
-    clearInterval(loadingTimer);
+    const rawText=await res.text();
+    clearInterval(sTimer);
     document.getElementById('loading-card').style.display='none';
     document.getElementById('analyze-btn').disabled=false;
 
-    const raw=data.content&&data.content[0]&&data.content[0].text?data.content[0].text:'';
-    const cleaned=raw.replace(/```json|```/g,'').trim();
-    const parsed=JSON.parse(cleaned);
-    lastAnalysis={parsed,meta,content,timestamp:new Date()};
-    renderResult(parsed,meta);
-
-  } catch(err){
-    clearInterval(loadingTimer);
-    document.getElementById('loading-card').style.display='none';
-    document.getElementById('analyze-btn').disabled=false;
-    alert('Analysis error: '+err.message+'\n\nCheck your connection and try again.');
-  }
-}
-
-function buildPrompt(content,meta){
-  const typeDesc={
-    web:'a published web article',
-    social:`a ${meta.platform} social media post`,
-    video:`a ${meta.platform} video`
-  }[meta.type]||'published content';
-
-  return `Analyze this ${typeDesc} using the DNA framework (Depth, Narrative, Architecture) across six structural layers.
-
-Content type: ${meta.type}
-${meta.pub?'Publication: '+meta.pub:''}${meta.platform?'Platform: '+meta.platform:''}${meta.format?'Declared format: '+meta.format:''}
-
-CONTENT TO ANALYZE:
-${content}
-
-Important notes:
-- For social media posts: Layers 3 (Source Architecture), 4 (Evidence Ladder), and 5 (Pacing) are often N/A or heavily abbreviated — mark them as such with explanation
-- For videos with limited transcript: note the limitation and analyze what is available
-- For web articles: apply all six layers fully
-- The analysis should be observational — what is there, what is absent, what the structure implies
-- Be specific and reference actual content where possible
-- The structural brief should be written as an editor to a journalist for future improvement`;
-}
-
-function updateLoadingStage(){
-  const m=loadingMessages[loadingIdx];
-  document.getElementById('loading-stage').textContent=m[0];
-  document.getElementById('loading-sub').textContent=m[1];
-}
-
-// ─── RENDER ──────────────────────────────────────────────────────────────────
-function renderResult(d,meta){
-  // Type badge
-  const badgeClass={web:'ctb-web',social:'ctb-social',video:'ctb-video'}[meta.type]||'ctb-web';
-  const badgeIcon={web:'📰',social:'📱',video:'🎬'}[meta.type]||'📰';
-  const badgeLabel={web:meta.pub||'Web article',social:currentPlatform+' post',video:meta.platform+' video'}[meta.type]||'Content';
-  document.getElementById('rc-type-badge').innerHTML=`<div class="content-type-badge ${badgeClass}">${badgeIcon} ${badgeLabel}</div>`;
-
-  // Title
-  document.getElementById('rc-title').textContent=d.title||'Analyzed content';
-
-  // Meta pills
-  const verdictClass={'Strong':'vp-strong','Partial':'vp-partial','Weak':'vp-weak'}[d.verdict]||'vp-partial';
-  const ts=new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
-  document.getElementById('rc-meta').innerHTML=`
-    <span class="meta-pill">${{web:'Article',social:'Social post',video:'Video'}[meta.type]}</span>
-    ${d.formatActual?`<span class="meta-pill">${d.formatActual}</span>`:''}
-    <span class="meta-pill">${ts}</span>
-    <span class="verdict-pill ${verdictClass}">${d.verdict} — ${d.verdictReason}</span>`;
-
-  // Scores
-  const colorMap={green:'var(--green)',amber:'var(--amber,#b07d00)',flame:'var(--flame)'};
-  document.getElementById('score-row').innerHTML=(d.scores||[]).map(s=>`
-    <div class="score-cell">
-      <div class="score-label">${s.label}</div>
-      <div class="score-val" style="color:${colorMap[s.color]||'var(--teal)'}">${s.val}</div>
-      <div class="score-sub">${s.sub}</div>
-    </div>`).join('');
-
-  // Layers
-  const lc=document.getElementById('layers-container');
-  lc.innerHTML='';
-  (d.layers||[]).forEach((layer,i)=>{
-    const statusClass={ok:'ls-ok',warn:'ls-warn',gap:'ls-gap',na:'ls-na'}[layer.status]||'ls-warn';
-    const div=document.createElement('div');
-    div.className='layer-block';
-    div.style.animationDelay=(i*55)+'ms';
-
-    let bodyContent='';
-    if(layer.status==='na'){
-      bodyContent=`
-        <div>
-          <div class="lbd-label">Layer status</div>
-          <div class="na-box"><div class="na-text">${layer.na||'Not applicable for this content type.'}</div></div>
-        </div>
-        <div></div>`;
-    } else {
-      // Pacing viz for layer 5
-      const pacingViz=layer.num===5&&layer.pacingZones?`
-        <div style="margin-top:8px;">
-          <div style="font-size:9px;font-weight:600;color:var(--soft);margin-bottom:5px;">Pacing zones identified</div>
-          <div class="pacing-viz">
-            <div class="pz ${layer.pacingZones.om?'':'pz-absent'}" style="background:var(--flame);flex:1">OM</div>
-            <div class="pz ${layer.pacingZones.fd?'':'pz-absent'}" style="background:var(--teal2);flex:3">DEPTH</div>
-            <div class="pz ${layer.pacingZones.ha?'':'pz-absent'}" style="background:var(--amber,#b07d00);flex:1.5">HA</div>
-            <div class="pz ${layer.pacingZones.co?'':'pz-absent'}" style="background:var(--purple,#6d5abd);flex:1.5">CO</div>
-            <div class="pz ${layer.pacingZones.ri?'':'pz-absent'}" style="background:var(--green);flex:1">RES</div>
-          </div>
-          <div style="display:flex;gap:10px;margin-top:4px;"><span style="font-size:9px;color:var(--soft)">■ Present</span><span style="font-size:9px;color:var(--flame)">□ Absent</span></div>
-        </div>`:'';
-
-      bodyContent=`
-        <div>
-          <div class="lbd-label">What was found</div>
-          <div class="finding-box"><div class="fb-text">${layer.analysis||'—'}${pacingViz}</div></div>
-        </div>
-        <div>
-          <div class="lbd-label">${layer.gap?'Structural gap':'Status'}</div>
-          ${layer.gap
-            ?`<div class="gap-box"><div class="gap-label">Gap identified</div><div class="gap-text">${layer.gap}</div></div>`
-            :`<div class="finding-box"><div class="fb-text" style="color:var(--green)">✓ ${layer.status==='ok'?'No significant structural gap identified for this layer.':'Functioning — minor observations noted above.'}</div></div>`
-          }
-        </div>`;
+    // Handle HTTP errors from the proxy
+    if(!res.ok){
+      let msg=rawText;
+      try{msg=JSON.parse(rawText).error||rawText;}catch(e){}
+      alert('API error ('+res.status+'): '+msg.substring(0,400));
+      return;
     }
 
-    div.innerHTML=`
-      <div class="lb-head" onclick="toggleLayer(this)">
-        <div class="lb-num" style="background:${layer.color}">${layer.num}</div>
-        <div>
-          <div class="lb-name">${layer.name}</div>
-          <div class="lb-finding">${layer.finding||'—'}</div>
-        </div>
-        <div class="lb-type">${layer.type||'—'}</div>
-        <div class="lb-status ${statusClass}"></div>
-        <div class="lb-chevron">▾</div>
-      </div>
-      <div class="lb-body">${bodyContent}</div>`;
-    lc.appendChild(div);
-  });
+    // Parse proxy response
+    let proxyData;
+    try{proxyData=JSON.parse(rawText);}
+    catch(e){alert('Proxy returned invalid response:\n\n'+rawText.substring(0,300));return;}
 
-  // Brief (tab)
-  document.getElementById('brief-text').innerHTML=`<div style="font-family:var(--serif);font-size:13.5px;color:var(--teal);line-height:1.82;font-style:italic;">${d.brief||'—'}</div>`;
+    // Extract Claude's text
+    const claudeText=(proxyData.content&&proxyData.content[0]&&proxyData.content[0].text)||'';
+    if(!claudeText){alert('Empty response from Claude. Try a shorter article (under 400 words).');return;}
 
-  // Brief (main block)
-  document.getElementById('bb-brief-text').innerHTML=d.brief||'—';
+    // Extract JSON — Claude sometimes wraps in backticks despite instructions
+    let jsonStr=claudeText.trim();
+    // Try to find a JSON object if there's surrounding text
+    const match=jsonStr.match(/\{[\s\S]*\}/);
+    if(match)jsonStr=match[0];
 
-  // Comparison
-  document.getElementById('compare-grid').innerHTML=(d.comparison||[]).map(c=>`
-    <div class="cmp-card">
-      <div class="cmp-label">${c.label}</div>
-      <div class="cmp-val">${c.val}</div>
-      <div class="cmp-sub">${c.sub}</div>
+    let parsed;
+    try{parsed=JSON.parse(jsonStr);}
+    catch(e){
+      // Last attempt: sometimes trailing content breaks it — try finding balanced braces
+      alert('Could not parse Claude\'s response as JSON.\n\nRaw (first 500 chars):\n'+claudeText.substring(0,500));
+      return;
+    }
+
+    last={parsed,pub,fmt,ts:new Date()};
+    render(parsed,pub,fmt);
+
+  }catch(err){
+    clearInterval(sTimer);
+    document.getElementById('loading-card').style.display='none';
+    document.getElementById('analyze-btn').disabled=false;
+    alert('Network error: '+err.message);
+  }
+}
+
+function render(d,pub,fmt){
+  const vpClass={'Strong':'vp-strong','Partial':'vp-partial','Weak':'vp-weak'}[d.verdict]||'vp-partial';
+  document.getElementById('verdict-pill').innerHTML=`<div class="vp ${vpClass}">${d.verdict||'—'} — ${d.verdictReason||''}</div>`;
+  document.getElementById('rc-title').textContent=d.title||'Analyzed article';
+  const ts=new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+  document.getElementById('rc-meta').innerHTML=
+    `${pub?`<span class="mp">${pub}</span>`:''}${d.formatActual?`<span class="mp">${d.formatActual}</span>`:''}<span class="mp">${ts}</span>`;
+
+  const cmap={green:'var(--green)',amber:'var(--amber,#b07d00)',flame:'var(--flame)'};
+  document.getElementById('score-row').innerHTML=(d.scores||[]).map(s=>`
+    <div class="sc">
+      <div class="sc-label">${s.label}</div>
+      <div class="sc-val" style="color:${cmap[s.color]||'var(--teal)'}">${s.val}</div>
+      <div class="sc-sub">${s.sub}</div>
     </div>`).join('');
 
-  // Adapt note
-  const an=document.getElementById('adapt-note');
-  if(d.adaptNote){
-    document.getElementById('adapt-note-text').textContent=d.adaptNote;
-    an.style.display='block';
-  } else {
-    an.style.display='none';
-  }
+  const lw=document.getElementById('layers-wrap');
+  lw.innerHTML='';
+  (d.layers||[]).forEach((l,i)=>{
+    const sc={ok:'ld-ok',warn:'ld-warn',gap:'ld-gap'}[l.status]||'ld-warn';
+    const pv=l.num===5&&l.pacingZones?`
+      <div style="margin-top:7px;">
+        <div style="font-size:9px;font-weight:600;color:var(--soft);margin-bottom:4px;">Zones identified</div>
+        <div class="pacing-viz">
+          <div class="pz ${l.pacingZones.om?'':'pz-absent'}" style="background:var(--flame);flex:1">OM</div>
+          <div class="pz ${l.pacingZones.fd?'':'pz-absent'}" style="background:var(--teal2);flex:3">DEPTH</div>
+          <div class="pz ${l.pacingZones.ha?'':'pz-absent'}" style="background:#b07d00;flex:1.5">HA</div>
+          <div class="pz ${l.pacingZones.co?'':'pz-absent'}" style="background:var(--purple);flex:1.5">CO</div>
+          <div class="pz ${l.pacingZones.ri?'':'pz-absent'}" style="background:var(--green);flex:1">RES</div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:3px;">
+          <span style="font-size:9px;color:var(--soft)">■ Present</span>
+          <span style="font-size:9px;color:var(--flame)">□ Absent</span>
+        </div>
+      </div>`:'';
+    const div=document.createElement('div');
+    div.className='layer-block';
+    div.style.animationDelay=(i*50)+'ms';
+    div.innerHTML=`
+      <div class="lb-head" onclick="tog(this)">
+        <div class="lb-num" style="background:${l.color}">${l.num}</div>
+        <div>
+          <div class="lb-name">${l.name}</div>
+          <div class="lb-finding">${l.finding||'—'}</div>
+        </div>
+        <div class="lb-type">${l.type||'—'}</div>
+        <div class="lb-dot ${sc}"></div>
+        <div class="lb-chev">▾</div>
+      </div>
+      <div class="lb-body">
+        <div>
+          <div class="lbd-lbl">What was found</div>
+          <div class="f-box"><div class="f-txt">${l.analysis||'—'}${pv}</div></div>
+        </div>
+        <div>
+          <div class="lbd-lbl">${l.gap?'Structural gap':'Status'}</div>
+          ${l.gap
+            ?`<div class="gap-box"><div class="gap-lbl">Gap identified</div><div class="gap-txt">${l.gap}</div></div>`
+            :`<div class="f-box"><div class="f-txt" style="color:var(--green)">✓ No significant gap identified for this layer.</div></div>`}
+        </div>
+      </div>`;
+    lw.appendChild(div);
+  });
 
-  // Show
+  document.getElementById('brief-tab').textContent=d.brief||'—';
+  document.getElementById('bb-txt').textContent=d.brief||'—';
   document.getElementById('result-card').style.display='block';
   document.getElementById('result-card').scrollIntoView({behavior:'smooth',block:'start'});
+  document.getElementById('copy-btn').textContent='Copy card';
+  document.getElementById('copy-btn').classList.remove('done');
+  document.getElementById('save-btn').textContent='Save';
+  document.getElementById('save-btn').classList.remove('done');
 }
 
-function toggleLayer(head){
-  const body=head.nextElementSibling;
-  const chev=head.querySelector('.lb-chevron');
-  const open=body.classList.contains('open');
-  body.classList.toggle('open',!open);
-  if(chev)chev.classList.toggle('open',!open);
+function tog(head){
+  const b=head.nextElementSibling,c=head.querySelector('.lb-chev'),o=b.classList.contains('open');
+  b.classList.toggle('open',!o);if(c)c.classList.toggle('open',!o);
 }
-
 function switchTab(name,el){
-  document.querySelectorAll('.rc-tab').forEach(t=>t.classList.remove('on'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
   document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('on'));
-  el.classList.add('on');
-  document.getElementById('tab-'+name).classList.add('on');
+  el.classList.add('on');document.getElementById('tab-'+name).classList.add('on');
 }
-
-// ─── COPY / SAVE / HISTORY ───────────────────────────────────────────────────
-function copyAnalysis(){
-  if(!lastAnalysis)return;
-  const d=lastAnalysis.parsed;
-  const m=lastAnalysis.meta;
-  let text=`DNA ANALYSIS CARD\n${d.title}\n${new Date().toLocaleDateString()}\nVerdict: ${d.verdict} — ${d.verdictReason}\n\n`;
-  (d.layers||[]).forEach(l=>{text+=`LAYER ${l.num} — ${l.name} [${l.type}]\n${l.finding}\n${l.analysis}\n${l.gap?'GAP: '+l.gap:''}\n\n`;});
-  text+=`STRUCTURAL BRIEF:\n${d.brief}`;
-  navigator.clipboard.writeText(text).then(()=>{
+function copyCard(){
+  if(!last)return;
+  const d=last.parsed;
+  let t=`DNA ANALYSIS\n${d.title}\nVerdict: ${d.verdict} — ${d.verdictReason}\n\n`;
+  (d.layers||[]).forEach(l=>{t+=`L${l.num} ${l.name} [${l.type}]\n${l.finding}\n${l.analysis}\n${l.gap?'Gap: '+l.gap:''}\n\n`;});
+  t+=`Brief:\n${d.brief}`;
+  navigator.clipboard.writeText(t).then(()=>{
     const b=document.getElementById('copy-btn');
     b.textContent='Copied ✓';b.classList.add('done');
-    setTimeout(()=>{b.textContent='Copy card';b.classList.remove('done');},2500);
+    setTimeout(()=>{b.textContent='Copy card';b.classList.remove('done');},2400);
   });
 }
-
-function saveToHistory(){
-  if(!lastAnalysis)return;
-  const d=lastAnalysis.parsed;
-  const m=lastAnalysis.meta;
-  history.unshift({d,m,ts:new Date(),id:Date.now()});
-  renderHistory();
-  const hb=document.getElementById('hist-badge');
-  hb.style.display='inline';hb.textContent=history.length;
-  const b=document.querySelector('.rc-footer .abtn:nth-child(2)');
-  if(b){b.textContent='Saved ✓';b.classList.add('done');setTimeout(()=>{b.textContent='Save';b.classList.remove('done');},2000);}
+function saveHist(){
+  if(!last)return;
+  hist.unshift({...last,id:Date.now()});
+  renderHist();
+  const hb=document.getElementById('hbadge');
+  hb.style.display='inline';hb.textContent=hist.length;
+  const b=document.getElementById('save-btn');
+  b.textContent='Saved ✓';b.classList.add('done');
+  setTimeout(()=>{b.textContent='Save';b.classList.remove('done');},2000);
 }
-
-function renderHistory(){
-  const list=document.getElementById('hist-list');
-  const empty=document.getElementById('hist-empty');
-  const icons={web:'📰',social:'📱',video:'🎬'};
-  if(!history.length){empty.style.display='block';list.innerHTML='';return;}
+function renderHist(){
+  const list=document.getElementById('hist-list'),empty=document.getElementById('hist-empty');
+  if(!hist.length){empty.style.display='block';list.innerHTML='';return;}
   empty.style.display='none';
-  list.innerHTML=history.map((h,i)=>`
-    <div class="hist-item" onclick="loadHistory(${i})">
-      <div class="hist-icon" style="background:rgba(26,57,72,0.07)">${icons[h.m.type]||'📄'}</div>
-      <div class="hist-body">
-        <div class="hist-title">${h.d.title||'Untitled'}</div>
-        <div class="hist-meta">${h.ts.toLocaleDateString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})} · ${h.m.pub||h.m.platform||h.m.channel||'Unknown'}</div>
-        <div class="hist-tags">
-          <span class="htag">${h.d.verdict}</span>
-          <span class="htag">${h.m.type}</span>
-          ${h.d.formatActual?`<span class="htag">${h.d.formatActual}</span>`:''}
+  list.innerHTML=hist.map((h,i)=>`
+    <div class="hist-item" onclick="loadHist(${i})">
+      <div class="hi-icon">📰</div>
+      <div class="hi-body">
+        <div class="hi-title">${h.parsed.title||'Untitled'}</div>
+        <div class="hi-meta">${h.ts.toLocaleDateString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}${h.pub?' · '+h.pub:''}</div>
+        <div class="hi-tags">
+          <span class="htag">${h.parsed.verdict||'—'}</span>
+          ${h.parsed.formatActual?`<span class="htag">${h.parsed.formatActual}</span>`:''}
         </div>
       </div>
     </div>`).join('');
 }
-
-function loadHistory(i){
-  const h=history[i];
-  lastAnalysis={parsed:h.d,meta:h.m,timestamp:h.ts};
-  showSection('analyze');
-  setTimeout(()=>{renderResult(h.d,h.m);},100);
-}
-
-function resetForm(){
+function loadHist(i){last=hist[i];showSec('analyze');setTimeout(()=>render(hist[i].parsed,hist[i].pub,hist[i].fmt),80);}
+function reset(){
   document.getElementById('result-card').style.display='none';
-  document.getElementById('web-url').value='';
-  document.getElementById('web-text').value='';
+  document.getElementById('article').value='';
+  document.getElementById('wcount').textContent='0 words';
   window.scrollTo({top:0,behavior:'smooth'});
 }
-
-function showSection(s){
-  document.getElementById('section-analyze').style.display=s==='analyze'?'block':'none';
-  document.getElementById('section-history').style.display=s==='history'?'block':'none';
-  document.querySelectorAll('.ntab').forEach((t,i)=>{
-    t.classList.toggle('on',i===(s==='analyze'?0:1));
-  });
+function showSec(s){
+  document.getElementById('sec-analyze').style.display=s==='analyze'?'block':'none';
+  document.getElementById('sec-history').style.display=s==='history'?'block':'none';
+  document.querySelectorAll('.ntab').forEach((t,i)=>t.classList.toggle('on',i===(s==='analyze'?0:1)));
 }
 </script>
 </body>
