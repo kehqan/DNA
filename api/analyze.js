@@ -22,7 +22,7 @@ module.exports = async function handler(req, res) {
 
   if (useWebSearch) {
     body.tools = [{ type: 'web_search_20250305', name: 'web_search' }];
-    body.max_tokens = 4000;
+    body.max_tokens = 8000;
   }
 
   try {
