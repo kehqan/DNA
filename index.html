@@ -161,11 +161,93 @@ textarea::placeholder,input::placeholder{color:var(--stone);}
 .hi-tags{display:flex;gap:4px;margin-top:4px;}
 .htag{font-size:9px;font-weight:600;padding:2px 6px;border-radius:100px;background:rgba(26,57,72,0.07);color:var(--teal2);}
 
+/* ── BIAS SECTION ── */
+.bias-toggle-row{display:flex;align-items:center;justify-content:space-between;margin-top:14px;padding:12px 16px;border-radius:12px;background:rgba(109,90,189,0.06);border:1px solid rgba(109,90,189,0.18);cursor:pointer;transition:all 180ms var(--eo);user-select:none;}
+.bias-toggle-row:hover{background:rgba(109,90,189,0.10);}
+.bt-left{display:flex;align-items:center;gap:10px;}
+.bt-icon{width:28px;height:28px;border-radius:8px;background:var(--purple);display:flex;align-items:center;justify-content:center;font-size:13px;}
+.bt-title{font-size:13px;font-weight:600;color:var(--purple);}
+.bt-sub{font-size:11px;color:var(--soft);margin-top:1px;}
+.bt-toggle{display:flex;align-items:center;gap:8px;}
+.toggle-switch{width:40px;height:22px;border-radius:100px;background:rgba(109,90,189,0.20);border:1px solid rgba(109,90,189,0.28);position:relative;transition:background 200ms;}
+.toggle-switch.on{background:var(--purple);border-color:var(--purple);}
+.toggle-knob{width:16px;height:16px;border-radius:50%;background:#fff;position:absolute;top:2px;left:2px;transition:left 200ms var(--eo);box-shadow:0 1px 4px rgba(0,0,0,0.20);}
+.toggle-switch.on .toggle-knob{left:20px;}
+.bt-label{font-size:11px;font-weight:600;color:var(--soft);}
+
+.bias-card{border-radius:22px;overflow:hidden;background:var(--glass);backdrop-filter:blur(28px) saturate(2);-webkit-backdrop-filter:blur(28px) saturate(2);border:1px solid rgba(109,90,189,0.22);box-shadow:var(--gs),var(--gi),0 24px 64px rgba(109,90,189,0.08);display:none;animation:rise 500ms var(--eo) both;margin-top:12px;}
+.bias-accent{height:4px;background:linear-gradient(90deg,#6d5abd 0%,#9b59b6 40%,#e8593c 100%);}
+.bias-header{padding:20px 24px 16px;border-bottom:1px solid rgba(109,90,189,0.14);}
+.bias-header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;}
+.bias-badge{display:inline-flex;align-items:center;gap:7px;background:rgba(109,90,189,0.84);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.14);border-radius:100px;padding:5px 14px 5px 8px;font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:rgba(248,247,246,0.92);}
+.bias-pdot{width:6px;height:6px;border-radius:50%;background:#c084fc;animation:pring 2.5s ease-in-out infinite;}
+
+/* BIAS METER */
+.bias-meter-wrap{padding:16px 24px;border-bottom:1px solid rgba(109,90,189,0.10);}
+.bm-label{font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:rgba(109,90,189,0.70);margin-bottom:10px;}
+.bm-scale{position:relative;height:28px;margin-bottom:8px;}
+.bm-track{position:absolute;top:50%;transform:translateY(-50%);left:0;right:0;height:6px;border-radius:100px;background:linear-gradient(90deg,#2563eb 0%,#60a5fa 22%,#e2e8f0 50%,#fca5a5 78%,#dc2626 100%);opacity:0.25;}
+.bm-track-active{position:absolute;top:50%;transform:translateY(-50%);left:0;right:0;height:6px;border-radius:100px;background:linear-gradient(90deg,#2563eb 0%,#60a5fa 22%,#94a3b8 50%,#fca5a5 78%,#dc2626 100%);}
+.bm-labels{display:flex;justify-content:space-between;font-size:9px;font-weight:600;color:var(--soft);}
+.bm-labels span:first-child{color:#2563eb;}
+.bm-labels span:last-child{color:#dc2626;}
+.bm-needle{position:absolute;top:50%;width:18px;height:18px;border-radius:50%;background:#fff;border:3px solid var(--purple);box-shadow:0 2px 8px rgba(109,90,189,0.40);transform:translate(-50%,-50%);transition:left 600ms var(--eo);z-index:2;}
+.bm-verdict{font-family:var(--serif);font-size:14px;color:var(--teal);margin-top:6px;font-style:italic;}
+
+/* BIAS DIMENSIONS */
+.bias-dims{padding:16px 24px;display:flex;flex-direction:column;gap:8px;border-bottom:1px solid rgba(109,90,189,0.10);}
+.bdim{border-radius:12px;overflow:hidden;border:1px solid rgba(109,90,189,0.14);background:rgba(255,255,255,0.38);transition:background 180ms;}
+.bdim:hover{background:rgba(255,255,255,0.55);}
+.bdim-head{display:grid;grid-template-columns:28px 1fr auto auto 16px;align-items:center;gap:8px;padding:10px 13px;cursor:pointer;}
+.bdim-icon{width:24px;height:24px;border-radius:7px;background:rgba(109,90,189,0.12);display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;}
+.bdim-name{font-size:11px;font-weight:700;color:var(--teal);}
+.bdim-finding{font-size:11px;color:var(--muted);margin-top:1px;}
+.bias-level{font-size:9px;font-weight:700;padding:2px 8px;border-radius:100px;white-space:nowrap;flex-shrink:0;}
+.bl-none{background:rgba(31,122,69,0.10);color:var(--green);border:1px solid rgba(31,122,69,0.20);}
+.bl-low{background:rgba(255,192,71,0.14);color:var(--amber);border:1px solid rgba(255,192,71,0.24);}
+.bl-medium{background:rgba(255,84,0,0.10);color:var(--flame);border:1px solid rgba(255,84,0,0.20);}
+.bl-high{background:rgba(220,38,38,0.10);color:#dc2626;border:1px solid rgba(220,38,38,0.22);}
+.bdim-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.bdd-none{background:var(--green);}
+.bdd-low{background:var(--honey);}
+.bdd-medium{background:var(--flame);}
+.bdd-high{background:#dc2626;}
+.bdim-chev{font-size:9px;color:var(--stone);transition:transform 200ms var(--eo);}
+.bdim-chev.open{transform:rotate(180deg);}
+.bdim-body{display:none;border-top:1px solid rgba(109,90,189,0.08);padding:12px 14px;background:rgba(109,90,189,0.03);}
+.bdim-body.open{display:block;animation:fadeIn 200ms var(--eo) both;}
+.db-analysis{font-size:12px;color:var(--teal2);line-height:1.65;margin-bottom:8px;}
+.db-examples{display:flex;flex-direction:column;gap:4px;}
+.db-ex{font-size:11px;padding:6px 10px;border-radius:7px;border-left:3px solid rgba(109,90,189,0.30);background:rgba(109,90,189,0.05);color:var(--teal2);line-height:1.5;font-style:italic;}
+.db-ex strong{font-style:normal;color:var(--purple);font-size:10px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;}
+
+/* BIAS WORDS */
+.bias-words-section{padding:14px 24px;border-bottom:1px solid rgba(109,90,189,0.10);}
+.bw-label{font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:rgba(109,90,189,0.70);margin-bottom:8px;}
+.bw-grid{display:flex;flex-wrap:wrap;gap:6px;}
+.bw-pill{font-size:11px;font-weight:600;padding:4px 10px;border-radius:100px;display:flex;align-items:center;gap:5px;}
+.bwp-loaded{background:rgba(220,38,38,0.08);color:#dc2626;border:1px solid rgba(220,38,38,0.20);}
+.bwp-neutral{background:rgba(31,122,69,0.08);color:var(--green);border:1px solid rgba(31,122,69,0.18);}
+.bwp-absent{background:rgba(26,57,72,0.06);color:var(--soft);border:1px solid var(--border);}
+.bw-dot{width:5px;height:5px;border-radius:50%;}
+
+/* BIAS BRIEF */
+.bias-brief-block{margin:0 24px 18px;border-radius:14px;overflow:hidden;background:rgba(109,90,189,0.05);border:1px solid rgba(109,90,189,0.14);}
+.bbb-head{padding:9px 14px;border-bottom:1px solid rgba(109,90,189,0.10);display:flex;align-items:center;gap:7px;}
+.bbb-icon{width:18px;height:18px;border-radius:5px;background:var(--purple);display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;}
+.bbb-lbl{font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--purple);}
+.bbb-txt{padding:14px;font-family:var(--serif);font-size:13px;color:var(--teal);line-height:1.80;font-style:italic;}
+
+.bias-loading{border-radius:14px;padding:24px;background:rgba(109,90,189,0.88);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,0.12);text-align:center;display:none;animation:rise 300ms var(--eo) both;margin-top:12px;}
+.bias-spinner{width:28px;height:28px;border:2.5px solid rgba(255,255,255,0.15);border-top-color:#c084fc;border-radius:50%;animation:spin 800ms linear infinite;margin:0 auto 10px;}
+.bias-lstage{font-family:var(--serif);font-size:14px;color:rgba(248,247,246,0.90);font-style:italic;}
+
 @media(max-width:560px){
   .two-col,.lb-body.open,.score-row{grid-template-columns:1fr;}
   .sc{border-right:none;border-bottom:1px solid var(--border);}
   .sc:last-child{border-bottom:none;}
   .lb-type{display:none;}
+  .bdim-head{grid-template-columns:24px 1fr auto 14px;}
 }
 @media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important;}}
 </style>
@@ -216,6 +298,27 @@ textarea::placeholder,input::placeholder{color:var(--stone);}
       </div>
     </div>
     <button class="analyze-btn" id="analyze-btn" onclick="run()">✦ Analyze DNA</button>
+
+    <!-- BIAS TOGGLE -->
+    <div class="bias-toggle-row" onclick="toggleBias()">
+      <div class="bt-left">
+        <div class="bt-icon">⚖️</div>
+        <div>
+          <div class="bt-title">Bias Detection</div>
+          <div class="bt-sub">Framing · lexical · source · omission · headline bias analysis</div>
+        </div>
+      </div>
+      <div class="bt-toggle">
+        <span class="bt-label" id="bias-toggle-label">Off</span>
+        <div class="toggle-switch" id="bias-switch"><div class="toggle-knob"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BIAS LOADING -->
+  <div class="bias-loading" id="bias-loading">
+    <div class="bias-spinner"></div>
+    <div class="bias-lstage" id="bias-lstage">Scanning for framing bias…</div>
   </div>
 
   <!-- LOADING -->
@@ -257,6 +360,53 @@ textarea::placeholder,input::placeholder{color:var(--stone);}
       <button class="abtn primary" onclick="reset()">Analyze another ↗</button>
     </div>
   </div>
+  <!-- BIAS CARD -->
+  <div class="bias-card" id="bias-card">
+    <div class="bias-accent"></div>
+    <div class="bias-header">
+      <div class="bias-header-top">
+        <div class="bias-badge"><div class="bias-pdot"></div> Bias Analysis</div>
+        <div id="bias-overall-pill"></div>
+      </div>
+      <div class="rc-title" id="bias-title">—</div>
+    </div>
+
+    <!-- BIAS METER -->
+    <div class="bias-meter-wrap">
+      <div class="bm-label">Political / framing lean</div>
+      <div class="bm-scale">
+        <div class="bm-track-active"></div>
+        <div class="bm-needle" id="bm-needle" style="left:50%"></div>
+      </div>
+      <div class="bm-labels">
+        <span>← Pro-opposition / reform</span>
+        <span>Neutral</span>
+        <span>Pro-establishment →</span>
+      </div>
+      <div class="bm-verdict" id="bm-verdict">—</div>
+    </div>
+
+    <!-- DIMENSIONS -->
+    <div class="bias-dims" id="bias-dims"></div>
+
+    <!-- LOADED LANGUAGE -->
+    <div class="bias-words-section" id="bias-words-section" style="display:none">
+      <div class="bw-label">Lexically loaded words identified</div>
+      <div class="bw-grid" id="bw-grid"></div>
+    </div>
+
+    <!-- BIAS BRIEF -->
+    <div class="bias-brief-block">
+      <div class="bbb-head"><div class="bbb-icon">⚖</div><div class="bbb-lbl">Bias assessment</div></div>
+      <div class="bbb-txt" id="bias-brief-txt">—</div>
+    </div>
+
+    <div class="rc-footer">
+      <div class="fn">Bias detection surfaces patterns — it does not establish intent. Editorial judgement applies.</div>
+      <button class="abtn" id="bias-copy-btn" onclick="copyBias()">Copy assessment</button>
+    </div>
+  </div>
+
 </div>
 
 <!-- HISTORY -->
@@ -367,6 +517,10 @@ async function run(){
 
     last={parsed,pub,fmt,ts:new Date()};
     render(parsed,pub,fmt);
+    // If bias is on, run bias analysis after DNA
+    if(biasOn){
+      setTimeout(()=>runBias(article,pub),400);
+    }
 
   }catch(err){
     clearInterval(sTimer);
@@ -509,6 +663,193 @@ function showSec(s){
   document.getElementById('sec-analyze').style.display=s==='analyze'?'block':'none';
   document.getElementById('sec-history').style.display=s==='history'?'block':'none';
   document.querySelectorAll('.ntab').forEach((t,i)=>t.classList.toggle('on',i===(s==='analyze'?0:1)));
+}
+
+// ─── BIAS DETECTION ───────────────────────────────────────────────────────────
+var biasOn=false, lastBias=null;
+
+function toggleBias(){
+  biasOn=!biasOn;
+  const sw=document.getElementById('bias-switch');
+  const lbl=document.getElementById('bias-toggle-label');
+  sw.classList.toggle('on',biasOn);
+  lbl.textContent=biasOn?'On':'Off';
+  lbl.style.color=biasOn?'var(--purple)':'var(--soft)';
+}
+
+var biasStages=[
+  'Scanning for framing bias…',
+  'Analysing source balance…',
+  'Detecting loaded language…',
+  'Checking omissions…',
+  'Assessing headline alignment…',
+];
+var bStageIdx=0, bStageTimer=null;
+
+function setBiasStage(){
+  document.getElementById('bias-lstage').textContent=biasStages[bStageIdx];
+}
+
+async function runBias(articleText, pub){
+  document.getElementById('bias-loading').style.display='block';
+  document.getElementById('bias-card').style.display='none';
+  bStageIdx=0; setBiasStage();
+  bStageTimer=setInterval(()=>{bStageIdx=(bStageIdx+1)%biasStages.length;setBiasStage();},2000);
+
+  const system=`You are an expert media bias analyst. Analyze the article for bias across six dimensions. Return ONLY valid JSON — no markdown, no text before or after.
+
+{"overallLean":"Left|Centre-Left|Centre|Centre-Right|Right|Unclear","leanScore":50,"leanScoreNote":"one sentence describing the lean (0=far left, 100=far right, 50=neutral)","overallSeverity":"None|Low|Medium|High","dimensions":[{"id":"framing","icon":"🖼","name":"Framing Bias","level":"none|low|medium|high","finding":"one line","analysis":"2 sentences — what frame is used, whose perspective structures the narrative","examples":["specific phrase or choice from the article that shows this","second example or empty string"]},{"id":"source","icon":"👥","name":"Source Bias","level":"none|low|medium|high","finding":"one line","analysis":"2 sentences — which voices dominate, which are absent, whether balance reflects reality","examples":["specific sourcing choice","second example or empty string"]},{"id":"lexical","icon":"📝","name":"Lexical Bias","level":"none|low|medium|high","finding":"one line","analysis":"2 sentences — word choices carrying implicit valence","examples":["specific loaded word or phrase used","alternative neutral phrasing that could have been used"]},{"id":"omission","icon":"🚫","name":"Omission Bias","level":"none|low|medium|high","finding":"one line","analysis":"2 sentences — what facts, context, or perspectives are structurally absent","examples":["specific omitted perspective or fact","second example or empty string"]},{"id":"headline","icon":"📰","name":"Headline Bias","level":"none|low|medium|high","finding":"one line","analysis":"2 sentences — whether headline overstates, understates, or misrepresents the body","examples":["specific headline vs body discrepancy or empty string",""]},{"id":"uncertainty","icon":"❓","name":"Uncertainty Framing","level":"none|low|medium|high","finding":"one line","analysis":"2 sentences — whether doubt is applied equally to all sides or selectively","examples":["specific example of selective uncertainty","second example or empty string"]}],"loadedWords":[{"word":"exact word from article","type":"loaded|neutral-alternative","direction":"left|right|establishment|opposition"}],"brief":"100 words max — specific assessment of the overall bias pattern, written for an editor reviewing the piece"}`;
+
+  const words=articleText.split(/\s+/).slice(0,500).join(' ');
+  const user=`Analyze this article${pub?' from '+pub:''} for bias:
+
+${words}`;
+
+  try{
+    const res=await fetch('/api/analyze',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({system,messages:[{role:'user',content:user}]})
+    });
+
+    const rawText=await res.text();
+    clearInterval(bStageTimer);
+    document.getElementById('bias-loading').style.display='none';
+
+    if(!res.ok){
+      let msg=rawText;
+      try{msg=JSON.parse(rawText).error||rawText;}catch(e){}
+      alert('Bias API error ('+res.status+'): '+msg.substring(0,300));
+      return;
+    }
+
+    let proxyData;
+    try{proxyData=JSON.parse(rawText);}
+    catch(e){alert('Bias proxy error:
+'+rawText.substring(0,200));return;}
+
+    const claudeText=(proxyData.content&&proxyData.content[0]&&proxyData.content[0].text)||'';
+    if(!claudeText){alert('Empty bias response. Try again.');return;}
+
+    let jsonStr=claudeText.trim();
+    const match=jsonStr.match(/\{[\s\S]*\}/);
+    if(match)jsonStr=match[0];
+
+    let parsed;
+    try{parsed=JSON.parse(jsonStr);}
+    catch(e){alert('Could not parse bias result:
+'+claudeText.substring(0,400));return;}
+
+    lastBias=parsed;
+    renderBias(parsed);
+
+  }catch(err){
+    clearInterval(bStageTimer);
+    document.getElementById('bias-loading').style.display='none';
+    alert('Bias network error: '+err.message);
+  }
+}
+
+function renderBias(d){
+  // Overall pill
+  const sevColors={
+    'None':'background:rgba(31,122,69,0.10);color:var(--green);border:1px solid rgba(31,122,69,0.22)',
+    'Low':'background:rgba(255,192,71,0.14);color:var(--amber);border:1px solid rgba(255,192,71,0.26)',
+    'Medium':'background:rgba(255,84,0,0.10);color:var(--flame);border:1px solid rgba(255,84,0,0.20)',
+    'High':'background:rgba(220,38,38,0.10);color:#dc2626;border:1px solid rgba(220,38,38,0.22)'
+  };
+  const sev=d.overallSeverity||'Low';
+  document.getElementById('bias-overall-pill').innerHTML=
+    `<div style="padding:5px 13px;border-radius:100px;font-size:11px;font-weight:700;${sevColors[sev]||sevColors['Low']}">${sev} bias · ${d.overallLean||'—'}</div>`;
+  document.getElementById('bias-title').textContent=`Lean: ${d.overallLean||'—'}`;
+
+  // Meter needle — leanScore 0–100
+  const score=Math.max(0,Math.min(100,d.leanScore||50));
+  document.getElementById('bm-needle').style.left=score+'%';
+  document.getElementById('bm-verdict').textContent=d.leanScoreNote||'';
+
+  // Dimensions
+  const dimsWrap=document.getElementById('bias-dims');
+  dimsWrap.innerHTML='';
+  const levelClass={none:'bl-none',low:'bl-low',medium:'bl-medium',high:'bl-high'};
+  const dotClass={none:'bdd-none',low:'bdd-low',medium:'bdd-medium',high:'bdd-high'};
+  (d.dimensions||[]).forEach((dim,i)=>{
+    const lv=dim.level||'low';
+    const div=document.createElement('div');
+    div.className='bdim';
+    div.style.animationDelay=(i*45)+'ms';
+    const exHtml=(dim.examples||[]).filter(Boolean).map(e=>`<div class="db-ex"><strong>Example</strong> ${e}</div>`).join('');
+    div.innerHTML=`
+      <div class="bdim-head" onclick="togBdim(this)">
+        <div class="bdim-icon">${dim.icon||'●'}</div>
+        <div>
+          <div class="bdim-name">${dim.name}</div>
+          <div class="bdim-finding">${dim.finding||'—'}</div>
+        </div>
+        <div class="bias-level ${levelClass[lv]}">${lv.charAt(0).toUpperCase()+lv.slice(1)}</div>
+        <div class="bdim-dot ${dotClass[lv]}"></div>
+        <div class="bdim-chev">▾</div>
+      </div>
+      <div class="bdim-body">
+        <div class="db-analysis">${dim.analysis||'—'}</div>
+        ${exHtml?`<div class="db-examples">${exHtml}</div>`:''}
+      </div>`;
+    dimsWrap.appendChild(div);
+  });
+
+  // Loaded words
+  const words=d.loadedWords||[];
+  const wsec=document.getElementById('bias-words-section');
+  const wgrid=document.getElementById('bw-grid');
+  if(words.length>0){
+    wsec.style.display='block';
+    const dirColor={left:'#2563eb',right:'#dc2626',establishment:'#b07d00',opposition:'#6d5abd'};
+    wgrid.innerHTML=words.map(w=>`
+      <div class="bw-pill ${w.type==='loaded'?'bwp-loaded':'bwp-neutral'}" title="${w.direction||''} lean">
+        <div class="bw-dot" style="background:${dirColor[w.direction]||'#888'};width:5px;height:5px;border-radius:50%"></div>
+        ${w.word}
+      </div>`).join('');
+  } else {
+    wsec.style.display='none';
+  }
+
+  // Brief
+  document.getElementById('bias-brief-txt').textContent=d.brief||'—';
+
+  // Show card
+  document.getElementById('bias-card').style.display='block';
+  document.getElementById('bias-card').scrollIntoView({behavior:'smooth',block:'start'});
+  document.getElementById('bias-copy-btn').textContent='Copy assessment';
+  document.getElementById('bias-copy-btn').classList.remove('done');
+}
+
+function togBdim(head){
+  const b=head.nextElementSibling,c=head.querySelector('.bdim-chev'),o=b.classList.contains('open');
+  b.classList.toggle('open',!o);if(c)c.classList.toggle('open',!o);
+}
+
+function copyBias(){
+  if(!lastBias)return;
+  const d=lastBias;
+  let t=`BIAS ANALYSIS
+Overall: ${d.overallSeverity} bias · ${d.overallLean} (${d.leanScore}/100)
+
+`;
+  (d.dimensions||[]).forEach(dim=>{t+=`${dim.name}: ${dim.level.toUpperCase()}
+${dim.finding}
+${dim.analysis}
+
+`;});
+  if((d.loadedWords||[]).length>0){t+=`Loaded language: ${d.loadedWords.map(w=>w.word).join(', ')}
+
+`;}
+  t+=`Assessment:
+${d.brief}`;
+  navigator.clipboard.writeText(t).then(()=>{
+    const b=document.getElementById('bias-copy-btn');
+    b.textContent='Copied ✓';b.classList.add('done');
+    setTimeout(()=>{b.textContent='Copy assessment';b.classList.remove('done');},2400);
+  });
 }
 </script>
 </body>
