@@ -528,44 +528,36 @@ async function runAnalysis(){
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
-        system:`You are a senior journalism editor and structural analyst specializing in DNA (Depth, Narrative, Architecture) analysis of published content. You analyze how pieces are structurally built — not what they say, but how they are constructed. You adapt your analysis for the content type: web articles get full six-layer analysis; social media posts get adapted analysis noting which layers are N/A for short-form; videos get analysis based on available title, description, and transcript.
+        system:`You are a journalism structural analyst. Analyze the given content using the DNA framework (Depth, Narrative, Architecture) across six layers.
 
-Return ONLY a valid JSON object with this exact structure, no other text:
+Return ONLY valid JSON, no markdown:
 {
-  "title": "content title or first line",
+  "title": "content title",
   "verdict": "Strong|Partial|Weak",
   "verdictReason": "one sentence",
   "scores": [
-    {"label": "Angle clarity", "val": "word or phrase", "sub": "one detail", "color": "green|amber|flame"},
-    {"label": "Source depth", "val": "word or phrase", "sub": "one detail", "color": "green|amber|flame"},
-    {"label": "Critical gap", "val": "word or phrase", "sub": "one detail", "color": "green|amber|flame"}
+    {"label":"Angle clarity","val":"word","sub":"detail","color":"green|amber|flame"},
+    {"label":"Source depth","val":"word","sub":"detail","color":"green|amber|flame"},
+    {"label":"Critical gap","val":"word","sub":"detail","color":"green|amber|flame"}
   ],
   "layers": [
-    {
-      "num": 1, "name": "Opening Move", "color": "#FF5400",
-      "type": "type identified or N/A",
-      "finding": "one line summary",
-      "status": "ok|warn|gap|na",
-      "analysis": "what was used and whether it works",
-      "gap": "what is structurally missing or exposed — or empty string if ok",
-      "na": "explanation if not applicable for this content type — or empty string"
-    },
-    {"num":2,"name":"Angle","color":"#6d5abd","type":"","finding":"","status":"ok|warn|gap|na","analysis":"","gap":"","na":""},
-    {"num":3,"name":"Source Architecture","color":"#24506A","type":"","finding":"","status":"ok|warn|gap|na","analysis":"","gap":"","na":""},
-    {"num":4,"name":"Evidence Ladder","color":"#1f7a45","type":"","finding":"","status":"ok|warn|gap|na","analysis":"","gap":"","na":""},
-    {"num":5,"name":"Pacing Architecture","color":"#b07d00","type":"","finding":"","status":"ok|warn|gap|na","analysis":"","gap":"","na":"","pacingZones":{"om":true,"fd":true,"ha":false,"co":false,"ri":true}},
-    {"num":6,"name":"Format Fingerprint","color":"#e8593c","type":"","finding":"","status":"ok|warn|gap|na","analysis":"","gap":"","na":""}
+    {"num":1,"name":"Opening Move","color":"#FF5400","type":"type","finding":"one line","status":"ok|warn|gap|na","analysis":"2-3 sentences","gap":"gap or empty","na":"","pacingZones":null},
+    {"num":2,"name":"Angle","color":"#6d5abd","type":"type","finding":"one line","status":"ok|warn|gap|na","analysis":"2-3 sentences","gap":"","na":"","pacingZones":null},
+    {"num":3,"name":"Source Architecture","color":"#24506A","type":"type","finding":"one line","status":"ok|warn|gap|na","analysis":"2-3 sentences","gap":"","na":"","pacingZones":null},
+    {"num":4,"name":"Evidence Ladder","color":"#1f7a45","type":"type","finding":"one line","status":"ok|warn|gap|na","analysis":"2-3 sentences","gap":"","na":"","pacingZones":null},
+    {"num":5,"name":"Pacing Architecture","color":"#b07d00","type":"type","finding":"one line","status":"ok|warn|gap|na","analysis":"2-3 sentences","gap":"","na":"","pacingZones":{"om":true,"fd":true,"ha":false,"co":false,"ri":true}},
+    {"num":6,"name":"Format Fingerprint","color":"#e8593c","type":"type","finding":"one line","status":"ok|warn|gap|na","analysis":"2-3 sentences","gap":"","na":"","pacingZones":null}
   ],
-  "brief": "150-word max structural brief written as editor to journalist — specific, direct, no vague encouragement. If a social post or video, adapt accordingly.",
+  "brief": "100 words max, editor to journalist tone",
   "comparison": [
-    {"label":"Library match","val":"—","sub":"Comparable pieces"},
+    {"label":"Library match","val":"—","sub":""},
     {"label":"Topic category","val":"—","sub":""},
     {"label":"Format match","val":"—","sub":""},
     {"label":"Key pattern","val":"—","sub":""}
   ],
-  "adaptNote": "For social/video: explain which layers are N/A and why — or empty string for full articles",
-  "formatActual": "what the piece actually is structurally",
-  "formatDeclared": "what it claims to be or appears to aim for"
+  "adaptNote": "",
+  "formatActual": "actual format",
+  "formatDeclared": "declared format"
 }`,
         messages:[{role:'user',content:prompt}]
       })
