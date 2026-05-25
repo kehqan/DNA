@@ -6,11 +6,23 @@ module.exports = async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { messages, system } = req.body || {};
+  const { messages, system, useWebSearch } = req.body || {};
   if (!messages || !system) return res.status(400).json({ error: 'Missing fields' });
 
   if (!process.env.ANTHROPIC_API_KEY) {
     return res.status(500).json({ error: 'ANTHROPIC_API_KEY not configured' });
+  }
+
+  const body = {
+    model: 'claude-sonnet-4-5',
+    max_tokens: 2000,
+    system,
+    messages,
+  };
+
+  if (useWebSearch) {
+    body.tools = [{ type: 'web_search_20250305', name: 'web_search' }];
+    body.max_tokens = 4000;
   }
 
   try {
@@ -20,17 +32,15 @@ module.exports = async function handler(req, res) {
         'Content-Type': 'application/json',
         'x-api-key': process.env.ANTHROPIC_API_KEY,
         'anthropic-version': '2023-06-01',
+        'anthropic-beta': 'web-search-2025-03-05',
       },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-5',
-        max_tokens: 4000,
-        system,
-        messages,
-      }),
+      body: JSON.stringify(body),
     });
 
     const data = await response.json();
-    if (!response.ok) return res.status(response.status).json({ error: data.error?.message || JSON.stringify(data) });
+    if (!response.ok) {
+      return res.status(response.status).json({ error: data.error?.message || JSON.stringify(data) });
+    }
     return res.status(200).json(data);
   } catch (err) {
     return res.status(500).json({ error: err.message });
