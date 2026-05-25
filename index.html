@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>DNA · Bias Intelligence System</title>
+<title>360Bias · Editorial Intelligence</title>
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Noto+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -20,53 +20,99 @@
 }
 html,body{min-height:100%;background:#F0EFED;}
 body{font-family:var(--sans);color:var(--teal);}
+
+/* SCENE */
 .scene{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;background:#F0EFED;}
 .orb{position:absolute;border-radius:50%;filter:blur(90px);}
-.o1{width:580px;height:460px;top:-120px;left:-100px;background:radial-gradient(ellipse,rgba(109,90,189,0.22) 0%,rgba(109,90,189,0.06) 45%,transparent 70%);}
+.o1{width:580px;height:460px;top:-120px;left:-100px;background:radial-gradient(ellipse,rgba(109,90,189,0.20) 0%,rgba(109,90,189,0.05) 45%,transparent 70%);}
 .o2{width:460px;height:380px;top:35%;right:-120px;background:radial-gradient(ellipse,rgba(26,57,72,0.10) 0%,rgba(26,57,72,0.03) 55%,transparent 75%);}
-.o3{width:360px;height:300px;bottom:12%;left:28%;background:radial-gradient(ellipse,rgba(220,38,38,0.08) 0%,transparent 65%);}
+.o3{width:360px;height:300px;bottom:12%;left:28%;background:radial-gradient(ellipse,rgba(220,38,38,0.07) 0%,transparent 65%);}
+
 @keyframes rise{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
 @keyframes pring{0%,100%{box-shadow:0 0 0 0 rgba(109,90,189,0.5);}50%{box-shadow:0 0 0 6px rgba(109,90,189,0);}}
 @keyframes spin{to{transform:rotate(360deg);}}
 @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
 @keyframes scan{0%{left:-40%;}100%{left:110%;}}
+@keyframes slideUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+@keyframes popIn{from{opacity:0;transform:scale(0.94);}to{opacity:1;transform:scale(1);}}
+
+/* NAV */
 .nav-wrap{position:sticky;top:0;z-index:50;display:flex;justify-content:center;padding:14px 24px 0;pointer-events:none;}
-.nav-pill{display:inline-flex;align-items:center;gap:2px;background:rgba(26,57,72,0.82);backdrop-filter:blur(28px) saturate(2);-webkit-backdrop-filter:blur(28px) saturate(2);border:1px solid rgba(255,255,255,0.12);border-radius:100px;padding:5px;box-shadow:0 8px 32px rgba(0,0,0,0.20),inset 0 1px 0 rgba(255,255,255,0.14);pointer-events:all;}
-.wordmark{font-family:var(--serif);font-size:15px;color:rgba(248,247,246,0.92);padding:6px 14px 6px 10px;border-right:1px solid rgba(255,255,255,0.10);margin-right:4px;}
-.wordmark em{font-style:normal;color:#c084fc;font-weight:600;}
-.nav-tag{font-size:10px;font-weight:600;color:rgba(185,204,204,0.55);padding:5px 12px;letter-spacing:0.06em;text-transform:uppercase;}
-.wrap{position:relative;z-index:1;max-width:740px;margin:0 auto;padding:0 20px 80px;}
+.nav-pill{display:inline-flex;align-items:center;gap:2px;background:rgba(26,57,72,0.84);backdrop-filter:blur(28px) saturate(2);-webkit-backdrop-filter:blur(28px) saturate(2);border:1px solid rgba(255,255,255,0.12);border-radius:100px;padding:5px;box-shadow:0 8px 32px rgba(0,0,0,0.22),inset 0 1px 0 rgba(255,255,255,0.14);pointer-events:all;}
+.brand{display:flex;align-items:center;gap:0;padding:6px 14px 6px 10px;border-right:1px solid rgba(255,255,255,0.10);margin-right:4px;}
+.brand-360{font-family:var(--sans);font-size:16px;font-weight:700;color:#c084fc;letter-spacing:-0.02em;}
+.brand-bias{font-family:var(--serif);font-size:15px;color:rgba(248,247,246,0.90);font-style:italic;margin-left:1px;}
+.nav-tag{font-size:10px;font-weight:600;color:rgba(185,204,204,0.50);padding:5px 12px;letter-spacing:0.06em;text-transform:uppercase;}
+
+/* LAYOUT */
+.wrap{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:0 20px 80px;}
+
+/* HERO */
 .hero{padding:40px 0 26px;text-align:center;}
-.hero-badge{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:100px;background:rgba(109,90,189,0.10);border:1px solid rgba(109,90,189,0.22);margin-bottom:16px;}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;padding:6px 16px;border-radius:100px;background:rgba(109,90,189,0.10);border:1px solid rgba(109,90,189,0.22);margin-bottom:18px;}
 .hb-dot{width:7px;height:7px;border-radius:50%;background:#c084fc;animation:pring 2.5s ease-in-out infinite;}
 .hb-text{font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--purple);}
-.hero h1{font-family:var(--serif);font-size:32px;font-weight:400;color:var(--teal);line-height:1.15;margin-bottom:10px;}
-.hero h1 em{font-style:italic;color:var(--purple);}
-.hero p{font-size:13px;color:var(--muted);max-width:460px;margin:0 auto;line-height:1.65;}
+.hero-title{display:flex;align-items:baseline;justify-content:center;gap:4px;margin-bottom:10px;}
+.ht-360{font-family:var(--sans);font-size:38px;font-weight:700;color:var(--purple);letter-spacing:-0.02em;line-height:1;}
+.ht-bias{font-family:var(--serif);font-size:38px;font-weight:400;color:var(--teal);line-height:1;font-style:italic;}
+.hero p{font-size:13px;color:var(--muted);max-width:480px;margin:0 auto;line-height:1.65;}
+
+/* INPUT CARD */
 .input-card{border-radius:20px;padding:22px 24px;background:var(--glass);backdrop-filter:blur(20px) saturate(1.8);-webkit-backdrop-filter:blur(20px) saturate(1.8);border:1px solid var(--glass-b);box-shadow:var(--gs),var(--gi);margin-bottom:12px;animation:rise 420ms var(--eo) both;}
 .fl{font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--soft);margin-bottom:7px;}
 .fl-hint{font-size:10px;font-weight:400;letter-spacing:0;text-transform:none;color:var(--stone);margin-left:6px;}
 textarea,input[type=text]{width:100%;font-family:var(--sans);font-size:13px;color:var(--teal);background:rgba(255,255,255,0.72);border:1px solid rgba(26,57,72,0.14);border-radius:10px;padding:10px 13px;transition:border-color 180ms,box-shadow 180ms;outline:none;resize:none;}
 textarea:focus,input:focus{border-color:rgba(109,90,189,0.45);box-shadow:0 0 0 3px rgba(109,90,189,0.09);}
 textarea::placeholder,input::placeholder{color:var(--stone);}
-.or-div{display:flex;align-items:center;gap:10px;margin:10px 0;font-size:11px;color:var(--stone);}
-.or-line{flex:1;height:1px;background:var(--border);}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .wcount{font-size:10px;text-align:right;margin-top:4px;color:var(--stone);}
 .wcount.ok{color:var(--green);}
 .wcount.warn{color:var(--flame);}
-.advisory-strip{margin-top:14px;padding:10px 14px;border-radius:10px;background:rgba(26,57,72,0.05);border:1px solid rgba(26,57,72,0.09);font-size:11px;color:var(--soft);line-height:1.55;display:flex;gap:8px;align-items:flex-start;}
+.or-div{display:flex;align-items:center;gap:10px;margin:12px 0;font-size:11px;color:var(--stone);}
+.or-line{flex:1;height:1px;background:var(--border);}
+
+/* COMPARE TOGGLE */
+.compare-toggle{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:12px;background:rgba(109,90,189,0.06);border:1px solid rgba(109,90,189,0.16);margin-top:12px;cursor:pointer;transition:all 160ms;user-select:none;}
+.compare-toggle:hover{background:rgba(109,90,189,0.10);}
+.ct-left{display:flex;align-items:center;gap:10px;}
+.ct-icon{width:28px;height:28px;border-radius:8px;background:var(--purple);display:flex;align-items:center;justify-content:center;font-size:13px;}
+.ct-text{font-size:12px;font-weight:600;color:var(--purple);}
+.ct-sub{font-size:10px;color:var(--soft);margin-top:1px;}
+.toggle-sw{width:38px;height:20px;border-radius:100px;background:rgba(109,90,189,0.20);border:1px solid rgba(109,90,189,0.25);position:relative;transition:background 200ms;}
+.toggle-sw.on{background:var(--purple);}
+.toggle-knob{width:14px;height:14px;border-radius:50%;background:#fff;position:absolute;top:2px;left:2px;transition:left 180ms var(--eo);box-shadow:0 1px 4px rgba(0,0,0,0.18);}
+.toggle-sw.on .toggle-knob{left:20px;}
+.toggle-lbl{font-size:10px;font-weight:600;color:var(--soft);margin-right:6px;}
+
+/* ADVISORY */
+.advisory-strip{margin-top:12px;padding:10px 14px;border-radius:10px;background:rgba(26,57,72,0.05);border:1px solid rgba(26,57,72,0.09);font-size:11px;color:var(--soft);line-height:1.55;display:flex;gap:8px;align-items:flex-start;}
 .as-icon{font-size:13px;flex-shrink:0;margin-top:1px;}
-.run-btn{width:100%;padding:14px;border-radius:14px;background:var(--purple);color:#fff;font-family:var(--sans);font-size:14px;font-weight:700;border:none;cursor:pointer;box-shadow:0 4px 18px rgba(109,90,189,0.36),inset 0 1px 0 rgba(255,255,255,0.22);transition:transform 150ms var(--eo),box-shadow 150ms;margin-top:16px;}
-.run-btn:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(109,90,189,0.40);}
+
+/* RUN BTN */
+.run-btn{width:100%;padding:14px;border-radius:14px;background:var(--purple);color:#fff;font-family:var(--sans);font-size:14px;font-weight:700;border:none;cursor:pointer;box-shadow:0 4px 18px rgba(109,90,189,0.36),inset 0 1px 0 rgba(255,255,255,0.22);transition:transform 150ms var(--eo),box-shadow 150ms;margin-top:14px;}
+.run-btn:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(109,90,189,0.42);}
 .run-btn:disabled{opacity:0.50;cursor:not-allowed;transform:none;}
+
+/* LOADING */
 .loading-card{border-radius:18px;padding:32px 22px;background:rgba(26,57,72,0.90);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,0.12);box-shadow:0 12px 40px rgba(0,0,0,0.22);text-align:center;display:none;animation:rise 380ms var(--eo) both;margin-bottom:12px;}
 .spinner{width:36px;height:36px;border:3px solid rgba(255,255,255,0.12);border-top-color:#c084fc;border-radius:50%;animation:spin 800ms linear infinite;margin:0 auto 16px;}
-.lstage{font-family:var(--serif);font-size:16px;color:rgba(248,247,246,0.90);margin-bottom:5px;font-style:italic;}
-.lsub{font-size:11px;color:rgba(185,204,204,0.55);}
-.scan-bar{height:2px;border-radius:100px;background:rgba(255,255,255,0.08);margin:16px 0 0;overflow:hidden;position:relative;}
+.lstage{font-family:var(--serif);font-size:15px;color:rgba(248,247,246,0.92);margin-bottom:5px;font-style:italic;}
+.lsub{font-size:11px;color:rgba(185,204,204,0.50);}
+.scan-bar{height:2px;border-radius:100px;background:rgba(255,255,255,0.08);margin:14px 0 0;overflow:hidden;position:relative;}
 .scan-fill{position:absolute;top:0;left:-40%;width:40%;height:100%;background:linear-gradient(90deg,transparent,#c084fc,transparent);animation:scan 1.8s ease-in-out infinite;}
+.loading-steps{margin-top:16px;display:flex;flex-direction:column;gap:6px;}
+.ls-step{display:flex;align-items:center;gap:8px;font-size:11px;color:rgba(185,204,204,0.45);text-align:left;}
+.ls-step.done{color:rgba(192,132,252,0.80);}
+.ls-step.active{color:rgba(248,247,246,0.80);}
+.ls-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.15);flex-shrink:0;}
+.ls-step.done .ls-dot{background:#c084fc;}
+.ls-step.active .ls-dot{background:#fff;box-shadow:0 0 0 3px rgba(255,255,255,0.15);}
+
+/* ═══ RESULT CARD ═══ */
 .result-card{border-radius:22px;overflow:hidden;background:var(--glass);backdrop-filter:blur(28px) saturate(2);-webkit-backdrop-filter:blur(28px) saturate(2);border:1px solid rgba(109,90,189,0.22);box-shadow:var(--gs),var(--gi),0 24px 64px rgba(109,90,189,0.10);display:none;animation:rise 500ms var(--eo) both;}
-.bias-accent{height:4px;background:linear-gradient(90deg,#2563eb 0%,#6d5abd 35%,#9b59b6 65%,#dc2626 100%);}
+.bias-accent{height:4px;background:linear-gradient(90deg,#2563eb 0%,#6d5abd 40%,#dc2626 100%);}
+
+/* HEADER */
 .rc-header{padding:22px 26px 18px;border-bottom:1px solid rgba(109,90,189,0.12);}
 .rc-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;}
 .bias-badge{display:inline-flex;align-items:center;gap:7px;background:rgba(109,90,189,0.84);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.14);border-radius:100px;padding:5px 14px 5px 8px;font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:rgba(248,247,246,0.92);}
@@ -76,29 +122,33 @@ textarea::placeholder,input::placeholder{color:var(--stone);}
 .rp-medium{background:rgba(255,192,71,0.14);color:var(--amber);border:1px solid rgba(255,192,71,0.26);}
 .rp-high{background:rgba(220,38,38,0.10);color:var(--red);border:1px solid rgba(220,38,38,0.22);}
 .rc-format{font-size:11px;font-weight:600;color:var(--soft);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.06em;}
-.rc-takeaway{font-family:var(--serif);font-size:16px;color:var(--teal);line-height:1.45;}
+.rc-takeaway{font-family:var(--serif);font-size:17px;color:var(--teal);line-height:1.45;}
 .rc-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
 .mp{font-size:10px;font-weight:600;padding:3px 9px;border-radius:100px;background:rgba(109,90,189,0.07);color:var(--purple);border:1px solid rgba(109,90,189,0.16);}
-.narrative-bar-section{padding:16px 26px;border-bottom:1px solid rgba(109,90,189,0.10);}
-.nb-label{font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:rgba(109,90,189,0.70);margin-bottom:10px;}
-.nb-track{height:10px;border-radius:100px;overflow:hidden;background:rgba(26,57,72,0.07);display:flex;margin-bottom:8px;}
+
+/* NARRATIVE BAR */
+.nb-section{padding:16px 26px;border-bottom:1px solid rgba(109,90,189,0.10);}
+.section-label{font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:rgba(109,90,189,0.65);margin-bottom:10px;}
+.nb-track{height:10px;border-radius:100px;overflow:hidden;background:rgba(26,57,72,0.07);display:flex;margin-bottom:7px;}
 .nb-a{height:100%;border-radius:100px 0 0 100px;background:linear-gradient(90deg,#2563eb,#60a5fa);transition:width 700ms var(--eo);}
 .nb-b{height:100%;border-radius:0 100px 100px 0;background:linear-gradient(90deg,#fca5a5,#dc2626);transition:width 700ms var(--eo);}
 .nb-labels{display:flex;justify-content:space-between;font-size:11px;}
-.nb-actor-a{font-weight:700;color:#2563eb;}
-.nb-actor-b{font-weight:700;color:#dc2626;}
-.nb-note{font-size:11px;color:var(--muted);margin-top:6px;font-style:italic;}
-.lean-meter-section{padding:14px 26px;border-bottom:1px solid rgba(109,90,189,0.10);}
-.lm-label{font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:rgba(109,90,189,0.70);margin-bottom:10px;}
-.lm-scale{position:relative;height:28px;margin-bottom:6px;}
+.nb-a-lbl{font-weight:700;color:#2563eb;}
+.nb-b-lbl{font-weight:700;color:#dc2626;}
+.nb-note{font-size:11px;color:var(--muted);margin-top:5px;font-style:italic;}
+
+/* LEAN METER */
+.lm-section{padding:14px 26px;border-bottom:1px solid rgba(109,90,189,0.10);}
+.lm-scale{position:relative;height:28px;margin-bottom:5px;}
 .lm-track{position:absolute;top:50%;transform:translateY(-50%);left:0;right:0;height:5px;border-radius:100px;background:linear-gradient(90deg,#2563eb 0%,#60a5fa 22%,#d1d5db 50%,#fca5a5 78%,#dc2626 100%);}
 .lm-needle{position:absolute;top:50%;width:18px;height:18px;border-radius:50%;background:#fff;border:3px solid var(--purple);box-shadow:0 2px 10px rgba(109,90,189,0.40);transform:translate(-50%,-50%);z-index:2;transition:left 700ms var(--eo);}
-.lm-ends{display:flex;justify-content:space-between;font-size:9px;font-weight:600;color:var(--soft);margin-top:4px;}
+.lm-ends{display:flex;justify-content:space-between;font-size:9px;font-weight:600;margin-top:4px;}
 .lm-ends span:first-child{color:#2563eb;}
 .lm-ends span:last-child{color:#dc2626;}
-.lm-note{font-size:11px;color:var(--muted);margin-top:6px;font-style:italic;}
+.lm-note{font-size:11px;color:var(--muted);margin-top:5px;font-style:italic;}
+
+/* MODULES */
 .modules-section{padding:16px 26px;border-bottom:1px solid rgba(109,90,189,0.10);}
-.mod-label{font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:rgba(109,90,189,0.70);margin-bottom:10px;}
 .module-block{border-radius:13px;overflow:hidden;border:1px solid rgba(109,90,189,0.14);background:rgba(255,255,255,0.38);margin-bottom:7px;transition:background 180ms;}
 .module-block:hover{background:rgba(255,255,255,0.55);}
 .mb-head{display:grid;grid-template-columns:30px 1fr auto auto 16px;align-items:center;gap:9px;padding:11px 14px;cursor:pointer;}
@@ -120,7 +170,7 @@ textarea::placeholder,input::placeholder{color:var(--stone);}
 .mb-analysis{font-size:12px;color:var(--teal2);line-height:1.65;margin-bottom:10px;}
 .word-pills{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;}
 .wpill{font-size:11px;font-weight:600;padding:3px 9px;border-radius:100px;}
-.wpill-loaded{background:rgba(220,38,38,0.08);color:var(--red);border:1px solid rgba(220,38,38,0.20);}
+.wpill-emotional{background:rgba(220,38,38,0.08);color:var(--red);border:1px solid rgba(220,38,38,0.20);}
 .wpill-speculative{background:rgba(255,192,71,0.12);color:var(--amber);border:1px solid rgba(255,192,71,0.24);}
 .wpill-judgmental{background:rgba(255,84,0,0.08);color:var(--flame);border:1px solid rgba(255,84,0,0.18);}
 .verb-table{width:100%;border-collapse:collapse;font-size:11px;margin-bottom:8px;}
@@ -133,17 +183,22 @@ textarea::placeholder,input::placeholder{color:var(--stone);}
 .pi-label{font-size:9px;font-weight:700;color:var(--red);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:2px;}
 .pi-rewrite{font-size:11px;color:var(--green);margin-top:4px;padding-top:4px;border-top:1px solid rgba(31,122,69,0.12);}
 .pi-rewrite strong{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;margin-right:4px;}
+
+/* WHY FLAGGED */
 .why-section{padding:14px 26px;border-bottom:1px solid rgba(109,90,189,0.10);}
-.ws-label{font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:rgba(109,90,189,0.70);margin-bottom:8px;}
-.flag-item{display:flex;gap:8px;align-items:flex-start;padding:7px 0;border-bottom:1px solid rgba(109,90,189,0.08);}
+.flag-item{display:flex;gap:8px;align-items:flex-start;padding:7px 0;border-bottom:1px solid rgba(109,90,189,0.07);}
 .flag-item:last-child{border-bottom:none;}
 .fi-bullet{width:6px;height:6px;border-radius:50%;background:var(--red);flex-shrink:0;margin-top:4px;}
 .fi-text{font-size:12px;color:var(--teal2);line-height:1.55;}
+
+/* ADVISORY */
 .advisory-section{margin:0 26px 18px;border-radius:14px;overflow:hidden;background:rgba(109,90,189,0.06);border:1px solid rgba(109,90,189,0.16);}
 .adv-head{padding:10px 14px;border-bottom:1px solid rgba(109,90,189,0.10);display:flex;align-items:center;gap:7px;}
 .adv-icon{width:18px;height:18px;border-radius:5px;background:var(--purple);display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;}
 .adv-lbl{font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--purple);}
 .adv-txt{padding:14px;font-family:var(--serif);font-size:13px;color:var(--teal);line-height:1.78;font-style:italic;}
+
+/* FOOTER */
 .rc-footer{padding:13px 26px;border-top:1px solid rgba(109,90,189,0.10);display:flex;align-items:center;gap:7px;flex-wrap:wrap;background:rgba(255,255,255,0.18);}
 .fn{font-size:10px;color:var(--soft);flex:1;font-style:italic;}
 .abtn{font-family:var(--sans);font-size:12px;font-weight:600;color:var(--teal);padding:7px 15px;border-radius:100px;border:1.5px solid rgba(26,57,72,0.20);background:rgba(255,255,255,0.72);cursor:pointer;transition:all 150ms var(--eo);}
@@ -151,12 +206,94 @@ textarea::placeholder,input::placeholder{color:var(--stone);}
 .abtn.done{background:rgba(31,122,69,0.10);color:var(--green);border-color:rgba(31,122,69,0.22);}
 .abtn.primary{background:var(--purple);color:#fff;border-color:var(--purple);}
 .abtn.primary:hover{background:#5a47a8;}
-.insuf{font-size:11px;color:var(--soft);font-style:italic;padding:4px 0;}
-@media(max-width:560px){
+
+/* ═══════════════════════════════════════
+   COVERAGE COMPARE
+═══════════════════════════════════════ */
+.compare-card{border-radius:22px;overflow:hidden;background:rgba(26,57,72,0.92);backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);border:1px solid rgba(255,255,255,0.12);box-shadow:0 16px 48px rgba(0,0,0,0.28);display:none;animation:rise 550ms var(--eo) 200ms both;margin-top:12px;}
+.compare-accent{height:4px;background:linear-gradient(90deg,#c084fc 0%,#6d5abd 50%,#2563eb 100%);}
+.compare-header{padding:20px 26px 16px;border-bottom:1px solid rgba(255,255,255,0.08);}
+.ch-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.compare-badge{display:inline-flex;align-items:center;gap:7px;background:rgba(192,132,252,0.20);border:1px solid rgba(192,132,252,0.30);border-radius:100px;padding:5px 14px 5px 8px;font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:rgba(192,132,252,0.95);}
+.compare-pdot{width:6px;height:6px;border-radius:50%;background:#c084fc;animation:pring 2s ease-in-out infinite;}
+.story-topic{font-family:var(--serif);font-size:16px;color:rgba(248,247,246,0.92);line-height:1.35;margin-bottom:6px;}
+.story-meta{font-size:11px;color:rgba(185,204,204,0.55);}
+
+/* COMPARE SEARCHING STATE */
+.search-state{padding:24px 26px;display:flex;flex-direction:column;gap:10px;}
+.ss-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);}
+.ss-spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,0.10);border-top-color:#c084fc;border-radius:50%;animation:spin 700ms linear infinite;flex-shrink:0;}
+.ss-done{width:16px;height:16px;border-radius:50%;background:rgba(31,122,69,0.30);display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;}
+.ss-text{font-size:12px;color:rgba(248,247,246,0.70);}
+.ss-text.done{color:rgba(192,132,252,0.80);}
+
+/* DIMENSION COMPARISON CHART */
+.dim-compare-section{padding:20px 26px;border-bottom:1px solid rgba(255,255,255,0.07);}
+.dcs-label{font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:rgba(192,132,252,0.65);margin-bottom:16px;}
+.dim-row{margin-bottom:14px;}
+.dr-name{font-size:11px;font-weight:600;color:rgba(185,204,204,0.75);margin-bottom:8px;}
+.dr-bars{display:flex;flex-direction:column;gap:5px;}
+.outlet-bar-row{display:flex;align-items:center;gap:8px;}
+.obr-label{font-size:10px;color:rgba(185,204,204,0.60);width:100px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.obr-label.yours{color:#c084fc;font-weight:700;}
+.obr-track{flex:1;height:8px;border-radius:100px;background:rgba(255,255,255,0.07);overflow:hidden;}
+.obr-fill{height:100%;border-radius:100px;transition:width 800ms var(--eo);}
+.obr-val{font-size:10px;font-weight:700;width:36px;text-align:right;flex-shrink:0;}
+
+/* OUTLET CARDS */
+.outlets-section{padding:20px 26px;border-bottom:1px solid rgba(255,255,255,0.07);}
+.outlets-label{font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:rgba(192,132,252,0.65);margin-bottom:12px;}
+.outlets-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.outlet-card{border-radius:14px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.10);overflow:hidden;transition:all 180ms;cursor:default;}
+.outlet-card.yours{border-color:rgba(192,132,252,0.35);background:rgba(192,132,252,0.08);}
+.outlet-card:hover{background:rgba(255,255,255,0.09);}
+.oc-head{padding:12px 14px;border-bottom:1px solid rgba(255,255,255,0.07);display:flex;align-items:flex-start;justify-content:space-between;gap:8px;}
+.oc-outlet-name{font-size:12px;font-weight:700;color:rgba(248,247,246,0.90);margin-bottom:2px;display:flex;align-items:center;gap:6px;}
+.oc-yours-tag{font-size:9px;font-weight:700;padding:1px 6px;border-radius:100px;background:rgba(192,132,252,0.25);color:#c084fc;border:1px solid rgba(192,132,252,0.30);}
+.oc-headline{font-size:10px;color:rgba(185,204,204,0.55);font-style:italic;line-height:1.4;}
+.oc-risk{font-size:9px;font-weight:700;padding:3px 8px;border-radius:100px;flex-shrink:0;}
+.oc-risk-low{background:rgba(31,122,69,0.20);color:#4ade80;border:1px solid rgba(31,122,69,0.30);}
+.oc-risk-medium{background:rgba(255,192,71,0.18);color:#fbbf24;border:1px solid rgba(255,192,71,0.30);}
+.oc-risk-high{background:rgba(220,38,38,0.18);color:#f87171;border:1px solid rgba(220,38,38,0.30);}
+.oc-body{padding:10px 14px;display:flex;flex-direction:column;gap:6px;}
+.oc-metric{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.oc-m-label{font-size:10px;color:rgba(185,204,204,0.50);}
+.oc-m-val{font-size:10px;font-weight:700;color:rgba(248,247,246,0.75);}
+.oc-m-bar{flex:1;height:4px;border-radius:100px;background:rgba(255,255,255,0.08);overflow:hidden;}
+.oc-m-fill{height:100%;border-radius:100px;}
+.oc-url{display:block;padding:8px 14px;font-size:10px;color:rgba(192,132,252,0.70);text-decoration:none;border-top:1px solid rgba(255,255,255,0.06);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;transition:color 150ms;}
+.oc-url:hover{color:#c084fc;}
+
+/* ECOSYSTEM VERDICT */
+.eco-verdict{padding:18px 26px;border-bottom:1px solid rgba(255,255,255,0.07);}
+.ev-label{font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:rgba(192,132,252,0.65);margin-bottom:10px;}
+.ev-position{display:flex;align-items:center;gap:12px;margin-bottom:8px;}
+.ev-pos-label{font-size:13px;font-weight:700;padding:6px 14px;border-radius:100px;border:1px solid;}
+.ev-pos-neutral{background:rgba(31,122,69,0.15);color:#4ade80;border-color:rgba(31,122,69,0.30);}
+.ev-pos-directional{background:rgba(255,192,71,0.15);color:#fbbf24;border-color:rgba(255,192,71,0.30);}
+.ev-pos-outlier{background:rgba(220,38,38,0.15);color:#f87171;border-color:rgba(220,38,38,0.30);}
+.ev-description{font-family:var(--serif);font-size:13px;color:rgba(185,204,204,0.80);line-height:1.65;font-style:italic;}
+
+/* FRAMING SPECTRUM */
+.spectrum-section{padding:18px 26px;}
+.spectrum-track{position:relative;height:40px;border-radius:100px;background:linear-gradient(90deg,rgba(37,99,235,0.20) 0%,rgba(107,114,128,0.15) 50%,rgba(220,38,38,0.20) 100%);border:1px solid rgba(255,255,255,0.08);margin-bottom:8px;overflow:visible;}
+.spectrum-ends{display:flex;justify-content:space-between;font-size:9px;font-weight:600;padding:0 4px;}
+.spectrum-ends span:first-child{color:rgba(96,165,250,0.80);}
+.spectrum-ends span:last-child{color:rgba(248,113,113,0.80);}
+.spectrum-dot{position:absolute;top:50%;transform:translate(-50%,-50%);width:22px;height:22px;border-radius:50%;border:2px solid rgba(255,255,255,0.20);display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#fff;cursor:default;transition:left 600ms var(--eo);}
+.spectrum-tooltip{position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:rgba(26,57,72,0.95);border:1px solid rgba(255,255,255,0.12);border-radius:7px;padding:4px 8px;font-size:9px;font-weight:600;white-space:nowrap;color:#fff;pointer-events:none;opacity:0;transition:opacity 150ms;}
+.spectrum-dot:hover .spectrum-tooltip{opacity:1;}
+
+.insuf{font-size:11px;color:rgba(185,204,204,0.45);font-style:italic;padding:4px 0;}
+
+@media(max-width:580px){
+  .two-col{grid-template-columns:1fr;}
+  .outlets-grid{grid-template-columns:1fr;}
   .mb-head{grid-template-columns:26px 1fr auto 14px;}
-  .rc-header,.modules-section,.why-section,.lean-meter-section,.narrative-bar-section{padding:14px 18px;}
+  .rc-header,.modules-section,.why-section,.lm-section,.nb-section{padding:14px 18px;}
   .advisory-section{margin:0 18px 14px;}
   .rc-footer{padding:12px 18px;}
+  .compare-header,.dim-compare-section,.outlets-section,.eco-verdict,.spectrum-section{padding:14px 18px;}
 }
 @media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important;}}
 </style>
@@ -164,26 +301,31 @@ textarea::placeholder,input::placeholder{color:var(--stone);}
 <body>
 <div class="scene"><div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div></div>
 
+<!-- NAV -->
 <div class="nav-wrap">
   <div class="nav-pill">
-    <div class="wordmark">DNA · <em>Bias</em></div>
-    <div class="nav-tag">Intelligence System</div>
+    <div class="brand"><span class="brand-360">360</span><span class="brand-bias">Bias</span></div>
+    <div class="nav-tag">Editorial Intelligence</div>
   </div>
 </div>
 
 <div class="wrap">
+
+  <!-- HERO -->
   <div class="hero">
-    <div class="hero-badge"><div class="hb-dot"></div><div class="hb-text">Editorial Diagnostics Engine</div></div>
-    <h1>Bias <em>Intelligence</em></h1>
-    <p>Paste any published article. Four detection modules run against the text — linguistic tone, source balance, attribution framing, and agency clarity. All findings are grounded strictly in what the text contains.</p>
+    <div class="hero-badge"><div class="hb-dot"></div><div class="hb-text">Editorial Diagnostics · Coverage Intelligence</div></div>
+    <div class="hero-title"><span class="ht-360">360</span><span class="ht-bias">Bias</span></div>
+    <p>Paste any article. Four bias detection modules run against the text. Enable ecosystem coverage to automatically find how other outlets covered the same story — and benchmark your bias against theirs.</p>
   </div>
 
+  <!-- INPUT -->
   <div class="input-card">
     <div class="fl">Article text <span style="color:var(--red)">*</span><span class="fl-hint">paste headline + full body</span></div>
     <textarea id="article" rows="9" placeholder="Paste the full article here — headline, byline, and body text…" oninput="updateCount()"></textarea>
     <div class="wcount" id="wcount">0 words</div>
-    <div class="or-div"><div class="or-line"></div><span>optional context</span><div class="or-line"></div></div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+
+    <div style="height:12px"></div>
+    <div class="two-col">
       <div>
         <div class="fl">Publication<span class="fl-hint">optional</span></div>
         <input type="text" id="pub" placeholder="e.g. Radio Farda, RFE/RL…">
@@ -193,45 +335,74 @@ textarea::placeholder,input::placeholder{color:var(--stone);}
         <input type="text" id="fmt" placeholder="e.g. Investigation, Feature…">
       </div>
     </div>
+
+    <!-- ECOSYSTEM COMPARE TOGGLE -->
+    <div class="compare-toggle" onclick="toggleCompare()">
+      <div class="ct-left">
+        <div class="ct-icon">🌐</div>
+        <div>
+          <div class="ct-text">Ecosystem Coverage Compare</div>
+          <div class="ct-sub">AI finds how other outlets covered this story and benchmarks your bias against theirs</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span class="toggle-lbl" id="compare-lbl">Off</span>
+        <div class="toggle-sw" id="compare-sw"><div class="toggle-knob"></div></div>
+      </div>
+    </div>
+
     <div class="advisory-strip">
       <div class="as-icon">⚠</div>
-      <div>All outputs are <strong>advisory only</strong>. The system flags structural patterns found in the text — it does not establish intent or override editorial judgement. Numbers are calculated from what the text contains. If data is insufficient to calculate a figure, the system states "Insufficient data" rather than estimate.</div>
+      <div>All outputs are <strong>advisory only</strong>. Numbers are calculated from what the text contains. If data is insufficient, the system states so rather than estimate. Ecosystem coverage is AI-retrieved and may be incomplete.</div>
     </div>
-    <button class="run-btn" id="run-btn" onclick="run()">⚖ Run Bias Analysis</button>
+
+    <button class="run-btn" id="run-btn" onclick="run()">⚖ Run 360Bias Analysis</button>
   </div>
 
+  <!-- LOADING -->
   <div class="loading-card" id="loading-card">
     <div class="spinner"></div>
     <div class="lstage" id="lstage">Running Module 1 — Linguistic Tone…</div>
     <div class="lsub" id="lsub">Counting loaded modifiers and calculating density</div>
     <div class="scan-bar"><div class="scan-fill"></div></div>
+    <div class="loading-steps" id="loading-steps">
+      <div class="ls-step" id="ls-0"><div class="ls-dot"></div><span>Module 1 — Linguistic Tone</span></div>
+      <div class="ls-step" id="ls-1"><div class="ls-dot"></div><span>Module 2 — Source Balance</span></div>
+      <div class="ls-step" id="ls-2"><div class="ls-dot"></div><span>Module 3 — Attribution Framing</span></div>
+      <div class="ls-step" id="ls-3"><div class="ls-dot"></div><span>Module 4 — Agency Clarity</span></div>
+      <div class="ls-step" id="ls-4" style="display:none"><div class="ls-dot"></div><span>Searching for comparable coverage…</span></div>
+      <div class="ls-step" id="ls-5" style="display:none"><div class="ls-dot"></div><span>Analyzing ecosystem outlets…</span></div>
+    </div>
   </div>
 
+  <!-- BIAS RESULT -->
   <div class="result-card" id="result-card">
     <div class="bias-accent"></div>
     <div class="rc-header">
       <div class="rc-top">
-        <div class="bias-badge"><div class="bias-pdot"></div> DNA Bias Scorecard</div>
+        <div class="bias-badge"><div class="bias-pdot"></div> 360Bias Scorecard</div>
         <div id="risk-pill"></div>
       </div>
       <div class="rc-format" id="rc-format"></div>
       <div class="rc-takeaway" id="rc-takeaway">—</div>
       <div class="rc-meta" id="rc-meta"></div>
     </div>
-    <div class="narrative-bar-section">
-      <div class="nb-label">Narrative control — who drives the story forward</div>
+
+    <div class="nb-section">
+      <div class="section-label">Narrative control</div>
       <div class="nb-track">
         <div class="nb-a" id="nb-a" style="width:50%"></div>
         <div class="nb-b" id="nb-b" style="width:50%"></div>
       </div>
       <div class="nb-labels">
-        <span class="nb-actor-a" id="nb-actor-a">Primary voice</span>
-        <span class="nb-actor-b" id="nb-actor-b">Counter voice</span>
+        <span class="nb-a-lbl" id="nb-actor-a">Primary voice</span>
+        <span class="nb-b-lbl" id="nb-actor-b">Counter voice</span>
       </div>
       <div class="nb-note" id="nb-note"></div>
     </div>
-    <div class="lean-meter-section">
-      <div class="lm-label">Editorial framing lean <span style="font-size:9px;font-weight:400;text-transform:none;letter-spacing:0;color:var(--soft)">— framing pattern, not political opinion</span></div>
+
+    <div class="lm-section">
+      <div class="section-label">Editorial framing lean <span style="font-size:9px;font-weight:400;text-transform:none;letter-spacing:0;color:var(--soft)">— framing pattern, not political opinion</span></div>
       <div class="lm-scale">
         <div class="lm-track"></div>
         <div class="lm-needle" id="lm-needle" style="left:50%"></div>
@@ -239,35 +410,100 @@ textarea::placeholder,input::placeholder{color:var(--stone);}
       <div class="lm-ends"><span>← Opposition / reform framing</span><span>Establishment framing →</span></div>
       <div class="lm-note" id="lm-note"></div>
     </div>
+
     <div class="modules-section">
-      <div class="mod-label">Detection modules</div>
+      <div class="section-label">Detection modules</div>
       <div id="modules-wrap"></div>
     </div>
+
     <div class="why-section" id="why-section" style="display:none">
-      <div class="ws-label">Why flagged</div>
+      <div class="section-label">Why flagged</div>
       <div id="why-list"></div>
     </div>
+
     <div class="advisory-section">
       <div class="adv-head"><div class="adv-icon">🧭</div><div class="adv-lbl">Editorial Advisory</div></div>
       <div class="adv-txt" id="adv-txt">—</div>
     </div>
+
     <div class="rc-footer">
-      <div class="fn">All outputs are advisory. Human editorial control is always preserved. Findings reflect the text as submitted.</div>
+      <div class="fn">All outputs are advisory. Human editorial control is always preserved.</div>
       <button class="abtn" id="copy-btn" onclick="copyCard()">Copy scorecard</button>
       <button class="abtn primary" onclick="reset()">Analyze another ↗</button>
     </div>
   </div>
-</div>
+
+  <!-- ECOSYSTEM COMPARE CARD -->
+  <div class="compare-card" id="compare-card">
+    <div class="compare-accent"></div>
+    <div class="compare-header">
+      <div class="ch-top">
+        <div class="compare-badge"><div class="compare-pdot"></div> Ecosystem Coverage</div>
+        <span id="eco-outlets-count" style="font-size:11px;color:rgba(185,204,204,0.50);">—</span>
+      </div>
+      <div class="story-topic" id="eco-topic">—</div>
+      <div class="story-meta" id="eco-meta">AI-retrieved comparable coverage · Analysis grounded in found text only</div>
+    </div>
+
+    <!-- SEARCH STATE (while loading) -->
+    <div id="eco-search-state" style="display:none">
+      <div class="search-state">
+        <div class="ss-item" id="eco-ss-1">
+          <div class="ss-spinner"></div>
+          <span class="ss-text">Extracting story topic and key entities…</span>
+        </div>
+        <div class="ss-item" id="eco-ss-2">
+          <div class="ss-spinner" style="opacity:0.3"></div>
+          <span class="ss-text" style="opacity:0.4">Searching for comparable coverage…</span>
+        </div>
+        <div class="ss-item" id="eco-ss-3">
+          <div class="ss-spinner" style="opacity:0.3"></div>
+          <span class="ss-text" style="opacity:0.4">Running bias analysis on found articles…</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- DIMENSION COMPARISON -->
+    <div class="dim-compare-section" id="eco-dim-section" style="display:none">
+      <div class="dcs-label">Bias dimensions — your coverage vs ecosystem</div>
+      <div id="eco-dims"></div>
+    </div>
+
+    <!-- FRAMING SPECTRUM -->
+    <div class="spectrum-section" id="eco-spectrum-section" style="display:none">
+      <div class="section-label" style="color:rgba(192,132,252,0.65)">Framing spectrum — where each outlet sits</div>
+      <div class="spectrum-track" id="spectrum-track"></div>
+      <div class="spectrum-ends"><span>← Opposition framing</span><span>Establishment framing →</span></div>
+    </div>
+
+    <!-- OUTLET CARDS -->
+    <div class="outlets-section" id="eco-outlets-section" style="display:none">
+      <div class="outlets-label">Outlets analyzed</div>
+      <div class="outlets-grid" id="eco-outlets-grid"></div>
+    </div>
+
+    <!-- ECOSYSTEM VERDICT -->
+    <div class="eco-verdict" id="eco-verdict-section" style="display:none">
+      <div class="ev-label">Your position in the ecosystem</div>
+      <div class="ev-position">
+        <div class="ev-pos-label" id="ev-pos-label">—</div>
+      </div>
+      <div class="ev-description" id="ev-description">—</div>
+    </div>
+  </div>
+
+</div><!-- /wrap -->
 
 <script>
-var lastResult=null;
+var compareOn=false, lastResult=null, lastEco=null;
+
 var stages=[
   ['Running Module 1 — Linguistic Tone…','Counting loaded modifiers and calculating density'],
   ['Running Module 2 — Source Balance…','Measuring word allocation per voice and placement'],
   ['Running Module 3 — Attribution Framing…','Mapping verb trust categories per actor group'],
-  ['Running Module 4 — Agency Clarity…','Scanning for passive constructions that erase subjects'],
-  ['Running Narrative Control Analysis…','Scoring information origin, temporal direction, framing'],
-  ['Generating Bias Scorecard…','Compiling findings — no numbers will be invented'],
+  ['Running Module 4 — Agency Clarity…','Scanning for passive constructions'],
+  ['Searching for comparable coverage…','AI retrieving how other outlets covered this story'],
+  ['Analyzing ecosystem outlets…','Running bias modules on found articles'],
 ];
 var sIdx=0,sTimer=null;
 
@@ -278,10 +514,32 @@ function updateCount(){
   el.className='wcount'+(w>800?' warn':w>=80?' ok':'');
 }
 
-function setStage(){
-  const s=stages[sIdx];
+function toggleCompare(){
+  compareOn=!compareOn;
+  const sw=document.getElementById('compare-sw');
+  const lbl=document.getElementById('compare-lbl');
+  sw.classList.toggle('on',compareOn);
+  lbl.textContent=compareOn?'On':'Off';
+  lbl.style.color=compareOn?'var(--purple)':'var(--soft)';
+  if(compareOn){
+    document.getElementById('ls-4').style.display='flex';
+    document.getElementById('ls-5').style.display='flex';
+  } else {
+    document.getElementById('ls-4').style.display='none';
+    document.getElementById('ls-5').style.display='none';
+  }
+}
+
+function setStage(i){
+  const s=stages[i]||stages[stages.length-1];
   document.getElementById('lstage').textContent=s[0];
   document.getElementById('lsub').textContent=s[1];
+  // Update step indicators
+  for(let j=0;j<6;j++){
+    const el=document.getElementById('ls-'+j);
+    if(!el)continue;
+    el.className='ls-step'+(j<i?' done':j===i?' active':'');
+  }
 }
 
 async function run(){
@@ -295,68 +553,71 @@ async function run(){
 
   document.getElementById('loading-card').style.display='block';
   document.getElementById('result-card').style.display='none';
+  document.getElementById('compare-card').style.display='none';
   document.getElementById('run-btn').disabled=true;
-  sIdx=0;setStage();
-  sTimer=setInterval(()=>{sIdx=(sIdx+1)%stages.length;setStage();},2200);
+  sIdx=0;setStage(0);
+  sTimer=setInterval(()=>{sIdx=Math.min(sIdx+1,compareOn?5:3);setStage(sIdx);},2400);
 
-  const system=`You are the DNA Bias Intelligence System — an editorial diagnostics engine. You audit journalistic text for structural, linguistic, and narrative bias. Your outputs are advisory only. You surface asymmetries so a human editor can act on them.
+  // ── BIAS SYSTEM PROMPT ──
+  const biasSystem=`You are the 360Bias editorial diagnostics engine. Audit journalistic text across four detection modules. Return ONLY valid JSON — no markdown, nothing before or after.
 
-ABSOLUTE RULES:
-1. Only flag what exists in the text. Do not infer, assume, or extrapolate.
-2. Every number (word count, percentage, density score) must be calculated from the actual article text. If you cannot calculate a figure with confidence, write the string "Insufficient data" in that field — never invent or estimate numbers.
-3. Do not editorialize. Do not describe the article as good, fair, or problematic. Report structural data only.
-4. The leanScore (0-100) represents editorial FRAMING ONLY — 0 = strong opposition/reform framing, 50 = neutral, 100 = strong establishment framing. It is NOT left vs right politically. Cite specific framing evidence from the text.
-5. Do not generate example sentences that are not from the actual article.
+HARD RULES:
+1. Only flag what EXISTS in the text. No inference.
+2. Every number must be calculated from the actual text. If uncertain: "Insufficient data".
+3. leanScore 0-100 = editorial FRAMING only (0=opposition framing, 50=neutral, 100=establishment framing). NOT political left/right.
+4. Do not editorialize about quality.
 
-Run these four modules:
+MODULES:
+M1 LINGUISTIC TONE: Count emotional intensifiers (devastating,chaotic,explosive), speculative (reportedly,appears to,suggests,likely), judgmental (controversial,drastic,embattled,desperate). Density=loaded/total words. Flag if >0.03.
+M2 SOURCE BALANCE: Word count per primary vs counter voice. Flag if ratio >3:1.
+M3 ATTRIBUTION: Map every attribution verb — validating(proves,demonstrates,exposes,clarifies), neutral(says,states,notes,adds), skeptical(claims,alleges,asserts,purports). Flag if one group >60% validating and another >60% skeptical.
+M4 AGENCY: Find passive constructions where critical action has no named subject.
 
-MODULE 1 LINGUISTIC TONE: Count every emotionally charged adjective, adverb, or speculative modifier actually present in the text. Density = loaded count divided by total word count. Flag if density exceeds 0.03. Categories: emotional (devastating, chaotic, explosive, menacing), speculative (reportedly, appears to, suggests, likely), judgmental (controversial, drastic, desperate, bold, embattled).
+Return this JSON exactly:
+{"formatProfile":"Investigation|Breaking|Feature|Opinion|Explainer|Analysis|Unknown","overallRisk":"LOW|MEDIUM|HIGH","keyTakeaway":"1-2 sentences grounded in text evidence","leanScore":50,"leanNote":"one sentence citing specific framing evidence","narrativeControl":{"actorA":"name","actorAPercent":60,"actorB":"name","actorBPercent":40,"status":"Balanced|Actor A Dominant|Actor B Dominant","note":"evidence from text or Insufficient data"},"modules":[{"id":"linguistic","icon":"📝","name":"Module 1 — Linguistic Tone","status":"Neutral|Slightly Loaded|High Load","finding":"e.g. 3 loaded modifiers. Density: 1.8%","analysis":"2-3 sentences citing specific words","loadedWords":[{"word":"exact word","category":"emotional|speculative|judgmental"}],"density":"X.X% or Insufficient data","dotClass":"mbd-ok|mbd-warn|mbd-flag","statusClass":"sp-neutral|sp-minor|sp-flag"},{"id":"source","icon":"👥","name":"Module 2 — Source Balance","status":"Balanced|Minor Skew|Critical Imbalance","finding":"word counts if calculable","analysis":"2-3 sentences with actual actor names","primaryVoice":"name","primaryWords":0,"primaryPct":0,"counterVoice":"name or absent","counterWords":0,"counterPct":0,"ratio":"X:1 or Insufficient data","dotClass":"mbd-ok|mbd-warn|mbd-flag","statusClass":"sp-neutral|sp-minor|sp-flag"},{"id":"attribution","icon":"💬","name":"Module 3 — Attribution Framing","status":"Symmetric|Minor Asymmetry|Significant Asymmetry","finding":"verb distribution pattern","analysis":"2-3 sentences with actor names and specific verbs","verbs":[{"actor":"name","verb":"exact verb","category":"validating|neutral|skeptical"}],"asymmetry":"Symmetric|Asymmetric|Insufficient data","dotClass":"mbd-ok|mbd-warn|mbd-flag","statusClass":"sp-neutral|sp-minor|sp-flag"},{"id":"agency","icon":"🎭","name":"Module 4 — Agency Clarity","status":"Clear|Some Evasion|Systematic Evasion","finding":"N passive constructions found","analysis":"2 sentences on what is erased","passiveInstances":[{"sentence":"exact quoted sentence","paragraphIndex":1,"rewrite":"active rewrite or Requires additional sourcing"}],"dotClass":"mbd-ok|mbd-warn|mbd-flag","statusClass":"sp-neutral|sp-minor|sp-flag"}],"whyFlagged":["specific observation","second","third"],"editorialAdvisory":"One actionable sentence. Editor-to-editor tone."}`;
 
-MODULE 2 SOURCE BALANCE: Count words allocated to primary voice vs counter-voice based on what is actually in the text. Flag if ratio exceeds 3:1. Note whether counter-voice appears only in final paragraphs.
-
-MODULE 3 ATTRIBUTION FRAMING: Map every attribution verb from the text. VALIDATING = proves, demonstrates, exposes, clarifies, points out. NEUTRAL = says, states, notes, adds, responds. SKEPTICAL = claims, alleges, asserts, purports, contends. Flag if one actor group gets over 60% validating while another gets over 60% skeptical.
-
-MODULE 4 AGENCY CLARITY: Find passive constructions where a critical action occurs but the subject is absent. Quote the exact sentence from the text.
-
-Return ONLY valid JSON, no markdown fences, nothing before or after:
-{"formatProfile":"Investigation|Breaking|Feature|Opinion|Explainer|Analysis|Unknown","overallRisk":"LOW|MEDIUM|HIGH","keyTakeaway":"1-2 sentence plain-language editorial summary — cite what the text shows, not what you infer","leanScore":50,"leanNote":"one sentence citing specific framing evidence from the text","narrativeControl":{"actorA":"name from text","actorAPercent":60,"actorB":"name from text or Counter voice","actorBPercent":40,"status":"Balanced|Actor A Dominant|Actor B Dominant","note":"one sentence grounded in text evidence — or Insufficient data"},"modules":[{"id":"linguistic","icon":"📝","name":"Module 1 — Linguistic Tone","status":"Neutral|Slightly Loaded|High Load","finding":"e.g. 3 loaded modifiers found. Density: 1.8%","analysis":"2-3 sentences citing specific words found in the text","loadedWords":[{"word":"exact word from text","category":"emotional|speculative|judgmental"}],"density":"X.X% (N modifiers / N words) — or Insufficient data","dotClass":"mbd-ok|mbd-warn|mbd-flag","statusClass":"sp-neutral|sp-minor|sp-flag"},{"id":"source","icon":"👥","name":"Module 2 — Source Balance","status":"Balanced|Minor Skew|Critical Imbalance","finding":"one line with word counts if calculable","analysis":"2-3 sentences naming actual actors from the text","primaryVoice":"name from text","primaryWords":0,"primaryPct":0,"counterVoice":"name from text or absent","counterWords":0,"counterPct":0,"ratio":"X:1 or Insufficient data","dotClass":"mbd-ok|mbd-warn|mbd-flag","statusClass":"sp-neutral|sp-minor|sp-flag"},{"id":"attribution","icon":"💬","name":"Module 3 — Attribution Framing","status":"Symmetric|Minor Asymmetry|Significant Asymmetry","finding":"one line on verb distribution","analysis":"2-3 sentences naming actor groups and citing specific verbs from text","verbs":[{"actor":"actor name","verb":"exact verb from text","category":"validating|neutral|skeptical"}],"asymmetry":"Symmetric|Asymmetric|Insufficient data","dotClass":"mbd-ok|mbd-warn|mbd-flag","statusClass":"sp-neutral|sp-minor|sp-flag"},{"id":"agency","icon":"🎭","name":"Module 4 — Agency Clarity","status":"Clear|Some Evasion|Systematic Evasion","finding":"number of passive constructions found","analysis":"2 sentences on what is erased","passiveInstances":[{"sentence":"exact passive sentence quoted from text","paragraphIndex":1,"rewrite":"active rewrite or Requires additional sourcing"}],"dotClass":"mbd-ok|mbd-warn|mbd-flag","statusClass":"sp-neutral|sp-minor|sp-flag"}],"whyFlagged":["specific observation grounded in text evidence","second observation","third observation"],"editorialAdvisory":"One actionable sentence. Editor-to-editor tone. Specific to what this text needs."}`;
-
-  const user=`Analyze this article${pub?' from '+pub:''}${fmt?' (format: '+fmt+')':''}${wasTruncated?' [first 700 words — full article was longer]':''}:\n\n${article}`;
+  const biasUser=`Analyze this article${pub?' from '+pub:''}${fmt?' (format: '+fmt+')':''}${wasTruncated?' [first 700 words]':''}:\n\n${article}`;
 
   try{
-    const res=await fetch('/api/analyze',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({system,messages:[{role:'user',content:user}]})
+    // Step 1: Run bias analysis
+    const biasRes=await fetch('/api/analyze',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({system:biasSystem,messages:[{role:'user',content:biasUser}]})
     });
-    const rawText=await res.text();
+    const biasRaw=await biasRes.text();
     clearInterval(sTimer);
+
+    if(!biasRes.ok){
+      let msg=biasRaw;try{msg=JSON.parse(biasRaw).error||biasRaw;}catch(e){}
+      document.getElementById('loading-card').style.display='none';
+      document.getElementById('run-btn').disabled=false;
+      alert('Bias API error ('+biasRes.status+'): '+msg.substring(0,400));return;
+    }
+    let biasProxy;
+    try{biasProxy=JSON.parse(biasRaw);}
+    catch(e){document.getElementById('loading-card').style.display='none';document.getElementById('run-btn').disabled=false;alert('Proxy error:\n'+biasRaw.substring(0,300));return;}
+
+    const biasTxt=(biasProxy.content&&biasProxy.content[0]&&biasProxy.content[0].text)||'';
+    if(!biasTxt){document.getElementById('loading-card').style.display='none';document.getElementById('run-btn').disabled=false;alert('Empty response. Try a shorter article.');return;}
+
+    let biasJson=biasTxt.trim();
+    const bm=biasJson.match(/\{[\s\S]*\}/);if(bm)biasJson=bm[0];
+    let biasData;
+    try{biasData=JSON.parse(biasJson);}
+    catch(e){document.getElementById('loading-card').style.display='none';document.getElementById('run-btn').disabled=false;alert('Parse error:\n'+biasTxt.substring(0,500));return;}
+
+    lastResult={parsed:biasData,pub,fmt,ts:new Date(),article};
     document.getElementById('loading-card').style.display='none';
     document.getElementById('run-btn').disabled=false;
+    render(biasData,pub,fmt);
 
-    if(!res.ok){
-      let msg=rawText;
-      try{msg=JSON.parse(rawText).error||rawText;}catch(e){}
-      alert('API error ('+res.status+'): '+msg.substring(0,400));
-      return;
+    // Step 2: Ecosystem compare (if on)
+    if(compareOn){
+      document.getElementById('compare-card').style.display='block';
+      document.getElementById('compare-card').scrollIntoView({behavior:'smooth',block:'start'});
+      runEcosystem(article,biasData,pub);
     }
-    let proxyData;
-    try{proxyData=JSON.parse(rawText);}
-    catch(e){alert('Proxy returned invalid response:\n'+rawText.substring(0,300));return;}
 
-    const claudeText=(proxyData.content&&proxyData.content[0]&&proxyData.content[0].text)||'';
-    if(!claudeText){alert('Empty response. Try a shorter article.');return;}
-
-    let jsonStr=claudeText.trim();
-    const match=jsonStr.match(/\{[\s\S]*\}/);
-    if(match)jsonStr=match[0];
-
-    let parsed;
-    try{parsed=JSON.parse(jsonStr);}
-    catch(e){alert('Could not parse result. Raw response:\n\n'+claudeText.substring(0,500));return;}
-
-    lastResult={parsed,pub,fmt,ts:new Date(),article};
-    render(parsed,pub,fmt);
   }catch(err){
     clearInterval(sTimer);
     document.getElementById('loading-card').style.display='none';
@@ -365,6 +626,240 @@ Return ONLY valid JSON, no markdown fences, nothing before or after:
   }
 }
 
+// ── ECOSYSTEM ANALYSIS ────────────────────────────────────────────────────────
+async function runEcosystem(article, biasData, pub){
+  // Show search state UI
+  document.getElementById('eco-search-state').style.display='block';
+  document.getElementById('eco-dim-section').style.display='none';
+  document.getElementById('eco-spectrum-section').style.display='none';
+  document.getElementById('eco-outlets-section').style.display='none';
+  document.getElementById('eco-verdict-section').style.display='none';
+
+  animateSearchState(1);
+
+  const ecoSystem=`You are 360Bias Ecosystem Intelligence. Your job is two things:
+1. Use web search to find 3-4 articles from OTHER outlets that covered the SAME story as the given article. Search for the story topic, key people, and events. Retrieve actual article content or summaries.
+2. Analyze each found article with the same four bias modules used on the original. Then compare.
+
+CRITICAL RULES:
+- Only analyze text you actually retrieved via web search. Never invent articles.
+- Never invent outlet names, headlines, or URLs. Only report what web search returns.
+- If web search returns fewer than 2 comparable articles, say so honestly.
+- All numbers must be from the actual retrieved text. "Insufficient data" if uncertain.
+- leanScore 0-100 = framing only, not political alignment.
+
+Return ONLY valid JSON:
+{"storyTopic":"extracted story topic in one sentence","outlets":[{"outletName":"exact outlet name from search","headline":"actual headline from search","url":"actual URL from search","leanScore":50,"overallRisk":"LOW|MEDIUM|HIGH","linguisticLoad":"Neutral|Slightly Loaded|High Load","linguisticDensity":"X.X% or Insufficient data","sourceBalance":"Balanced|Minor Skew|Critical Imbalance","agencyClarity":"Clear|Some Evasion|Systematic Evasion","keyFinding":"one sentence on most notable bias pattern found","isYours":false}],"dimensionComparison":[{"dimension":"Linguistic Load","yourScore":50,"ecoAvg":50,"yourLabel":"Neutral","ecoLabel":"Slightly Loaded"},{"dimension":"Source Balance","yourScore":50,"ecoAvg":50,"yourLabel":"Balanced","ecoLabel":"Minor Skew"},{"dimension":"Framing Lean","yourScore":50,"ecoAvg":50,"yourLabel":"your leanNote label","ecoLabel":"ecosystem avg label"},{"dimension":"Narrative Control","yourScore":60,"ecoAvg":55,"yourLabel":"Actor A dominant","ecoLabel":"ecosystem avg"}],"yourPosition":"More Neutral|Comparable|More Directional|Outlier","positionDescription":"2-3 sentences on how your coverage compares to the ecosystem — cite specific patterns","searchNote":"honest note about search quality and any limitations"}`;
+
+  const ecoUser=`Original article${pub?' from '+pub:''}:\n${article.substring(0,500)}...\n\nOriginal article bias profile:\n- Lean score: ${biasData.leanScore}/100\n- Overall risk: ${biasData.overallRisk}\n- Narrative: ${biasData.narrativeControl?.actorA} ${biasData.narrativeControl?.actorAPercent}% vs ${biasData.narrativeControl?.actorB} ${biasData.narrativeControl?.actorBPercent}%\n\nNow search the web for 3-4 other outlets that covered the same story. Analyze each for bias and compare.`;
+
+  try{
+    animateSearchState(2);
+
+    const ecoRes=await fetch('/api/analyze',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        system:ecoSystem,
+        messages:[{role:'user',content:ecoUser}],
+        useWebSearch:true
+      })
+    });
+
+    animateSearchState(3);
+
+    const ecoRaw=await ecoRes.text();
+    if(!ecoRes.ok){
+      let msg=ecoRaw;try{msg=JSON.parse(ecoRaw).error||ecoRaw;}catch(e){}
+      showEcoError('Search error: '+msg.substring(0,200));return;
+    }
+
+    let ecoProxy;
+    try{ecoProxy=JSON.parse(ecoRaw);}
+    catch(e){showEcoError('Parse error on ecosystem response.');return;}
+
+    const ecoTxt=(ecoProxy.content&&ecoProxy.content[0]&&ecoProxy.content[0].text)||'';
+    if(!ecoTxt){showEcoError('Empty ecosystem response.');return;}
+
+    let ecoJson=ecoTxt.trim();
+    const em=ecoJson.match(/\{[\s\S]*\}/);if(em)ecoJson=em[0];
+
+    let ecoData;
+    try{ecoData=JSON.parse(ecoJson);}
+    catch(e){showEcoError('Could not parse ecosystem result. Raw:\n'+ecoTxt.substring(0,400));return;}
+
+    lastEco=ecoData;
+
+    // Add "yours" outlet to the mix
+    const yoursOutlet={
+      outletName:pub||'Your article',
+      headline:biasData.keyTakeaway||'—',
+      url:'',
+      leanScore:biasData.leanScore||50,
+      overallRisk:biasData.overallRisk||'MEDIUM',
+      linguisticLoad:(biasData.modules||[]).find(m=>m.id==='linguistic')?.status||'—',
+      linguisticDensity:(biasData.modules||[]).find(m=>m.id==='linguistic')?.density||'—',
+      sourceBalance:(biasData.modules||[]).find(m=>m.id==='source')?.status||'—',
+      agencyClarity:(biasData.modules||[]).find(m=>m.id==='agency')?.status||'—',
+      keyFinding:biasData.whyFlagged?.[0]||biasData.editorialAdvisory||'—',
+      isYours:true
+    };
+
+    const allOutlets=[yoursOutlet,...(ecoData.outlets||[])];
+    renderEcosystem(ecoData,allOutlets,biasData);
+
+  }catch(err){
+    showEcoError('Network error: '+err.message);
+  }
+}
+
+function animateSearchState(step){
+  const steps=['eco-ss-1','eco-ss-2','eco-ss-3'];
+  steps.forEach((id,i)=>{
+    const el=document.getElementById(id);
+    if(!el)return;
+    const spinner=el.querySelector('.ss-spinner');
+    const txt=el.querySelector('.ss-text');
+    if(i<step-1){
+      if(spinner){spinner.outerHTML='<div class="ss-done">✓</div>';}
+      if(txt)txt.classList.add('done');
+    } else if(i===step-1){
+      if(spinner)spinner.style.opacity='1';
+      if(txt){txt.style.opacity='1';}
+    }
+  });
+}
+
+function showEcoError(msg){
+  document.getElementById('eco-search-state').innerHTML=
+    `<div style="padding:20px 26px;font-size:12px;color:rgba(248,113,113,0.80);">⚠ Ecosystem search issue: ${msg}<br><br><span style="color:rgba(185,204,204,0.55);">Bias scorecard above is still complete and reliable.</span></div>`;
+}
+
+function renderEcosystem(eco,allOutlets,biasData){
+  document.getElementById('eco-search-state').style.display='none';
+  document.getElementById('eco-topic').textContent=eco.storyTopic||'—';
+  document.getElementById('eco-outlets-count').textContent=allOutlets.length+' outlets analyzed';
+
+  // DIMENSION COMPARISON
+  const dimSection=document.getElementById('eco-dim-section');
+  dimSection.style.display='block';
+  const dimsEl=document.getElementById('eco-dims');
+  dimsEl.innerHTML='';
+  const dimColors={
+    'Linguistic Load':'#c084fc',
+    'Source Balance':'#60a5fa',
+    'Framing Lean':'#f87171',
+    'Narrative Control':'#4ade80'
+  };
+  (eco.dimensionComparison||[]).forEach(dim=>{
+    const col=dimColors[dim.dimension]||'#c084fc';
+    const yourW=Math.max(4,Math.min(96,dim.yourScore||50));
+    const ecoW=Math.max(4,Math.min(96,dim.ecoAvg||50));
+    dimsEl.innerHTML+=`
+      <div class="dim-row">
+        <div class="dr-name">${dim.dimension}</div>
+        <div class="dr-bars">
+          <div class="outlet-bar-row">
+            <div class="obr-label yours">${allOutlets[0]?.outletName||'Yours'}</div>
+            <div class="obr-track"><div class="obr-fill" style="width:${yourW}%;background:${col}"></div></div>
+            <div class="obr-val" style="color:${col}">${dim.yourLabel||yourW+'%'}</div>
+          </div>
+          <div class="outlet-bar-row">
+            <div class="obr-label">Ecosystem avg</div>
+            <div class="obr-track"><div class="obr-fill" style="width:${ecoW}%;background:rgba(185,204,204,0.40)"></div></div>
+            <div class="obr-val" style="color:rgba(185,204,204,0.60)">${dim.ecoLabel||ecoW+'%'}</div>
+          </div>
+        </div>
+      </div>`;
+  });
+
+  // FRAMING SPECTRUM
+  const specSection=document.getElementById('eco-spectrum-section');
+  specSection.style.display='block';
+  const track=document.getElementById('spectrum-track');
+  track.innerHTML='';
+  const dotColors=['#c084fc','#60a5fa','#4ade80','#fbbf24','#f87171'];
+  allOutlets.forEach((o,i)=>{
+    const lean=Math.max(4,Math.min(96,o.leanScore||50));
+    const col=o.isYours?'#c084fc':dotColors[i%dotColors.length];
+    track.innerHTML+=`
+      <div class="spectrum-dot" style="left:${lean}%;background:${col};border-color:${col};" title="${o.outletName}">
+        ${o.isYours?'★':(i)}
+        <div class="spectrum-tooltip">${o.outletName} — ${lean}/100</div>
+      </div>`;
+  });
+  // Legend
+  specSection.innerHTML+=`<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;">
+    ${allOutlets.map((o,i)=>{
+      const col=o.isYours?'#c084fc':dotColors[i%dotColors.length];
+      return `<div style="display:flex;align-items:center;gap:4px;font-size:10px;color:rgba(185,204,204,0.65);">
+        <div style="width:8px;height:8px;border-radius:50%;background:${col};flex-shrink:0"></div>
+        ${o.isYours?'<strong style="color:#c084fc">'+o.outletName+'</strong>':o.outletName}
+      </div>`;
+    }).join('')}
+  </div>`;
+
+  // OUTLET CARDS
+  const outSection=document.getElementById('eco-outlets-section');
+  outSection.style.display='block';
+  const grid=document.getElementById('eco-outlets-grid');
+  grid.innerHTML='';
+  const riskMap={'LOW':'oc-risk-low','MEDIUM':'oc-risk-medium','HIGH':'oc-risk-high'};
+  allOutlets.forEach((o,i)=>{
+    const lean=Math.max(4,Math.min(96,o.leanScore||50));
+    const riskClass=riskMap[o.overallRisk?.toUpperCase()]||'oc-risk-medium';
+    const col=o.isYours?'#c084fc':dotColors[i%dotColors.length];
+    grid.innerHTML+=`
+      <div class="outlet-card ${o.isYours?'yours':''}">
+        <div class="oc-head">
+          <div>
+            <div class="oc-outlet-name">
+              ${o.isYours?`<div style="width:8px;height:8px;border-radius:50%;background:#c084fc"></div>`:`<div style="width:8px;height:8px;border-radius:50%;background:${col}"></div>`}
+              ${o.outletName}
+              ${o.isYours?'<span class="oc-yours-tag">Yours</span>':''}
+            </div>
+            <div class="oc-headline">${(o.headline||'—').substring(0,80)}${(o.headline||'').length>80?'…':''}</div>
+          </div>
+          <div class="oc-risk ${riskClass}">${o.overallRisk||'—'}</div>
+        </div>
+        <div class="oc-body">
+          <div class="oc-metric">
+            <span class="oc-m-label">Framing lean</span>
+            <div class="oc-m-bar"><div class="oc-m-fill" style="width:${lean}%;background:${col}"></div></div>
+            <span class="oc-m-val" style="color:${col}">${lean}/100</span>
+          </div>
+          <div class="oc-metric">
+            <span class="oc-m-label">Linguistic</span>
+            <span class="oc-m-val" style="color:rgba(185,204,204,0.70)">${o.linguisticLoad||'—'}</span>
+          </div>
+          <div class="oc-metric">
+            <span class="oc-m-label">Sources</span>
+            <span class="oc-m-val" style="color:rgba(185,204,204,0.70)">${o.sourceBalance||'—'}</span>
+          </div>
+          <div style="font-size:10px;color:rgba(185,204,204,0.50);font-style:italic;margin-top:2px;">${o.keyFinding||'—'}</div>
+        </div>
+        ${o.url?`<a class="oc-url" href="${o.url}" target="_blank" rel="noopener">↗ ${o.url.replace(/^https?:\/\//,'').substring(0,50)}</a>`:''}
+      </div>`;
+  });
+
+  // ECOSYSTEM VERDICT
+  const verdictSection=document.getElementById('eco-verdict-section');
+  verdictSection.style.display='block';
+  const posClass={
+    'More Neutral':'ev-pos-neutral',
+    'Comparable':'ev-pos-neutral',
+    'More Directional':'ev-pos-directional',
+    'Outlier':'ev-pos-outlier'
+  }[eco.yourPosition]||'ev-pos-directional';
+  document.getElementById('ev-pos-label').className='ev-pos-label '+posClass;
+  document.getElementById('ev-pos-label').textContent=eco.yourPosition||'—';
+  document.getElementById('ev-description').textContent=eco.positionDescription||'—';
+
+  if(eco.searchNote){
+    verdictSection.innerHTML+=`<div style="margin-top:10px;font-size:10px;color:rgba(185,204,204,0.40);font-style:italic;">Note: ${eco.searchNote}</div>`;
+  }
+}
+
+// ── RENDER BIAS SCORECARD ────────────────────────────────────────────────────
 function render(d,pub,fmt){
   const riskClass={'LOW':'rp-low','MEDIUM':'rp-medium','HIGH':'rp-high'}[d.overallRisk]||'rp-medium';
   document.getElementById('risk-pill').innerHTML=`<div class="risk-pill ${riskClass}">⚠ ${d.overallRisk||'—'} BIAS RISK</div>`;
@@ -394,34 +889,28 @@ function render(d,pub,fmt){
     div.style.animationDelay=(i*55)+'ms';
     let inner=`<div class="mb-analysis">${mod.analysis||'—'}</div>`;
 
-    if(mod.id==='linguistic'){
-      if(mod.loadedWords&&mod.loadedWords.length>0){
-        const cc={emotional:'wpill-loaded',speculative:'wpill-speculative',judgmental:'wpill-judgmental'};
-        inner+=`<div style="font-size:10px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--soft);margin-bottom:6px;">Flagged words</div>`;
-        inner+=`<div class="word-pills">`+mod.loadedWords.map(w=>`<span class="wpill ${cc[w.category]||'wpill-loaded'}" title="${w.category}">${w.word}</span>`).join('')+`</div>`;
-      }
+    if(mod.id==='linguistic'&&mod.loadedWords&&mod.loadedWords.length>0){
+      const cc={emotional:'wpill-emotional',speculative:'wpill-speculative',judgmental:'wpill-judgmental'};
+      inner+=`<div style="font-size:10px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--soft);margin-bottom:6px;">Flagged words</div>`;
+      inner+=`<div class="word-pills">`+mod.loadedWords.map(w=>`<span class="wpill ${cc[w.category]||'wpill-emotional'}" title="${w.category}">${w.word}</span>`).join('')+`</div>`;
       if(mod.density)inner+=`<div style="font-size:11px;color:var(--soft);">Density: <strong style="color:var(--teal)">${mod.density}</strong></div>`;
     }
 
-    if(mod.id==='source'){
-      if(mod.primaryVoice){
-        inner+=`<div style="font-size:10px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--soft);margin-bottom:5px;">Voice allocation</div>`;
-        inner+=`<div style="font-size:11px;color:var(--teal2);margin-bottom:3px;"><strong>${mod.primaryVoice}:</strong> ${mod.primaryWords||'—'} words (${mod.primaryPct||'—'}%)</div>`;
-        inner+=`<div style="font-size:11px;color:var(--teal2);margin-bottom:5px;"><strong>${mod.counterVoice||'Counter voice'}:</strong> ${mod.counterWords||'—'} words (${mod.counterPct||'—'}%)</div>`;
-        inner+=`<div style="font-size:11px;color:var(--soft);">Ratio: <strong style="color:var(--teal)">${mod.ratio||'—'}</strong></div>`;
-      }
+    if(mod.id==='source'&&mod.primaryVoice){
+      inner+=`<div style="font-size:10px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--soft);margin-bottom:5px;">Voice allocation</div>`;
+      inner+=`<div style="font-size:11px;color:var(--teal2);margin-bottom:3px;"><strong>${mod.primaryVoice}:</strong> ${mod.primaryWords||'—'} words (${mod.primaryPct||'—'}%)</div>`;
+      inner+=`<div style="font-size:11px;color:var(--teal2);margin-bottom:5px;"><strong>${mod.counterVoice||'Counter voice'}:</strong> ${mod.counterWords||'—'} words (${mod.counterPct||'—'}%)</div>`;
+      inner+=`<div style="font-size:11px;color:var(--soft);">Ratio: <strong style="color:var(--teal)">${mod.ratio||'—'}</strong></div>`;
     }
 
-    if(mod.id==='attribution'){
-      if(mod.verbs&&mod.verbs.length>0){
-        inner+=`<div style="font-size:10px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--soft);margin-bottom:5px;">Attribution verbs</div>`;
-        inner+=`<table class="verb-table"><thead><tr><th>Actor</th><th>Verb</th><th>Type</th></tr></thead><tbody>`+
-          mod.verbs.map(v=>{
-            const cls={'validating':'vt-validating','skeptical':'vt-skeptical','neutral':'vt-neutral'}[v.category]||'';
-            return `<tr><td>${v.actor}</td><td><em>${v.verb}</em></td><td class="${cls}">${v.category}</td></tr>`;
-          }).join('')+`</tbody></table>`;
-        if(mod.asymmetry)inner+=`<div style="font-size:11px;color:var(--soft);">Asymmetry: <strong style="color:var(--teal)">${mod.asymmetry}</strong></div>`;
-      }
+    if(mod.id==='attribution'&&mod.verbs&&mod.verbs.length>0){
+      inner+=`<div style="font-size:10px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--soft);margin-bottom:5px;">Attribution verbs</div>`;
+      inner+=`<table class="verb-table"><thead><tr><th>Actor</th><th>Verb</th><th>Type</th></tr></thead><tbody>`+
+        mod.verbs.map(v=>{
+          const cls={'validating':'vt-validating','skeptical':'vt-skeptical','neutral':'vt-neutral'}[v.category]||'';
+          return `<tr><td>${v.actor}</td><td><em>${v.verb}</em></td><td class="${cls}">${v.category}</td></tr>`;
+        }).join('')+`</tbody></table>`;
+      if(mod.asymmetry)inner+=`<div style="font-size:11px;color:var(--soft);">Asymmetry: <strong style="color:var(--teal)">${mod.asymmetry}</strong></div>`;
     }
 
     if(mod.id==='agency'){
@@ -434,7 +923,7 @@ function render(d,pub,fmt){
             ${p.rewrite?`<div class="pi-rewrite"><strong>Active →</strong> ${p.rewrite}</div>`:''}
           </div>`).join('');
       } else {
-        inner+=`<div class="insuf">No passive constructions flagged in this text.</div>`;
+        inner+=`<div style="font-size:11px;color:var(--soft);font-style:italic;">No passive constructions flagged.</div>`;
       }
     }
 
@@ -454,9 +943,7 @@ function render(d,pub,fmt){
   const wSec=document.getElementById('why-section');
   if(flags.length>0){
     wSec.style.display='block';
-    document.getElementById('why-list').innerHTML=flags.map(f=>
-      `<div class="flag-item"><div class="fi-bullet"></div><div class="fi-text">${f}</div></div>`
-    ).join('');
+    document.getElementById('why-list').innerHTML=flags.map(f=>`<div class="flag-item"><div class="fi-bullet"></div><div class="fi-text">${f}</div></div>`).join('');
   } else {
     wSec.style.display='none';
   }
@@ -476,15 +963,13 @@ function togMod(head){
 function copyCard(){
   if(!lastResult)return;
   const d=lastResult.parsed;
-  let t='DNA BIAS SCORECARD\n';
-  t+=new Date().toLocaleDateString('en-GB')+'\n';
-  t+='Format: '+(d.formatProfile||'—')+'\n';
-  t+='Overall Bias Risk: '+(d.overallRisk||'—')+'\n\n';
+  let t='360BIAS SCORECARD\n'+new Date().toLocaleDateString('en-GB')+'\n';
+  t+='Format: '+(d.formatProfile||'—')+'\nOverall Bias Risk: '+(d.overallRisk||'—')+'\n\n';
   t+='Key Takeaway:\n'+(d.keyTakeaway||'—')+'\n\n';
-  t+='Editorial Lean: '+d.leanScore+'/100 — '+(d.leanNote||'—')+'\n\n';
+  t+='Framing Lean: '+d.leanScore+'/100 — '+(d.leanNote||'—')+'\n\n';
   const nc=d.narrativeControl||{};
   t+='Narrative Control: '+(nc.actorA||'—')+' '+(nc.actorAPercent||'—')+'% · '+(nc.actorB||'—')+' '+(nc.actorBPercent||'—')+'% — '+(nc.status||'—')+'\n\n';
-  (d.modules||[]).forEach(m=>{t+=m.name+'\nStatus: '+m.status+'\n'+m.finding+'\n'+m.analysis+'\n\n';});
+  (d.modules||[]).forEach(m=>{t+=m.name+'\n'+m.status+'\n'+m.finding+'\n'+m.analysis+'\n\n';});
   if((d.whyFlagged||[]).length>0){t+='Why Flagged:\n';d.whyFlagged.forEach(f=>{t+='— '+f+'\n';});t+='\n';}
   t+='Editorial Advisory:\n'+(d.editorialAdvisory||'—')+'\n\n';
   t+='All outputs are advisory. Human editorial control is always preserved.';
@@ -497,6 +982,7 @@ function copyCard(){
 
 function reset(){
   document.getElementById('result-card').style.display='none';
+  document.getElementById('compare-card').style.display='none';
   document.getElementById('article').value='';
   document.getElementById('wcount').textContent='0 words';
   window.scrollTo({top:0,behavior:'smooth'});
