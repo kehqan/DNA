@@ -1,0 +1,684 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Noto+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ivory:#F8F7F6;--teal:#1A3948;--teal2:#24506A;--flame:#FF5400;
+  --stone:#B9CCCC;--honey:#FFC047;--green:#1f7a45;
+  --border:rgba(26,57,72,0.09);--muted:rgba(26,57,72,0.52);--soft:rgba(26,57,72,0.36);
+  --glass:rgba(255,255,255,0.58);--glass-b:rgba(255,255,255,0.88);
+  --gs:0 8px 32px rgba(26,57,72,0.10),0 1.5px 4px rgba(26,57,72,0.06);
+  --gi:inset 0 1px 0 rgba(255,255,255,0.92),inset 0 -1px 0 rgba(26,57,72,0.03);
+  --eo:cubic-bezier(0.25,0.46,0.45,0.94);
+  --serif:'Lora',Georgia,serif;--sans:'Noto Sans',system-ui,sans-serif;
+}
+body{font-family:var(--sans);background:#F0EFED;min-height:100vh;overflow-x:hidden;}
+.scene{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;background:#F0EFED;}
+.orb{position:absolute;border-radius:50%;filter:blur(90px);}
+.o1{width:600px;height:480px;top:-120px;left:-100px;background:radial-gradient(ellipse,rgba(255,84,0,0.28) 0%,rgba(255,140,60,0.10) 45%,transparent 70%);}
+.o2{width:500px;height:400px;top:30%;right:-140px;background:radial-gradient(ellipse,rgba(26,57,72,0.12) 0%,rgba(26,57,72,0.03) 55%,transparent 75%);}
+.o3{width:380px;height:320px;bottom:8%;left:22%;background:radial-gradient(ellipse,rgba(255,192,71,0.14) 0%,transparent 65%);}
+.wrap{position:relative;z-index:1;max-width:800px;margin:0 auto;padding:0 20px 80px;}
+
+/* NAV */
+.nav-wrap{position:sticky;top:0;z-index:50;display:flex;justify-content:center;padding:14px 24px 0;pointer-events:none;}
+.nav-pill{display:inline-flex;align-items:center;gap:2px;background:rgba(26,57,72,0.84);backdrop-filter:blur(28px) saturate(2);-webkit-backdrop-filter:blur(28px) saturate(2);border:1px solid rgba(255,255,255,0.12);border-radius:100px;padding:5px;box-shadow:0 8px 32px rgba(0,0,0,0.22),0 2px 8px rgba(0,0,0,0.14),inset 0 1px 0 rgba(255,255,255,0.14),inset 0 -1px 0 rgba(0,0,0,0.18);pointer-events:all;}
+.wordmark{font-family:var(--serif);font-size:16px;color:rgba(248,247,246,0.92);padding:6px 14px 6px 12px;border-right:1px solid rgba(255,255,255,0.10);margin-right:4px;}
+.wordmark em{font-style:normal;color:var(--flame);font-weight:600;}
+.ntab{font-size:12px;font-weight:500;color:rgba(185,204,204,0.72);padding:7px 13px;border-radius:100px;cursor:pointer;transition:color 180ms,background 180ms;white-space:nowrap;}
+.ntab:hover{color:rgba(248,247,246,0.95);}
+.ntab.on{background:rgba(255,255,255,0.13);color:#fff;}
+.nbadge{background:rgba(255,84,0,0.20);color:var(--flame);font-size:10px;font-weight:700;padding:2px 6px;border-radius:100px;margin-left:3px;}
+.flame-btn{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:#fff;padding:7px 16px;border-radius:100px;background:var(--flame);border:none;cursor:pointer;box-shadow:0 2px 10px rgba(255,84,0,0.42),inset 0 1px 0 rgba(255,255,255,0.22);transition:transform 150ms var(--eo);}
+.flame-btn:hover{transform:scale(1.03);}
+
+/* VIEWS */
+.view{display:none;}
+.view.active{display:block;animation:rise 350ms var(--eo) both;}
+@keyframes rise{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+/* HERO */
+.hero{padding:40px 0 24px;text-align:center;}
+.eyebrow{font-size:10px;font-weight:600;letter-spacing:0.10em;text-transform:uppercase;color:var(--soft);margin-bottom:14px;display:flex;align-items:center;justify-content:center;gap:7px;}
+.pdot{width:6px;height:6px;border-radius:50%;background:var(--flame);animation:pring 2.5s ease-in-out infinite;}
+@keyframes pring{0%,100%{box-shadow:0 0 0 0 rgba(255,84,0,0.4);}50%{box-shadow:0 0 0 5px rgba(255,84,0,0);}}
+.hero h1{font-family:var(--serif);font-size:32px;font-weight:400;color:var(--teal);line-height:1.2;margin-bottom:10px;}
+.hero h1 em{font-style:italic;color:var(--flame);}
+.hero p{font-size:13px;color:var(--muted);max-width:440px;margin:0 auto;}
+
+/* CARD */
+.card{border-radius:18px;padding:20px 22px;background:var(--glass);backdrop-filter:blur(20px) saturate(1.8);-webkit-backdrop-filter:blur(20px) saturate(1.8);border:1px solid var(--glass-b);box-shadow:var(--gs),var(--gi);margin-bottom:12px;}
+.card.stagger1{animation:rise 420ms var(--eo) 40ms both;}
+.card.stagger2{animation:rise 420ms var(--eo) 80ms both;}
+.card.stagger3{animation:rise 420ms var(--eo) 120ms both;}
+.card.stagger4{animation:rise 420ms var(--eo) 160ms both;}
+
+/* SECTION HEADER */
+.sdiv{display:flex;align-items:center;gap:12px;margin:24px 0 10px;}
+.sdiv h2{font-family:var(--serif);font-size:15px;font-weight:400;color:var(--teal);white-space:nowrap;}
+.rule{flex:1;height:1px;background:var(--border);}
+.uchip{font-size:10px;font-weight:700;color:var(--flame);background:rgba(255,84,0,0.08);border:1px solid rgba(255,84,0,0.16);padding:2px 9px;border-radius:100px;}
+.greenchip{color:var(--green);background:rgba(31,122,69,0.08);border-color:rgba(31,122,69,0.18);}
+
+/* FORM BASICS */
+.fl{font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--soft);margin-bottom:7px;display:flex;align-items:center;justify-content:space-between;}
+.fl-hint{font-size:10px;font-weight:400;letter-spacing:0;text-transform:none;color:var(--stone);}
+textarea,input[type=text]{width:100%;font-family:var(--sans);font-size:13px;color:var(--teal);background:rgba(255,255,255,0.72);border:1px solid rgba(26,57,72,0.14);border-radius:10px;padding:10px 13px;resize:none;transition:border-color 180ms,box-shadow 180ms;outline:none;}
+textarea:focus,input[type=text]:focus{border-color:rgba(255,84,0,0.45);box-shadow:0 0 0 3px rgba(255,84,0,0.09);}
+textarea::placeholder,input[type=text]::placeholder{color:var(--stone);}
+
+/* CHIPS */
+.chip-row{display:flex;flex-wrap:wrap;gap:6px;}
+.chip{padding:6px 13px;border-radius:100px;font-size:12px;font-weight:500;border:1.5px solid var(--border);background:rgba(255,255,255,0.55);color:var(--muted);cursor:pointer;transition:all 150ms;user-select:none;}
+.chip.on{background:var(--teal);color:var(--ivory);border-color:var(--teal);}
+.chip.on.f{background:var(--flame);border-color:var(--flame);}
+.chip.on.h{background:var(--honey);border-color:var(--honey);color:var(--teal);}
+
+/* CERTAINTY DOTS — replaces sliders */
+.cert-row{display:flex;align-items:center;gap:10px;margin-top:10px;padding:10px 13px;border-radius:10px;background:rgba(255,255,255,0.50);border:1px solid rgba(26,57,72,0.08);}
+.cert-lbl{font-size:11px;font-weight:600;color:var(--soft);flex:1;}
+.cert-dots{display:flex;gap:5px;}
+.cdot{width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border);background:rgba(255,255,255,0.70);cursor:pointer;transition:all 150ms;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--stone);}
+.cdot:hover{border-color:var(--teal2);color:var(--teal2);}
+.cdot.on-1{background:rgba(255,84,0,0.12);border-color:var(--flame);color:var(--flame);}
+.cdot.on-2{background:rgba(255,192,71,0.18);border-color:#c98a00;color:#8a5e00;}
+.cdot.on-3{background:rgba(31,122,69,0.12);border-color:var(--green);color:var(--green);}
+.cert-value{font-size:11px;font-weight:600;min-width:44px;text-align:right;}
+
+/* PEOPLE */
+.people-wrap{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:9px;min-height:0;}
+.ppill{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:100px;background:rgba(26,57,72,0.07);border:1px solid rgba(26,57,72,0.12);font-size:12px;font-weight:500;color:var(--teal2);animation:rise 200ms var(--eo) both;}
+.ppill .px{cursor:pointer;color:var(--stone);font-size:13px;line-height:1;margin-left:1px;transition:color 150ms;}
+.ppill .px:hover{color:var(--flame);}
+.ppill.mem{background:rgba(255,84,0,0.06);border-color:rgba(255,84,0,0.18);color:var(--flame);cursor:pointer;}
+.ppill.mem:hover{background:rgba(255,84,0,0.12);}
+.people-add{display:flex;gap:7px;}
+.people-add input{flex:1;}
+.add-btn{padding:8px 16px;border-radius:100px;font-size:12px;font-weight:600;color:var(--teal);border:1.5px solid rgba(26,57,72,0.20);background:rgba(255,255,255,0.70);cursor:pointer;transition:all 150ms;white-space:nowrap;flex-shrink:0;}
+.add-btn:hover{background:var(--teal);color:var(--ivory);border-color:var(--teal);}
+
+/* CHANNEL GRID */
+.ch-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;}
+.ch-pill{display:flex;align-items:center;gap:8px;padding:10px 13px;border-radius:12px;border:1.5px solid var(--border);background:rgba(255,255,255,0.40);cursor:pointer;transition:all 180ms;user-select:none;}
+.ch-pill.on{border-color:var(--teal2);background:rgba(26,57,72,0.06);}
+.ch-dot{width:7px;height:7px;border-radius:50%;background:rgba(26,57,72,0.18);flex-shrink:0;transition:background 180ms;}
+.ch-pill.on .ch-dot{background:var(--teal2);}
+.ch-lbl{font-size:12px;font-weight:500;color:var(--muted);}
+.ch-pill.on .ch-lbl{color:var(--teal);}
+
+/* SIGNAL STRENGTH */
+.sig-bar-wrap{margin:18px 0 6px;}
+.sig-bar-track{height:5px;background:rgba(26,57,72,0.09);border-radius:100px;overflow:hidden;margin-bottom:5px;}
+.sig-bar-fill{height:100%;border-radius:100px;transition:width 500ms var(--eo),background 500ms;}
+.sig-footer{display:flex;justify-content:space-between;align-items:center;}
+.sig-msg{font-size:11px;color:var(--soft);transition:color 300ms;}
+.sig-pct{font-size:11px;font-weight:700;color:var(--soft);transition:color 300ms;}
+
+/* OUTPUT MODES */
+.var-row{display:flex;gap:6px;margin-bottom:12px;}
+.var-btn{padding:6px 14px;border-radius:100px;font-size:12px;font-weight:500;border:1.5px solid var(--border);background:rgba(255,255,255,0.50);color:var(--muted);cursor:pointer;transition:all 150ms;user-select:none;}
+.var-btn.on{background:var(--teal2);color:#fff;border-color:var(--teal2);}
+
+/* OUTPUT BOX */
+.output-card{border-radius:14px;background:rgba(26,57,72,0.04);border:1px solid rgba(26,57,72,0.10);padding:18px;font-family:'Courier New',monospace;font-size:12px;color:var(--teal2);line-height:1.75;white-space:pre-wrap;word-break:break-word;outline:none;min-height:160px;}
+.out-actions{display:flex;gap:7px;margin-top:10px;justify-content:flex-end;flex-wrap:wrap;}
+.abtn{font-family:var(--sans);font-size:12px;font-weight:600;color:var(--teal);padding:7px 16px;border-radius:100px;border:1.5px solid rgba(26,57,72,0.20);background:rgba(255,255,255,0.72);cursor:pointer;transition:all 150ms var(--eo);}
+.abtn:hover{background:var(--teal);color:var(--ivory);border-color:transparent;}
+.abtn.done{background:rgba(31,122,69,0.10);color:var(--green);border-color:rgba(31,122,69,0.22);}
+.abtn.primary{background:var(--flame);color:#fff;border-color:var(--flame);box-shadow:0 3px 12px rgba(255,84,0,0.30);}
+.abtn.primary:hover{background:#e04800;border-color:#e04800;}
+
+/* HISTORY */
+.hist-item{display:flex;align-items:center;gap:12px;padding:13px 16px;border-radius:14px;background:rgba(255,255,255,0.45);border:1px solid var(--glass-b);margin-bottom:8px;cursor:pointer;transition:all 150ms;}
+.hist-item:hover{background:rgba(255,255,255,0.75);transform:translateX(3px);}
+.hist-icon{width:34px;height:34px;border-radius:10px;background:rgba(26,57,72,0.07);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+.hist-body{flex:1;min-width:0;}
+.hist-title{font-family:var(--serif);font-size:13px;color:var(--teal);margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.hist-meta{font-size:11px;color:var(--soft);}
+.hist-tags{display:flex;gap:4px;margin-top:4px;flex-wrap:wrap;}
+.htag{font-size:10px;font-weight:600;padding:2px 7px;border-radius:100px;background:rgba(26,57,72,0.07);color:var(--teal2);}
+.hist-del{font-size:16px;color:var(--stone);cursor:pointer;padding:4px;transition:color 150ms;flex-shrink:0;}
+.hist-del:hover{color:var(--flame);}
+
+/* TIPS */
+.tips-g{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+.tip{border-radius:14px;padding:14px 15px;background:rgba(255,255,255,0.40);border:1px solid var(--glass-b);}
+.tip-n{font-family:var(--serif);font-size:18px;color:rgba(255,84,0,0.22);margin-bottom:4px;}
+.tip-t{font-size:12px;font-weight:600;color:var(--teal);margin-bottom:3px;}
+.tip-d{font-size:11.5px;color:var(--muted);line-height:1.5;}
+
+/* FAST MODE */
+.fast-wrap{max-width:560px;margin:0 auto;}
+.fast-card{border-radius:20px;padding:24px;background:var(--glass);backdrop-filter:blur(24px) saturate(2);-webkit-backdrop-filter:blur(24px) saturate(2);border:1px solid var(--glass-b);box-shadow:var(--gs),var(--gi);}
+.fast-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+.fast-full{grid-column:1/-1;}
+.fast-lbl{font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--soft);margin-bottom:6px;}
+
+@media(max-width:580px){
+  .ch-grid{grid-template-columns:1fr 1fr;}
+  .tips-g{grid-template-columns:1fr;}
+  .fast-row{grid-template-columns:1fr;}
+  .hero h1{font-size:26px;}
+}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01ms !important;transition-duration:.01ms !important;}}
+</style>
+</head>
+<body>
+<div class="scene"><div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div></div>
+<div class="wrap">
+
+<!-- NAV -->
+<div class="nav-wrap">
+  <div class="nav-pill">
+    <div class="wordmark">Memory<em>.</em>Hunter</div>
+    <div class="ntab on" onclick="showView('builder')">Build</div>
+    <div class="ntab" onclick="showView('fast')">Fast ⚡</div>
+    <div class="ntab" onclick="showView('history')">History <span class="nbadge" id="hist-count">0</span></div>
+    <div class="ntab" onclick="showView('tips')">Tips</div>
+    <button class="flame-btn" onclick="generate()">Generate ↗</button>
+  </div>
+</div>
+
+<!-- ══════════════ BUILDER ══════════════ -->
+<div class="view active" id="view-builder">
+  <div class="hero">
+    <div class="eyebrow"><div class="pdot"></div> Copilot Prompt Generator</div>
+    <h1>Find What You <em>Can't Quite</em> Remember</h1>
+    <p>Signal fusion across email, Teams, meetings, files — the more signals, the sharper the search.</p>
+  </div>
+
+  <!-- SIGNAL STRENGTH -->
+  <div class="sig-bar-wrap">
+    <div class="sig-bar-track"><div class="sig-bar-fill" id="s-bar" style="width:0%;background:var(--flame)"></div></div>
+    <div class="sig-footer">
+      <span class="sig-msg" id="s-msg">Start below — topic and keywords matter most</span>
+      <span class="sig-pct" id="s-pct">0%</span>
+    </div>
+  </div>
+
+  <!-- WHAT -->
+  <div class="sdiv"><h2>What</h2><div class="rule"></div><div class="uchip">Core signal</div></div>
+  <div class="card stagger1">
+    <div class="fl">Topic <span style="color:var(--flame)">*</span> <span class="fl-hint">rough is fine</span></div>
+    <textarea id="topic" rows="2" placeholder="e.g. Pangea AI pilot proposal, the workflow doc Amra sent before the sprint…" oninput="updateStrength()"></textarea>
+    <div style="height:12px"></div>
+    <div class="fl">Type of thing</div>
+    <div class="chip-row" id="dtype">
+      <div class="chip" onclick="tog(this)">Document</div>
+      <div class="chip" onclick="tog(this)">Email thread</div>
+      <div class="chip" onclick="tog(this)">Teams chat</div>
+      <div class="chip" onclick="tog(this)">Meeting notes</div>
+      <div class="chip" onclick="tog(this)">Presentation</div>
+      <div class="chip" onclick="tog(this)">Not sure</div>
+    </div>
+    <div style="height:12px"></div>
+    <div class="fl">Why do you need it? <span class="fl-hint">optional — helps Copilot rank by relevance</span></div>
+    <input type="text" id="why" placeholder="e.g. revisit action items before the pilot kicks off…">
+  </div>
+
+  <!-- KEYWORDS -->
+  <div class="sdiv"><h2>Keywords</h2><div class="rule"></div></div>
+  <div class="card stagger2">
+    <div class="fl">Keywords / phrases <span style="color:var(--flame)">*</span> <span class="fl-hint">comma-separated</span></div>
+    <textarea id="keywords" rows="2" placeholder="pangea, AI improvements, pilot, workflow, automation, content tagging, phase 2…" oninput="updateStrength()"></textarea>
+    <div class="cert-row" id="kw-cert">
+      <span class="cert-lbl">How certain are you about these words?</span>
+      <div class="cert-dots">
+        <div class="cdot" onclick="setCert('kw',1,this)" title="Not sure — fuzzy match">?</div>
+        <div class="cdot on-2" onclick="setCert('kw',2,this)" title="Roughly right — mixed">~</div>
+        <div class="cdot" onclick="setCert('kw',3,this)" title="These exact words appear">✓</div>
+      </div>
+      <span class="cert-value" id="kw-cert-v" style="color:#8a5e00">Roughly</span>
+    </div>
+  </div>
+
+  <!-- PEOPLE -->
+  <div class="sdiv"><h2>People</h2><div class="rule"></div><div class="uchip">Strongest signal</div></div>
+  <div class="card stagger3">
+    <div id="mem-wrap" style="display:none;margin-bottom:10px;">
+      <div class="fl" style="margin-bottom:6px;">Remembered from before <span class="fl-hint">tap to add</span></div>
+      <div class="people-wrap" id="mem-pills"></div>
+    </div>
+    <div class="fl">Add people</div>
+    <div class="people-wrap" id="people-pills"></div>
+    <div class="people-add">
+      <input type="text" id="person-in" placeholder="Name — press Enter or Add" onkeydown="if(event.key==='Enter')addPerson()">
+      <button class="add-btn" onclick="addPerson()">+ Add</button>
+    </div>
+    <div class="cert-row" style="margin-top:10px;" id="p-cert">
+      <span class="cert-lbl">How certain are you they were involved?</span>
+      <div class="cert-dots">
+        <div class="cdot" onclick="setCert('p',1,this)" title="Not sure">?</div>
+        <div class="cdot on-2" onclick="setCert('p',2,this)" title="Probably">~</div>
+        <div class="cdot" onclick="setCert('p',3,this)" title="Definitely">✓</div>
+      </div>
+      <span class="cert-value" id="p-cert-v" style="color:#8a5e00">Probably</span>
+    </div>
+  </div>
+
+  <!-- CHANNELS + TIME (collapsed into one card) -->
+  <div class="sdiv"><h2>Where &amp; when</h2><div class="rule"></div></div>
+  <div class="card stagger4">
+    <div class="fl" style="margin-bottom:8px;">Channels to search</div>
+    <div class="ch-grid" id="channels">
+      <div class="ch-pill on" onclick="togCh(this)"><div class="ch-dot"></div><span class="ch-lbl">Email</span></div>
+      <div class="ch-pill on" onclick="togCh(this)"><div class="ch-dot"></div><span class="ch-lbl">Teams Chat</span></div>
+      <div class="ch-pill on" onclick="togCh(this)"><div class="ch-dot"></div><span class="ch-lbl">Meetings</span></div>
+      <div class="ch-pill on" onclick="togCh(this)"><div class="ch-dot"></div><span class="ch-lbl">SharePoint / Files</span></div>
+      <div class="ch-pill on" onclick="togCh(this)"><div class="ch-dot"></div><span class="ch-lbl">Loop / Planner</span></div>
+      <div class="ch-pill" onclick="togCh(this)"><div class="ch-dot"></div><span class="ch-lbl">Yammer / Viva</span></div>
+    </div>
+    <div style="height:14px"></div>
+    <div class="fl">Timeframe</div>
+    <div class="chip-row" id="timeframe">
+      <div class="chip" onclick="solo(this,'timeframe')">Today</div>
+      <div class="chip" onclick="solo(this,'timeframe')">Last 3 days</div>
+      <div class="chip on f" onclick="solo(this,'timeframe')">Last week</div>
+      <div class="chip" onclick="solo(this,'timeframe')">Last 2–3 weeks</div>
+      <div class="chip" onclick="solo(this,'timeframe')">Last month</div>
+      <div class="chip" onclick="solo(this,'timeframe')">2–3 months ago</div>
+      <div class="chip" onclick="solo(this,'timeframe')">Earlier this year</div>
+    </div>
+    <div style="height:10px"></div>
+    <input type="text" id="time-free" placeholder="Or describe freely — around the Prague workshop, after Nowruz…" oninput="updateStrength()">
+    <div class="cert-row" style="margin-top:10px;">
+      <span class="cert-lbl">How sure are you about the timing?</span>
+      <div class="cert-dots">
+        <div class="cdot" onclick="setCert('t',1,this)">?</div>
+        <div class="cdot on-2" onclick="setCert('t',2,this)">~</div>
+        <div class="cdot" onclick="setCert('t',3,this)">✓</div>
+      </div>
+      <span class="cert-value" id="t-cert-v" style="color:#8a5e00">Roughly</span>
+    </div>
+  </div>
+
+  <!-- MEMORY CLUES (collapsible) -->
+  <div style="text-align:center;margin:6px 0 12px;">
+    <span id="clues-toggle" onclick="toggleClues()" style="font-size:12px;font-weight:600;color:var(--teal2);cursor:pointer;border-bottom:1px dashed rgba(26,57,72,0.25);padding-bottom:1px;">+ Add memory clues (file format, visuals, project name…)</span>
+  </div>
+  <div id="clues-card" class="card" style="display:none;margin-top:-4px;">
+    <div class="fl">Anything random you remember</div>
+    <textarea id="clues" rows="2" placeholder="ppt format · had a table · bullet points · connected to weekly check-in · specific channel name…" oninput="updateStrength()"></textarea>
+    <div style="height:12px"></div>
+    <div class="fl">Priority ranking signal</div>
+    <div class="chip-row" id="priority">
+      <div class="chip on h" onclick="solo(this,'priority')">Cross-channel match</div>
+      <div class="chip" onclick="solo(this,'priority')">Most recent first</div>
+      <div class="chip" onclick="solo(this,'priority')">Exact keyword</div>
+      <div class="chip" onclick="solo(this,'priority')">From specific person</div>
+      <div class="chip" onclick="solo(this,'priority')">File type match</div>
+    </div>
+  </div>
+
+  <!-- OUTPUT FORMAT -->
+  <div class="sdiv"><h2>Prompt format</h2><div class="rule"></div></div>
+  <div class="var-row">
+    <div class="var-btn on" onclick="setVar(this,'full')">Full prompt</div>
+    <div class="var-btn" onclick="setVar(this,'brief')">Compact</div>
+    <div class="var-btn" onclick="setVar(this,'oneliner')">One-liner</div>
+  </div>
+
+  <div style="display:flex;justify-content:center;margin:14px 0 5px;">
+    <button class="abtn primary" style="padding:13px 44px;font-size:14px;border-radius:100px;" onclick="generate()">✦ Generate Copilot Prompt</button>
+  </div>
+  <p style="font-size:11px;color:var(--soft);text-align:center;margin-bottom:18px;">Paste into Copilot · Teams Copilot Chat · M365 Chat</p>
+
+  <div id="output-area" style="display:none;">
+    <div class="sdiv"><h2>Your prompt</h2><div class="rule"></div><div class="uchip" id="out-chip">—</div></div>
+    <div class="output-card" id="output-box" contenteditable="true"></div>
+    <div class="out-actions">
+      <button class="abtn" onclick="saveHistory()">Save to history</button>
+      <button class="abtn" id="copy-btn" onclick="doCopy('output-box','copy-btn')">Copy prompt</button>
+    </div>
+    <p style="font-size:11px;color:var(--soft);text-align:right;margin-top:5px;">Editable above before copying</p>
+  </div>
+</div>
+
+<!-- ══════════════ FAST ══════════════ -->
+<div class="view" id="view-fast">
+  <div class="hero" style="padding-top:34px;">
+    <div class="eyebrow"><div class="pdot"></div> Fast mode</div>
+    <h1>Quick <em>Lookup</em></h1>
+    <p>Four fields. Thirty seconds. One focused prompt.</p>
+  </div>
+  <div class="fast-wrap">
+    <div class="fast-card">
+      <div class="fast-row">
+        <div class="fast-full">
+          <div class="fast-lbl">Topic *</div>
+          <textarea id="f-topic" rows="2" placeholder="What's it roughly about?"></textarea>
+        </div>
+        <div>
+          <div class="fast-lbl">People involved</div>
+          <input type="text" id="f-people" placeholder="Amra, Artak…">
+        </div>
+        <div>
+          <div class="fast-lbl">Timeframe</div>
+          <input type="text" id="f-time" placeholder="last week, around April…">
+        </div>
+        <div class="fast-full">
+          <div class="fast-lbl">A keyword or two</div>
+          <input type="text" id="f-kw" placeholder="pilot, automation, workflow…">
+        </div>
+      </div>
+      <div style="display:flex;justify-content:center;margin-top:6px;">
+        <button class="abtn primary" style="padding:11px 34px;font-size:13px;" onclick="generateFast()">↗ Generate fast prompt</button>
+      </div>
+    </div>
+    <div id="fast-out-area" style="display:none;margin-top:18px;">
+      <div class="sdiv"><h2>Fast prompt</h2><div class="rule"></div></div>
+      <div class="output-card" id="fast-out-box" contenteditable="true"></div>
+      <div class="out-actions">
+        <button class="abtn" id="fast-copy-btn" onclick="doCopy('fast-out-box','fast-copy-btn')">Copy prompt</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ HISTORY ══════════════ -->
+<div class="view" id="view-history">
+  <div class="hero" style="padding-top:34px;">
+    <div class="eyebrow"><div class="pdot"></div> Saved searches</div>
+    <h1>Past <em>Prompts</em></h1>
+    <p>Click any entry to reload it into the builder.</p>
+  </div>
+  <div id="hist-empty" style="text-align:center;padding:48px 20px;color:var(--soft);font-size:13px;">No saved searches yet — generate a prompt and hit "Save to history"</div>
+  <div id="hist-list"></div>
+</div>
+
+<!-- ══════════════ TIPS ══════════════ -->
+<div class="view" id="view-tips">
+  <div class="hero" style="padding-top:34px;">
+    <div class="eyebrow"><div class="pdot"></div> Why it works</div>
+    <h1>The <em>Signal Fusion</em> Method</h1>
+    <p>Memory reconstruction — not keyword lookup.</p>
+  </div>
+  <div class="tips-g">
+    <div class="tip"><div class="tip-n">01</div><div class="tip-t">Cross-channel fusion</div><div class="tip-d">Results appearing in both a meeting and an email outrank single-source hits significantly.</div></div>
+    <div class="tip"><div class="tip-n">02</div><div class="tip-t">Social graph anchor</div><div class="tip-d">A person's name is the strongest filter inside M365 — even one name cuts noise dramatically.</div></div>
+    <div class="tip"><div class="tip-n">03</div><div class="tip-t">Temporal anchor</div><div class="tip-d">"Around the workshop" beats nothing. Rough timing narrows context and boosts ranking accuracy.</div></div>
+    <div class="tip"><div class="tip-n">04</div><div class="tip-t">Certainty signals</div><div class="tip-d">? tells Copilot to use semantic fuzzy matching. ✓ tells it to search exact wording. Makes a real difference.</div></div>
+    <div class="tip"><div class="tip-n">05</div><div class="tip-t">Intent context</div><div class="tip-d">The "why" field shifts Copilot from retrieval mode into relevance ranking — surfaces docs you'd actually use.</div></div>
+    <div class="tip"><div class="tip-n">06</div><div class="tip-t">Format clues</div><div class="tip-d">"ppt file" or "had a table" activates format-aware filtering that pure keyword search misses entirely.</div></div>
+  </div>
+  <div class="sdiv" style="margin-top:24px;"><h2>Quick rules</h2><div class="rule"></div></div>
+  <div class="card">
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div style="display:flex;gap:10px;"><span style="font-family:var(--serif);font-size:16px;color:rgba(255,84,0,0.30);flex-shrink:0">→</span><span style="font-size:13px;color:var(--teal2);line-height:1.5">Use <strong>Fast Mode</strong> for quick lookups — a topic + one person is usually enough.</span></div>
+      <div style="display:flex;gap:10px;"><span style="font-family:var(--serif);font-size:16px;color:rgba(255,84,0,0.30);flex-shrink:0">→</span><span style="font-size:13px;color:var(--teal2);line-height:1.5">Set certainty to <strong>?</strong> if you're guessing keywords — fuzzy matching will cast a wider net.</span></div>
+      <div style="display:flex;gap:10px;"><span style="font-family:var(--serif);font-size:16px;color:rgba(255,84,0,0.30);flex-shrink:0">→</span><span style="font-size:13px;color:var(--teal2);line-height:1.5"><strong>Deselect channels</strong> you know it's not in — fewer channels = sharper results.</span></div>
+      <div style="display:flex;gap:10px;"><span style="font-family:var(--serif);font-size:16px;color:rgba(255,84,0,0.30);flex-shrink:0">→</span><span style="font-size:13px;color:var(--teal2);line-height:1.5"><strong>Save searches</strong> if hunting across sessions — reload and iterate instead of re-entering everything.</span></div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script>
+var people=[], memPeople=[], history=[], currentVar='full', cluesOpen=false;
+var certs={kw:2,p:2,t:2};
+var certLabels={1:['?','Not sure — fuzzy match','color:var(--flame)'],2:['~','Roughly right','color:#8a5e00'],3:['✓','Definitely','color:var(--green)']};
+
+function showView(v){
+  document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.ntab').forEach(el=>el.classList.remove('on'));
+  document.getElementById('view-'+v).classList.add('active');
+  const map={builder:0,fast:1,history:2,tips:3};
+  document.querySelectorAll('.ntab')[map[v]].classList.add('on');
+}
+
+function tog(el){el.classList.toggle('on');}
+function togCh(el){el.classList.toggle('on');}
+function solo(el,g){
+  document.querySelectorAll('#'+g+' .chip').forEach(c=>c.classList.remove('on','f','h'));
+  el.classList.add('on');
+}
+function setVar(el,v){
+  currentVar=v;
+  document.querySelectorAll('.var-btn').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');
+}
+
+function setCert(type,val,el){
+  certs[type]=val;
+  const container=el.closest('.cert-dots');
+  container.querySelectorAll('.cdot').forEach((d,i)=>{
+    d.classList.remove('on-1','on-2','on-3');
+    if(i+1===val)d.classList.add('on-'+val);
+  });
+  const lbl=document.getElementById(type+'-cert-v');
+  if(lbl){lbl.textContent=certLabels[val][1];lbl.style.cssText=certLabels[val][2];}
+}
+
+function toggleClues(){
+  cluesOpen=!cluesOpen;
+  document.getElementById('clues-card').style.display=cluesOpen?'block':'none';
+  document.getElementById('clues-toggle').textContent=cluesOpen?'− Hide memory clues':'+ Add memory clues (file format, visuals, project name…)';
+}
+
+function addPerson(){
+  const inp=document.getElementById('person-in');
+  const n=inp.value.trim();
+  if(!n||people.includes(n))return;
+  people.push(n);
+  if(!memPeople.includes(n))memPeople.push(n);
+  inp.value='';
+  renderPeople();
+  updateStrength();
+}
+function removePerson(i){people.splice(i,1);renderPeople();updateStrength();}
+function addFromMem(n){if(!people.includes(n)){people.push(n);renderPeople();updateStrength();}}
+function renderPeople(){
+  const wrap=document.getElementById('people-pills');
+  wrap.innerHTML=people.map((n,i)=>`<div class="ppill">${n}<span class="px" onclick="removePerson(${i})">×</span></div>`).join('');
+  const mw=document.getElementById('mem-wrap');
+  const mp=document.getElementById('mem-pills');
+  const avail=memPeople.filter(n=>!people.includes(n));
+  if(avail.length){
+    mw.style.display='block';
+    mp.innerHTML=avail.map(n=>`<div class="ppill mem" onclick="addFromMem('${n}')">${n} +</div>`).join('');
+  } else {mw.style.display='none';}
+}
+
+function getCertLabel(type){
+  const v=certs[type];
+  return certLabels[v][1].toLowerCase();
+}
+function getCertInstruction(type){
+  const v=certs[type];
+  if(v===1)return 'use semantic / fuzzy matching — exact wording may differ';
+  if(v===3)return 'these exact words likely appear verbatim';
+  return 'balance exact and fuzzy matching';
+}
+
+function getChips(id){return [...document.querySelectorAll('#'+id+' .chip.on')].map(e=>e.textContent.trim());}
+function getChannels(){return [...document.querySelectorAll('#channels .ch-pill.on .ch-lbl')].map(e=>e.textContent.trim());}
+
+function updateStrength(){
+  let s=0;
+  if(document.getElementById('topic').value.trim())s+=30;
+  if(document.getElementById('keywords').value.trim())s+=25;
+  if(people.length)s+=25;
+  const tf=document.getElementById('time-free').value.trim();
+  const tfChip=getChips('timeframe').length>0;
+  if(tf||tfChip)s+=10;
+  const clues=document.getElementById('clues').value.trim();
+  if(clues)s+=10;
+  s=Math.min(s,100);
+  document.getElementById('s-bar').style.width=s+'%';
+  document.getElementById('s-bar').style.background=s>=70?'var(--green)':s>=40?'var(--honey)':'var(--flame)';
+  document.getElementById('s-pct').textContent=s+'%';
+  document.getElementById('s-pct').style.color=s>=70?'var(--green)':s>=40?'#8a5e00':'var(--soft)';
+  const msgs=['Start below — topic and keywords matter most','Add a person or time anchor to sharpen the signal','Good — time anchor or memory clues will sharpen further','Strong signal — ready to generate','Maximum signal — this will be very precise ✓'];
+  const mi=s===0?0:s<30?1:s<60?2:s<90?3:4;
+  const msg=document.getElementById('s-msg');
+  msg.textContent=msgs[mi];
+  msg.style.color=s>=70?'var(--green)':s>=40?'#8a5e00':'var(--soft)';
+}
+
+function generate(){
+  const topic=document.getElementById('topic').value.trim();
+  const kw=document.getElementById('keywords').value.trim();
+  if(!topic&&!kw){alert('Please fill in at least the topic or some keywords.');return;}
+  const why=document.getElementById('why').value.trim();
+  const clues=document.getElementById('clues').value.trim();
+  const tf=document.getElementById('time-free').value.trim();
+  const dtype=getChips('dtype');
+  const channels=getChannels();
+  const timeframe=getChips('timeframe');
+  const priority=cluesOpen?getChips('priority'):['Cross-channel match'];
+  const timeStr=tf||(timeframe.length?timeframe.join(', '):'Not specified');
+  const chStr=channels.length?channels.join(', '):'All channels';
+  const pStr=priority.length?priority[0]:'Cross-channel match';
+
+  let prompt='';
+  if(currentVar==='full'){
+    prompt=`You are an enterprise search assistant. Help me locate a document or resource across my work environment.
+
+PRIORITY: Rank results that appear across MULTIPLE channels (email + meeting, chat + file, etc.) above single-source hits. This is the primary ranking signal.
+
+---------------------------------------
+WHAT I'M LOOKING FOR
+---------------------------------------
+Topic: ${topic||'(see keywords)'}
+Type: ${dtype.length?dtype.join(', '):'Unknown — search all types'}${why?'\nWhy: '+why:''}
+
+---------------------------------------
+KEYWORDS
+---------------------------------------
+${kw||'Not specified'}
+Certainty: ${getCertLabel('kw')} — ${getCertInstruction('kw')}
+
+---------------------------------------
+PEOPLE
+---------------------------------------
+${people.length?people.join(', '):'Not specified — search broadly'}
+Certainty: ${getCertLabel('p')}
+
+---------------------------------------
+CHANNELS
+---------------------------------------
+${chStr}
+
+---------------------------------------
+TIMEFRAME
+---------------------------------------
+${timeStr}
+Certainty: ${getCertLabel('t')}
+${clues?`\n---------------------------------------\nMEMORY CLUES\n---------------------------------------\n${clues}`:''}
+
+---------------------------------------
+RANKING PRIORITY
+---------------------------------------
+${pStr}
+
+---------------------------------------
+WHAT I WANT
+---------------------------------------
+1. Search across: ${chStr}
+2. Rank by relevance — weight cross-channel overlap most heavily
+3. For each result: type · why it matches · brief summary · direct link
+4. If no match: suggest better queries, missing keywords, most likely channel
+---------------------------------------`;
+  } else if(currentVar==='brief'){
+    prompt=`Search across my ${chStr} for: ${topic||kw}
+
+Keywords (${getCertLabel('kw')}): ${kw||'—'}
+People (${getCertLabel('p')}): ${people.length?people.join(', '):'any'}
+When (${getCertLabel('t')}): ${timeStr}
+Type: ${dtype.length?dtype.join(', '):'any'}${clues?'\nClues: '+clues:''}
+
+Prioritise cross-channel matches. Return top results with type, match reason, and link.`;
+  } else {
+    prompt=`Find (${topic||kw}) across my ${chStr} — keywords: ${kw||'—'} [${getCertLabel('kw')}], people: ${people.length?people.join(', '):'any'} [${getCertLabel('p')}], time: ${timeStr} [${getCertLabel('t')}]${clues?' clues: '+clues:''}. Rank by cross-channel overlap. Return top 5 with type + link.`;
+  }
+
+  document.getElementById('output-area').style.display='block';
+  document.getElementById('output-box').innerText=prompt;
+  const s=parseInt(document.getElementById('s-pct').textContent);
+  const chip=document.getElementById('out-chip');
+  if(s>=70){chip.textContent='Strong signal';chip.style.color='var(--green)';chip.style.background='rgba(31,122,69,0.08)';chip.style.borderColor='rgba(31,122,69,0.18)';}
+  else if(s>=40){chip.textContent='Medium signal';chip.style.color='#8a5e00';chip.style.background='rgba(255,192,71,0.10)';chip.style.borderColor='rgba(255,192,71,0.28)';}
+  else{chip.textContent='Weak signal';chip.style.color='var(--flame)';chip.style.background='rgba(255,84,0,0.07)';chip.style.borderColor='rgba(255,84,0,0.18)';}
+  document.getElementById('output-area').scrollIntoView({behavior:'smooth',block:'start'});
+  document.getElementById('copy-btn').textContent='Copy prompt';
+  document.getElementById('copy-btn').classList.remove('done');
+}
+
+function generateFast(){
+  const t=document.getElementById('f-topic').value.trim();
+  if(!t){alert('Enter a topic.');return;}
+  const p=document.getElementById('f-people').value.trim();
+  const tm=document.getElementById('f-time').value.trim();
+  const kw=document.getElementById('f-kw').value.trim();
+  const prompt=`Search across my email, Teams, SharePoint, and meetings for: ${t}${kw?'\nKeywords: '+kw:''}${p?'\nPeople: '+p:''}${tm?'\nTimeframe: '+tm:''}
+
+Prioritise results appearing in multiple channels. Return top 5 matches with type, match reason, and direct link. If nothing found, suggest better search terms.`;
+  document.getElementById('fast-out-area').style.display='block';
+  document.getElementById('fast-out-box').innerText=prompt;
+  document.getElementById('fast-out-area').scrollIntoView({behavior:'smooth',block:'start'});
+  document.getElementById('fast-copy-btn').textContent='Copy prompt';
+  document.getElementById('fast-copy-btn').classList.remove('done');
+}
+
+function doCopy(boxId,btnId){
+  navigator.clipboard.writeText(document.getElementById(boxId).innerText).then(()=>{
+    const b=document.getElementById(btnId);
+    b.textContent='Copied ✓';b.classList.add('done');
+    setTimeout(()=>{b.textContent='Copy prompt';b.classList.remove('done');},2500);
+  });
+}
+
+function saveHistory(){
+  const topic=document.getElementById('topic').value.trim()||'Untitled';
+  const kw=document.getElementById('keywords').value.trim();
+  const channels=getChannels();
+  const prompt=document.getElementById('output-box').innerText;
+  history.unshift({id:Date.now(),topic,kw,channels,people:[...people],prompt,date:new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})});
+  renderHistory();
+  document.getElementById('hist-count').textContent=history.length;
+  const b=document.querySelector('.out-actions .abtn:first-child');
+  b.textContent='Saved ✓';b.style.color='var(--green)';
+  setTimeout(()=>{b.textContent='Save to history';b.style.color='';},2000);
+}
+function deleteHistory(i,e){
+  e.stopPropagation();
+  history.splice(i,1);
+  renderHistory();
+  document.getElementById('hist-count').textContent=history.length||'0';
+}
+function renderHistory(){
+  const list=document.getElementById('hist-list');
+  const empty=document.getElementById('hist-empty');
+  if(!history.length){empty.style.display='block';list.innerHTML='';return;}
+  empty.style.display='none';
+  list.innerHTML=history.map((h,i)=>`
+    <div class="hist-item" onclick="loadHistory(${i})">
+      <div class="hist-icon">🔍</div>
+      <div class="hist-body">
+        <div class="hist-title">${h.topic}</div>
+        <div class="hist-meta">${h.date} · ${h.channels.slice(0,3).join(', ')}</div>
+        <div class="hist-tags">${h.people.slice(0,3).map(p=>`<span class="htag">${p}</span>`).join('')}${h.kw?`<span class="htag">${h.kw.split(',')[0].trim()}</span>`:''}</div>
+      </div>
+      <div class="hist-del" onclick="deleteHistory(${i},event)" title="Delete">×</div>
+    </div>`).join('');
+}
+function loadHistory(i){
+  const h=history[i];
+  document.getElementById('topic').value=h.topic;
+  document.getElementById('keywords').value=h.kw;
+  people=[...h.people];
+  renderPeople();
+  updateStrength();
+  showView('builder');
+  document.getElementById('output-area').style.display='none';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+</script>
+</body>
+</html>
