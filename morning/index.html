@@ -1,0 +1,2239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RFE/RL · Morning Briefing</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#1A3948;
+  --paper:#F8F7F6;
+  --flame:#FF5400;
+  --teal:#1A3948;
+  --mid:#7A8A8F;
+  --light:#D6E0E0;
+  --faint:#F0F4F4;
+  --success:#237a57;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:0s!important;transition-duration:0s!important}}
+body{background:var(--paper);color:var(--ink);font-family:'Inter',system-ui,sans-serif;font-size:14px;line-height:1.6}
+
+/* ─── MASTHEAD ─── */
+.masthead{background:#fff;border-top:4px solid var(--flame);border-bottom:1px solid var(--light);position:sticky;top:0;z-index:100}
+.masthead-inner{width:min(860px,100%);margin:0 auto;padding:12px 40px;display:flex;align-items:center}
+.masthead-right{margin-left:auto;display:flex;align-items:center;gap:8px}
+.gear-btn{background:none;border:1px solid var(--light);border-radius:8px;padding:7px 10px;cursor:pointer;color:var(--mid);display:flex;align-items:center;gap:6px;font-family:inherit;font-size:11px;font-weight:600;letter-spacing:.3px;transition:all .15s ease}
+.gear-btn:hover{border-color:var(--ink);color:var(--ink)}
+.save-setup-btn.saved{border-color:var(--success);color:var(--success)}
+
+/* ─── FEEDBACK MODAL ─── */
+.fb-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:300;opacity:0;pointer-events:none;transition:opacity .2s ease;display:flex;align-items:center;justify-content:center;padding:20px}
+.fb-overlay.open{opacity:1;pointer-events:all}
+.fb-modal{background:#fff;border-radius:12px;width:100%;max-width:480px;overflow:hidden;transform:translateY(12px) scale(.98);transition:transform .25s cubic-bezier(.4,0,.2,1)}
+.fb-overlay.open .fb-modal{transform:translateY(0) scale(1)}
+.fb-modal-top{background:var(--teal);padding:28px 28px 24px;position:relative}
+.fb-modal-close{position:absolute;top:14px;right:14px;background:rgba(255,255,255,.12);border:none;border-radius:6px;width:28px;height:28px;cursor:pointer;color:#fff;font-size:14px;display:flex;align-items:center;justify-content:center;transition:background .15s ease;line-height:1}
+.fb-modal-close:hover{background:rgba(255,255,255,.24)}
+.fb-modal-icon{width:40px;height:40px;border-radius:10px;background:rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;margin-bottom:14px}
+.fb-modal-title{font-size:18px;font-weight:700;color:#fff;line-height:1.25;margin-bottom:8px}
+.fb-modal-sub{font-size:13px;color:rgba(255,255,255,.7);line-height:1.6}
+.fb-modal-body{padding:24px 28px 28px}
+.fb-why-label{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--mid);margin-bottom:12px}
+.fb-reasons{display:flex;flex-direction:column;gap:8px;margin-bottom:24px}
+.fb-reason{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:1px solid var(--light);border-radius:8px;background:var(--faint)}
+.fb-reason-icon{font-size:15px;flex-shrink:0;margin-top:1px}
+.fb-reason-text{font-size:12px;color:#5a5550;line-height:1.5}
+.fb-reason-text strong{color:var(--ink);font-weight:600;display:block;margin-bottom:2px}
+.fb-divider{height:1px;background:var(--light);margin-bottom:20px}
+.fb-contact-label{font-size:12px;color:var(--mid);margin-bottom:10px;line-height:1.55}
+.fb-email-row{display:flex;align-items:center;gap:8px;padding:12px 14px;border:1px solid var(--light);border-radius:8px;background:var(--faint)}
+.fb-email-display{display:flex;align-items:center;gap:8px;flex:1;min-width:0;color:var(--mid)}
+.fb-email-text{font-size:13px;font-family:'JetBrains Mono',monospace;color:var(--ink);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fb-copy-btn{display:flex;align-items:center;gap:5px;padding:7px 12px;border-radius:6px;border:1px solid var(--light);background:#fff;font-family:inherit;font-size:12px;font-weight:600;color:var(--ink);cursor:pointer;transition:all .15s ease;flex-shrink:0;white-space:nowrap}
+.fb-copy-btn:hover{border-color:var(--teal);color:var(--teal)}
+.fb-copy-btn.copied{border-color:var(--success);color:var(--success);background:#fff}
+
+/* ─── SETTINGS DRAWER ─── */
+.settings-overlay{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:200;opacity:0;pointer-events:none;transition:opacity .2s ease}
+.settings-overlay.open{opacity:1;pointer-events:all}
+.settings-panel{position:fixed;top:0;right:0;bottom:0;width:320px;background:#fff;border-left:1px solid var(--light);z-index:201;transform:translateX(100%);transition:transform .25s cubic-bezier(.4,0,.2,1);overflow-y:auto;padding:28px 28px 40px}
+.settings-panel.open{transform:translateX(0)}
+.settings-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+.settings-title{font-size:15px;font-weight:700;color:var(--ink)}
+.settings-close{background:none;border:none;cursor:pointer;color:var(--mid);font-size:18px;line-height:1;padding:4px;transition:color .15s ease}
+.settings-close:hover{color:var(--ink)}
+.settings-label{font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--mid);margin-bottom:10px;margin-top:20px;display:block}
+.settings-label:first-of-type{margin-top:0}
+.settings-version{font-size:11px;color:var(--mid);margin-top:24px;padding-top:16px;border-top:1px solid var(--light)}
+.save-default-btn{width:100%;background:transparent;border:1px solid var(--light);color:var(--ink);padding:10px 14px;font-size:12px;font-weight:600;letter-spacing:.5px;cursor:pointer;border-radius:8px;font-family:inherit;transition:all .15s ease;text-align:left}
+.save-default-btn:hover{border-color:var(--ink)}
+.save-default-btn.saved{border-color:var(--success);color:var(--success)}
+.restore-note{font-size:11px;color:var(--mid);margin-top:8px}
+.history-list{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+.history-item{border:1px solid var(--light);border-radius:8px;overflow:hidden;background:#fff;transition:border-color .15s ease}
+.history-item:hover{border-color:var(--teal)}
+.history-item.has-feedback{border-color:var(--light)}
+
+/* config row */
+.history-row{display:flex;align-items:center}
+.history-restore{flex:1;background:none;border:none;font-family:inherit;font-size:12px;color:var(--ink);padding:10px 12px;text-align:left;cursor:pointer;line-height:1.4}
+.history-restore strong{display:block;font-weight:600}
+.history-restore span{color:var(--mid);font-size:11px}
+
+/* star rating */
+.history-stars{display:flex;align-items:center;gap:2px;padding:0 8px;flex-shrink:0}
+.star-btn{background:none;border:none;cursor:pointer;padding:2px;font-size:14px;line-height:1;transition:transform .1s ease;color:#D6E0E0}
+.star-btn:hover{transform:scale(1.2)}
+.star-btn.active{color:#F59E0B}
+
+/* delete */
+.history-delete{background:none;border:none;border-left:1px solid var(--light);padding:10px 10px;cursor:pointer;color:var(--mid);font-size:13px;transition:color .15s ease;line-height:1;flex-shrink:0}
+.history-delete:hover{color:var(--flame)}
+
+/* feedback panel — expands inline */
+.history-feedback{display:none;border-top:1px solid var(--light);padding:12px 12px 14px;background:var(--faint)}
+.history-feedback.open{display:block}
+.hf-label{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mid);margin-bottom:10px}
+.hf-reasons{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+.hf-reason{display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none}
+.hf-reason input[type="checkbox"]{appearance:none;width:14px;height:14px;border:1.5px solid var(--light);border-radius:3px;cursor:pointer;position:relative;flex-shrink:0;transition:all .12s ease}
+.hf-reason input:checked{background:var(--teal);border-color:var(--teal)}
+.hf-reason input:checked::after{content:'✓';position:absolute;top:-1px;left:1px;font-size:10px;color:#fff;font-weight:700}
+.hf-reason-text{font-size:12px;color:var(--ink);line-height:1.4}
+.hf-other{width:100%;border:none;border-bottom:1.5px solid var(--light);background:transparent;padding:6px 0;font-family:inherit;font-size:12px;color:var(--ink);outline:none;transition:border-color .15s ease;resize:none;line-height:1.5;margin-top:4px}
+.hf-other:focus{border-bottom-color:var(--teal)}
+.hf-other::placeholder{color:var(--mid)}
+.hf-save{margin-top:12px;width:100%;padding:9px;border-radius:6px;border:none;background:var(--teal);color:#fff;font-family:inherit;font-size:11px;font-weight:700;letter-spacing:.5px;cursor:pointer;transition:all .15s ease}
+.hf-save:hover{background:var(--ink)}
+.hf-save:disabled{background:var(--success);cursor:default}
+.hf-saved-note{font-size:11px;color:var(--success);margin-top:8px;display:none;font-weight:500}
+.hf-saved-note.show{display:block}
+
+/* rating summary chip on card */
+.history-rating-chip{display:inline-flex;align-items:center;gap:3px;font-size:10px;color:#F59E0B;font-weight:600;margin-top:2px}
+
+.history-empty{font-size:12px;color:var(--mid);font-style:italic;padding:4px 0}
+
+/* ─── LAYOUT ─── */
+.wrap{min-height:calc(100vh - 60px)}
+.panel-left{width:min(860px,100%);margin:0 auto;padding:34px 40px 120px}
+
+/* ─── DIVIDER ─── */
+.divider{height:1px;background:var(--light);margin:28px 0}
+
+/* ─── GREETING ─── */
+.greeting-block{margin-bottom:22px}
+.greeting-time{font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--flame);margin-bottom:4px}
+.greeting-main{font-size:22px;font-weight:700;color:var(--ink);line-height:1.25;letter-spacing:-.3px}
+.greeting-sub{font-size:13px;color:var(--mid);margin-top:5px;line-height:1.55;transition:opacity .2s ease}
+.greeting-sub.fading{opacity:0}
+
+/* ─── ROLE PILLS ─── */
+.pills{display:flex;flex-wrap:wrap;gap:8px}
+.pill{display:inline-flex;align-items:center;padding:7px 18px;border:1px solid var(--light);border-radius:20px;font-size:13px;font-weight:500;cursor:pointer;background:transparent;color:var(--ink);transition:all .15s ease;user-select:none}
+.pill:hover{border-color:var(--ink);background:var(--faint)}
+.pill.active{background:var(--teal);color:#fff;border-color:var(--teal)}
+
+/* ─── SEGMENTED CONTROL ─── */
+.seg{display:inline-flex;border:1px solid var(--light);border-radius:8px;overflow:hidden}
+.seg-btn{padding:7px 20px;font-size:12px;font-weight:500;font-family:inherit;cursor:pointer;background:transparent;border:none;border-right:1px solid var(--light);color:var(--ink);transition:all .15s ease}
+.seg-btn:last-child{border-right:none}
+.seg-btn:hover{background:var(--faint)}
+.seg-btn.active{background:var(--teal);color:#fff}
+
+/* ─── FIELDS ─── */
+.field{margin-bottom:24px}
+.field-label{display:block;font-size:12px;font-weight:600;color:var(--ink);margin-bottom:8px}
+.field input[type="text"],.field textarea{width:100%;border:none;border-bottom:1.5px solid var(--light);background:transparent;padding:8px 0;font-family:inherit;font-size:14px;color:var(--ink);outline:none;transition:border-color .2s ease;resize:none;line-height:1.5}
+.field input:focus,.field textarea:focus{border-bottom-color:var(--teal)}
+.field textarea{min-height:36px}
+
+/* ─── CUSTOM LANGUAGE DROPDOWN ─── */
+.lang-wrap{position:relative;display:inline-block;width:100%}
+.lang-display{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 14px;border:1px solid var(--light);border-radius:8px;background:#fff;cursor:pointer;font-family:inherit;font-size:13px;font-weight:500;color:var(--ink);transition:all .15s ease;user-select:none}
+.lang-display:hover{border-color:var(--ink)}
+.lang-display.open{border-color:var(--teal);border-radius:8px 8px 0 0;border-bottom-color:transparent}
+.lang-display-left{display:flex;align-items:center;gap:8px}
+.lang-flag{font-size:16px;line-height:1}
+.lang-arrow{color:var(--mid);transition:transform .2s ease;flex-shrink:0}
+.lang-display.open .lang-arrow{transform:rotate(180deg)}
+.lang-dropdown{position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid var(--teal);border-top:none;border-radius:0 0 8px 8px;z-index:50;display:none;max-height:280px;overflow:hidden;flex-direction:column}
+.lang-dropdown.open{display:flex}
+.lang-search-wrap{padding:8px 10px;border-bottom:1px solid var(--light);flex-shrink:0}
+.lang-search{width:100%;border:1px solid var(--light);border-radius:6px;padding:6px 10px;font-family:inherit;font-size:12px;color:var(--ink);outline:none;background:var(--faint);transition:border-color .15s ease}
+.lang-search:focus{border-color:var(--teal)}
+.lang-list{overflow-y:auto;flex:1}
+.lang-opt{display:flex;align-items:center;gap:10px;padding:8px 14px;font-size:13px;cursor:pointer;color:var(--ink);transition:background .1s ease;border-bottom:1px solid var(--light)}
+.lang-opt:last-child{border-bottom:none}
+.lang-opt:hover{background:var(--faint)}
+.lang-opt.selected{background:rgba(26,57,72,.07);font-weight:600}
+.lang-opt.hidden{display:none}
+.lang-opt-flag{font-size:15px;line-height:1;flex-shrink:0}
+.lang-opt-name{flex:1}
+.lang-opt-check{color:var(--teal);font-size:12px;flex-shrink:0;opacity:0}
+.lang-opt.selected .lang-opt-check{opacity:1}
+
+/* ─── FOCUS MODE SEGS ─── */
+.focus-seg{display:flex;flex-wrap:wrap;border:1px solid var(--light);border-radius:8px;overflow:hidden}
+.focus-seg-btn{flex:1;min-width:80px;padding:8px 12px;font-size:12px;font-weight:500;font-family:inherit;cursor:pointer;background:transparent;border:none;border-right:1px solid var(--light);color:var(--ink);transition:all .15s ease;text-align:center}
+.focus-seg-btn:last-child{border-right:none}
+.focus-seg-btn:hover{background:var(--faint)}
+.focus-seg-btn.active{background:var(--teal);color:#fff}
+.focus-dynamic{margin-top:10px}
+.focus-dynamic.hidden{display:none}
+.focus-dynamic-label{font-size:12px;font-weight:500;color:#555;margin-bottom:6px;display:block}
+.focus-dynamic textarea{width:100%;border:none;border-bottom:1.5px solid var(--light);background:transparent;padding:8px 0;font-family:inherit;font-size:14px;color:var(--ink);outline:none;transition:border-color .2s ease;resize:none;line-height:1.5;min-height:36px}
+.focus-dynamic textarea:focus{border-bottom-color:var(--teal)}
+
+/* ─── PEOPLE FIELD ─── */
+.people-label{display:block;font-size:13px;font-weight:600;color:var(--ink);margin-bottom:6px}
+.people-hint{font-size:11px;color:var(--mid);margin-bottom:8px;line-height:1.5}
+.people-input{width:100%;border:1.5px solid var(--light);border-radius:8px;background:#fff;padding:10px 14px;font-family:inherit;font-size:13px;color:var(--ink);outline:none;transition:border-color .2s ease}
+.people-input:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(26,57,72,.07)}
+.people-input::placeholder{color:var(--mid)}
+
+/* ─── MATERIALS TOGGLE ─── */
+.materials-toggle{display:flex;align-items:center;gap:8px;background:none;border:1px solid var(--light);border-radius:8px;padding:10px 16px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:500;color:var(--ink);width:100%;text-align:left;transition:all .15s ease}
+.materials-toggle:hover{border-color:var(--ink);background:var(--faint)}
+.materials-toggle-arrow{margin-left:auto;color:var(--mid);transition:transform .2s ease}
+.materials-toggle.open .materials-toggle-arrow{transform:rotate(180deg)}
+.materials-body{display:none;margin-top:12px}
+.materials-body.open{display:block}
+.mat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+.mat-note{display:flex;align-items:flex-start;gap:8px;padding:10px 12px;border-radius:8px;background:var(--faint);border:1px solid var(--light);font-size:12px;color:var(--mid);line-height:1.55;margin-bottom:14px}
+.mat-note strong{color:var(--ink);font-weight:600}
+.mat-card{display:grid;grid-template-columns:18px 1fr;gap:8px;align-items:start;padding:10px 12px;border:1px solid var(--light);border-radius:8px;cursor:pointer;transition:all .15s ease-out;user-select:none}
+.mat-card:hover{transform:translateY(-1px);box-shadow:0 2px 8px rgba(0,0,0,.04)}
+.mat-card.checked{border-color:var(--ink);background:rgba(0,0,0,.015)}
+.mat-card input[type="checkbox"]{appearance:none;width:16px;height:16px;border:1.5px solid var(--light);border-radius:4px;margin-top:2px;cursor:pointer;transition:all .15s ease;position:relative}
+.mat-card.checked input[type="checkbox"]{background:var(--ink);border-color:var(--ink)}
+.mat-card.checked input[type="checkbox"]::after{content:'✓';position:absolute;top:-1px;left:2px;font-size:11px;color:#fff;font-weight:700}
+.mat-title{font-size:13px;font-weight:500;line-height:1.3}
+.mat-desc{font-size:11px;color:var(--mid);line-height:1.4;margin-top:2px}
+
+/* ═══════════════════════════════════════════
+   CAROUSEL — redesigned to match new language
+   ═══════════════════════════════════════════ */
+.crs-box{margin-top:24px;border:1px solid var(--light);border-radius:12px;overflow:hidden;background:#fff}
+
+/* top progress bar */
+.crs-progress{height:2px;background:var(--light)}
+.crs-progress-bar{height:100%;background:var(--flame);transition:width .45s ease}
+
+/* header row */
+.crs-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 0}
+.crs-header-title{font-size:14px;font-weight:700;color:var(--ink)}
+.crs-header-sub{font-size:11px;color:var(--mid);margin-top:2px}
+.crs-header-badge{display:inline-flex;align-items:center;gap:5px;background:var(--faint);border:1px solid var(--light);border-radius:20px;padding:4px 11px;font-size:10px;font-weight:600;color:var(--mid);letter-spacing:.3px}
+
+/* slide track */
+.crs-track-wrap{overflow:hidden;position:relative}
+.crs-track{display:flex;transition:transform .45s cubic-bezier(.4,0,.2,1);will-change:transform}
+.crs-slide{min-width:100%;display:grid;grid-template-columns:200px 1fr;min-height:200px}
+
+/* left visual panel */
+.crs-visual{position:relative;overflow:hidden;background:var(--teal)}
+.crs-visual svg{width:100%;height:100%;display:block}
+
+/* right content panel */
+.crs-content{display:flex;flex-direction:column;justify-content:center;padding:24px 24px 24px 22px;gap:10px;background:#fff}
+.crs-step-chip{display:inline-flex;align-items:center;gap:6px;width:fit-content;background:var(--faint);border:1px solid var(--light);border-radius:20px;padding:3px 10px 3px 5px;font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--mid)}
+.crs-step-chip-num{width:16px;height:16px;border-radius:50%;background:var(--teal);color:#fff;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.crs-headline{font-size:16px;font-weight:700;color:var(--ink);line-height:1.25;letter-spacing:-.2px}
+.crs-body{font-size:12px;color:#5A5550;line-height:1.65}
+.crs-body strong{color:var(--ink);font-weight:600}
+.crs-key{display:inline-flex;align-items:center;gap:4px;background:var(--faint);border:1px solid var(--light);border-radius:5px;padding:2px 7px;font-size:11px;font-family:'JetBrains Mono',monospace;font-weight:500;color:var(--ink)}
+
+/* nav bar */
+.crs-nav{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:#fff;border-top:1px solid var(--light)}
+.crs-dots{display:flex;gap:5px;align-items:center}
+.crs-dot{width:5px;height:5px;border-radius:50%;background:var(--light);border:none;padding:0;cursor:pointer;transition:all .2s ease}
+.crs-dot.active{background:var(--ink);width:16px;border-radius:3px}
+.crs-arrows{display:flex;gap:6px}
+.crs-arrow{height:32px;padding:0 12px;border-radius:6px;border:1px solid var(--light);background:#fff;cursor:pointer;display:flex;align-items:center;gap:5px;color:var(--ink);font-family:inherit;font-size:11px;font-weight:600;transition:all .15s ease}
+.crs-arrow:hover{background:var(--teal);border-color:var(--teal);color:#fff}
+.crs-arrow:disabled{opacity:.2;cursor:not-allowed;pointer-events:none}
+
+/* bottom CTA row */
+.crs-cta{padding:0 14px 14px;background:#fff;display:flex;gap:8px}
+.crs-cta-copy{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;min-height:40px;border-radius:8px;border:none;background:var(--ink);color:#fff;font-family:inherit;font-size:12px;font-weight:700;letter-spacing:.5px;cursor:pointer;transition:all .15s ease}
+.crs-cta-copy:hover{background:var(--teal);transform:translateY(-1px)}
+.crs-cta-copy.copied{background:var(--success)}
+.crs-cta-outlook{display:flex;align-items:center;justify-content:center;gap:6px;min-height:40px;padding:0 16px;border-radius:8px;border:1px solid var(--light);background:#fff;color:var(--teal);text-decoration:none;font-size:12px;font-weight:600;white-space:nowrap;transition:all .15s ease}
+.crs-cta-outlook:hover{border-color:var(--ink);background:var(--faint)}
+
+/* SVG pulse */
+@keyframes crs-pulse{0%{opacity:.9;r:6}60%{opacity:.2;r:11}100%{opacity:0;r:13}}
+.crs-pulse{animation:crs-pulse 2s ease-out infinite}
+
+/* ─── STICKY FOOTER ─── */
+.sticky-footer{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--light);padding:14px 40px;z-index:50}
+.sticky-footer-inner{width:min(860px,100%);margin:0 auto;display:flex;flex-direction:column;gap:8px}
+.summary-line{font-size:12px;color:#5f5a53;line-height:1.5}
+.summary-line strong{color:var(--ink);font-weight:600}
+.footer-btns{display:flex;gap:10px}
+.copy-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;min-height:42px;border-radius:8px;border:none;background:var(--ink);color:#fff;font-family:inherit;font-size:12px;font-weight:700;letter-spacing:.6px;cursor:pointer;transition:all .15s ease}
+.copy-btn:hover{background:var(--teal);transform:translateY(-1px)}
+.copy-btn.copied{background:var(--success)}
+.outlook-btn{display:flex;align-items:center;justify-content:center;gap:6px;min-height:42px;padding:0 18px;border-radius:8px;border:1px solid var(--light);background:#fff;color:var(--teal);text-decoration:none;font-size:12px;font-weight:600;white-space:nowrap;transition:all .15s ease}
+.outlook-btn:hover{border-color:var(--ink);background:var(--faint)}
+
+/* ─── HIDDEN OUTPUT ─── */
+.prompt-output{position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;white-space:pre-wrap}
+
+/* ─── TOAST ─── */
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:10px 20px;border-radius:8px;font-size:12px;font-weight:500;opacity:0;transition:all .25s ease;z-index:999;white-space:nowrap;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+footer{background:var(--teal);color:rgba(255,255,255,.45);padding:10px 40px;font-size:10px;letter-spacing:1px;display:flex;justify-content:space-between}
+
+@media(max-width:800px){
+  .masthead-inner,.panel-left,.sticky-footer{padding-left:20px;padding-right:20px}
+  .panel-left{padding-bottom:120px}
+  .crs-slide{grid-template-columns:1fr;grid-template-rows:160px auto}
+  .mat-grid{grid-template-columns:1fr}
+  .settings-panel{width:100%}
+  footer{flex-direction:column;gap:4px;padding:10px 20px}
+}
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="20 55 150 295" height="36" style="display:block;flex-shrink:0">
+      <path fill="#FF5400" d="m159.87,156.67c-20.84,2.43-26.68,23.98-42.36,42.58-20.95,24.86-52.01,12.08-52.01,12.08,20.95-2.6,26.97-24.31,43.03-42.84,21.29-24.57,51.35-11.82,51.35-11.82Zm-75.52,36.47s26.06-20.64,14.82-51.06c-8.47-22.95-24.8-39.21-16.15-58.34,0,0-25.81,20.94-15.06,51.06,8.22,23.04,25.04,39.2,16.39,58.34Zm-1.5-4.39s2.5-33.47-26.36-46.17c-22.51-9.91-46.18-8.99-54.29-28.37,0,0-3.22,33.25,27.41,46.13,22.68,9.54,45.13,9.04,53.23,28.41Zm-34.32,56.18h58.56l13.66-27.49H48.54v27.49Zm9.33,80.62h4.94l33.6-76.93h-38.53v76.93Z"/>
+    </svg>
+    <div style="margin-left:14px">
+      <div style="font-size:13px;font-weight:700;color:var(--teal);line-height:1.2">Morning Briefing</div>
+      <div style="font-size:10px;color:var(--mid);margin-top:2px">Briefing Request Builder for Microsoft Copilot</div>
+    </div>
+    <div class="masthead-right">
+      <button class="gear-btn save-setup-btn" id="mastheadSaveBtn" onclick="mastheadSave()">
+        <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M2 2h8l2 2v8a1 1 0 01-1 1H3a1 1 0 01-1-1V3a1 1 0 011-1z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><rect x="4" y="2" width="5" height="3" rx=".5" stroke="currentColor" stroke-width="1.3"/><rect x="4" y="8" width="5" height="3" rx=".5" stroke="currentColor" stroke-width="1.3"/></svg>
+        Save setup
+      </button>
+      <button class="gear-btn" onclick="openFeedback()">
+        <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M7 1C3.686 1 1 3.358 1 6.25c0 1.682.872 3.178 2.25 4.172V12.5l2.23-1.337A7.12 7.12 0 007 11.5c3.314 0 6-2.358 6-5.25S10.314 1 7 1z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M4.5 6.25h.007M7 6.25h.007M9.5 6.25h.007" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        Feedback
+      </button>
+      <button class="gear-btn" onclick="openSettings()">
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 8.5a2 2 0 100-4 2 2 0 000 4z" stroke="currentColor" stroke-width="1.2"/><path d="M10.8 6.5l-.02-.55 1.2-.93a.45.45 0 00.1-.55L10.96 2.5a.45.45 0 00-.55-.2l-1.4.55c-.28-.18-.6-.34-.93-.46L7.82.9A.45.45 0 007.38.5H5.62a.45.45 0 00-.44.38l-.27 1.5c-.33.12-.65.28-.93.46l-1.4-.55a.45.45 0 00-.55.2L.91 4.47a.45.45 0 00.1.55l1.2.93L2.2 6.5l.02.55-1.2.93a.45.45 0 00-.1.55l1.12 1.98c.11.2.35.28.55.2l1.4-.55c.28.18.6.34.93.46l.27 1.49c.06.22.24.38.44.38h1.76c.2 0 .38-.16.44-.38l.27-1.49c.33-.12.65-.28.93-.46l1.4.55c.2.08.44 0 .55-.2l1.12-1.98a.45.45 0 00-.1-.55l-1.2-.93z" stroke="currentColor" stroke-width="1.2"/></svg>
+        Settings
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- ── FEEDBACK MODAL ── -->
+<div class="fb-overlay" id="fbOverlay" onclick="closeFeedbackOutside(event)">
+  <div class="fb-modal" id="fbModal">
+    <div class="fb-modal-top">
+      <button class="fb-modal-close" onclick="closeFeedback()">✕</button>
+      <div class="fb-modal-icon">
+        <svg width="20" height="20" viewBox="0 0 14 14" fill="none"><path d="M7 1C3.686 1 1 3.358 1 6.25c0 1.682.872 3.178 2.25 4.172V12.5l2.23-1.337A7.12 7.12 0 007 11.5c3.314 0 6-2.358 6-5.25S10.314 1 7 1z" stroke="rgba(255,255,255,.8)" stroke-width="1.3" stroke-linejoin="round"/><path d="M4.5 6.25h.007M7 6.25h.007M9.5 6.25h.007" stroke="rgba(255,255,255,.8)" stroke-width="1.6" stroke-linecap="round"/></svg>
+      </div>
+      <div class="fb-modal-title">Help shape this tool</div>
+      <div class="fb-modal-sub">This briefing builder is built for RFE/RL staff — and the people best placed to improve it are the ones using it every day. Your feedback goes directly to the team that maintains it.</div>
+    </div>
+    <div class="fb-modal-body">
+      <div class="fb-why-label">What we want to hear</div>
+      <div class="fb-reasons">
+        <div class="fb-reason">
+          <span class="fb-reason-icon">💡</span>
+          <div class="fb-reason-text"><strong>Features you'd like to see</strong>New roles, languages, focus modes, or integrations that would make your morning faster.</div>
+        </div>
+        <div class="fb-reason">
+          <span class="fb-reason-icon">🔧</span>
+          <div class="fb-reason-text"><strong>Things that feel off</strong>Prompt phrasing that doesn't work well in Copilot, missing context, or outputs that miss the mark.</div>
+        </div>
+        <div class="fb-reason">
+          <span class="fb-reason-icon">🗣️</span>
+          <div class="fb-reason-text"><strong>How your colleagues use it</strong>If you've shared this tool with your team, tell us what's working and what isn't for them.</div>
+        </div>
+      </div>
+      <div class="fb-divider"></div>
+      <div class="fb-contact-label">Send your feedback directly to the tool's maintainer. Any format is fine — a sentence, a list, a voice note transcribed — whatever is easiest.</div>
+      <div class="fb-email-row">
+        <div class="fb-email-display">
+          <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><rect x="1" y="3" width="12" height="8" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M1 4.5l6 4 6-4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+          <span class="fb-email-text">DehghanMadisehA@rferl.org</span>
+        </div>
+        <button class="fb-copy-btn" id="fbCopyBtn" onclick="copyFeedbackEmail()">
+          <svg width="12" height="12" viewBox="0 0 13 13" fill="none"><rect x="1" y="5" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M4 4V3a1 1 0 011-1h5a1 1 0 011 1v5a1 1 0 01-1 1H9" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+          Copy
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── SETTINGS DRAWER ── -->
+<div class="settings-overlay" id="settingsOverlay" onclick="closeSettings()"></div>
+<div class="settings-panel" id="settingsPanel">
+  <div class="settings-head">
+    <span class="settings-title">Settings</span>
+    <button class="settings-close" onclick="closeSettings()">✕</button>
+  </div>
+  <span class="settings-label">Default configuration</span>
+  <button class="save-default-btn" id="saveDefaultBtn" onclick="saveDefault()">Save current setup as my default</button>
+  <div class="restore-note" id="restoreNote"></div>
+  <span class="settings-label">Recent configurations</span>
+  <div class="history-list" id="historyList"><div class="history-empty">No recent configurations yet.</div></div>
+  <div class="settings-version">Morning Briefing · v8.1 · May 2026<br>Digital Transformation · Designed for Microsoft Copilot</div>
+</div>
+
+<div class="wrap">
+<div class="panel-left">
+
+  <!-- GREETING -->
+  <div class="greeting-block">
+    <div class="greeting-time" id="greetingTime"></div>
+    <div class="greeting-main" id="greetingMain"></div>
+    <div class="greeting-sub" id="greetingSub"></div>
+  </div>
+
+  <!-- ROLE -->
+  <div class="field">
+    <div class="pills" id="rolePills"></div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- DEPTH -->
+  <div class="field">
+    <label class="field-label">Depth</label>
+    <div class="seg" id="depthSeg">
+      <button class="seg-btn" data-v="5" onclick="setDepth(this)">Express · 5 min</button>
+      <button class="seg-btn active" data-v="10" onclick="setDepth(this)">Standard · 10 min</button>
+      <button class="seg-btn" data-v="15" onclick="setDepth(this)">Deep · 15 min</button>
+    </div>
+  </div>
+
+  <!-- LANGUAGE — custom dropdown -->
+  <div class="field">
+    <label class="field-label">Language</label>
+    <div class="lang-wrap" id="langWrap">
+      <div class="lang-display" id="langDisplay" onclick="toggleLang()">
+        <div class="lang-display-left">
+          <span class="lang-flag" id="langFlag">🇺🇸</span>
+          <span id="langLabel">English</span>
+        </div>
+        <svg class="lang-arrow" width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="lang-dropdown" id="langDropdown">
+        <div class="lang-search-wrap">
+          <input class="lang-search" type="text" placeholder="Search language…" id="langSearch" oninput="filterLangs(this.value)" onclick="event.stopPropagation()">
+        </div>
+        <div class="lang-list" id="langList"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- FOCUS MODE -->
+  <div class="field">
+    <label class="field-label">Focus mode</label>
+    <div class="focus-seg" id="focusModeGrid"></div>
+    <div class="focus-dynamic hidden" id="focusDynamic">
+      <label class="focus-dynamic-label" id="focusDynamicLabel"></label>
+      <textarea id="focus" rows="2" oninput="generate()"></textarea>
+    </div>
+  </div>
+
+  <!-- PEOPLE -->
+  <div style="margin-bottom:24px">
+    <label class="people-label">Anyone to watch for?</label>
+    <div class="people-hint">Flag emails, mentions, or news involving these people — colleagues, sources, or public figures Copilot might deprioritize.</div>
+    <input class="people-input" type="text" id="people" oninput="generate()" placeholder="e.g. Jan Sapar, AP stringer in Kabul, Foreign Minister Lavrov">
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ATTACH MATERIALS -->
+  <button class="materials-toggle" id="materialsToggle" onclick="toggleMaterials()">
+    <span>📎</span>
+    <span>Attach materials</span>
+    <svg class="materials-toggle-arrow" width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </button>
+  <div class="materials-body" id="materialsBody">
+    <div style="height:12px"></div>
+    <div class="mat-note">
+      <svg width="13" height="13" viewBox="0 0 14 14" fill="none" style="flex-shrink:0;margin-top:1px"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.3"/><path d="M7 6v4M7 4.5v.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+      <span><strong>No files uploaded here.</strong> Tick what you'll bring into Copilot — the prompt will instruct it to analyze those materials.</span>
+    </div>
+    <div class="mat-grid">
+      <label class="mat-card" onclick="toggleMat(this)"><input type="checkbox" data-key="onedrive"><div><div class="mat-title">📄 OneDrive / SharePoint file</div><div class="mat-desc">Drop a file into the Copilot chat</div></div></label>
+      <label class="mat-card" onclick="toggleMat(this)"><input type="checkbox" data-key="email"><div><div class="mat-title">📧 Email thread</div><div class="mat-desc">Copilot will search your inbox</div></div></label>
+      <label class="mat-card" onclick="toggleMat(this)"><input type="checkbox" data-key="meeting"><div><div class="mat-title">🎙️ Meeting transcript</div><div class="mat-desc">Pulled from your recent meetings</div></div></label>
+      <label class="mat-card" onclick="toggleMat(this)"><input type="checkbox" data-key="chartbeat"><div><div class="mat-title">📊 Chartbeat report</div><div class="mat-desc">From your inbox or dropped manually</div></div></label>
+      <label class="mat-card" onclick="toggleMat(this)"><input type="checkbox" data-key="editorial"><div><div class="mat-title">📋 Editorial plan / rundown</div><div class="mat-desc">Daily or weekly planning doc</div></div></label>
+      <label class="mat-card" onclick="toggleMat(this)"><input type="checkbox" data-key="other"><div><div class="mat-title">📎 Other attachment</div><div class="mat-desc">Any file pasted into Copilot</div></div></label>
+    </div>
+    <div class="field">
+      <label class="field-label">Anything specific to extract?</label>
+      <input type="text" id="matExtract" placeholder="e.g. Pull open decisions from the editorial plan" oninput="generate()">
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ══ CAROUSEL — restored with new design ══ -->
+  <div class="crs-box" id="stepCarousel">
+    <div class="crs-progress"><div class="crs-progress-bar" id="crsProgress" style="width:33.3%"></div></div>
+    <div class="crs-header">
+      <div>
+        <div class="crs-header-title">Now send it to Copilot</div>
+        <div class="crs-header-sub">3 steps · takes about 20 seconds</div>
+      </div>
+      <div class="crs-header-badge">
+        <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.3"/><path d="M6 4v3M6 8.5v.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+        How it works
+      </div>
+    </div>
+
+    <div class="crs-track-wrap">
+      <div class="crs-track" id="crsTrack">
+
+        <!-- SLIDE 1: Copy -->
+        <div class="crs-slide">
+          <div class="crs-visual">
+            <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+              <!-- teal bg -->
+              <rect width="200" height="200" fill="#1A3948"/>
+              <!-- subtle grid lines -->
+              <line x1="0" y1="50" x2="200" y2="50" stroke="#fff" stroke-width=".3" opacity=".06"/>
+              <line x1="0" y1="100" x2="200" y2="100" stroke="#fff" stroke-width=".3" opacity=".06"/>
+              <line x1="0" y1="150" x2="200" y2="150" stroke="#fff" stroke-width=".3" opacity=".06"/>
+              <line x1="50" y1="0" x2="50" y2="200" stroke="#fff" stroke-width=".3" opacity=".06"/>
+              <line x1="100" y1="0" x2="100" y2="200" stroke="#fff" stroke-width=".3" opacity=".06"/>
+              <line x1="150" y1="0" x2="150" y2="200" stroke="#fff" stroke-width=".3" opacity=".06"/>
+              <!-- card -->
+              <rect x="18" y="22" width="164" height="118" rx="8" fill="#F8F7F6" opacity=".97"/>
+              <!-- flame top stripe -->
+              <rect x="18" y="22" width="164" height="3" rx="2" fill="#FF5400"/>
+              <!-- header -->
+              <rect x="18" y="25" width="164" height="22" fill="#fff"/>
+              <text x="26" y="33" font-family="Inter,sans-serif" font-size="5" fill="#FF5400" font-weight="700" letter-spacing="1.2">RFE/RL</text>
+              <text x="26" y="42" font-family="Inter,sans-serif" font-size="8" fill="#1A3948" font-weight="700">Morning Briefing</text>
+              <!-- pills row -->
+              <rect x="26" y="52" width="38" height="9" rx="4.5" fill="#1A3948"/>
+              <text x="45" y="59" font-family="Inter,sans-serif" font-size="5" fill="#fff" text-anchor="middle">Journalist</text>
+              <rect x="68" y="52" width="34" height="9" rx="4.5" fill="none" stroke="#D6E0E0" stroke-width=".8"/>
+              <text x="85" y="59" font-family="Inter,sans-serif" font-size="5" fill="#7A8A8F" text-anchor="middle">Director</text>
+              <rect x="106" y="52" width="30" height="9" rx="4.5" fill="none" stroke="#D6E0E0" stroke-width=".8"/>
+              <text x="121" y="59" font-family="Inter,sans-serif" font-size="5" fill="#7A8A8F" text-anchor="middle">EIC</text>
+              <!-- depth seg -->
+              <rect x="26" y="66" width="76" height="10" rx="4" fill="none" stroke="#D6E0E0" stroke-width=".8"/>
+              <rect x="26" y="66" width="25" height="10" rx="4" fill="#1A3948"/>
+              <text x="38" y="73" font-family="Inter,sans-serif" font-size="4.5" fill="#fff" text-anchor="middle">5 min</text>
+              <text x="64" y="73" font-family="Inter,sans-serif" font-size="4.5" fill="#7A8A8F" text-anchor="middle">10 min</text>
+              <text x="89" y="73" font-family="Inter,sans-serif" font-size="4.5" fill="#7A8A8F" text-anchor="middle">15 min</text>
+              <!-- skeleton lines -->
+              <rect x="26" y="82" width="100" height="5" rx="2" fill="#DDD9D3"/>
+              <rect x="26" y="91" width="130" height="5" rx="2" fill="#E5E2DC"/>
+              <rect x="26" y="100" width="80" height="5" rx="2" fill="#E5E2DC"/>
+              <!-- COPY BUTTON -->
+              <rect x="18" y="122" width="164" height="26" rx="6" fill="#1A3948"/>
+              <text x="100" y="138" font-family="Inter,sans-serif" font-size="8.5" fill="#fff" font-weight="700" text-anchor="middle" letter-spacing=".5">Copy My Briefing Request</text>
+              <!-- cursor -->
+              <polygon points="158,128 158,139 161,136 163,141 165,140 163,135 167,135" fill="#fff" opacity=".8"/>
+              <!-- copied toast -->
+              <rect x="52" y="155" width="96" height="18" rx="6" fill="#0D3D2A"/>
+              <text x="100" y="167" font-family="Inter,sans-serif" font-size="7" fill="#4ADE80" font-weight="600" text-anchor="middle">✓  Copied to clipboard</text>
+            </svg>
+          </div>
+          <div class="crs-content">
+            <div class="crs-step-chip"><span class="crs-step-chip-num">1</span>Copy</div>
+            <div class="crs-headline">Hit the Copy button</div>
+            <div class="crs-body">Press <strong>Copy My Briefing Request</strong>. Your personalised prompt lands on your clipboard — ready to paste in one keystroke.</div>
+          </div>
+        </div>
+
+        <!-- SLIDE 2: Open Outlook -->
+        <div class="crs-slide">
+          <div class="crs-visual">
+            <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+              <rect width="200" height="200" fill="#1A3948"/>
+              <line x1="0" y1="50" x2="200" y2="50" stroke="#fff" stroke-width=".3" opacity=".06"/>
+              <line x1="0" y1="100" x2="200" y2="100" stroke="#fff" stroke-width=".3" opacity=".06"/>
+              <line x1="0" y1="150" x2="200" y2="150" stroke="#fff" stroke-width=".3" opacity=".06"/>
+              <line x1="50" y1="0" x2="50" y2="200" stroke="#fff" stroke-width=".3" opacity=".06"/>
+              <line x1="100" y1="0" x2="100" y2="200" stroke="#fff" stroke-width=".3" opacity=".06"/>
+              <line x1="150" y1="0" x2="150" y2="200" stroke="#fff" stroke-width=".3" opacity=".06"/>
+              <!-- Outlook window -->
+              <rect x="14" y="18" width="172" height="150" rx="8" fill="#F5F4F0" stroke="#fff" stroke-width=".2" opacity=".97"/>
+              <!-- sidebar -->
+              <rect x="14" y="18" width="38" height="150" rx="8" fill="#141428"/>
+              <rect x="42" y="18" width="10" height="150" fill="#141428"/>
+              <!-- waffle -->
+              <rect x="20" y="26" width="3" height="3" rx=".5" fill="#fff" opacity=".5"/>
+              <rect x="25" y="26" width="3" height="3" rx=".5" fill="#fff" opacity=".5"/>
+              <rect x="30" y="26" width="3" height="3" rx=".5" fill="#fff" opacity=".5"/>
+              <rect x="20" y="31" width="3" height="3" rx=".5" fill="#fff" opacity=".5"/>
+              <rect x="25" y="31" width="3" height="3" rx=".5" fill="#fff" opacity=".5"/>
+              <rect x="30" y="31" width="3" height="3" rx=".5" fill="#fff" opacity=".5"/>
+              <!-- O logo -->
+              <circle cx="28" cy="47" r="8" fill="#0F6CBD"/>
+              <text x="28" y="51" font-family="Georgia,serif" font-size="9" fill="#fff" font-weight="700" text-anchor="middle">O</text>
+              <!-- Mail active -->
+              <rect x="14" y="60" width="38" height="20" rx="3" fill="#2B3A6E"/>
+              <rect x="14" y="60" width="2.5" height="20" rx="1.2" fill="#4FA3E0"/>
+              <rect x="20" y="65" width="14" height="10" rx="1" fill="none" stroke="#fff" stroke-width=".9"/>
+              <path d="M20 67 L27 71 L34 67" stroke="#fff" stroke-width=".9" fill="none" stroke-linecap="round"/>
+              <!-- calendar icon -->
+              <rect x="20" y="86" width="14" height="11" rx="1" fill="none" stroke="#fff" stroke-width=".8" opacity=".5"/>
+              <line x1="20" y1="89" x2="34" y2="89" stroke="#fff" stroke-width=".8" opacity=".5"/>
+              <!-- Copilot icon — highlighted -->
+              <rect x="14" y="140" width="38" height="24" rx="4" fill="none" stroke="#FF5400" stroke-width="1.2"/>
+              <!-- copilot swirl simplified -->
+              <path d="M28 144 C25 144,23 147,23 150 C23 152.5,24.5 154,27 155 C25.5 153.5,25.5 151.5,26.5 150 C27.5 148,29.5 146.5,31.5 147 C30.5 145,29.2 144,28 144Z" fill="#38B6FF"/>
+              <path d="M28 158 C31 158,33 155,33 152 C33 149.5,31.5 148,29 147 C30.5 148.5,30.5 150.5,29.5 152 C28.5 154,26.5 155.5,24.5 155 C25.5 157,26.8 158,28 158Z" fill="#FF8C00"/>
+              <circle cx="28" cy="151" r="5" fill="none" stroke="#FF5400" stroke-width="1" class="crs-pulse"/>
+              <!-- folder panel -->
+              <rect x="52" y="18" width="58" height="150" fill="#F5F4F0" opacity=".97"/>
+              <rect x="52" y="18" width="58" height="20" fill="#fff"/>
+              <text x="58" y="31" font-family="Inter,sans-serif" font-size="7" fill="#0F6CBD" font-weight="700">Outlook</text>
+              <text x="58" y="46" font-family="Inter,sans-serif" font-size="5.5" fill="#999">Favorites</text>
+              <text x="62" y="57" font-family="Inter,sans-serif" font-size="5.5" fill="#333">Inbox</text>
+              <text x="62" y="67" font-family="Inter,sans-serif" font-size="5.5" fill="#999">Drafts</text>
+              <text x="62" y="77" font-family="Inter,sans-serif" font-size="5.5" fill="#999">Sent</text>
+              <!-- email list -->
+              <rect x="110" y="18" width="76" height="150" fill="#fff"/>
+              <rect x="110" y="18" width="76" height="20" fill="#F5F4F0"/>
+              <text x="116" y="31" font-family="Inter,sans-serif" font-size="6" fill="#323130" font-weight="600">Inbox</text>
+              <rect x="110" y="38" width="76" height="22" fill="#EEF4FC" stroke="#E1DFDD" stroke-width=".3"/>
+              <circle cx="120" cy="49" r="6" fill="#0F6CBD"/>
+              <text x="120" y="52" font-family="Inter,sans-serif" font-size="4.5" fill="#fff" font-weight="700" text-anchor="middle">RB</text>
+              <text x="130" y="46" font-family="Inter,sans-serif" font-size="5.5" fill="#1A1A2E" font-weight="600">Radio Bureau</text>
+              <rect x="130" y="50" width="48" height="3" rx="1" fill="#B0AAA3"/>
+              <rect x="110" y="61" width="76" height="18" fill="#fff" stroke="#E1DFDD" stroke-width=".3"/>
+              <rect x="110" y="80" width="76" height="18" fill="#fff" stroke="#E1DFDD" stroke-width=".3"/>
+              <!-- label -->
+              <rect x="14" y="172" width="80" height="12" rx="4" fill="#FF5400"/>
+              <text x="54" y="180" font-family="Inter,sans-serif" font-size="5.5" fill="#fff" font-weight="700" text-anchor="middle">👆 Find Copilot here</text>
+            </svg>
+          </div>
+          <div class="crs-content">
+            <div class="crs-step-chip"><span class="crs-step-chip-num">2</span>Open Outlook</div>
+            <div class="crs-headline">Find Copilot in the sidebar</div>
+            <div class="crs-body">Open <strong>Outlook in your browser</strong>. Look at the dark left sidebar — find the <strong>colourful Copilot swirl</strong> near the bottom and click it.</div>
+          </div>
+        </div>
+
+        <!-- SLIDE 3: Paste and send -->
+        <div class="crs-slide">
+          <div class="crs-visual">
+            <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+              <rect width="200" height="200" fill="#1A3948"/>
+              <line x1="0" y1="50" x2="200" y2="50" stroke="#fff" stroke-width=".3" opacity=".06"/>
+              <line x1="0" y1="100" x2="200" y2="100" stroke="#fff" stroke-width=".3" opacity=".06"/>
+              <line x1="0" y1="150" x2="200" y2="150" stroke="#fff" stroke-width=".3" opacity=".06"/>
+              <line x1="50" y1="0" x2="50" y2="200" stroke="#fff" stroke-width=".3" opacity=".06"/>
+              <line x1="100" y1="0" x2="100" y2="200" stroke="#fff" stroke-width=".3" opacity=".06"/>
+              <line x1="150" y1="0" x2="150" y2="200" stroke="#fff" stroke-width=".3" opacity=".06"/>
+              <!-- Copilot panel -->
+              <rect x="14" y="18" width="172" height="164" rx="8" fill="#FAFAF8" stroke="#E1DFDD" stroke-width=".6"/>
+              <!-- header -->
+              <rect x="14" y="18" width="172" height="30" rx="8" fill="#0F6CBD"/>
+              <rect x="14" y="34" width="172" height="14" fill="#0F6CBD"/>
+              <!-- copilot icon in header -->
+              <path d="M26 22 C23.5 22,22 24,22 26.5 C22 28.5,23 30,25 31 C23.8 29.8,23.8 28,24.5 26.5 C25.2 24.8,27 23.5,28.8 24 C28 22.7,27 22,26 22Z" fill="#38B6FF"/>
+              <path d="M26 32 C28.5 32,30 30,30 27.5 C30 25.5,29 24,27 23 C28.2 24.2,28.2 26,27.5 27.5 C26.8 29.2,25 30.5,23.2 30 C24 31.3,25 32,26 32Z" fill="#FF8C00"/>
+              <text x="37" y="31" font-family="Inter,sans-serif" font-size="9" fill="#fff" font-weight="700">Copilot</text>
+              <!-- AI bubbles -->
+              <rect x="22" y="42" width="110" height="10" rx="4" fill="#EEF4FC"/>
+              <rect x="22" y="55" width="90" height="10" rx="4" fill="#EEF4FC"/>
+              <rect x="22" y="68" width="100" height="10" rx="4" fill="#EEF4FC"/>
+              <!-- user paste bubble -->
+              <rect x="34" y="84" width="138" height="32" rx="6" fill="#EAF6FB" stroke="#0F6CBD" stroke-width=".6"/>
+              <text x="44" y="96" font-family="Inter,sans-serif" font-size="5.5" fill="#0F6CBD" font-weight="700">Your Morning Briefing Request</text>
+              <rect x="44" y="99" width="90" height="3" rx="1" fill="#0F6CBD" opacity=".2"/>
+              <rect x="44" y="105" width="70" height="3" rx="1" fill="#0F6CBD" opacity=".15"/>
+              <!-- input bar -->
+              <rect x="18" y="124" width="150" height="16" rx="5" fill="#fff" stroke="#0F6CBD" stroke-width=".9"/>
+              <text x="26" y="134" font-family="Inter,sans-serif" font-size="5.5" fill="#999">Ctrl+V · then press Enter ↵</text>
+              <!-- send btn -->
+              <rect x="158" y="125" width="16" height="14" rx="3" fill="#0F6CBD"/>
+              <path d="M162 132 L168 132 M166 129 L169 132 L166 135" stroke="#fff" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+              <!-- done badge -->
+              <rect x="52" y="148" width="96" height="16" rx="5" fill="#0D3D2A"/>
+              <circle cx="64" cy="156" r="4" fill="#22C55E" opacity=".9"/>
+              <path d="M62 156 L63.5 157.5 L67 154" stroke="#fff" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+              <text x="100" y="159" font-family="Inter,sans-serif" font-size="6" fill="#4ADE80" font-weight="600" text-anchor="middle">Copilot is now working</text>
+            </svg>
+          </div>
+          <div class="crs-content">
+            <div class="crs-step-chip"><span class="crs-step-chip-num">3</span>Paste &amp; send</div>
+            <div class="crs-headline">Paste into Copilot chat</div>
+            <div class="crs-body">Click the input box, press <span class="crs-key">Ctrl+V</span> to paste, then hit <span class="crs-key">Enter ↵</span>. Copilot starts your briefing immediately.</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="crs-nav">
+      <div class="crs-dots" id="crsDots"></div>
+      <div class="crs-arrows">
+        <button class="crs-arrow" id="crsPrev" onclick="crsMove(-1)">
+          <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M8 2L4 6l4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Back
+        </button>
+        <button class="crs-arrow" id="crsNext" onclick="crsMove(1)">
+          Next
+          <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M4 2l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="crs-cta">
+      <button class="crs-cta-copy" id="crsCopyBtn" onclick="copyPrompt()">
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="1" y="5" width="7" height="7" rx="1.5" stroke="#fff" stroke-width="1.3"/><path d="M4 4V3a1 1 0 011-1h5a1 1 0 011 1v5a1 1 0 01-1 1H9" stroke="#fff" stroke-width="1.3" stroke-linecap="round"/></svg>
+        Copy My Briefing Request
+      </button>
+      <a class="crs-cta-outlook" href="https://outlook.office.com/mail/" target="_blank" rel="noopener">
+        <svg width="12" height="12" viewBox="0 0 13 13" fill="none"><rect x="1" y="1" width="11" height="11" rx="2" stroke="currentColor" stroke-width="1.3"/><path d="M4 4h5M4 6.5h3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+        Open Outlook →
+      </a>
+    </div>
+  </div>
+  <!-- END CAROUSEL -->
+
+</div>
+</div>
+
+<!-- STICKY FOOTER -->
+<div class="sticky-footer">
+  <div class="sticky-footer-inner">
+    <div class="summary-line" id="summaryText"></div>
+    <div class="footer-btns">
+      <button class="copy-btn" id="copyBtn" onclick="copyPrompt()">
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="1" y="5" width="7" height="7" rx="1.5" stroke="#fff" stroke-width="1.3"/><path d="M4 4V3a1 1 0 011-1h5a1 1 0 011 1v5a1 1 0 01-1 1H9" stroke="#fff" stroke-width="1.3" stroke-linecap="round"/></svg>
+        Copy My Briefing Request
+      </button>
+      <a class="outlook-btn" href="https://outlook.office.com/mail/" target="_blank" rel="noopener">Open Outlook →</a>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <span>RFE/RL · Morning Briefing System · Digital Transformation Department</span>
+</footer>
+<div class="toast" id="toast"></div>
+<div class="prompt-output" id="output" aria-hidden="true"></div>
+
+<script>
+// ══ DATA ══
+const LANGUAGES=[
+  {code:'sq',flag:'🇦🇱',name:'Albanian'},
+  {code:'hy',flag:'🇦🇲',name:'Armenian'},
+  {code:'az',flag:'🇦🇿',name:'Azerbaijani'},
+  {code:'ba',flag:'🇷🇺',name:'Bashkir'},
+  {code:'be',flag:'🇧🇾',name:'Belarusian'},
+  {code:'bs',flag:'🇧🇦',name:'Bosnian'},
+  {code:'bg',flag:'🇧🇬',name:'Bulgarian'},
+  {code:'fa-AF',flag:'🇦🇫',name:'Dari'},
+  {code:'en',flag:'🇺🇸',name:'English'},
+  {code:'ka',flag:'🇬🇪',name:'Georgian'},
+  {code:'hu',flag:'🇭🇺',name:'Hungarian'},
+  {code:'kk',flag:'🇰🇿',name:'Kazakh'},
+  {code:'ky',flag:'🇰🇬',name:'Kyrgyz'},
+  {code:'mk',flag:'🇲🇰',name:'Macedonian'},
+  {code:'cnr',flag:'🇲🇪',name:'Montenegrin'},
+  {code:'ps',flag:'🇦🇫',name:'Pashto'},
+  {code:'fa',flag:'🇮🇷',name:'Persian (Farsi)'},
+  {code:'ro',flag:'🇷🇴',name:'Romanian'},
+  {code:'ru',flag:'🇷🇺',name:'Russian'},
+  {code:'sr',flag:'🇷🇸',name:'Serbian'},
+  {code:'tg',flag:'🇹🇯',name:'Tajik'},
+  {code:'tt',flag:'🇷🇺',name:'Tatar'},
+  {code:'tk',flag:'🇹🇲',name:'Turkmen'},
+  {code:'uk',flag:'🇺🇦',name:'Ukrainian'},
+  {code:'uz',flag:'🇺🇿',name:'Uzbek'}
+];
+
+let selectedLang=LANGUAGES.find(l=>l.name==='English');
+
+const ROLES={
+
+journalist:{
+  label:"Journalist",
+  focusLabel:"What story are you working on?",
+  focusPlaceholder:"e.g. Iran nuclear talks\nKremlin domestic policy\nCentral Asia water crisis",
+  peoplePlaceholder:"e.g. Bureau chief in Tbilisi, AP stringer in Kabul, key source",
+  systemNote:`You are an expert briefing assistant preparing a morning briefing for a Journalist at RFE/RL (Radio Free Europe/Radio Liberty).
+RFE/RL broadcasts in 27 languages to 23 countries across Eastern Europe, Central Asia, the Caucasus, the Middle East, and Russia.
+The journalist is in execution mode. Their briefing goes VERTICAL — deep on one story or a small cluster of related stories. Not wide.
+Core mindset: "What do I write today, and how do I do it right?"`,
+  inboxExtra:`Flag emails from bureau correspondents, known sources, wire desks, and desk editors as BUCKET A.
+Flag story coordination threads and editorial check-in requests as BUCKET B.`,
+  webSearchExtra:`Focus exclusively on the journalist's specific story topic or coverage region.
+For each relevant development:
+  - Lead with what changed — not background.
+  - Flag source and reliability: official / semi-official / independent / contested.
+  - End with one "So what for my story?" line.
+
+Wire services (reliable): AP, Reuters, AFP.
+State/semi-official (narrative tracking only — do NOT cite as reliable): TASS, IRNA, BelTA, Xinhua.
+Independent media: Meduza, Iran International, Kyiv Independent, BIRN, Eurasianet, OC Media.
+
+After the main scan:
+▸ STORY GAPS: List angles competitors are pursuing that RFE/RL has not covered.
+▸ WIRE WATCH: Pull relevant wire alerts (AP, Reuters, AFP) filed in the last 12 hours.`,
+  internalExtra:`Also flag: desk assignment changes, source messages awaiting reply, editorial check-ins, any story coordination requests from other services.`,
+  extraOutput:`📰 STORY DEVELOPMENTS
+[What changed overnight on the journalist's focus topic]
+▸ [DEVELOPMENT] [HIGH/MEDIUM/LOW]
+  What changed · Source · Reliability
+  So what for my story: [one line]
+[If no material change: "[Topic] — no material change. [Status in one sentence.]"]
+
+🧠 CONTEXT LAYER
+[Key actors and current positions · Historical context · Conflicting narratives]
+[Keep to 3 bullets max — only what's directly relevant to today's story]
+
+🔍 GAPS & ANGLES
+▸ [Missed angle or competitor pursuit — one line each]
+[If none: "No significant gaps identified."]
+
+🧾 SOURCE SIGNALS
+[Recent statements from key figures · Wire alerts · Any known contacts who have posted]
+[If none: "No new source signals."]
+
+▸ STORY GAPS
+[Stories competitors are running that RFE/RL has not covered]
+[If none: "No significant gaps identified."]
+
+▸ WIRE WATCH
+[Relevant wire alerts — AP, Reuters, AFP — last 12 hours]
+[If none: "No new wire alerts on your topics."]`
+},
+
+editor:{
+  label:"Editor",
+  focusLabel:"What's the editorial focus today?",
+  focusPlaceholder:"e.g. Today's lineup review\nCoverage gaps in Central Asia\nVerification backlog",
+  peoplePlaceholder:"e.g. Correspondents, desk editors, bureau chiefs",
+  systemNote:`You are an expert briefing assistant preparing a morning briefing for an Editor at RFE/RL (Radio Free Europe/Radio Liberty).
+RFE/RL broadcasts in 27 languages to 23 countries.
+The editor is in orchestration mode. Their briefing goes HORIZONTAL — across the full coverage portfolio. Not deep on one story.
+Core mindset: "What do we cover today — and how? What do I assign, prioritise, fix, or stop?"
+Key distinction: the editor does NOT need narrative depth. They need decision intelligence — priority ranking, coverage gaps, risk flags, and resource awareness.`,
+  inboxExtra:`Flag as BUCKET A: emails requiring editorial sign-off, reporter check-ins needing assignment decisions, source escalations, legal or standards concerns.
+Flag editorial planning threads and lineup coordination under BUCKET B.
+Deprioritize story background and narrative detail — push to BUCKET C or skip.`,
+  webSearchExtra:`Scan RFE/RL's full coverage regions for stories that require editorial action today.
+For each: what is the editorial angle, what stage is it at, what decision is needed.
+Do NOT produce narrative background — the editor needs decision signals, not story summaries.
+
+Focus on:
+  - Breaking or escalating stories requiring assignment or prioritisation.
+  - Stories with sourcing or verification gaps in the current pipeline.
+  - Competitor coverage that suggests a gap in RFE/RL's lineup.
+
+Wire services: AP, Reuters, AFP.
+State media (narrative tracking only): TASS, IRNA, BelTA, Xinhua.
+Regional specialists: Eurasianet, BIRN, OC Media, Kyiv Independent, Iran International.
+
+▸ COVERAGE GAPS: Stories competitors are running that are not in today's RFE/RL lineup.`,
+  internalExtra:`Also flag: reporter availability changes, desk capacity issues, cross-service coordination requests, story hand-offs, verification backlogs.`,
+  extraOutput:`🟡 TODAY'S PRIORITIES
+[Top 3–5 stories ranked by urgency × impact]
+1. [STORY TITLE] — [Stage: pitch/reporting/ready] — [Owner]
+   Angle: [one line] · Status: [one line] · Decision needed: [one line]
+
+🌍 COVERAGE GAPS
+▸ [Gap or commissioning opportunity]
+  Competitor: [who is covering it] · Recommended action: [one line]
+[If none: "No significant gaps today."]
+
+⚠️ RISK & VERIFICATION FLAGS
+▸ [Story] — [Risk type: sourcing/legal/standards] — [Action needed]
+[If none: "No verification flags."]
+
+👥 RESOURCE AWARENESS
+[Correspondent availability · Capacity gaps · Cross-desk coordination needed]
+[If nothing flagged: "No resource issues."]`
+},
+
+service_director:{
+  label:"Service Director",
+  focusLabel:"What's top of mind for your service today?",
+  focusPlaceholder:"e.g. Audience growth in diaspora\nUpcoming election coverage\nStaffing gaps",
+  peoplePlaceholder:"e.g. Regional manager, EIC office, key correspondents",
+  systemNote:`You are an expert briefing assistant preparing a morning briefing for a Language Service Director at RFE/RL (Radio Free Europe/Radio Liberty).
+A Service Director oversees one language service's full editorial output, staffing, audience strategy, and coordination with regional management and the Editor in Chief.
+Core mindset: "How is my service performing — and where do I need to act today?"
+Needs a service-level view: what's working, what's at risk, and what requires their decision.`,
+  inboxExtra:`Flag as BUCKET A: emails from the Editor in Chief, regional managers, staff escalations, and anything requiring a service-level decision today.
+Flag audience metric alerts, cross-service coordination requests, and vendor/tool issues as BUCKET B.
+Group routine service-internal coordination under BUCKET C.`,
+  webSearchExtra:`Focus on the service's specific coverage region and language area.
+Search for:
+  - Breaking or escalating stories in the region.
+  - Media landscape changes: shutdowns, censorship laws, journalist arrests, internet restrictions.
+  - Competitor positioning in the same language.
+
+Scan: AP, Reuters, AFP, BBC (relevant language services), VOA, regional specialists.
+State media for narrative tracking only: TASS, IRNA, BelTA, Xinhua.
+Press freedom monitors: CPJ, RSF, IFEX.
+
+▸ COVERAGE GAPS: Stories competitors in the same language are running that the service has not covered.`,
+  internalExtra:`Also flag: staffing changes affecting coverage capacity, service-level editorial directives from EIC or regional manager, audience metric alerts (spikes, drops, social engagement), cross-service coordination requests, NPS/Pyramid or tool updates affecting the service.`,
+  extraOutput:`📊 SERVICE PULSE
+[Audience signals, top content, staffing status — 3 bullets max]
+▸ [Signal 1]
+▸ [Signal 2]
+▸ [Signal 3]
+[If nothing notable: "No service-level alerts."]
+
+🌍 COVERAGE REVIEW
+▸ [Story or gap] — [Status] — [Action needed]
+
+🤝 COORDINATION ITEMS
+[Cross-service requests · EIC directives · Vendor/tool issues]
+[If none: "No coordination items."]
+
+▸ COVERAGE GAPS
+[Stories competitors in the same language are running that the service has not covered]
+[If none: "No significant gaps identified."]`
+},
+
+regional_manager:{
+  label:"Regional Manager",
+  focusLabel:"What's moving across your region today?",
+  focusPlaceholder:"e.g. Media law changes in Georgia\nBureau security in Kabul\nCross-service Ukraine coordination",
+  peoplePlaceholder:"e.g. Service directors, bureau chiefs, security officer",
+  systemNote:`You are an expert briefing assistant preparing a morning briefing for a Regional Manager at RFE/RL (Radio Free Europe/Radio Liberty).
+A Regional Manager oversees multiple language services within a geographic region — coordinating editorial strategy, bureau operations, resource allocation, and journalist safety.
+Core mindset: "What's moving across my region — and where do I need to act?"
+Needs a wide-angle view across all services in the region: geopolitical developments, cross-service alignment, bureau safety, and resource decisions.`,
+  inboxExtra:`Flag as BUCKET A: emails from service directors, bureau chiefs, EIC, and security/operations staff. Flag budget or resource requests requiring a decision today.
+Group routine service reports and coordination threads under BUCKET B.`,
+  webSearchExtra:`Focus on the regional geopolitical landscape across all services managed.
+Search for:
+  - Regional geopolitical shifts: government changes, military developments, diplomatic moves.
+  - Media freedom and journalist safety: arrests, laws, threats, access restrictions (CPJ, RSF, IFEX).
+  - Cross-cutting stories spanning multiple services in the region.
+  - Humanitarian developments affecting coverage (displacement, infrastructure, access).
+
+Scan: AP, Reuters, AFP, Eurasianet, BIRN, OC Media, JAMnews, CABAR.asia, TOLOnews, ICG.
+Press freedom: CPJ, RSF, IFEX, OSCE.
+State media (narrative tracking only): TASS, IRNA, BelTA, Xinhua.
+
+▸ CROSS-SERVICE STORIES: Stories with coverage potential across multiple services in the region.`,
+  internalExtra:`Also flag: bureau security alerts or travel advisories, resource allocation requests from service directors, personnel changes across services, NPS/Pyramid or workflow tool issues reported by services, unresolved items from yesterday.`,
+  extraOutput:`🌍 REGIONAL OVERVIEW
+▸ [Development] — [Impact on coverage] — [Services affected]
+▸ [Development] — [Impact] — [Services affected]
+[Top 2–3 max — one line each]
+
+🏢 BUREAU STATUS
+[Security · Operational issues · Staffing — by bureau]
+[If nothing flagged: "All bureaus operating normally."]
+
+⚖️ DECISIONS NEEDED
+[Resource requests · Escalations · Unresolved items from yesterday]
+[If none: "No decisions pending."]
+
+▸ CROSS-SERVICE STORIES
+[Stories with coverage potential across multiple services]
+[If none: "No cross-service opportunities identified."]`
+},
+
+eic:{
+  label:"Editor in Chief",
+  focusLabel:"What's on your radar today?",
+  focusPlaceholder:"e.g. Standards review follow-up\nRussia-Iran cross-cutting story\nBreaking news readiness",
+  peoplePlaceholder:"e.g. Board liaison, regional managers, legal counsel",
+  systemNote:`You are an expert briefing assistant preparing a morning briefing for the Editor in Chief of RFE/RL (Radio Free Europe/Radio Liberty).
+RFE/RL broadcasts in 27 languages to 23 countries.
+Core mindset: "What decisions can only I make today?"
+Maximum signal, minimum noise. The EIC needs the global editorial picture in the shortest possible scan — decisions, risks, and cross-cutting stories. Routine operational detail is noise. Be maximally concise.`,
+  inboxExtra:`Flag as BUCKET A ONLY: anything requiring EIC sign-off, standards/ethics escalations, breaking news decisions, leadership/board/donor communications, legal matters, service director or regional manager escalations needing EIC-level intervention.
+Deprioritize ALL routine operational emails — push to BUCKET C or skip entirely.`,
+  webSearchExtra:`Scan top stories across ALL RFE/RL coverage regions (Russia, Ukraine, Iran, Afghanistan, Central Asia, Caucasus, Balkans, Belarus).
+Focus on:
+  - Breaking or rapidly escalating stories requiring editorial positioning.
+  - Sourcing and verification sensitivities — conflicting reports, contested claims.
+  - Stories receiving major global attention where RFE/RL must have a position.
+  - Media freedom incidents affecting RFE/RL staff or operations.
+  - Disinformation narratives RFE/RL may need to counter.
+
+Tier 1 wires: Reuters, AP, AFP.
+Global outlets: BBC, NYT, Washington Post, Financial Times, Al Jazeera.
+State media (disinformation/narrative tracking only): TASS, IRNA, BelTA, Xinhua, RT.
+Press freedom: CPJ, RSF.
+
+Flag stories requiring EIC-level editorial decisions → ⚖️ DECISIONS REQUIRED.`,
+  internalExtra:`Also flag: leadership and personnel changes across RFE/RL, editorial standards issues (complaints, corrections, retractions pending), policy decisions pending sign-off, reputation risks (legal threats, public criticism, social escalations), breaking news readiness (staffing, bureau coverage capacity), board or donor communications.`,
+  extraOutput:`⚖️ DECISIONS REQUIRED
+🔥 or standard — [ITEM]
+Decision: [one line] · Deadline: [date/time] · Waiting: [who]
+→ Ask me: "What should I say to [FULL NAME]?"
+[If none: "No decisions pending."]
+
+🛡️ EDITORIAL WATCH
+▸ [Issue] — [Risk level] — [Action needed]
+[If none: "No editorial risks flagged."]
+
+🌐 CROSS-CUTTING STORIES
+▸ [Story] — [Regions/services affected] — [Direction needed]
+[If none: "No cross-cutting stories requiring coordination."]`
+},
+
+strategist:{
+  label:"Strategist",
+  focusLabel:"What are you analysing today?",
+  focusPlaceholder:"e.g. Instagram performance this week\nAudience drop in Persian service\nVideo vs text comparison",
+  peoplePlaceholder:"e.g. Editors to share signals with, platform leads, service directors",
+  systemNote:`You are an expert briefing assistant preparing a morning briefing for an Audience & Planning Strategist at RFE/RL (Radio Free Europe/Radio Liberty).
+The Strategist translates performance data and audience signals into editorial direction. They do NOT assign stories or make editorial decisions — they produce evidence-backed direction signals that inform editors, service directors, and planning meetings.
+Core mindset: "What does performance tell us — and what should we do next?"
+This is the only role that looks BACKWARD (what worked) and FORWARD (what to do differently) at the same time.
+NEVER include: detailed story summaries, source-level reporting, or editorial instructions ("assign this"). Those belong to Journalist and Editor roles.`,
+  inboxExtra:`Flag as BUCKET A: Chartbeat alerts, audience metric reports, platform performance notifications, analytics tool updates, editorial planning requests needing data input.
+Flag competitor intelligence, industry reports, and newsletter digests under BUCKET B or C.`,
+  webSearchExtra:`Focus on audience intelligence, platform trends, and competitive signals — NOT story narrative.
+Search for:
+  - Platform algorithm changes or feature launches (Instagram, TikTok, YouTube, X) in the last 24–48 hours.
+  - Competitor content that is significantly outperforming RFE/RL equivalents in the same region or language.
+  - Audience behavior trends in RFE/RL's coverage regions: what topics are people searching for, sharing, engaging with.
+  - Industry signals: format trends (reels, shorts, newsletters, audio), distribution shifts, new tools.
+
+Sources: Nieman Lab, Reuters Institute Digital News Report, Press Gazette, Social Media Today, Axios Media, Pew Research (media), Chartbeat blog, platform newsrooms (Meta, Google, TikTok).
+
+DO NOT produce story summaries. Produce audience intelligence only.`,
+  internalExtra:`Also flag: Chartbeat or analytics tool data from inbox (if emailed reports), editorial pipeline signals from planning docs, NPS/Pyramid data relevant to audience performance, upcoming planning meetings needing data prep.`,
+  extraOutput:`📊 PERFORMANCE SNAPSHOT
+▸ TOP: [Story/content] — [Platform] — [Why it worked: signal, not opinion]
+▸ UNDER: [Story/content] — [Why it missed: signal, not opinion]
+Platform breakdown: Web [x%] · Social [x%] · Video [x%]
+[Pull from Chartbeat report if attached, otherwise note: "No analytics data attached — signals based on available M365 context."]
+
+📈 PATTERNS
+▸ RISING: [Topic or format] — [Evidence]
+▸ DECLINING: [Topic or format] — [Evidence]
+▸ OUTLIER: [What and why — spike or drop outside normal range]
+[If no clear pattern: "Insufficient data for pattern detection today."]
+
+⚖️ COVERAGE VS DEMAND
+▸ OVER-COVERED: [Topic] — [Evidence of low audience interest relative to output]
+▸ UNDER-COVERED: [Topic] — [Evidence of high audience interest relative to output]
+[If none: "Coverage and demand appear aligned based on available signals."]
+
+🎯 DIRECTION SIGNALS
+→ [Signal 1 — evidence-backed, one line, no opinions]
+→ [Signal 2 — evidence-backed, one line]
+→ [Signal 3 — evidence-backed, one line]
+[Maximum 5 signals. Each must reference a data point or observable trend.]
+
+🗓️ PLANNING INPUTS
+[Upcoming events worth building editorial plans around · Pipeline gaps · Signals to bring to next planning meeting]`
+},
+
+digital_product:{
+  label:"Digital & Product",
+  focusLabel:"What tools or projects are you tracking?",
+  focusPlaceholder:"e.g. NPS/Pyramid rollout blockers\nAI summarisation pilot\nCopilot adoption metrics",
+  peoplePlaceholder:"e.g. Vendor contacts, Jan Sapar (NPS), pilot service leads",
+  systemNote:`You are an expert briefing assistant preparing a morning briefing for a Digital & Product team member at RFE/RL (Radio Free Europe/Radio Liberty).
+This role drives technology adoption, tool rollouts, and editorial workflow modernisation across the organisation. Key systems: NPS/Pyramid (Dalet-based editorial planning), SharePoint, Microsoft Teams, Microsoft 365 Copilot, and various CMS platforms.
+Core mindset: "What moved in the stack overnight — and what needs my attention today?"
+Prioritize: adoption blockers, vendor updates, editorial staff tool issues, AI developments in media, and support queue items.`,
+  inboxExtra:`Flag as BUCKET A: tool adoption blockers, vendor updates (Dalet, Microsoft, others), training requests, NPS/Pyramid issues, Copilot feedback, editorial staff complaints about digital tools.
+Flag routine IT notifications, system maintenance notices, and non-urgent vendor comms under BUCKET B.
+Flag industry newsletters and AI/media news under BUCKET C.`,
+  webSearchExtra:`Focus on AI/ML developments in newsrooms and tools directly relevant to RFE/RL's stack.
+Search for:
+  - AI in newsrooms: transcription, translation, summarisation, fact-checking, content moderation.
+  - CMS and editorial planning tools: Dalet Pyramid, ENPS, Superdesk, Kordiam, Vizrt.
+  - Microsoft 365 ecosystem: Copilot updates, Teams features, SharePoint enhancements, Power Platform.
+  - Media workflow automation: MAM systems, cloud-based editing, remote production.
+  - Digital audience tools: analytics platforms, SEO, social distribution, newsletter tools.
+
+Scan: Nieman Lab, Reuters Institute, Press Gazette, Journalism.co.uk, Poynter, INMA, TechCrunch, The Verge, MIT Technology Review, Microsoft 365 Blog, Dalet blog, Anthropic blog, OpenAI blog.
+
+Flag developments that could affect RFE/RL's current or planned tool stack.`,
+  internalExtra:`Also flag: NPS/Pyramid rollout status (training schedules, service adoption progress, reported issues), Copilot adoption feedback and new features relevant to editorial workflows, SharePoint/Teams issues reported by editorial staff, training schedule updates, vendor contract milestones or renewal deadlines, editorial staff requests for new tools or workflow changes, unresolved support tickets from yesterday.`,
+  extraOutput:`🔧 TOOL ADOPTION PULSE
+▸ NPS/Pyramid: [Status — training progress, blockers, service adoption]
+▸ Copilot: [Adoption signal — feedback, new feature, usage update]
+▸ Other: [Tool issue or update]
+[If nothing notable: "No adoption updates."]
+
+📡 TECH RADAR
+▸ [Development] — [Why it matters for RFE/RL's stack — one line]
+[If nothing new: "No significant developments in last 24 hours."]
+
+📋 SUPPORT QUEUE
+▸ [Ticket or request] — [Urgency] — [Action needed]
+[If clear: "No open support items."]`
+},
+
+multimedia_producer:{
+  label:"Multimedia Producer",
+  focusLabel:"What are you producing today?",
+  focusPlaceholder:"e.g. Instagram Reels for Iran coverage\nYouTube Shorts backlog\nTikTok strategy this week",
+  peoplePlaceholder:"e.g. Social editors, video team leads, platform managers",
+  systemNote:`You are an expert briefing assistant preparing a morning briefing for a Multimedia Producer (Social & Video) at RFE/RL (Radio Free Europe/Radio Liberty).
+This role lives at the intersection of news and platform culture — producing social content, video, and multimedia formats for RFE/RL's digital platforms.
+Core mindset: "What's trending, what's due, and what do I make today?"
+Needs: platform pulse (what is performing and what algorithms are favouring right now), production queue status (what is scheduled and what is at risk), and story opportunities (what deserves a social/video treatment today).
+Fast, visual, platform-aware. Do not produce long narrative briefings — produce actionable production intelligence.`,
+  inboxExtra:`Flag as BUCKET A: approval requests, asset requests (graphics, footage, translations), platform alert notifications, editorial coordination for video/social, deadline-critical messages.
+Flag platform analytics reports, competitor content alerts, and scheduling updates as BUCKET B.`,
+  webSearchExtra:`Focus on platform culture, content performance, and multimedia story opportunities — NOT political narrative.
+Search for:
+  - What is trending right now on Instagram, TikTok, YouTube, and X in RFE/RL's coverage regions.
+  - Top-performing social/video content from RFE/RL and competitors in the last 24 hours.
+  - Platform algorithm or feature changes announced in the last 48 hours (Reels, Shorts, carousels, live, newsletters).
+  - Format signals: what content type is getting the most organic reach right now.
+  - Story or topic angles that are gaining social traction and would benefit from a video or visual treatment.
+
+Sources: Social Media Today, Later blog, Sprout Social insights, platform newsrooms (Meta, Google, TikTok, X), Axios Media, Nieman Lab (social/video coverage).
+
+Flag any story that is gaining major social traction in RFE/RL's coverage regions and has not received a multimedia treatment → 🔍 STORY OPPORTUNITIES.`,
+  internalExtra:`Also flag: production schedule conflicts, asset gaps (footage, translations, graphics not ready), platform publishing deadline risks, team capacity issues, editorial sign-off pending for scheduled content.`,
+  extraOutput:`📱 PLATFORM PULSE
+▸ [Platform]: [What's trending] — [Relevant to RFE/RL's audience?] — [Format performing]
+▸ [Platform]: [What's trending] — [Relevant?] — [Format]
+Top performing (last 24h): [Content title] — [Platform] — [Signal: reach/engagement/shares]
+Format signal: [What content type is getting reach right now — Reels/Shorts/carousels/live/etc.]
+[Platform algorithm or feature update if any]
+
+🎬 PRODUCTION QUEUE
+[Content item] · [Platform] · [Deadline] · [Owner] · [Status: on track / at risk / blocked]
+⚠️ AT RISK: [Item] — [Why] — [Action needed]
+[If all on track: "Production queue clear."]
+
+🔍 STORY OPPORTUNITIES
+▸ [Story/trend gaining traction] — [Suggested format] — [Platform] — [Why now]
+[If none: "No urgent story opportunities identified."]`
+},
+
+generic:{
+  label:"General / Other",
+  focusLabel:"Anything specific on your mind?",
+  focusPlaceholder:"Leave blank — Copilot will use what it knows about you.",
+  peoplePlaceholder:"e.g. External contacts Copilot might miss",
+  systemNote:`You are an expert briefing assistant preparing a morning briefing for a staff member at RFE/RL (Radio Free Europe/Radio Liberty).
+RFE/RL broadcasts in 27 languages to 23 countries.
+Tailor the briefing to what you know about this person from their Microsoft 365 profile — their name, role, department, team, email patterns, calendar, and recent work.`,
+  inboxExtra:'',
+  webSearchExtra:`Based on what you know about my role and work at RFE/RL, search for significant developments on the topics most relevant to me. Use today's date.`,
+  internalExtra:'',
+  extraOutput:''
+}
+
+};
+
+const MATERIALS={
+  onedrive:{title:"OneDrive/SharePoint file",instruction:"I have attached a file from OneDrive or SharePoint. Analyze its contents and cross-reference with the briefing findings."},
+  email:{title:"Email thread",instruction:"Search my Outlook inbox for recent email threads relevant to today's briefing topics."},
+  meeting:{title:"Meeting transcript",instruction:"Pull notes or transcripts from my recent meetings. Use them to identify open items, decisions made, and follow-ups."},
+  chartbeat:{title:"Chartbeat analytics report",instruction:"A Chartbeat analytics report is included. Use it to identify audience trends and top-performing content."},
+  editorial:{title:"Editorial plan / rundown",instruction:"I have included our editorial plan or daily rundown. Extract story assignments, priorities, deadlines, and gaps."},
+  other:{title:"Other attachment",instruction:"I have attached an additional file. Analyze its contents and integrate relevant findings into the briefing."}
+};
+
+const FOCUS_MODES={
+  none:{title:"Normal day",instruction:"Use my Microsoft 365 profile, calendar, inbox, meetings, files, and recent work to infer today's main priorities."},
+  meetings:{title:"Meetings",instruction:"Make today's meetings, calls, decisions, prep notes, and follow-ups the main focus."},
+  delivery:{title:"Deadline",instruction:"Make the task, report, story, plan, or deadline I am trying to deliver the main focus."},
+  topic:{title:"Topic",instruction:"Make the topic, region, issue, organization, or public figure I name the main focus."},
+  other:{title:"Other",instruction:"Use the focus I describe manually as the main focus."}
+};
+
+const FOCUS_PROMPTS={
+  none:{label:null,placeholder:null},
+  meetings:{label:'Any meeting you want to prep for?',placeholder:'e.g. Editorial board call at 10am — talking points on Ukraine coverage gaps'},
+  delivery:{label:'What are you working on and when is it due?',placeholder:'e.g. Analysis piece on Iran nuclear talks — deadline Friday 18:00'},
+  topic:{label:'Which topic, region, or public figure?',placeholder:'e.g. Kremlin succession signals\nAfghanistan Taliban media policy'},
+  other:{label:'Describe what you need',placeholder:'e.g. Full background brief on the new Azerbaijani ambassador before our interview at noon'}
+};
+
+const LS_DEFAULT='rferl_briefing_default';
+const LS_HISTORY='rferl_briefing_history';
+const MAX_HISTORY=5;
+
+let currentRole='journalist';
+let currentDepth='10';
+let currentFocusMode='none';
+
+// ── LANGUAGE DROPDOWN ──
+function buildLangList(){
+  const list=document.getElementById('langList');
+  list.innerHTML=LANGUAGES.map(l=>`
+    <div class="lang-opt${l.name===selectedLang.name?' selected':''}" data-name="${l.name}" onclick="selectLang('${l.name}')">
+      <span class="lang-opt-flag">${l.flag}</span>
+      <span class="lang-opt-name">${l.name}</span>
+      <span class="lang-opt-check">✓</span>
+    </div>`).join('');
+}
+
+function selectLang(name){
+  selectedLang=LANGUAGES.find(l=>l.name===name);
+  document.getElementById('langFlag').textContent=selectedLang.flag;
+  document.getElementById('langLabel').textContent=selectedLang.name;
+  document.querySelectorAll('.lang-opt').forEach(o=>{
+    o.classList.toggle('selected',o.dataset.name===name);
+  });
+  closeLang();
+  updateGreeting(currentRole,true);
+  generate();
+}
+
+function toggleLang(){
+  const drop=document.getElementById('langDropdown');
+  const disp=document.getElementById('langDisplay');
+  const open=!drop.classList.contains('open');
+  drop.classList.toggle('open',open);
+  disp.classList.toggle('open',open);
+  if(open){
+    document.getElementById('langSearch').value='';
+    filterLangs('');
+    setTimeout(()=>document.getElementById('langSearch').focus(),50);
+  }
+}
+
+function closeLang(){
+  document.getElementById('langDropdown').classList.remove('open');
+  document.getElementById('langDisplay').classList.remove('open');
+}
+
+function filterLangs(q){
+  const lq=q.toLowerCase();
+  document.querySelectorAll('.lang-opt').forEach(o=>{
+    o.classList.toggle('hidden',!o.dataset.name.toLowerCase().includes(lq));
+  });
+}
+
+document.addEventListener('click',function(e){
+  if(!document.getElementById('langWrap').contains(e.target))closeLang();
+});
+
+// ── ROLE PILLS ──
+function buildPills(){
+  const c=document.getElementById('rolePills');
+  c.innerHTML='';
+  for(const[k,v]of Object.entries(ROLES)){
+    const b=document.createElement('button');
+    b.className='pill'+(k===currentRole?' active':'');
+    b.textContent=v.label;
+    b.dataset.role=k;
+    b.onclick=()=>setRole(k);
+    c.appendChild(b);
+  }
+}
+
+function setRole(r){
+  currentRole=r;
+  document.querySelectorAll('.pill').forEach(p=>p.classList.toggle('active',p.dataset.role===r));
+  document.getElementById('people').placeholder=ROLES[r].peoplePlaceholder;
+  updateGreeting(r,true);
+  setFocusMode(currentFocusMode);
+  generate();
+}
+
+// ── FOCUS MODES ──
+function buildFocusModes(){
+  const c=document.getElementById('focusModeGrid');
+  c.innerHTML='';
+  for(const[k,v]of Object.entries(FOCUS_MODES)){
+    const b=document.createElement('button');
+    b.type='button';
+    b.className='focus-seg-btn'+(k===currentFocusMode?' active':'');
+    b.dataset.focusMode=k;
+    b.textContent=v.title;
+    b.onclick=()=>setFocusMode(k);
+    c.appendChild(b);
+  }
+}
+
+function setFocusMode(mode){
+  currentFocusMode=mode;
+  document.querySelectorAll('.focus-seg-btn').forEach(b=>b.classList.toggle('active',b.dataset.focusMode===mode));
+  const dynWrap=document.getElementById('focusDynamic');
+  const dynLabel=document.getElementById('focusDynamicLabel');
+  const dynArea=document.getElementById('focus');
+  const prompt=FOCUS_PROMPTS[mode];
+  if(mode==='none'||!prompt.label){
+    dynWrap.classList.add('hidden');
+    dynArea.value='';
+  } else {
+    dynWrap.classList.remove('hidden');
+    dynLabel.textContent=prompt.label;
+    dynArea.placeholder=prompt.placeholder;
+  }
+  generate();
+}
+
+function setDepth(el){
+  currentDepth=el.dataset.v;
+  document.querySelectorAll('.seg-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  generate();
+}
+
+// ── MATERIALS ──
+function toggleMaterials(){
+  const body=document.getElementById('materialsBody');
+  const btn=document.getElementById('materialsToggle');
+  const open=body.classList.toggle('open');
+  btn.classList.toggle('open',open);
+}
+
+function toggleMat(card){
+  setTimeout(()=>{
+    const cb=card.querySelector('input[type="checkbox"]');
+    card.classList.toggle('checked',cb.checked);
+    generate();
+  },0);
+}
+
+function getCheckedMaterials(){
+  const out=[];
+  document.querySelectorAll('.mat-card input[type="checkbox"]:checked').forEach(cb=>out.push(cb.dataset.key));
+  return out;
+}
+
+// ── MASTHEAD SAVE ──
+function mastheadSave(){
+  const cfg=getConfig();
+  pushHistory(cfg);
+  const btn=document.getElementById('mastheadSaveBtn');
+  const orig=btn.innerHTML;
+  btn.innerHTML='<svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 7l3 3 6-6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg> Saved';
+  btn.classList.add('saved');
+  showToast('Setup saved — find it in Settings → Recent configurations.');
+  setTimeout(()=>{btn.innerHTML=orig;btn.classList.remove('saved');},2200);
+}
+
+// ── FEEDBACK MODAL ──
+function openFeedback(){
+  document.getElementById('fbOverlay').classList.add('open');
+}
+function closeFeedback(){
+  document.getElementById('fbOverlay').classList.remove('open');
+}
+function closeFeedbackOutside(e){
+  if(e.target===document.getElementById('fbOverlay'))closeFeedback();
+}
+function copyFeedbackEmail(){
+  const email='DehghanMadisehA@rferl.org';
+  const btn=document.getElementById('fbCopyBtn');
+  const done=()=>{
+    btn.innerHTML='<svg width="12" height="12" viewBox="0 0 13 13" fill="none"><path d="M2 7l3 3 6-6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg> Copied';
+    btn.classList.add('copied');
+    setTimeout(()=>{
+      btn.innerHTML='<svg width="12" height="12" viewBox="0 0 13 13" fill="none"><rect x="1" y="5" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M4 4V3a1 1 0 011-1h5a1 1 0 011 1v5a1 1 0 01-1 1H9" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg> Copy';
+      btn.classList.remove('copied');
+    },2000);
+  };
+  if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(email).then(done);return;}
+  const a=document.createElement('textarea');
+  a.value=email;a.style.position='fixed';a.style.left='-9999px';
+  document.body.appendChild(a);a.select();document.execCommand('copy');document.body.removeChild(a);
+  done();
+}
+
+// ── SETTINGS ──
+function openSettings(){
+  document.getElementById('settingsOverlay').classList.add('open');
+  document.getElementById('settingsPanel').classList.add('open');
+}
+function closeSettings(){
+  document.getElementById('settingsOverlay').classList.remove('open');
+  document.getElementById('settingsPanel').classList.remove('open');
+}
+
+// ── GENERATE PROMPT ──
+function generate(){
+  const cfg=ROLES[currentRole];
+  const lang=selectedLang.name;
+  const focusMode=FOCUS_MODES[currentFocusMode];
+  const focus=document.getElementById('focus').value.trim();
+  const people=document.getElementById('people').value.trim();
+  const extract=document.getElementById('matExtract')?.value.trim()||'';
+  const mats=getCheckedMaterials();
+
+  const optLines=[];
+  if(currentFocusMode!=='none')optLines.push(`Main focus for today:\n  ${focusMode.title}: ${focusMode.instruction}`);
+  if(focus){const fl=focus.split('\n').filter(t=>t.trim()).map(t=>`  - ${t.trim()}`).join('\n');optLines.push(`Additional focus detail:\n${fl}`);}
+  if(people)optLines.push(`Extra people to flag as priority:\n  ${people}`);
+  const optBlock=optLines.length?`\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nADDITIONAL FOCUS (optional overrides)\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n${optLines.join('\n\n')}\n`:'';
+
+  let matBlock='';
+  if(mats.length){
+    const lines=mats.map(k=>`• ${MATERIALS[k].title}: ${MATERIALS[k].instruction}`).join('\n');
+    matBlock=`\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nMATERIALS PROVIDED\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n${lines}${extract?'\n\nSpecific extraction request: '+extract:''}\n`;
+  }
+
+  const peopleNote=people?`\nAlso flag any email, meeting, document, or news mention involving ${people} as priority context.\n`:'';
+  const focusTopics=focus?`\nGive extra weight to:\n${focus.split('\n').filter(t=>t.trim()).map(t=>`  - ${t.trim()}`).join('\n')}\n`:'';
+  const inboxExtra=cfg.inboxExtra?`\n${cfg.inboxExtra}\n`:'';
+  const internalExtra=cfg.internalExtra?`\n${cfg.internalExtra}\n`:'';
+  const extraOutput=cfg.extraOutput?`\n${cfg.extraOutput}\n`:'';
+
+  const today=new Date().toLocaleDateString('en-GB',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  const isExpress=currentDepth==='5';
+  const isDeep=currentDepth==='15';
+
+  const prompt=`${cfg.systemNote}
+
+Today is ${today}.
+Deliver the briefing in ${lang}, ready to read in ${currentDepth} minutes.
+Be factual, concise, and specific. No padding. No editorializing.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+WHO I AM — active personalisation rules
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+You know who I am from my Microsoft 365 profile. Apply that knowledge actively:
+- Elevate communications from people I interact with frequently (top 10 email/Teams contacts).
+- Elevate topics I have engaged with in the last 72 hours.
+- Escalate any thread where I am the expected responder and have not yet replied.
+- Deprioritize senders or topics I rarely engage with, unless urgency overrides.
+${optBlock}${matBlock}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+REASONING MODE — do this before writing anything
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+`+(isExpress?`Express mode:
+1. CLUSTER + DEDUPLICATE: Merge signals from the same topic. Preserve exact entity names.
+2. PRIORITIZE: urgency × impact only. Action-required items first.
+3. DECISION SUPPORT: For every ACTION REQUIRED item include why it matters now + next action.
+`:`1. CLUSTER: Group related signals across email + calendar + Teams + web + documents.
+2. DEDUPLICATE: One entry per topic. Preserve exact meeting titles, person names, document titles.
+3. PATTERN-DETECT: Topics appearing 2+ days → mark 🔁 RECURRING.
+4. PRIORITIZE by urgency × impact. Ask: "Does this require action or only awareness?"
+5. DECISION SUPPORT: Why it matters now + what the next action is.
+6. TIMELINE: ⚠️ OVERDUE if deadline passed · ⚡ TODAY if due today.
+7. DECISION PRESSURE: 🔥 HIGH PRESSURE if multiple people waiting AND deadline today/past.
+`)+`
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 1 — SCAN MY CALENDAR
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+List all meetings today: time, exact title, location/format.
+Flag prep-required meetings with ★. For each ★: write 2–3 bullet prep notes.
+`+(!isExpress?`
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 2 — TRIAGE MY INBOX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Read emails since yesterday 17:00. Sort:
+  BUCKET A — Action required today
+  BUCKET B — Need to know
+  BUCKET C — Context
+  BUCKET D — Noise (skip)
+${inboxExtra}${peopleNote}Report only A, B, C.
+`:`
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 2 — INBOX (Express: BUCKET A only)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Read emails since yesterday 17:00. Report BUCKET A only.
+`)+(!isExpress?`
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 3 — WEB SEARCH: MY TOPICS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+${cfg.webSearchExtra}
+${focusTopics}Include only stories where something materially changed in the last 24 hours.
+`+`
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 4 — INTERNAL SIGNALS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+From email, Teams, and M365 tools, flag: org changes, open decisions, unresolved items, NPS/Pyramid updates.
+${internalExtra}`:'')+`
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+OUTPUT — use this exact format
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⚡ TODAY'S SIGNAL
+[The single most important thing I must not miss today — 1–2 sentences.]
+
+📅 MY DAY
+TIME — EXACT MEETING TITLE
+Organized by FULL NAME · LOCATION
+[★ prep notes indented with →]
+`+(!isExpress?`
+📬 ACTION REQUIRED
+FULL SENDER NAME · EXACT EMAIL SUBJECT LINE
+What's needed: [one sentence]
+Urgency: [High/Medium] · Why it matters now: [one sentence]
+→ Ask me: "What should I say to [FULL NAME]?"
+
+📰 WHAT'S NEW
+[Max 5 items, sorted by importance]
+▸ [TOPIC] [HIGH/MEDIUM/LOW]
+  [What changed · Source · So what for me]
+
+🏢 INTERNAL SIGNALS
+[Org changes, open items, tool updates]
+
+🔎 WATCH TODAY
+[2–3 items to check by end of day]
+
+⚠️ FLAGS
+[Sourcing gaps, risks — omit if nothing to flag]
+${extraOutput}`:`
+📬 ACTION REQUIRED (Express)
+[→ Sender | Subject | What's needed | Urgency]
+
+🔎 WATCH TODAY
+[Top 2 items]
+`)+(isDeep?`
+📈 TRENDS & PATTERNS
+[🔁 RECURRING topics · ⏳ STALE threads]
+`:'')+`
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DRILL-DOWN (add at end of briefing)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+💬 Ask me to expand on anything: "Tell me more about [person]", "Expand on [meeting]", "What's the background on [topic]?", "What should I say to [person] today?"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+RULES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✓ Facts first — no padding · Max 25 words per sentence · Attribute claims · Flag uncertainty
+✓ Use: 🔥 HIGH PRESSURE · ⚠️ OVERDUE · ⚡ TODAY · 🔁 RECURRING
+✓ Every entity (meeting, person, document) on its own line — never mid-sentence
+✗ No filler phrases · No repetition · Never cite TASS/IRNA/BelTA/Xinhua as reliable without verification
+Scannable in 60 seconds, readable in full in ${currentDepth} minutes.`;
+
+  document.getElementById('output').textContent=prompt;
+  updateSummary();
+}
+
+function updateSummary(){
+  const cfg=ROLES[currentRole];
+  const lang=selectedLang.name;
+  const focus=document.getElementById('focus').value.trim();
+  const people=document.getElementById('people').value.trim();
+  const mats=getCheckedMaterials();
+  const focusMode=FOCUS_MODES[currentFocusMode];
+  const depthPhrase={'5':'express 5-min','10':'standard 10-min','15':'deep 15-min'}[currentDepth]||'';
+  const roleLabel=cfg.label.toLowerCase();
+  const langNote=lang==='English'?'in English':`in ${lang}`;
+  let focusPart='';
+  if(currentFocusMode!=='none'){
+    focusPart=`, focused on <strong>${focusMode.title.toLowerCase()}</strong>`;
+    if(focus){const first=focus.split('\n')[0].trim();if(first)focusPart+=` — ${first}`;}
+  }
+  let matPart='';
+  if(mats.length===1)matPart=`, with your <strong>${MATERIALS[mats[0]].title.toLowerCase()}</strong>`;
+  else if(mats.length>1)matPart=`, with <strong>${mats.length} materials</strong>`;
+  const peoplePart=people?` · watching for <strong>${people.split(',')[0].trim()}</strong>${people.split(',').length>1?'…':''}`:'' ;
+  document.getElementById('summaryText').innerHTML=`${depthPhrase} briefing for a <strong>${roleLabel}</strong> ${langNote}${focusPart}${matPart}${peoplePart}`;
+}
+
+// ── TOAST ──
+let toastTimer=null;
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),2400);
+}
+
+// ── SAVE / HISTORY ──
+function getConfig(){return{role:currentRole,depth:currentDepth,lang:selectedLang.name,focusMode:currentFocusMode,people:document.getElementById('people').value.trim()};}
+
+function applyConfig(cfg, applyLang=false){
+  currentRole=cfg.role||'journalist';
+  currentDepth=cfg.depth||'10';
+  currentFocusMode=cfg.focusMode||'none';
+  // Only apply saved language when explicitly loading a full saved default —
+  // never on role switches or history restores mid-session.
+  if(applyLang && cfg.lang){
+    const l=LANGUAGES.find(x=>x.name===cfg.lang);
+    if(l){selectedLang=l;document.getElementById('langFlag').textContent=l.flag;document.getElementById('langLabel').textContent=l.name;}
+  }
+  document.querySelectorAll('.pill').forEach(p=>p.classList.toggle('active',p.dataset.role===currentRole));
+  document.querySelectorAll('.seg-btn').forEach(b=>b.classList.toggle('active',b.dataset.v===currentDepth));
+  if(cfg.people)document.getElementById('people').value=cfg.people;
+  document.getElementById('people').placeholder=ROLES[currentRole]?.peoplePlaceholder||'';
+  document.querySelectorAll('.focus-seg-btn').forEach(b=>b.classList.toggle('active',b.dataset.focusMode===currentFocusMode));
+  const prompt=FOCUS_PROMPTS[currentFocusMode];
+  const dynWrap=document.getElementById('focusDynamic');
+  if(currentFocusMode==='none'||!prompt.label){dynWrap.classList.add('hidden');}
+  else{dynWrap.classList.remove('hidden');document.getElementById('focusDynamicLabel').textContent=prompt.label;document.getElementById('focus').placeholder=prompt.placeholder;}
+  buildLangList();
+  generate();
+}
+
+function saveDefault(){
+  const cfg=getConfig();
+  localStorage.setItem(LS_DEFAULT,JSON.stringify(cfg));
+  const btn=document.getElementById('saveDefaultBtn');
+  btn.textContent='Saved ✓';btn.classList.add('saved');
+  setTimeout(()=>{btn.textContent='Save current setup as my default';btn.classList.remove('saved');},2000);
+  showToast('Default saved.');
+  pushHistory(cfg);
+}
+
+function loadDefault(){
+  try{const raw=localStorage.getItem(LS_DEFAULT);if(!raw)return false;applyConfig(JSON.parse(raw),true);return true;}catch(e){return false;}
+}
+
+function pushHistory(cfg){
+  try{
+    let h=JSON.parse(localStorage.getItem(LS_HISTORY)||'[]');
+    h=h.filter(e=>!(e.role===cfg.role&&e.depth===cfg.depth&&e.lang===cfg.lang&&e.focusMode===cfg.focusMode));
+    h.unshift({...cfg,label:ROLES[cfg.role].label,ts:Date.now(),rating:null,reasons:[],other:''});
+    h=h.slice(0,MAX_HISTORY);
+    localStorage.setItem(LS_HISTORY,JSON.stringify(h));
+    renderHistory();
+  }catch(e){}
+}
+
+const FEEDBACK_REASONS=[
+  'Copilot missed key topics',
+  'Briefing was too long or too short',
+  'Wrong tone for my role',
+  'Sources were off or unreliable',
+  'Missing people I flagged'
+];
+
+function renderHistory(){
+  try{
+    const h=JSON.parse(localStorage.getItem(LS_HISTORY)||'[]');
+    const list=document.getElementById('historyList');
+    if(!h.length){list.innerHTML='<div class="history-empty">No recent configurations yet.</div>';return;}
+    list.innerHTML=h.map((e,i)=>{
+      const d=new Date(e.ts);
+      const when=d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'})+' · '+d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+      const ml=e.focusMode&&e.focusMode!=='none'?` · ${FOCUS_MODES[e.focusMode]?.title||e.focusMode}`:'';
+      const rating=e.rating||0;
+      const stars=[1,2,3,4,5].map(s=>
+        `<button class="star-btn${s<=rating?' active':''}" onclick="setRating(${i},${s})" title="${s} star${s>1?'s':''}" aria-label="${s} stars">★</button>`
+      ).join('');
+      const ratingChip=rating?`<div class="history-rating-chip">★ ${rating}/5${e.reasons&&e.reasons.length||e.other?' · feedback saved':''}</div>`:'<div class="history-rating-chip" style="color:var(--mid);font-weight:400">Rate this briefing</div>';
+      const reasonsHTML=rating===5?''
+        :FEEDBACK_REASONS.map((r,ri)=>{
+        const checked=(e.reasons||[]).includes(r)?'checked':'';
+        return`<label class="hf-reason"><input type="checkbox" data-reason="${r.replace(/"/g,'&quot;')}" ${checked} onchange="toggleReason(${i},'${r.replace(/'/g,"\\'")}',this.checked)"><span class="hf-reason-text">${r}</span></label>`;
+      }).join('');
+      const hasSavedFeedback=(e.reasons&&e.reasons.length)||e.other;
+      const feedbackOpen=rating?'open':'';
+      const feedbackLabel=rating===5?'Anything to add? <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--mid);font-size:10px">Optional</span>':'What could be better?';
+      return`
+      <div class="history-item${rating&&rating<5?' has-feedback':''}" id="hitem-${i}">
+        <div class="history-row">
+          <button class="history-restore" onclick="restoreHistory(${i})">
+            <strong>${e.label} · ${e.depth} min · ${e.lang}${ml}</strong>
+            <span>${when}</span>
+            ${ratingChip}
+          </button>
+          <div class="history-stars">${stars}</div>
+          <button class="history-delete" id="hdel-${i}" onclick="deleteHistory(${i})" title="Remove">✕</button>
+        </div>
+        <div class="history-feedback ${feedbackOpen}" id="hfeedback-${i}">
+          <div class="hf-label">${feedbackLabel}</div>
+          <div class="hf-reasons">${reasonsHTML}</div>
+          <textarea class="hf-other" rows="2" placeholder="Anything else? Write freely…" oninput="saveOther(${i},this.value)">${e.other||''}</textarea>
+          <button class="hf-save" id="hfsave-${i}" onclick="saveFeedback(${i})"${hasSavedFeedback?'':''}>Save feedback</button>
+          <div class="hf-saved-note${hasSavedFeedback?' show':''}" id="hfsaved-${i}">✓ Feedback saved</div>
+        </div>
+      </div>`;
+    }).join('');
+  }catch(e){}
+}
+
+function setRating(i,stars){
+  try{
+    let h=JSON.parse(localStorage.getItem(LS_HISTORY)||'[]');
+    if(!h[i])return;
+    h[i].rating=stars;
+    if(!h[i].reasons)h[i].reasons=[];
+    if(!h[i].other)h[i].other='';
+    localStorage.setItem(LS_HISTORY,JSON.stringify(h));
+    renderHistory();
+    // always open feedback panel after rating
+    setTimeout(()=>{
+      const panel=document.getElementById(`hfeedback-${i}`);
+      if(panel)panel.classList.add('open');
+    },50);
+  }catch(e){}
+}
+
+function toggleReason(i,reason,checked){
+  // just update DOM state — not saved until user clicks Save
+  const btn=document.getElementById(`hfsave-${i}`);
+  if(btn)btn.disabled=false;
+}
+
+function saveOther(i,val){
+  // just update DOM state — not saved until user clicks Save
+  const btn=document.getElementById(`hfsave-${i}`);
+  if(btn)btn.disabled=false;
+}
+
+function saveFeedback(i){
+  try{
+    let h=JSON.parse(localStorage.getItem(LS_HISTORY)||'[]');
+    if(!h[i])return;
+    const panel=document.getElementById(`hfeedback-${i}`);
+    if(!panel)return;
+    const checked=Array.from(panel.querySelectorAll('input[type="checkbox"]:checked')).map(cb=>cb.dataset.reason);
+    const other=panel.querySelector('.hf-other')?.value||'';
+    h[i].reasons=checked;
+    h[i].other=other;
+    localStorage.setItem(LS_HISTORY,JSON.stringify(h));
+    const note=document.getElementById(`hfsaved-${i}`);
+    const btn=document.getElementById(`hfsave-${i}`);
+    if(btn){btn.textContent='Saving…';btn.disabled=true;}
+    // send to Supabase
+    const payload={
+      role:h[i].role,
+      depth:h[i].depth,
+      lang:h[i].lang,
+      focus_mode:h[i].focusMode||'none',
+      rating:h[i].rating,
+      reasons:checked,
+      other:other,
+      ts:h[i].ts
+    };
+    fetch('https://yiewnykbchfadipznpet.supabase.co/rest/v1/briefing_feedback',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlpZXdueWtiY2hmYWRpcHpucGV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxNzM3NTUsImV4cCI6MjA5NDc0OTc1NX0.utnlpToZGH7hno0QTXlrtWvzKDgP28Gv3Je7BBIRwmM',
+        'Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlpZXdueWtiY2hmYWRpcHpucGV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxNzM3NTUsImV4cCI6MjA5NDc0OTc1NX0.utnlpToZGH7hno0QTXlrtWvzKDgP28Gv3Je7BBIRwmM',
+        'Prefer':'return=minimal'
+      },
+      body:JSON.stringify(payload)
+    }).then(r=>{
+      if(r.ok||r.status===201){
+        if(note){note.classList.add('show');note.textContent='✓ Feedback saved';}
+        if(btn){btn.textContent='Saved ✓';setTimeout(()=>{if(btn){btn.textContent='Save feedback';btn.disabled=false;}},2000);}
+      } else {
+        if(note){note.classList.add('show');note.textContent='✓ Saved locally';}
+        if(btn){btn.textContent='Save feedback';btn.disabled=false;}
+      }
+    }).catch(()=>{
+      if(note){note.classList.add('show');note.textContent='✓ Saved locally';}
+      if(btn){btn.textContent='Save feedback';btn.disabled=false;}
+    });
+  }catch(e){}
+}
+
+function restoreHistory(i){
+  try{const h=JSON.parse(localStorage.getItem(LS_HISTORY)||'[]');if(!h[i])return;applyConfig(h[i]);closeSettings();showToast('Configuration restored.');}catch(e){}
+}
+
+function deleteHistory(i){
+  const btn=document.getElementById(`hdel-${i}`);
+  if(!btn)return;
+  if(btn.dataset.confirm==='1'){
+    // confirmed — delete
+    try{let h=JSON.parse(localStorage.getItem(LS_HISTORY)||'[]');h.splice(i,1);localStorage.setItem(LS_HISTORY,JSON.stringify(h));renderHistory();}catch(e){}
+  } else {
+    // first click — ask for confirmation
+    btn.dataset.confirm='1';
+    btn.textContent='Sure?';
+    btn.style.color='var(--flame)';
+    btn.style.borderLeft='1px solid var(--light)';
+    btn.style.padding='10px 10px';
+    btn.style.fontSize='11px';
+    btn.style.fontWeight='600';
+    // reset if user doesn't confirm within 3s
+    setTimeout(()=>{
+      if(btn&&btn.dataset.confirm==='1'){
+        btn.dataset.confirm='';
+        btn.textContent='✕';
+        btn.style.color='';
+        btn.style.fontSize='';
+        btn.style.fontWeight='';
+      }
+    },3000);
+  }
+}
+
+
+// ── COPY ──
+function copyPrompt(){
+  const t=document.getElementById('output').textContent;
+  if(!t)return;
+  const done=()=>{
+    [document.getElementById('copyBtn'),document.getElementById('crsCopyBtn')].forEach(b=>{
+      if(!b)return;
+      b.innerHTML='<svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 7l3 3 6-6" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg> Copied — paste in Copilot';
+      b.classList.add('copied');
+      setTimeout(()=>{
+        b.innerHTML='<svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="1" y="5" width="7" height="7" rx="1.5" stroke="#fff" stroke-width="1.3"/><path d="M4 4V3a1 1 0 011-1h5a1 1 0 011 1v5a1 1 0 01-1 1H9" stroke="#fff" stroke-width="1.3" stroke-linecap="round"/></svg> Copy My Briefing Request';
+        b.classList.remove('copied');
+      },2600);
+    });
+    pushHistory(getConfig());
+  };
+  if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(t).then(done);return;}
+  const area=document.createElement('textarea');
+  area.value=t;area.setAttribute('readonly','');area.style.position='fixed';area.style.left='-9999px';
+  document.body.appendChild(area);area.select();document.execCommand('copy');document.body.removeChild(area);
+  done();
+}
+
+// ── CAROUSEL ──
+(function(){
+  const TOTAL=3;
+  let cur=0;
+  function goTo(n){
+    cur=Math.max(0,Math.min(TOTAL-1,n));
+    document.getElementById('crsTrack').style.transform=`translateX(-${cur*100}%)`;
+    document.getElementById('crsProgress').style.width=((cur+1)/TOTAL*100)+'%';
+    document.querySelectorAll('.crs-dot').forEach((d,i)=>d.classList.toggle('active',i===cur));
+    document.getElementById('crsPrev').disabled=cur===0;
+    document.getElementById('crsNext').disabled=cur===TOTAL-1;
+  }
+  window.crsMove=function(d){goTo(cur+d);};
+  const dots=document.getElementById('crsDots');
+  for(let i=0;i<TOTAL;i++){
+    const d=document.createElement('button');
+    d.className='crs-dot'+(i===0?' active':'');
+    d.setAttribute('aria-label','Step '+(i+1));
+    d.onclick=()=>goTo(i);
+    dots.appendChild(d);
+  }
+  goTo(0);
+  let tx=null;
+  const track=document.getElementById('crsTrack');
+  track.addEventListener('touchstart',e=>{tx=e.touches[0].clientX;},{passive:true});
+  track.addEventListener('touchend',e=>{
+    if(tx===null)return;
+    const dx=e.changedTouches[0].clientX-tx;
+    if(Math.abs(dx)>40)goTo(cur+(dx<0?1:-1));
+    tx=null;
+  },{passive:true});
+})();
+
+// ── GREETING ──
+
+// English base — role × period
+const GREETINGS_EN={
+  journalist:{
+    morning:["Let's see what the wires brought overnight.","Time to check what the world did while you were asleep.","A new news cycle begins. Let's get you up to speed."],
+    afternoon:["Midday check — stories move fast, let's catch up.","Good time to see what's developed since this morning.","Afternoon. Let's see what your story needs now."],
+    evening:["Wrapping up the day — here's what still needs a look.","The day is winding down. A few things worth catching before you close.","Evening edition. Let's see what's still in motion."],
+    late:["Still at it. Let's make sure nothing slipped past you.","Late hours, sharp eyes. Here's what matters right now.","Working late? Let's keep it focused and get you out the door."]
+  },
+  editor:{
+    morning:["Morning. Let's see what the day needs from you editorially.","Time to map the lineup. Let's see what's landed and what needs a decision.","New day, new editorial calls. Let's get the full picture."],
+    afternoon:["Midday editorial check — let's see what's moved and what needs reassigning.","Good moment to take stock of the coverage portfolio.","Afternoon. Let's see where the gaps are and what needs your eye."],
+    evening:["End of day approaching. A few editorial calls still to make.","Winding down — let's see what's open before tomorrow's cycle.","Evening. Let's close out the day with a clear editorial picture."],
+    late:["Still in the chair. Let's keep it to what can't wait.","Late editorial check — here's what needs your sign-off before morning.","One last look at the lineup before you hand it over."]
+  },
+  service_director:{
+    morning:["Morning. Your service has a full day ahead — let's map it out.","Time to see how your team is set up for the day.","A new day for your service. Let's start with the full picture."],
+    afternoon:["Afternoon check-in. Let's see how the day is shaping up for your service.","Good time to take stock of what's moving across your desk.","Midday. A moment to see where your service stands."],
+    evening:["End of day approaching. Let's see what still needs your eye.","Evening. A few things worth reviewing before tomorrow.","Winding down — let's make sure nothing's been left hanging."],
+    late:["Still going. Let's keep it brief and useful.","Late check. Your service will thank you for it tomorrow.","One last look before calling it a night."]
+  },
+  regional_manager:{
+    morning:["Morning. A lot of ground to cover — let's get the regional picture.","Your bureaus are waking up. Time to see what's moving across the region.","Morning brief for the region. Let's see what the day looks like."],
+    afternoon:["Afternoon. Time to check in across your region.","Midday regional check — let's see what's developed.","Good moment to take the regional temperature."],
+    evening:["Evening. Let's see how the region's day is closing out.","Time to wind down with a clear picture of where things stand.","A few regional signals worth reviewing before tomorrow."],
+    late:["Late hours. Let's keep it tight and relevant.","Still monitoring — here's what you need before you close the day.","One more sweep across the region before you're done."]
+  },
+  eic:{
+    morning:["Morning. A lot of decisions ahead — let's see what's landed.","The global picture is forming. Here's where to focus first.","Good morning. The cycle starts now — here's what needs your eye."],
+    afternoon:["Afternoon. The news cycle is in full swing — let's catch up.","Midday. A few things worth your attention before the evening push.","Good time to see what's escalated since this morning."],
+    evening:["Evening. The day's stories are settling — here's the state of play.","Winding down, but a few things still need your sign-off.","Late edition check before the cycle turns."],
+    late:["Still at the helm. Let's keep it to what truly matters.","Late hours. Here's what can't wait until morning.","One final look before you hand off the watch."]
+  },
+  strategist:{
+    morning:["Morning. Let's see what the numbers say before the day starts.","Time to read the signals. What did the audience do overnight?","A new day of data. Let's see what it's telling us."],
+    afternoon:["Midday check — let's see how the morning's content is performing.","Good moment to spot the patterns before the afternoon push.","Afternoon. The signals are in — let's read them."],
+    evening:["End of day. Time to see what landed and what to do differently tomorrow.","The day's performance is in. Let's see what it means.","Winding down — a good moment to pull the day's intelligence together."],
+    late:["Late check on the numbers. Let's keep it focused.","Still watching the data? Here's what matters right now.","One last look at performance before you close the day."]
+  },
+  digital_product:{
+    morning:["Morning. Let's see what moved in the stack overnight.","A new day in the digital layer. Here's what's worth your attention.","Morning check — tools, adoption, and anything new from the field."],
+    afternoon:["Afternoon. A good moment to check what's shipping and what's stuck.","Midday tech check — let's see what's developed.","Good time to take stock of your open threads and inbound signals."],
+    evening:["Evening. Let's wrap the day with a clear picture of what's open.","Winding down — a few digital signals worth catching before tomorrow.","End of day check on tools, tickets, and what's on the horizon."],
+    late:["Late check on the digital stack. Let's keep it focused.","Still going? Here's what's worth your attention right now.","One last look at the inbox and the radar before you close."]
+  },
+  multimedia_producer:{
+    morning:["Morning. Let's see what's trending before the production day starts.","Time to check the platforms and the queue. Let's see what's moving.","New day, new content. Let's see what needs to be made."],
+    afternoon:["Midday check — let's see how this morning's content is performing.","Good moment to check the production queue and the platform signals.","Afternoon. Let's see what's trending and what's due."],
+    evening:["End of production day. Let's see what's posted, what's pending, and what's trending.","Winding down — a quick check on platform performance and tomorrow's queue.","Evening. Let's close out with a clear production picture."],
+    late:["Still producing? Let's keep it to what matters right now.","Late check on the platforms. Here's what you need to know.","One last look at the queue before you call it a night."]
+  },
+  generic:{
+    morning:["Morning. Let's get you set up for the day.","A fresh start. Here's what's worth your attention this morning.","Good morning. Let's see what the day has in store."],
+    afternoon:["Afternoon. A good moment to take stock.","Midday check — let's see what needs your attention.","Good time to catch up on what's moved since this morning."],
+    evening:["Evening. Let's see how the day is wrapping up.","Winding down — a few things worth a look before tomorrow.","End of day. Let's make sure nothing slipped past you."],
+    late:["Working late. Let's keep it useful and brief.","Still at it — here's what matters right now.","One last check before you call it a night."]
+  }
+};
+
+// Per-language translations: timeLabels + generic lines (used for all roles in that language)
+// Format: { timeLabels:{morning,afternoon,evening,late}, lines:{morning:[],afternoon:[],evening:[],late:[]}, dayNotes:{mon,fri,weekend} }
+const LANG_GREETINGS={
+  'Persian (Farsi)':{
+    dir:'rtl',
+    timeLabels:{morning:'صبح بخیر',afternoon:'بعدازظهر بخیر',evening:'عصر بخیر',late:'شب بخیر'},
+    lines:{
+      morning:['ببینیم سیم‌خبرها شب چه آوردند.','وقتشه ببینیم دنیا چه کار کرده.','چرخه خبری جدید شروع شده. بیایید به‌روز بشویم.'],
+      afternoon:['بررسی نیمروز — خبرها سریع پیش می‌روند.','وقت خوبیه ببینیم از صبح چه اتفاقی افتاده.','بعدازظهر. ببینیم چه چیزی نیاز به توجه دارد.'],
+      evening:['روز داره تموم میشه — یه نگاه آخر لازمه.','چند چیز ارزش داره قبل از بستن بررسی بشه.','ببینیم چه چیزی هنوز در جریانه.'],
+      late:['هنوز کار می‌کنی؟ بریم ببینیم چی مهمه.','ساعت دیر وقته. مهم‌ترین‌ها را بررسی کنیم.','یه نگاه آخر قبل از اینکه بخوابی.']
+    },
+    dayNotes:{mon:'دوشنبه — هفته‌ای پر جلوی ماست.',fri:'جمعه — با قدرت تمام کنیم.',weekend:'آخر هفته کار می‌کنی — ارزشمنده.'}
+  },
+  'Dari':{
+    dir:'rtl',
+    timeLabels:{morning:'صبح بخیر',afternoon:'بعد از چاشت بخیر',evening:'شام بخیر',late:'شب بخیر'},
+    lines:{
+      morning:['ببینیم خبرهای شب چه بود.','وقت آن است که دنیا را بررسی کنیم.','دور خبری جدید شروع شد. بیایید به‌روز شویم.'],
+      afternoon:['بررسی نیمروز — اخبار سریع می‌گذرد.','وقت خوبی است ببینیم چه پیش آمده.','بعد از چاشت. ببینیم چه نیاز به توجه دارد.'],
+      evening:['روز دارد تمام می‌شود — نگاهی بیندازیم.','چند چیز ارزش دارد قبل از بستن بررسی شود.','ببینیم چه چیزی هنوز جریان دارد.'],
+      late:['دیر وقت است. مهم‌ترین‌ها را بررسی کنیم.','هنوز کار می‌کنی؟ کوتاه نگه‌اش می‌داریم.','یک نگاه آخر پیش از خواب.']
+    },
+    dayNotes:{mon:'دوشنبه — هفته پیش روست.',fri:'جمعه — قوی تمام کنیم.',weekend:'آخر هفته کار می‌کنی — خوب است.'}
+  },
+  'Pashto':{
+    dir:'rtl',
+    timeLabels:{morning:'سهار مو ښه',afternoon:'غرمه مو ښه',evening:'ماښام مو ښه',late:'شپه مو ښه'},
+    lines:{
+      morning:['راځئ وګورو چې شپه کې خبرونه څه وو.','نړۍ سهار کې څه وکړل — وګورو.','نوی خبري دور پیل شو. راځئ تازه شو.'],
+      afternoon:['د غرمې بیاکتنه — خبرونه ګړندي روان دي.','وخت دی چې وګورو له سهاره دا خوا چې کوم پرمختګونه شوي.','غرمه. ګورو چې اوس کومو شیانو ته اړتیا ده.'],
+      evening:['ورځ پای ته رسیږي — یوه نظر واچوو.','د پای کولو دمخه ځینې شیان کتل ارزي.','ګورو چې لاهم څه روان دي.'],
+      late:['ناوخته دي. د مهمو شیانو بیاکتنه وکړو.','لاهم کار کوې؟ لنډ یې ساتو.','د خوب دمخه وروستۍ کتنه.']
+    },
+    dayNotes:{mon:'دوشنبه — ټوله اونۍ مخکې ده.',fri:'جمعه — قوي پای ته ورسوو.',weekend:'اونۍ پای کې کار کوې — ستاینه.'}
+  },
+  'Russian':{
+    dir:'ltr',
+    timeLabels:{morning:'Доброе утро',afternoon:'Добрый день',evening:'Добрый вечер',late:'Добрый вечер'},
+    lines:{
+      morning:['Посмотрим, что принесли ночные ленты новостей.','Время узнать, что произошло пока вы спали.','Новый новостной цикл начался. Давайте разберёмся.'],
+      afternoon:['Дневная сводка — события развиваются быстро.','Хороший момент посмотреть, что произошло с утра.','Полдень. Посмотрим, что требует вашего внимания.'],
+      evening:['День близится к концу — ещё один взгляд.','Несколько вещей стоит проверить перед закрытием.','Посмотрим, что ещё в движении.'],
+      late:['Всё ещё за работой? Сосредоточимся на важном.','Поздний час. Вот что не терпит до утра.','Последний взгляд перед завершением дня.']
+    },
+    dayNotes:{mon:'Понедельник — впереди целая неделя.',fri:'Пятница — завершим на высокой ноте.',weekend:'Работаете в выходные — это ценится.'}
+  },
+  'Ukrainian':{
+    dir:'ltr',
+    timeLabels:{morning:'Доброго ранку',afternoon:'Добрий день',evening:'Добрий вечір',late:'Добрий вечір'},
+    lines:{
+      morning:['Подивимось, що принесли нічні стрічки новин.','Час дізнатись, що сталося поки ви спали.','Новий новинний цикл почався. Давайте розберемось.'],
+      afternoon:['Денна зведення — події розвиваються швидко.','Хороший момент подивитись, що трапилось з ранку.','Полудень. Подивимось, що потребує уваги.'],
+      evening:['День добігає кінця — ще один погляд.','Кілька речей варто перевірити перед закриттям.','Подивимось, що ще в русі.'],
+      late:['Ще працюєте? Зосередимось на важливому.','Пізня година. Ось що не може чекати до ранку.','Останній погляд перед завершенням дня.']
+    },
+    dayNotes:{mon:'Понеділок — попереду цілий тиждень.',fri:'П\'ятниця — завершимо на підйомі.',weekend:'Працюєте у вихідні — це цінується.'}
+  },
+  'Arabic':{
+    dir:'rtl',
+    timeLabels:{morning:'صباح الخير',afternoon:'مساء الخير',evening:'مساء الخير',late:'مساء الخير'},
+    lines:{
+      morning:['لنرَ ما أحضرته الأسلاك خلال الليل.','وقت للاطلاع على ما جرى أثناء نومك.','دورة إخبارية جديدة بدأت. لنتابع معاً.'],
+      afternoon:['مراجعة منتصف النهار — الأحداث تتسارع.','وقت جيد لمعرفة ما تطور منذ الصباح.','بعد الظهر. لنرَ ما يستحق انتباهك الآن.'],
+      evening:['اليوم يقترب من نهايته — نظرة أخيرة.','بعض الأمور تستحق المراجعة قبل الإغلاق.','لنرَ ما زال في حركة.'],
+      late:['لا تزال تعمل؟ لنركز على المهم.','ساعة متأخرة. إليك ما لا يحتمل الانتظار.','نظرة أخيرة قبل إنهاء اليوم.']
+    },
+    dayNotes:{mon:'الاثنين — أسبوع كامل أمامك.',fri:'الجمعة — لننهِ بقوة.',weekend:'تعمل في عطلة الأسبوع — هذا يُقدَّر.'}
+  },
+  'Azerbaijani':{
+    dir:'ltr',
+    timeLabels:{morning:'Sabahınız xeyir',afternoon:'Günortanız xeyir',evening:'Axşamınız xeyir',late:'Gecəniz xeyir'},
+    lines:{
+      morning:['Gecə gələn xəbərlərə baxaq.','Siz yatarkən dünyada nə baş verdiyini yoxlayaq.','Yeni xəbər dövrü başladı. Yenilənək.'],
+      afternoon:['Günorta yoxlaması — xəbərlər sürətlə inkişaf edir.','Səhərdən bəri nə baş verdiyini görmək üçün yaxşı vaxtdır.','Günorta. Diqqət tələb edənlərə baxaq.'],
+      evening:['Gün tamamlanır — bir son baxış.','Bağlamadan əvvəl bəzi şeylərə baxmağa dəyər.','Hələ nələrin hərəkətdə olduğunu görək.'],
+      late:['Hələ işləyirsiniz? Önəmlilərinə diqqət yetirək.','Gec saat. Səhərə qədər gözləyə bilməyənlər bunlardır.','Günü bitirmədən son bir baxış.']
+    },
+    dayNotes:{mon:'Bazar ertəsi — bütöv bir həftə qarşıdadır.',fri:'Cümə — güclü bitirrək.',weekend:'Həftə sonunda işləyirsiniz — bu qiymətlidir.'}
+  },
+  'Georgian':{
+    dir:'ltr',
+    timeLabels:{morning:'დილა მშვიდობისა',afternoon:'შუადღე მშვიდობისა',evening:'საღამო მშვიდობისა',late:'საღამო მშვიდობისა'},
+    lines:{
+      morning:['ვნახოთ, რა მოიტანა ღამის სიახლეებმა.','დრო შევამოწმოთ, რა მოხდა სანამ გეძინათ.','ახალი სიახლეების ციკლი დაიწყო. განახლდეთ.'],
+      afternoon:['შუადღის შემოწმება — ამბები სწრაფად ვითარდება.','კარგი დროა ვნახოთ, რა განვითარდა დილიდან.','შუადღე. ვნახოთ, რა საჭიროებს ყურადღებას.'],
+      evening:['დღე სრულდება — ბოლო შეხედვა.','დახურვამდე რამდენიმე საკითხი ნახვას იმსახურებს.','ვნახოთ, რა ჯერ კიდევ მოძრაობაშია.'],
+      late:['კვლავ მუშაობთ? ვეყრდნოთ მნიშვნელოვანს.','გვიანი საათია. აი, რაც დილამდე ვერ დაელოდება.','დღის დასასრულამდე ბოლო შეხედვა.']
+    },
+    dayNotes:{mon:'ორშაბათი — მთელი კვირა წინ გაქვთ.',fri:'პარასკევი — ძლიერად დავასრულოთ.',weekend:'შაბათ-კვირას მუშაობთ — ეს ფასდება.'}
+  },
+  'Armenian':{
+    dir:'ltr',
+    timeLabels:{morning:'Բարի լույս',afternoon:'Բարի օր',evening:'Բարի երեկո',late:'Բարի երեկո'},
+    lines:{
+      morning:['Տեսնենք, թե գիշերային լրատվությունն ինչ բերեց.','Ժամանակն է ստուգելու, թե ինչ եղավ ձեր քնած ժամանակ.','Նոր լրատվական ցիկլ սկսվեց. Թարմացվենք.'],
+      afternoon:['Կեսօրյա ստուգում — նորությունները արագ են զարգանում.','Լավ ժամ է տեսնելու, թե ինչ է ծագել առավոտից.','Կեսօր. Տեսնենք, թե ինչն է ուշադրություն պահանջում.'],
+      evening:['Օրն ավարտվում է — վերջին հայացք.','Մի քանի բան արժե ստուգել փակելուց առաջ.','Տեսնենք, թե ինչն է դեռ շարժման մեջ.'],
+      late:['Դեռ աշխատո՞ւմ եք. Կենտրոնանանք կարևոր բաների վրա.','Ուշ ժամ. Ահա, թե ինչը չի կարող մինչ առավոտ սպասել.','Վերջին հայացք օրն ավարտելուց առաջ.']
+    },
+    dayNotes:{mon:'Երկուշաբթի — ամբողջ շաբաթ առջևում է.',fri:'Ուրբաթ — ավարտենք ուժեղ.',weekend:'Հանգստյան օրերին եք աշխատում — դա գնահատելի է.'}
+  },
+  'Kazakh':{
+    dir:'ltr',
+    timeLabels:{morning:'Қайырлы таң',afternoon:'Қайырлы күн',evening:'Қайырлы кеш',late:'Қайырлы кеш'},
+    lines:{
+      morning:['Түнгі жаңалықтарды қараймыз.','Ұйықтаған кезде не болғанын тексеру уақыты.','Жаңа жаңалықтар циклі басталды. Жаңартайық.'],
+      afternoon:['Түскі тексеру — жаңалықтар жылдам дамиды.','Таңертеңнен бері не болғанын білу үшін жақсы уақыт.','Түс. Назар аударуды қажет ететіндерді қарайық.'],
+      evening:['Күн аяқталуда — соңғы бір қарау.','Жабылмас бұрын бірнеше нәрсені тексеру керек.','Әлі қозғалыста не бар екенін қарайық.'],
+      late:['Әлі жұмыс жасайсыз ба? Маңыздыға назар аударайық.','Кеш сағат. Таңға дейін күте алмайтыны осы.','Күнді аяқтамас бұрын соңғы бір қарау.']
+    },
+    dayNotes:{mon:'Дүйсенбі — бүкіл апта алда.',fri:'Жұма — күшті аяқтайық.',weekend:'Демалыс күні жұмыс жасайсыз — бұл бағаланады.'}
+  },
+  'Kyrgyz':{
+    dir:'ltr',
+    timeLabels:{morning:'Кутман таң',afternoon:'Кутман күн',evening:'Кутман кеч',late:'Кутман кеч'},
+    lines:{
+      morning:['Түнкү жаңылыктарды карайлы.','Уктап жатканда эмне болгонун текшерүү убактысы.','Жаңы жаңылык цикли башталды. Жаңыртайлы.'],
+      afternoon:['Күндүзкү текшерүү — жаңылыктар тез өнүгөт.','Эртеңден бери эмне болгонун билүү үчүн жакшы убакыт.','Түш. Көңүл буруруна татыктуу нерселерди карайлы.'],
+      evening:['Күн аяктап жатат — акыркы бир карап чыгуу.','Жабылбай туруп бир нерселерди текшерүү керек.','Дагы эле кыймылда эмне барын карайлы.'],
+      late:['Дагы эле иштеп жатасызбы? Маанилүүгө топтололу.','Кеч саат. Эртеңге чейин күтө албаганы ушул.','Күндү бүтүрбөй туруп акыркы карап чыгуу.']
+    },
+    dayNotes:{mon:'Дүйшөмбү — бүтүндөй жума алдыда.',fri:'Жума — күчтүү аяктайлы.',weekend:'Эс алуу күнү иштеп жатасыз — бул бааланат.'}
+  },
+  'Uzbek':{
+    dir:'ltr',
+    timeLabels:{morning:'Xayrli tong',afternoon:'Xayrli kun',evening:'Xayrli kech',late:'Xayrli kech'},
+    lines:{
+      morning:['Kechagi yangiliklar nimalar keltirganini ko\'raylik.','Uxlab yotganingizda nima bo\'lganini tekshirish vaqti.','Yangi yangiliklar sikli boshlandi. Yangilanaylik.'],
+      afternoon:['Tushlik tekshiruvi — yangiliklar tez rivojlanadi.','Ertalabdan beri nima bo\'lganini bilish uchun yaxshi vaqt.','Tush. Diqqat talab qiladiganlarni ko\'raylik.'],
+      evening:['Kun tugamoqda — oxirgi bir nazar.','Yopishdan oldin bir nechta narsani tekshirish kerak.','Hali ham harakatdagi narsalarni ko\'raylik.'],
+      late:['Hali ham ishlayapsizmi? Muhimga e\'tibor qarataylik.','Kech soat. Ertagacha kutib bo\'lmaydigani shu.','Kunni tugatmay turib oxirgi bir nazar.']
+    },
+    dayNotes:{mon:'Dushanba — butun hafta oldinda.',fri:'Juma — kuchli yakunlaylik.',weekend:'Dam olish kuni ishlayapsiz — bu qadrlanadi.'}
+  },
+  'Tajik':{
+    dir:'ltr',
+    timeLabels:{morning:'Субҳ бахайр',afternoon:'Рӯз бахайр',evening:'Шом бахайр',late:'Шаб бахайр'},
+    lines:{
+      morning:['Биёед бубинем шаб чӣ хабарҳо оварданд.','Вақти санҷидан аст, ки дар хоб чӣ гузашт.','Давраи нави хабарӣ оғоз шуд. Навсозем.'],
+      afternoon:['Санҷиши нисфирӯзӣ — хабарҳо зуд тараққӣ мекунанд.','Вақти хубест бубинем аз субҳ чӣ тағйир ёфт.','Нисфирӯз. Биёед бубинем чӣ ба диққат ниёз дорад.'],
+      evening:['Рӯз ба охир мерасад — нигоҳи охирин.','Чанд чиз арзиши санҷишро дорад пеш аз бастан.','Биёед бубинем чӣ ҳанӯз дар ҳаракат аст.'],
+      late:['Ҳанӯз кор мекунед? Ба муҳимтарин диққат диҳем.','Соати дер аст. Ин чиз то субҳ интизор шуда наметавонад.','Нигоҳи охирин пеш аз анҷоми рӯз.']
+    },
+    dayNotes:{mon:'Душанбе — тамоми ҳафта пеш аст.',fri:'Ҷумъа — қавӣ анҷом диҳем.',weekend:'Рӯзи истироҳат кор мекунед — ин қадр дорад.'}
+  },
+  'Turkmen':{
+    dir:'ltr',
+    timeLabels:{morning:'Günaydın',afternoon:'Günortan salam',evening:'Agşam salam',late:'Agşam salam'},
+    lines:{
+      morning:['Geliň, gijeki habarları göreliň.','Ýatanynyzda dünýäde näme bolandygyny barlaylyň.','Täze habar aýlawy başlady. Täzelenip alalyň.'],
+      afternoon:['Günorta barlag — habarlar çalt ösmekte.','Ertirden bäri nämäniň üýtgändigini bilmek üçin gowy wagt.','Günorta. Üns talap edýänlere göz aýlalyň.'],
+      evening:['Gün tamamlanýar — soňky bir nazar.','Ýapmakdan öň birnäçe zady barlamaly.','Henizem herekette näme baryny göreliň.'],
+      late:['Henizem işleýärsiňizmi? Möhüme üns beräliň.','Giç sagat. Ertire çenli garaşyp bolmajak zat şu.','Güni gutarmazdan öň soňky bir nazar.']
+    },
+    dayNotes:{mon:'Duşenbe — tutuş hepde öňde.',fri:'Anna — güýçli tamamlalyň.',weekend:'Dynç alyş gününde işleýärsiňiz — bu gymmatly.'}
+  },
+  'Belarusian':{
+    dir:'ltr',
+    timeLabels:{morning:'Добрай раніцы',afternoon:'Добры дзень',evening:'Добры вечар',late:'Добры вечар'},
+    lines:{
+      morning:['Паглядзім, што прынеслі начныя навіны.','Час даведацца, што адбылося пакуль вы спалі.','Новы навінавы цыкл пачаўся. Абнавімся.'],
+      afternoon:['Дзённы агляд — падзеі развіваюцца хутка.','Добры момант убачыць, што змянілася з раніцы.','Апоўдні. Паглядзім, што патрабуе ўвагі.'],
+      evening:['Дзень завяршаецца — апошні позірк.','Некалькі рэчаў варта праверыць перад закрыццём.','Паглядзім, што яшчэ ў руху.'],
+      late:['Усё яшчэ за працай? Сканцэнтруемся на важным.','Позні час. Вось, што не можа чакаць да раніцы.','Апошні позірк перад завяршэннем дня.']
+    },
+    dayNotes:{mon:'Панядзелак — уся тыдзень наперадзе.',fri:'Пятніца — завершым на высокай ноце.',weekend:'Працуеце ў выхадныя — гэта цэніцца.'}
+  },
+  'Bulgarian':{
+    dir:'ltr',
+    timeLabels:{morning:'Добро утро',afternoon:'Добър ден',evening:'Добър вечер',late:'Добър вечер'},
+    lines:{
+      morning:['Нека видим какво са донесли нощните новини.','Време е да проверим какво се е случило, докато спяхте.','Нов новинарски цикъл. Нека се актуализираме.'],
+      afternoon:['Обеден преглед — събитията се развиват бързо.','Добър момент да видим какво е станало от сутринта.','Обед. Нека видим какво изисква внимание.'],
+      evening:['Денят приключва — последен поглед.','Няколко неща си струва да проверите преди край.','Нека видим какво все още е в движение.'],
+      late:['Все още работите? Нека се съсредоточим върху важното.','Късен час. Ето какво не може да чака до утре.','Последен поглед преди края на деня.']
+    },
+    dayNotes:{mon:'Понеделник — цяла седмица пред вас.',fri:'Петък — нека завършим силно.',weekend:'Работите в почивните дни — оценяваме го.'}
+  },
+  'Romanian':{
+    dir:'ltr',
+    timeLabels:{morning:'Bună dimineața',afternoon:'Bună ziua',evening:'Bună seara',late:'Bună seara'},
+    lines:{
+      morning:['Să vedem ce au adus știrile de noapte.','E timpul să verificăm ce s-a întâmplat în timp ce dormeați.','Un nou ciclu de știri a început. Să ne actualizăm.'],
+      afternoon:['Verificare de prânz — evenimentele se desfășoară rapid.','Moment bun să vedem ce s-a dezvoltat de dimineață.','Amiază. Să vedem ce necesită atenție.'],
+      evening:['Ziua se încheie — o ultimă privire.','Câteva lucruri merită verificate înainte de a închide.','Să vedem ce este încă în mișcare.'],
+      late:['Lucrați încă? Să ne concentrăm pe important.','Oră târzie. Iată ce nu poate aștepta până dimineață.','O ultimă privire înainte de finalul zilei.']
+    },
+    dayNotes:{mon:'Luni — o săptămână întreagă înainte.',fri:'Vineri — să terminăm puternic.',weekend:'Lucrați în weekend — apreciem asta.'}
+  },
+  'Serbian':{
+    dir:'ltr',
+    timeLabels:{morning:'Добро јутро',afternoon:'Добар дан',evening:'Добро вече',late:'Добро вече'},
+    lines:{
+      morning:['Погледајмо шта су доноселе ноћне вести.','Време је да проверимо шта се догодило док сте спавали.','Нови вести циклус је почео. Ажурирајмо се.'],
+      afternoon:['Поподневна провера — события се брзо развијају.','Добар тренутак да видимо шта се развило од јутра.','Подне. Погледајмо шта захтева пажњу.'],
+      evening:['Дан се приводи крају — последни поглед.','Неколико ствари вреди проверити пре затварања.','Погледајмо шта је још у покрету.'],
+      late:['И даље радите? Усредсредимо се на важно.','Касни сат. Ево шта не може да чека до јутра.','Последњи поглед пре краја дана.']
+    },
+    dayNotes:{mon:'Понедељак — цела недеља испред вас.',fri:'Петак — завршимо снажно.',weekend:'Радите викендом — цени се.'}
+  },
+  'Bosnian':{
+    dir:'ltr',
+    timeLabels:{morning:'Dobro jutro',afternoon:'Dobar dan',evening:'Dobro veče',late:'Dobro veče'},
+    lines:{
+      morning:['Pogledajmo šta su donijele noćne vijesti.','Vrijeme je da provjerimo šta se dogodilo dok ste spavali.','Novi vijesti ciklus je počeo. Ažurirajmo se.'],
+      afternoon:['Podnevna provjera — događaji se brzo razvijaju.','Dobar trenutak da vidimo šta se razvilo od jutra.','Podne. Pogledajmo šta zahtijeva pažnju.'],
+      evening:['Dan se privodi kraju — posljednji pogled.','Nekoliko stvari vrijedi provjeriti prije zatvaranja.','Pogledajmo šta je još u pokretu.'],
+      late:['Još uvijek radite? Usredsredimo se na važno.','Kasni sat. Evo šta ne može čekati do jutra.','Posljednji pogled prije kraja dana.']
+    },
+    dayNotes:{mon:'Ponedjeljak — cijela sedmica ispred vas.',fri:'Petak — završimo snažno.',weekend:'Radite vikendom — cijeni se.'}
+  },
+  'Macedonian':{
+    dir:'ltr',
+    timeLabels:{morning:'Добро утро',afternoon:'Добар ден',evening:'Добра вечер',late:'Добра вечер'},
+    lines:{
+      morning:['Ајде да видиме што донесоа ноќните вести.','Време е да проверime што се случило додека спиевте.','Нов вести циклус почна. Да се ажурираме.'],
+      afternoon:['Попладневна проверка — настаните се развиваат брзо.','Добар момент да видиме што се развило од утрото.','Пладне. Да видиме што бара внимание.'],
+      evening:['Денот се ближи кон крај — последен поглед.','Неколку работи вредат проверка пред затворање.','Да видиме што сеуште е во движење.'],
+      late:['Сеуште работите? Да се фокусираме на важното.','Доцна е. Ова не може да чека до утре.','Последен поглед пред крај на денот.']
+    },
+    dayNotes:{mon:'Понеделник — цела недела пред вас.',fri:'Петок — завршиме силно.',weekend:'Работите викенд — тоа се цени.'}
+  },
+  'Montenegrin':{
+    dir:'ltr',
+    timeLabels:{morning:'Dobro jutro',afternoon:'Dobar dan',evening:'Dobro veče',late:'Dobro veče'},
+    lines:{
+      morning:['Pogledajmo šta su donijele noćne vijesti.','Vrijeme je da provjerimo šta se desilo dok ste spavali.','Novi vijesti ciklus je počeo. Ažurirajmo se.'],
+      afternoon:['Podnevna provjera — događaji se brzo razvijaju.','Dobar momenat da vidimo šta se razvilo od jutra.','Podne. Pogledajmo šta zahtijeva pažnju.'],
+      evening:['Dan se privodi kraju — posljednji pogled.','Nekoliko stvari vrijedi provjeriti prije zatvaranja.','Pogledajmo šta je još u pokretu.'],
+      late:['Još radite? Usredsredimo se na važno.','Kasno je. Evo šta ne može čekati do jutra.','Posljednji pogled prije kraja dana.']
+    },
+    dayNotes:{mon:'Ponedjeljak — cijela sedmica ispred.',fri:'Petak — završimo snažno.',weekend:'Radite vikendom — cijeni se.'}
+  },
+  'Albanian':{
+    dir:'ltr',
+    timeLabels:{morning:'Mirëmëngjes',afternoon:'Mirëdita',evening:'Mirëmbrëma',late:'Mirëmbrëma'},
+    lines:{
+      morning:['Le të shohim çfarë sollën lajmet e natës.','Koha për të kontrolluar çfarë ndodhi ndërsa flije.','Një cikël i ri lajmesh filloi. Le të përditësohemi.'],
+      afternoon:['Kontrolli i mesditës — ngjarjet zhvillohen shpejt.','Moment i mirë për të parë çfarë ka ndodhur nga mëngjesi.','Mesditë. Le të shohim çfarë kërkon vëmendje.'],
+      evening:['Dita po mbaron — një vështrim i fundit.','Disa gjëra ia vlen t\'i kontrolloni para mbylljes.','Le të shohim çfarë është ende në lëvizje.'],
+      late:['Ende po punoni? Le të fokusohemi tek e rëndësishme.','Orë e vonë. Ja çfarë nuk mund të presë deri nesër.','Vështrim i fundit para fundit të ditës.']
+    },
+    dayNotes:{mon:'E hënë — gjithë java përpara.',fri:'E premte — ta mbyllim me forcë.',weekend:'Po punoni fundjavën — kjo vlerësohet.'}
+  },
+  'Hungarian':{
+    dir:'ltr',
+    timeLabels:{morning:'Jó reggelt',afternoon:'Jó napot',evening:'Jó estét',late:'Jó estét'},
+    lines:{
+      morning:['Nézzük meg, mit hoztak az éjszakai hírek.','Ideje ellenőrizni, mi történt alvás közben.','Új hírciklus kezdődött. Frissítsük magunkat.'],
+      afternoon:['Déli ellenőrzés — az események gyorsan fejlődnek.','Jó alkalom megnézni, mi fejlődött reggel óta.','Dél. Nézzük meg, mi igényel figyelmet.'],
+      evening:['A nap véget ér — egy utolsó pillantás.','Néhány dolgot érdemes ellenőrizni zárás előtt.','Nézzük meg, mi van még mozgásban.'],
+      late:['Még mindig dolgozik? Összpontosítsunk a fontosra.','Késő van. Íme, ami nem várhat reggelig.','Utolsó pillantás a nap vége előtt.']
+    },
+    dayNotes:{mon:'Hétfő — egy egész hét van előttünk.',fri:'Péntek — fejezzük be erősen.',weekend:'Hétvégén dolgozik — ezt nagyra értékeljük.'}
+  },
+  'Tatar':{
+    dir:'ltr',
+    timeLabels:{morning:'Иртәгез хәерле',afternoon:'Көнегез хәерле',evening:'Кичегез хәерле',late:'Кичегез хәерле'},
+    lines:{
+      morning:['Төнге яңалыкларны карыйк.','Йоклаганда нәрсә булганын тикшерү вакыты.','Яңа хәбәрләр циклы башланды. Яңартыйк.'],
+      afternoon:['Төш тикшерүе — яңалыклар тиз үсә.','Иртәдән бирле нәрсә үзгәргәнен белер вакыт.','Төш. Игътибар таләп итүчеләрне карыйк.'],
+      evening:['Көн тәмамлана — соңгы бер күзәтү.','Ябылу алдыннан берничә нәрсәне тикшерергә кирәк.','Әле дә хәрәкәттә нәрсә барлыгын карыйк.'],
+      late:['Әле дә эшлисезме? Мөһимгә игътибар итик.','Соң сәгать. Иртәнгә кадәр көтеп булмый торганы шул.','Көнне тәмамлаудан алда соңгы күзәтү.']
+    },
+    dayNotes:{mon:'Дүшәмбе — бөтен атна алда.',fri:'Җомга — көчле тәмамлыйк.',weekend:'Ял көнендә эшлисез — бу бәяләнә.'}
+  },
+  'Bashkir':{
+    dir:'ltr',
+    timeLabels:{morning:'Иртәнегеҙ хәйерле',afternoon:'Көнөгөҙ хәйерле',evening:'Кисәгеҙ хәйерле',late:'Кисәгеҙ хәйерле'},
+    lines:{
+      morning:['Төнгө яңылыҡтарҙы ҡарайыҡ.','Йоҡлағанда нимә булғанын тикшерергә ваҡыт.','Яңы хәбәрҙәр циклы башланды. Яңыртайыҡ.'],
+      afternoon:['Төш тикшереүе — яңылыҡтар тиҙ үҫә.','Иртәнән бирле нимә үҙгәргәнен белер ваҡыт.','Төш. Иғтибар талап итеүселәрҙе ҡарайыҡ.'],
+      evening:['Көн тамамлана — һуңғы бер күҙәтеү.','Ябылыу алдынан берничә нәмәне тикшерергә кәрәк.','Әле лә хәрәкәттә нимә барлығын ҡарайыҡ.'],
+      late:['Әле лә эшләйһегеҙме? Мөһимгә иғтибар итик.','Хоҙайым, соң сәғәт. Иртәгәсе кисектерелмәгәнен ҡарайыҡ.','Көндө тамамлау алдынан һуңғы ҡарау.']
+    },
+    dayNotes:{mon:'Дүшәмбе — бөтә атна алда.',fri:'Йома — ҡеүәтле тамамлайыҡ.',weekend:'Ял көнөндә эшләйһегеҙ — был баһалана.'}
+  }
+};
+
+const TIME_LABELS_EN={morning:'Good morning',afternoon:'Good afternoon',evening:'Good evening',late:'Good evening'};
+
+function getTimePeriod(){
+  const h=new Date().getHours();
+  if(h>=5&&h<12)return'morning';
+  if(h>=12&&h<17)return'afternoon';
+  if(h>=17&&h<22)return'evening';
+  return'late';
+}
+
+function getDayNote(langData){
+  const d=new Date().getDay();
+  if(langData){
+    if(d===1)return langData.dayNotes.mon;
+    if(d===5)return langData.dayNotes.fri;
+    if(d===6||d===0)return langData.dayNotes.weekend;
+    return null;
+  }
+  if(d===1)return'Monday — a full week ahead.';
+  if(d===5)return'Friday — let\'s finish strong.';
+  if(d===6||d===0)return'Working on the weekend — appreciated.';
+  return null;
+}
+
+function pick(arr){return arr[Math.floor(Math.random()*arr.length)];}
+
+function updateGreeting(role,animate){
+  const period=getTimePeriod();
+  const roleKey=role||currentRole;
+  const lang=selectedLang.name;
+  const langData=LANG_GREETINGS[lang];
+
+  // time label
+  const timeLabel=langData?langData.timeLabels[period]:TIME_LABELS_EN[period];
+
+  // sub line
+  let line,dayNote;
+  if(langData){
+    line=pick(langData.lines[period]);
+    dayNote=getDayNote(langData);
+  } else {
+    const lines=GREETINGS_EN[roleKey]?.[period]||GREETINGS_EN.generic[period];
+    line=pick(lines);
+    dayNote=getDayNote(null);
+  }
+  const fullLine=line+(dayNote?' '+dayNote:'');
+
+  // RTL support
+  const isRTL=langData&&langData.dir==='rtl';
+  const subEl=document.getElementById('greetingSub');
+  const mainEl=document.getElementById('greetingMain');
+  subEl.style.direction=isRTL?'rtl':'ltr';
+  subEl.style.textAlign=isRTL?'right':'left';
+  mainEl.style.direction=isRTL?'rtl':'ltr';
+  mainEl.style.textAlign=isRTL?'right':'left';
+  document.getElementById('greetingTime').style.direction=isRTL?'rtl':'ltr';
+  document.getElementById('greetingTime').style.textAlign=isRTL?'right':'left';
+
+  document.getElementById('greetingTime').textContent=timeLabel;
+  document.getElementById('greetingMain').textContent=
+    new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'});
+
+  if(animate){
+    subEl.classList.add('fading');
+    setTimeout(()=>{subEl.textContent=fullLine;subEl.classList.remove('fading');},180);
+  } else {
+    subEl.textContent=fullLine;
+  }
+}
+
+// ── INIT ──
+buildPills();
+buildFocusModes();
+// Always start with English regardless of any cached state
+selectedLang=LANGUAGES.find(l=>l.name==='English');
+document.getElementById('langFlag').textContent=selectedLang.flag;
+document.getElementById('langLabel').textContent=selectedLang.name;
+buildLangList();
+updateGreeting(currentRole,false);
+const restored=loadDefault();
+if(!restored){
+  document.getElementById('people').placeholder=ROLES[currentRole].peoplePlaceholder;
+  setFocusMode(currentFocusMode);
+  updateGreeting(currentRole,false);
+  generate();
+}
+renderHistory();
+</script>
+</body>
+</html>

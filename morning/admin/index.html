@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Morning Briefing · Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#1A3948;
+  --paper:#F8F7F6;
+  --flame:#FF5400;
+  --teal:#1A3948;
+  --mid:#7A8A8F;
+  --light:#D6E0E0;
+  --faint:#F0F4F4;
+  --success:#237a57;
+  --warn:#b45309;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:'Inter',system-ui,sans-serif;font-size:14px;line-height:1.6;min-height:100vh}
+
+/* ─── LOGIN SCREEN ─── */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+.login-card{background:#fff;border:1px solid var(--light);border-radius:12px;width:100%;max-width:360px;overflow:hidden}
+.login-top{background:var(--teal);padding:28px 28px 24px}
+.login-logo{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.login-title{font-size:17px;font-weight:700;color:#fff}
+.login-sub{font-size:12px;color:rgba(255,255,255,.6);margin-top:3px}
+.login-body{padding:24px}
+.login-label{font-size:11px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--mid);margin-bottom:8px;display:block}
+.login-input{width:100%;border:1.5px solid var(--light);border-radius:8px;padding:10px 14px;font-family:inherit;font-size:14px;color:var(--ink);outline:none;transition:border-color .15s ease;background:#fff}
+.login-input:focus{border-color:var(--teal)}
+.login-btn{margin-top:14px;width:100%;padding:12px;border-radius:8px;border:none;background:var(--teal);color:#fff;font-family:inherit;font-size:13px;font-weight:700;letter-spacing:.5px;cursor:pointer;transition:all .15s ease}
+.login-btn:hover{background:var(--ink)}
+.login-error{margin-top:10px;font-size:12px;color:var(--flame);display:none}
+.login-error.show{display:block}
+
+/* ─── MASTHEAD ─── */
+.masthead{background:#fff;border-top:4px solid var(--flame);border-bottom:1px solid var(--light);position:sticky;top:0;z-index:10}
+.masthead-inner{width:min(1100px,100%);margin:0 auto;padding:12px 40px;display:flex;align-items:center;gap:0}
+.masthead-badge{margin-left:12px;display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;background:rgba(255,84,0,.1);color:var(--flame);font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+.masthead-right{margin-left:auto;display:flex;align-items:center;gap:12px}
+.logout-btn{background:none;border:1px solid var(--light);border-radius:8px;padding:6px 12px;font-family:inherit;font-size:11px;font-weight:600;color:var(--mid);cursor:pointer;transition:all .15s ease}
+.logout-btn:hover{border-color:var(--flame);color:var(--flame)}
+.last-refresh{font-size:11px;color:var(--mid)}
+
+/* ─── LAYOUT ─── */
+.admin-wrap{display:none;flex-direction:column;min-height:100vh}
+.admin-wrap.visible{display:flex}
+.main{width:min(1100px,100%);margin:0 auto;padding:32px 40px 60px}
+
+/* ─── STATS ROW ─── */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:32px}
+.stat-card{background:#fff;border:1px solid var(--light);border-radius:10px;padding:18px 20px}
+.stat-label{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mid);margin-bottom:6px}
+.stat-value{font-size:28px;font-weight:700;color:var(--ink);line-height:1}
+.stat-sub{font-size:11px;color:var(--mid);margin-top:4px}
+
+/* ─── FILTERS ─── */
+.filters{display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+.filter-select{border:1px solid var(--light);border-radius:8px;padding:7px 12px;font-family:inherit;font-size:12px;color:var(--ink);background:#fff;outline:none;cursor:pointer;transition:border-color .15s ease}
+.filter-select:focus{border-color:var(--teal)}
+.filter-label{font-size:11px;font-weight:600;color:var(--mid);white-space:nowrap}
+.refresh-btn{margin-left:auto;display:flex;align-items:center;gap:6px;background:var(--teal);color:#fff;border:none;border-radius:8px;padding:8px 14px;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s ease}
+.refresh-btn:hover{background:var(--ink)}
+.refresh-btn.spinning svg{animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ─── TABLE ─── */
+.table-wrap{background:#fff;border:1px solid var(--light);border-radius:10px;overflow:hidden}
+.table-head{display:grid;grid-template-columns:160px 90px 70px 110px 110px 90px 1fr 80px;gap:0;background:var(--faint);border-bottom:1px solid var(--light)}
+.th{padding:10px 14px;font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--mid);white-space:nowrap;cursor:pointer;user-select:none;display:flex;align-items:center;gap:4px;transition:color .15s ease}
+.th:hover{color:var(--ink)}
+.th.sorted{color:var(--ink)}
+.th-arrow{font-size:9px;opacity:.5}
+.th.sorted .th-arrow{opacity:1}
+.table-body{display:flex;flex-direction:column}
+.table-row{display:grid;grid-template-columns:160px 90px 70px 110px 110px 90px 1fr 80px;gap:0;border-bottom:1px solid var(--light);transition:background .1s ease}
+.table-row:last-child{border-bottom:none}
+.table-row:hover{background:var(--faint)}
+.td{padding:12px 14px;font-size:12px;color:var(--ink);display:flex;align-items:flex-start;line-height:1.5;word-break:break-word}
+.td-date{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--mid);flex-direction:column;gap:2px}
+.td-role{font-weight:600}
+.td-stars{gap:2px;font-size:13px}
+.star-filled{color:#F59E0B}
+.star-empty{color:var(--light)}
+.td-reasons{flex-direction:column;gap:4px}
+.reason-tag{display:inline-flex;padding:2px 7px;border-radius:4px;background:var(--faint);border:1px solid var(--light);font-size:10px;color:var(--mid);width:fit-content}
+.td-other{font-size:12px;color:#5a5550;font-style:italic}
+.td-other:empty::before{content:'—';color:var(--light);font-style:normal}
+.td-expand{justify-content:center}
+.expand-btn{background:none;border:1px solid var(--light);border-radius:6px;padding:4px 8px;font-size:10px;font-weight:600;color:var(--mid);cursor:pointer;transition:all .15s ease;white-space:nowrap}
+.expand-btn:hover{border-color:var(--teal);color:var(--teal)}
+
+/* rating badge */
+.rating-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:700}
+.rating-5{background:rgba(35,122,87,.1);color:var(--success)}
+.rating-4{background:rgba(245,158,11,.1);color:#b45309}
+.rating-3{background:rgba(245,158,11,.1);color:#b45309}
+.rating-2{background:rgba(255,84,0,.1);color:var(--flame)}
+.rating-1{background:rgba(255,84,0,.15);color:#c0392b}
+
+/* empty / loading */
+.table-empty{padding:48px;text-align:center;color:var(--mid);font-size:13px}
+.table-loading{padding:48px;text-align:center;color:var(--mid);font-size:13px;display:flex;align-items:center;justify-content:center;gap:10px}
+.spinner{width:16px;height:16px;border:2px solid var(--light);border-top-color:var(--teal);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+
+/* ─── BREAKDOWN CARDS ─── */
+.breakdown-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-top:24px}
+.breakdown-card{background:#fff;border:1px solid var(--light);border-radius:10px;padding:18px 20px}
+.breakdown-title{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mid);margin-bottom:14px}
+.breakdown-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.breakdown-label{font-size:12px;color:var(--ink);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.breakdown-bar-wrap{width:80px;height:6px;background:var(--faint);border-radius:3px;flex-shrink:0}
+.breakdown-bar{height:100%;border-radius:3px;background:var(--teal);transition:width .4s ease}
+.breakdown-count{font-size:11px;color:var(--mid);font-weight:600;flex-shrink:0;min-width:24px;text-align:right}
+
+footer{background:var(--teal);color:rgba(255,255,255,.4);padding:10px 40px;font-size:10px;letter-spacing:1px;margin-top:auto}
+
+@media(max-width:900px){
+  .stats-row{grid-template-columns:1fr 1fr}
+  .table-head,.table-row{grid-template-columns:1fr 1fr}
+  .th:nth-child(n+3),.td:nth-child(n+3){display:none}
+  .breakdown-grid{grid-template-columns:1fr}
+  .masthead-inner,.main{padding-left:20px;padding-right:20px}
+}
+</style>
+</head>
+<body>
+
+<!-- ── LOGIN ── -->
+<div class="login-wrap" id="loginWrap">
+  <div class="login-card">
+    <div class="login-top">
+      <div class="login-logo">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="20 55 150 295" height="32" style="flex-shrink:0">
+          <path fill="#FF5400" d="m159.87,156.67c-20.84,2.43-26.68,23.98-42.36,42.58-20.95,24.86-52.01,12.08-52.01,12.08,20.95-2.6,26.97-24.31,43.03-42.84,21.29-24.57,51.35-11.82,51.35-11.82Zm-75.52,36.47s26.06-20.64,14.82-51.06c-8.47-22.95-24.8-39.21-16.15-58.34,0,0-25.81,20.94-15.06,51.06,8.22,23.04,25.04,39.2,16.39,58.34Zm-1.5-4.39s2.5-33.47-26.36-46.17c-22.51-9.91-46.18-8.99-54.29-28.37,0,0-3.22,33.25,27.41,46.13,22.68,9.54,45.13,9.04,53.23,28.41Zm-34.32,56.18h58.56l13.66-27.49H48.54v27.49Zm9.33,80.62h4.94l33.6-76.93h-38.53v76.93Z"/>
+        </svg>
+        <div>
+          <div class="login-title">Morning Briefing</div>
+          <div class="login-sub">Admin Panel</div>
+        </div>
+      </div>
+    </div>
+    <div class="login-body">
+      <label class="login-label">Password</label>
+      <input class="login-input" type="password" id="pwInput" placeholder="Enter admin password" onkeydown="if(event.key==='Enter')tryLogin()">
+      <button class="login-btn" onclick="tryLogin()">Enter</button>
+      <div class="login-error" id="loginError">Incorrect password. Try again.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── ADMIN UI ── -->
+<div class="admin-wrap" id="adminWrap">
+
+  <header class="masthead">
+    <div class="masthead-inner">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="20 55 150 295" height="32" style="display:block;flex-shrink:0">
+        <path fill="#FF5400" d="m159.87,156.67c-20.84,2.43-26.68,23.98-42.36,42.58-20.95,24.86-52.01,12.08-52.01,12.08,20.95-2.6,26.97-24.31,43.03-42.84,21.29-24.57,51.35-11.82,51.35-11.82Zm-75.52,36.47s26.06-20.64,14.82-51.06c-8.47-22.95-24.8-39.21-16.15-58.34,0,0-25.81,20.94-15.06,51.06,8.22,23.04,25.04,39.2,16.39,58.34Zm-1.5-4.39s2.5-33.47-26.36-46.17c-22.51-9.91-46.18-8.99-54.29-28.37,0,0-3.22,33.25,27.41,46.13,22.68,9.54,45.13,9.04,53.23,28.41Zm-34.32,56.18h58.56l13.66-27.49H48.54v27.49Zm9.33,80.62h4.94l33.6-76.93h-38.53v76.93Z"/>
+      </svg>
+      <div style="margin-left:12px">
+        <div style="font-size:13px;font-weight:700;color:var(--teal)">Morning Briefing</div>
+        <div style="font-size:10px;color:var(--mid);margin-top:1px">Feedback Admin Panel</div>
+      </div>
+      <div class="masthead-badge">Admin</div>
+      <div class="masthead-right">
+        <span class="last-refresh" id="lastRefresh">—</span>
+        <button class="logout-btn" onclick="logout()">Log out</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="main">
+
+    <!-- STATS -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">Total responses</div>
+        <div class="stat-value" id="statTotal">—</div>
+        <div class="stat-sub">all time</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Average rating</div>
+        <div class="stat-value" id="statAvg">—</div>
+        <div class="stat-sub">out of 5</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">With written feedback</div>
+        <div class="stat-value" id="statWithText">—</div>
+        <div class="stat-sub">have open-text notes</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Most used role</div>
+        <div class="stat-value" style="font-size:16px;padding-top:4px" id="statTopRole">—</div>
+        <div class="stat-sub">by submission count</div>
+      </div>
+    </div>
+
+    <!-- FILTERS -->
+    <div class="filters">
+      <span class="filter-label">Filter by</span>
+      <select class="filter-select" id="filterRole" onchange="applyFilters()">
+        <option value="">All roles</option>
+        <option value="journalist">Journalist</option>
+        <option value="editor">Editor</option>
+        <option value="service_director">Service Director</option>
+        <option value="regional_manager">Regional Manager</option>
+        <option value="eic">Editor in Chief</option>
+        <option value="strategist">Strategist</option>
+        <option value="digital_product">Digital & Product</option>
+        <option value="multimedia_producer">Multimedia Producer</option>
+        <option value="generic">General / Other</option>
+      </select>
+      <select class="filter-select" id="filterRating" onchange="applyFilters()">
+        <option value="">All ratings</option>
+        <option value="5">★ 5 only</option>
+        <option value="4">★ 4 only</option>
+        <option value="3">★ 3 only</option>
+        <option value="2">★ 2 only</option>
+        <option value="1">★ 1 only</option>
+      </select>
+      <select class="filter-select" id="filterDepth" onchange="applyFilters()">
+        <option value="">All depths</option>
+        <option value="5">Express · 5 min</option>
+        <option value="10">Standard · 10 min</option>
+        <option value="15">Deep · 15 min</option>
+      </select>
+      <button class="refresh-btn" id="refreshBtn" onclick="loadData()">
+        <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M12 7A5 5 0 112 7" stroke="#fff" stroke-width="1.4" stroke-linecap="round"/><path d="M12 3v4h-4" stroke="#fff" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Refresh
+      </button>
+    </div>
+
+    <!-- TABLE -->
+    <div class="table-wrap">
+      <div class="table-head">
+        <div class="th" onclick="sortBy('created_at')">Date <span class="th-arrow" id="arr-created_at">↕</span></div>
+        <div class="th" onclick="sortBy('role')">Role <span class="th-arrow" id="arr-role">↕</span></div>
+        <div class="th" onclick="sortBy('depth')">Depth <span class="th-arrow" id="arr-depth">↕</span></div>
+        <div class="th" onclick="sortBy('lang')">Language <span class="th-arrow" id="arr-lang">↕</span></div>
+        <div class="th" onclick="sortBy('focus_mode')">Focus <span class="th-arrow" id="arr-focus_mode">↕</span></div>
+        <div class="th" onclick="sortBy('rating')">Rating <span class="th-arrow" id="arr-rating">↕</span></div>
+        <div class="th">Feedback</div>
+        <div class="th">Notes</div>
+      </div>
+      <div class="table-body" id="tableBody">
+        <div class="table-loading"><div class="spinner"></div> Loading feedback…</div>
+      </div>
+    </div>
+
+    <!-- BREAKDOWN -->
+    <div class="breakdown-grid" id="breakdownGrid" style="display:none">
+      <div class="breakdown-card">
+        <div class="breakdown-title">By role</div>
+        <div id="breakRole"></div>
+      </div>
+      <div class="breakdown-card">
+        <div class="breakdown-title">By language</div>
+        <div id="breakLang"></div>
+      </div>
+      <div class="breakdown-card">
+        <div class="breakdown-title">Common reasons</div>
+        <div id="breakReasons"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <footer>
+    <span>RFE/RL · Morning Briefing Admin · Digital Transformation Department</span>
+  </footer>
+</div>
+
+<script>
+const SUPABASE_URL='https://yiewnykbchfadipznpet.supabase.co';
+const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlpZXdueWtiY2hmYWRpcHpucGV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxNzM3NTUsImV4cCI6MjA5NDc0OTc1NX0.utnlpToZGH7hno0QTXlrtWvzKDgP28Gv3Je7BBIRwmM';
+const PASSWORD='dobrerano';
+const ROLE_LABELS={journalist:'Journalist',editor:'Editor',service_director:'Service Director',regional_manager:'Regional Manager',eic:'Editor in Chief',strategist:'Strategist',digital_product:'Digital & Product',multimedia_producer:'Multimedia Producer',generic:'General / Other'};
+const FOCUS_LABELS={none:'Normal day',meetings:'Meetings',delivery:'Deadline',topic:'Topic',other:'Other'};
+
+let allData=[];
+let sortCol='created_at';
+let sortDir='desc';
+
+// ── AUTH ──
+function tryLogin(){
+  const val=document.getElementById('pwInput').value;
+  const err=document.getElementById('loginError');
+  if(val===PASSWORD){
+    document.getElementById('loginWrap').style.display='none';
+    document.getElementById('adminWrap').classList.add('visible');
+    loadData();
+  } else {
+    err.classList.add('show');
+    document.getElementById('pwInput').value='';
+    document.getElementById('pwInput').focus();
+    setTimeout(()=>err.classList.remove('show'),3000);
+  }
+}
+
+function logout(){
+  document.getElementById('adminWrap').classList.remove('visible');
+  document.getElementById('loginWrap').style.display='flex';
+  document.getElementById('pwInput').value='';
+  allData=[];
+}
+
+// ── DATA ──
+async function loadData(){
+  const btn=document.getElementById('refreshBtn');
+  btn.classList.add('spinning');
+  document.getElementById('tableBody').innerHTML='<div class="table-loading"><div class="spinner"></div> Loading feedback…</div>';
+
+  try{
+    const res=await fetch(`${SUPABASE_URL}/rest/v1/briefing_feedback?select=*&order=created_at.desc&limit=500`,{
+      headers:{
+        'apikey':SUPABASE_KEY,
+        'Authorization':`Bearer ${SUPABASE_KEY}`
+      }
+    });
+    if(!res.ok)throw new Error('fetch failed');
+    allData=await res.json();
+    document.getElementById('lastRefresh').textContent='Refreshed '+new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+    updateStats();
+    applyFilters();
+    renderBreakdowns();
+    document.getElementById('breakdownGrid').style.display='grid';
+  } catch(e){
+    document.getElementById('tableBody').innerHTML='<div class="table-empty">Could not load data. Check your connection and try again.</div>';
+  }
+  btn.classList.remove('spinning');
+}
+
+// ── STATS ──
+function updateStats(){
+  const n=allData.length;
+  document.getElementById('statTotal').textContent=n||'0';
+  if(n){
+    const avg=(allData.reduce((s,r)=>s+(r.rating||0),0)/n).toFixed(1);
+    document.getElementById('statAvg').textContent=avg;
+    const withText=allData.filter(r=>r.other&&r.other.trim()).length;
+    document.getElementById('statWithText').textContent=withText;
+    const roleCounts={};
+    allData.forEach(r=>{roleCounts[r.role]=(roleCounts[r.role]||0)+1;});
+    const topRole=Object.entries(roleCounts).sort((a,b)=>b[1]-a[1])[0];
+    document.getElementById('statTopRole').textContent=topRole?ROLE_LABELS[topRole[0]]||topRole[0]:'—';
+  } else {
+    document.getElementById('statAvg').textContent='—';
+    document.getElementById('statWithText').textContent='—';
+    document.getElementById('statTopRole').textContent='—';
+  }
+}
+
+// ── FILTERS + SORT ──
+function applyFilters(){
+  const role=document.getElementById('filterRole').value;
+  const rating=document.getElementById('filterRating').value;
+  const depth=document.getElementById('filterDepth').value;
+
+  let filtered=allData.filter(r=>{
+    if(role&&r.role!==role)return false;
+    if(rating&&String(r.rating)!==rating)return false;
+    if(depth&&String(r.depth)!==depth)return false;
+    return true;
+  });
+
+  // sort
+  filtered.sort((a,b)=>{
+    let va=a[sortCol],vb=b[sortCol];
+    if(sortCol==='rating'){va=va||0;vb=vb||0;}
+    else{va=va||'';vb=vb||'';}
+    if(va<vb)return sortDir==='asc'?-1:1;
+    if(va>vb)return sortDir==='asc'?1:-1;
+    return 0;
+  });
+
+  renderTable(filtered);
+}
+
+function sortBy(col){
+  if(sortCol===col){sortDir=sortDir==='asc'?'desc':'asc';}
+  else{sortCol=col;sortDir='desc';}
+  document.querySelectorAll('.th-arrow').forEach(a=>a.textContent='↕');
+  document.querySelectorAll('.th').forEach(t=>t.classList.remove('sorted'));
+  const arrow=document.getElementById(`arr-${col}`);
+  if(arrow){arrow.textContent=sortDir==='asc'?'↑':'↓';}
+  const th=arrow?.closest('.th');
+  if(th)th.classList.add('sorted');
+  applyFilters();
+}
+
+// ── TABLE ──
+function renderTable(rows){
+  const body=document.getElementById('tableBody');
+  if(!rows.length){
+    body.innerHTML='<div class="table-empty">No feedback entries match the current filters.</div>';
+    return;
+  }
+
+  body.innerHTML=rows.map(r=>{
+    const date=new Date(r.created_at);
+    const dateStr=date.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+    const timeStr=date.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+    const stars=[1,2,3,4,5].map(s=>`<span class="${s<=r.rating?'star-filled':'star-empty'}">★</span>`).join('');
+    const ratingClass=`rating-${r.rating||0}`;
+    const reasons=(r.reasons||[]).map(re=>`<span class="reason-tag">${re}</span>`).join('');
+    const roleLabel=ROLE_LABELS[r.role]||r.role||'—';
+    const focusLabel=FOCUS_LABELS[r.focus_mode]||r.focus_mode||'—';
+    const depthLabel=r.depth?`${r.depth} min`:'—';
+
+    return`<div class="table-row">
+      <div class="td td-date"><span>${dateStr}</span><span>${timeStr}</span></div>
+      <div class="td td-role">${roleLabel}</div>
+      <div class="td">${depthLabel}</div>
+      <div class="td">${r.lang||'—'}</div>
+      <div class="td">${focusLabel}</div>
+      <div class="td td-stars">
+        <span class="rating-badge ${ratingClass}">${stars} ${r.rating||'—'}</span>
+      </div>
+      <div class="td td-reasons">${reasons||'<span style="color:var(--light)">—</span>'}</div>
+      <div class="td td-other">${r.other?escapeHtml(r.other):'<span style="color:var(--light)">—</span>'}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── BREAKDOWNS ──
+function renderBreakdowns(){
+  if(!allData.length)return;
+
+  // by role
+  const roleCounts={};
+  allData.forEach(r=>{roleCounts[r.role]=(roleCounts[r.role]||0)+1;});
+  const maxRole=Math.max(...Object.values(roleCounts));
+  document.getElementById('breakRole').innerHTML=
+    Object.entries(roleCounts).sort((a,b)=>b[1]-a[1]).map(([k,v])=>
+      `<div class="breakdown-row">
+        <span class="breakdown-label">${ROLE_LABELS[k]||k}</span>
+        <div class="breakdown-bar-wrap"><div class="breakdown-bar" style="width:${Math.round(v/maxRole*100)}%"></div></div>
+        <span class="breakdown-count">${v}</span>
+      </div>`
+    ).join('');
+
+  // by language
+  const langCounts={};
+  allData.forEach(r=>{langCounts[r.lang]=(langCounts[r.lang]||0)+1;});
+  const maxLang=Math.max(...Object.values(langCounts));
+  document.getElementById('breakLang').innerHTML=
+    Object.entries(langCounts).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([k,v])=>
+      `<div class="breakdown-row">
+        <span class="breakdown-label">${k||'—'}</span>
+        <div class="breakdown-bar-wrap"><div class="breakdown-bar" style="width:${Math.round(v/maxLang*100)}%"></div></div>
+        <span class="breakdown-count">${v}</span>
+      </div>`
+    ).join('');
+
+  // by reasons
+  const reasonCounts={};
+  allData.forEach(r=>(r.reasons||[]).forEach(re=>{reasonCounts[re]=(reasonCounts[re]||0)+1;}));
+  const maxReason=Object.values(reasonCounts).length?Math.max(...Object.values(reasonCounts)):1;
+  document.getElementById('breakReasons').innerHTML=Object.keys(reasonCounts).length
+    ? Object.entries(reasonCounts).sort((a,b)=>b[1]-a[1]).map(([k,v])=>
+        `<div class="breakdown-row">
+          <span class="breakdown-label">${k}</span>
+          <div class="breakdown-bar-wrap"><div class="breakdown-bar" style="width:${Math.round(v/maxReason*100)}%"></div></div>
+          <span class="breakdown-count">${v}</span>
+        </div>`
+      ).join('')
+    : '<div style="font-size:12px;color:var(--mid);font-style:italic">No reasons submitted yet.</div>';
+}
+
+function escapeHtml(s){
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// enter key on password field
+document.getElementById('pwInput').addEventListener('keydown',e=>{if(e.key==='Enter')tryLogin();});
+</script>
+</body>
+</html>
