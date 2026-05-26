@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DNA Bias — Bias Intelligence Tool</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&family=Noto+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ivory:#F8F7F6;--teal:#1A3948;--teal2:#24506A;--flame:#FF5400;
+  --stone:#B9CCCC;--honey:#FFC047;--border:rgba(26,57,72,0.09);
+  --muted:rgba(26,57,72,0.52);--soft:rgba(26,57,72,0.36);
+  --glass:rgba(255,255,255,0.55);--glass-b:rgba(255,255,255,0.85);
+  --gs:0 8px 32px rgba(26,57,72,0.10),0 1.5px 4px rgba(26,57,72,0.06);
+  --gi:inset 0 1px 0 rgba(255,255,255,0.92),inset 0 -1px 0 rgba(26,57,72,0.03);
+  --eo:cubic-bezier(0.25,0.46,0.45,0.94);
+  --serif:'Lora',Georgia,serif;--sans:'Noto Sans',system-ui,sans-serif;
+}
+body{font-family:var(--sans);min-height:100vh;background:#F0EFED;color:var(--teal);overflow-x:hidden}
+
+/* SCENE */
+.scene{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;background:#F0EFED}
+.orb{position:absolute;border-radius:50%;filter:blur(90px)}
+.o1{width:620px;height:500px;top:-140px;left:-120px;background:radial-gradient(ellipse,rgba(255,84,0,0.28) 0%,rgba(255,140,60,0.12) 45%,transparent 70%)}
+.o2{width:500px;height:420px;top:30%;right:-140px;background:radial-gradient(ellipse,rgba(26,57,72,0.13) 0%,rgba(26,57,72,0.04) 55%,transparent 75%)}
+.o3{width:400px;height:340px;bottom:10%;left:25%;background:radial-gradient(ellipse,rgba(255,192,71,0.15) 0%,transparent 65%)}
+
+/* NAV */
+.nav-wrap{position:sticky;top:0;z-index:50;display:flex;justify-content:center;padding:14px 24px 0;pointer-events:none}
+.nav-pill{display:inline-flex;align-items:center;gap:2px;
+  background:rgba(26,57,72,0.82);backdrop-filter:blur(28px) saturate(2);-webkit-backdrop-filter:blur(28px) saturate(2);
+  border:1px solid rgba(255,255,255,0.12);border-radius:100px;padding:5px;
+  box-shadow:0 8px 32px rgba(0,0,0,0.22),0 2px 8px rgba(0,0,0,0.14),inset 0 1px 0 rgba(255,255,255,0.14),inset 0 -1px 0 rgba(0,0,0,0.18);
+  pointer-events:all}
+.wordmark{font-family:var(--serif);font-size:17px;font-weight:400;color:rgba(248,247,246,0.92);
+  padding:6px 16px 6px 12px;border-right:1px solid rgba(255,255,255,0.10);margin-right:4px}
+.wordmark em{font-style:normal;color:var(--flame);font-weight:600}
+.nav-label{font-size:12px;font-weight:500;color:rgba(185,204,204,0.65);padding:7px 16px}
+
+/* LAYOUT */
+.page{position:relative;z-index:1;max-width:880px;margin:0 auto;padding:28px 20px 60px}
+
+/* HEADER */
+.page-header{margin-bottom:28px;animation:rise 420ms var(--eo) both}
+.eyebrow{font-size:10px;font-weight:600;letter-spacing:0.10em;text-transform:uppercase;
+  color:var(--soft);margin-bottom:12px;display:flex;align-items:center;gap:7px}
+.pdot{width:6px;height:6px;border-radius:50%;background:var(--flame);animation:pring 2.5s ease-in-out infinite}
+.page-title{font-family:var(--serif);font-size:30px;font-weight:400;color:var(--teal);line-height:1.25;margin-bottom:6px}
+.page-sub{font-size:14px;color:var(--muted);line-height:1.5;max-width:560px}
+
+/* CARD */
+.card{border-radius:18px;padding:22px;background:var(--glass);
+  backdrop-filter:blur(20px) saturate(1.8);-webkit-backdrop-filter:blur(20px) saturate(1.8);
+  border:1px solid var(--glass-b);box-shadow:var(--gs),var(--gi);animation:rise 420ms var(--eo) both}
+.card+.card{margin-top:14px}
+.card:nth-child(1){animation-delay:0ms}.card:nth-child(2){animation-delay:55ms}.card:nth-child(3){animation-delay:90ms}
+.card-title{font-family:var(--serif);font-size:15px;font-weight:500;color:var(--teal);
+  margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.card-title svg{opacity:0.5;flex-shrink:0}
+
+/* INPUT TABS */
+.input-tabs{display:flex;gap:6px;margin-bottom:14px}
+.itab{padding:6px 16px;border-radius:100px;font-size:12px;font-weight:600;
+  border:1px solid var(--border);background:rgba(255,255,255,0.55);
+  color:var(--muted);cursor:pointer;transition:all 160ms var(--eo)}
+.itab.on{background:var(--teal);color:var(--ivory);border-color:var(--teal)}
+.itab:hover:not(.on){background:rgba(255,255,255,0.85)}
+
+/* FIELDS */
+textarea,input[type=text]{
+  width:100%;padding:12px 14px;background:rgba(255,255,255,0.65);border:1px solid var(--border);
+  border-radius:12px;font-family:var(--sans);font-size:13px;color:var(--teal);
+  resize:vertical;outline:none;transition:border-color 160ms,box-shadow 160ms;
+  box-shadow:inset 0 1px 3px rgba(26,57,72,0.04)}
+textarea{min-height:110px;line-height:1.6}
+input[type=text]{height:42px;resize:none}
+textarea::placeholder,input::placeholder{color:var(--soft)}
+textarea:focus,input:focus{border-color:rgba(26,57,72,0.28);
+  box-shadow:0 0 0 3px rgba(26,57,72,0.06),inset 0 1px 3px rgba(26,57,72,0.04)}
+
+/* GRIDS + SELECTS */
+.opt-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.opt-block{display:flex;flex-direction:column;gap:6px}
+.opt-block label{font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--soft)}
+select{width:100%;padding:9px 12px;background:rgba(255,255,255,0.65);border:1px solid var(--border);
+  border-radius:10px;font-family:var(--sans);font-size:13px;color:var(--teal);
+  outline:none;cursor:pointer;transition:border-color 160ms;
+  -webkit-appearance:none;appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%231A3948' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
+select:focus{border-color:rgba(26,57,72,0.28)}
+
+/* CHIPS */
+.chip-row{display:flex;flex-wrap:wrap;gap:6px}
+.chip{padding:6px 13px;border-radius:100px;font-size:12px;font-weight:500;
+  border:1px solid var(--border);background:rgba(255,255,255,0.55);
+  color:var(--muted);cursor:pointer;transition:all 160ms var(--eo);user-select:none}
+.chip.on{background:var(--teal2);color:var(--ivory);border-color:var(--teal2)}
+.chip:hover:not(.on){background:rgba(255,255,255,0.85);color:var(--teal)}
+
+/* DEPTH HINT */
+.depth-hint{margin-top:10px;padding:10px 14px;border-radius:10px;
+  background:rgba(26,57,72,0.04);border:1px solid var(--border);
+  font-size:11.5px;color:var(--soft);line-height:1.6;transition:all 240ms var(--eo)}
+.depth-hint strong{color:var(--teal2);font-weight:600}
+
+/* INFO NOTE */
+.info-note{display:flex;align-items:flex-start;gap:10px;
+  padding:10px 14px;border-radius:10px;
+  background:rgba(255,192,71,0.10);border:1px solid rgba(255,192,71,0.22);margin-top:8px}
+.info-note svg{flex-shrink:0;margin-top:1px;opacity:0.7}
+.info-note span{font-size:11.5px;color:var(--teal2);line-height:1.5}
+
+/* CTA */
+.cta-area{margin-top:28px;padding:24px;
+  background:rgba(255,255,255,0.40);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border:1px solid var(--glass-b);border-radius:18px;box-shadow:var(--gs),var(--gi);
+  display:flex;flex-direction:column;gap:14px;animation:rise 420ms var(--eo) 120ms both}
+.cta-top{display:flex;align-items:center;gap:10px}
+.cta-label{font-family:var(--serif);font-size:15px;font-weight:400;color:var(--teal);flex:1}
+.cta-meta{font-size:11px;color:var(--soft)}
+.cta-btns{display:flex;gap:10px;flex-wrap:wrap}
+
+.btn-copy{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:600;
+  color:var(--ivory);padding:10px 22px;border-radius:100px;border:none;cursor:pointer;
+  background:var(--teal);box-shadow:0 4px 16px rgba(26,57,72,0.22),inset 0 1px 0 rgba(255,255,255,0.14);
+  transition:transform 150ms var(--eo),box-shadow 150ms,background 200ms;font-family:var(--sans)}
+.btn-copy:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(26,57,72,0.28)}
+.btn-copy:active{transform:scale(0.97)}
+.btn-copy.copied{background:#1f7a45}
+
+.btn-outlook{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:600;
+  color:var(--teal);padding:10px 22px;border-radius:100px;cursor:pointer;
+  background:rgba(255,255,255,0.75);border:1.5px solid rgba(26,57,72,0.18);
+  box-shadow:0 2px 10px rgba(26,57,72,0.08),inset 0 1px 0 rgba(255,255,255,0.9);
+  transition:all 150ms var(--eo);text-decoration:none;font-family:var(--sans)}
+.btn-outlook:hover{background:rgba(255,255,255,0.95);transform:translateY(-1px);box-shadow:0 6px 18px rgba(26,57,72,0.14)}
+.btn-outlook:active{transform:scale(0.97)}
+
+/* TOAST */
+.copy-toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(16px);
+  background:var(--teal);color:var(--ivory);padding:10px 22px;border-radius:100px;
+  font-size:13px;font-weight:600;opacity:0;pointer-events:none;
+  transition:all 300ms var(--eo);z-index:200;box-shadow:0 8px 24px rgba(26,57,72,0.28)}
+.copy-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+
+/* CONCERN ROW */
+.concern-row{margin-top:18px}
+.concern-rule{height:1px;background:var(--border);margin-bottom:14px}
+.concern-header{display:flex;align-items:center;gap:6px;margin-bottom:8px}
+.concern-label{font-size:12px;font-weight:600;color:var(--teal);letter-spacing:0.01em}
+.concern-optional{font-size:10px;font-weight:500;color:var(--soft);
+  padding:2px 8px;border-radius:100px;border:1px solid var(--border);
+  background:rgba(255,255,255,0.5);margin-left:2px}
+.concern-field{min-height:72px;font-size:12.5px;color:var(--teal2);
+  background:rgba(255,255,255,0.45);border-color:rgba(26,57,72,0.07);
+  line-height:1.65;resize:none}
+.concern-field::placeholder{font-size:12px;color:var(--soft);font-style:italic;line-height:1.6}
+.concern-field:focus{background:rgba(255,255,255,0.65)}
+
+/* ANIMATIONS */
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pring{0%,100%{box-shadow:0 0 0 0 rgba(255,84,0,0.4)}50%{box-shadow:0 0 0 5px rgba(255,84,0,0)}}
+@media(prefers-reduced-motion:reduce){*{animation-duration:0.01ms!important;transition-duration:0.01ms!important}}
+@media(max-width:600px){.opt-grid{grid-template-columns:1fr}.cta-btns{flex-direction:column}.page-title{font-size:24px}}
+</style>
+</head>
+<body>
+
+<div class="scene">
+  <div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div>
+</div>
+
+<div class="nav-wrap">
+  <div class="nav-pill">
+    <div class="wordmark">DNA<em>.</em></div>
+    <div class="nav-label">Bias Intelligence Tool</div>
+  </div>
+</div>
+
+<div class="page">
+
+  <div class="page-header">
+    <div class="eyebrow"><div class="pdot"></div>RFE/RL Editorial Intelligence</div>
+    <div class="page-title">Bias Deviation Analyzer</div>
+    <div class="page-sub">Configure your analysis parameters. The prompt builds silently in the background — copy it when ready and paste directly into Microsoft Copilot.</div>
+  </div>
+
+  <!-- CARD 1 — PRIMARY ARTICLE -->
+  <div class="card">
+    <div class="card-title">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="1" width="12" height="12" rx="2" stroke="#1A3948" stroke-width="1.4"/><line x1="3.5" y1="4.5" x2="10.5" y2="4.5" stroke="#1A3948" stroke-width="1.2" stroke-linecap="round"/><line x1="3.5" y1="7" x2="10.5" y2="7" stroke="#1A3948" stroke-width="1.2" stroke-linecap="round"/><line x1="3.5" y1="9.5" x2="8" y2="9.5" stroke="#1A3948" stroke-width="1.2" stroke-linecap="round"/></svg>
+      Primary Article
+    </div>
+    <div class="input-tabs">
+      <div class="itab on" onclick="switchTab(this,'paste-panel','url-panel')">Paste Text</div>
+      <div class="itab" onclick="switchTab(this,'url-panel','paste-panel')">URL</div>
+    </div>
+    <div id="paste-panel">
+      <textarea id="article-text" placeholder="Paste the full article text here…" oninput="buildPrompt()"></textarea>
+    </div>
+    <div id="url-panel" style="display:none">
+      <input type="text" id="article-url" placeholder="https://www.rferl.org/…" oninput="buildPrompt()">
+      <div class="info-note">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="#8a5e00" stroke-width="1.3"/><line x1="7" y1="6" x2="7" y2="10" stroke="#8a5e00" stroke-width="1.4" stroke-linecap="round"/><circle cx="7" cy="4" r="0.7" fill="#8a5e00"/></svg>
+        <span>Copilot will be instructed to fetch and read the full article at this URL before running any analysis modules.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- CARD 2 — ANALYSIS SETTINGS -->
+  <div class="card">
+    <div class="card-title">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v2M7 11v2M1 7h2M11 7h2M2.93 2.93l1.41 1.41M9.66 9.66l1.41 1.41M2.93 11.07l1.41-1.41M9.66 4.34l1.41-1.41" stroke="#1A3948" stroke-width="1.3" stroke-linecap="round"/></svg>
+      Analysis Settings
+    </div>
+
+    <div class="opt-grid">
+      <div class="opt-block">
+        <label>Article Format</label>
+        <select id="format" onchange="buildPrompt()">
+          <option value="investigation">Investigation</option>
+          <option value="breaking" selected>Breaking News</option>
+          <option value="feature">Feature / Long-form</option>
+          <option value="analysis">Analysis / Commentary</option>
+          <option value="opinion">Opinion</option>
+          <option value="explainer">Explainer</option>
+        </select>
+      </div>
+      <div class="opt-block">
+        <label>Audit Depth</label>
+        <select id="depth" onchange="buildPrompt()">
+          <option value="light">Light — Quick flags only</option>
+          <option value="standard" selected>Standard — Full scorecard</option>
+          <option value="deep">Deep — Full forensic audit</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="depth-hint" class="depth-hint"></div>
+
+    <div class="opt-grid" style="margin-top:14px">
+      <div class="opt-block">
+        <label>Article Language</label>
+        <select id="language" onchange="buildPrompt()">
+          <option value="english" selected>English</option>
+          <option value="persian">Persian / Farsi (فارسی) — Radio Farda</option>
+          <option value="russian">Russian (Русский) — RFE/RL Russia</option>
+          <option value="ukrainian">Ukrainian (Українська) — Radio Svoboda</option>
+          <option value="romanian">Romanian — Europa Liberă</option>
+          <option value="georgian">Georgian (ქართული)</option>
+          <option value="armenian">Armenian (Հայերեն)</option>
+          <option value="azerbaijani">Azerbaijani (Azərbaycan)</option>
+          <option value="kazakh">Kazakh (Қазақша) — Azattyq</option>
+          <option value="kyrgyz">Kyrgyz (Кыргызча) — Azattyk</option>
+          <option value="uzbek">Uzbek (O'zbek) — Ozodlik</option>
+          <option value="tajik">Tajik (Тоҷикӣ) — Ozodi</option>
+          <option value="turkmen">Turkmen (Türkmen) — Azatlyk</option>
+          <option value="arabic">Arabic (العربية) — MBB</option>
+          <option value="pashto">Pashto (پښتو) — Radio Mashaal</option>
+          <option value="dari">Dari (دری) — Radio Azadi</option>
+          <option value="albanian">Albanian — RFE/RL Albania</option>
+          <option value="bosnian">Bosnian — Radio Slobodna Evropa</option>
+          <option value="serbian">Serbian — Radio Slobodna Evropa</option>
+          <option value="macedonian">Macedonian</option>
+          <option value="belarusian">Belarusian (Беларуская) — Radio Svaboda</option>
+          <option value="czech">Czech — Radio Free Europe</option>
+          <option value="slovak">Slovak — Radio Slobodná Európa</option>
+          <option value="tatar">Tatar (Татар) — Idel.Реалии</option>
+        </select>
+      </div>
+      <div class="opt-block">
+        <label>Focus Modules</label>
+        <div class="chip-row" id="modules-chips">
+          <div class="chip on" data-val="tone" onclick="toggleChip(this)">Linguistic Tone</div>
+          <div class="chip on" data-val="balance" onclick="toggleChip(this)">Source Balance</div>
+          <div class="chip on" data-val="attribution" onclick="toggleChip(this)">Attribution Framing</div>
+          <div class="chip on" data-val="agency" onclick="toggleChip(this)">Agency Clarity</div>
+          <div class="chip on" data-val="narrative" onclick="toggleChip(this)">Narrative Control</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="concern-row">
+      <div class="concern-rule"></div>
+      <div class="concern-header">
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="5.5" stroke="#1A3948" stroke-width="1.2" opacity="0.4"/><path d="M6.5 4.5v3M6.5 9h.01" stroke="#1A3948" stroke-width="1.3" stroke-linecap="round" opacity="0.5"/></svg>
+        <span class="concern-label">Anything specific on your mind?</span>
+        <span class="concern-optional">optional</span>
+      </div>
+      <textarea id="editor-concern"
+        class="concern-field"
+        placeholder="e.g. &quot;The ceasefire framing feels US-driven&quot; · &quot;Check if the minister quote is doing too much work&quot; · &quot;We only had one on-the-ground source&quot;"
+        oninput="buildPrompt()"></textarea>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="cta-area">
+    <div class="cta-top">
+      <div class="cta-label">Ready to analyze</div>
+      <div class="cta-meta">Copy prompt → paste into Copilot</div>
+    </div>
+    <div class="cta-btns">
+      <button class="btn-copy" id="copy-btn" onclick="copyPrompt()">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="4" y="4" width="8" height="8" rx="1.5" stroke="white" stroke-width="1.3"/><path d="M3 10H2a1 1 0 01-1-1V2a1 1 0 011-1h7a1 1 0 011 1v1" stroke="white" stroke-width="1.3" stroke-linecap="round"/></svg>
+        Copy Prompt
+      </button>
+      <a href="https://outlook.office.com/mail/" target="_blank" class="btn-outlook">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="3" width="12" height="9" rx="1.5" stroke="#1A3948" stroke-width="1.3"/><polyline points="1,3 7,8 13,3" stroke="#1A3948" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+        Open Outlook
+      </a>
+    </div>
+  </div>
+
+</div>
+
+<div class="copy-toast" id="copy-toast">Prompt copied to clipboard ✓</div>
+
+<script>
+// ── TAB SWITCH ────────────────────────────────────────────────────────────────
+function switchTab(el, showId, hideId) {
+  el.closest('.input-tabs').querySelectorAll('.itab').forEach(t => t.classList.remove('on'));
+  el.classList.add('on');
+  document.getElementById(showId).style.display = '';
+  document.getElementById(hideId).style.display = 'none';
+  buildPrompt();
+}
+
+function toggleChip(el) {
+  el.classList.toggle('on');
+  buildPrompt();
+}
+
+// ── DEPTH HINTS ───────────────────────────────────────────────────────────────
+const depthHints = {
+  light: '<strong>Light:</strong> Copilot returns a fast top-level read — overall risk rating, one-line takeaway per module, and a single editorial advisory. No counts, no lists, no quoted evidence. Best for a quick pre-publish check.',
+  standard: '<strong>Standard:</strong> Copilot returns the full scorecard — risk rating, key takeaway, status per module with counts and percentages, narrative control bar, and a one-line advisory. The default for editorial review.',
+  deep: '<strong>Deep:</strong> Copilot returns everything in Standard plus: every flagged word quoted verbatim, sentence-level passive voice instances with paragraph references, attribution verb breakdown per source group, active-voice rewrites for flagged sentences, and a confidence rating for each finding.'
+};
+
+function updateDepthHint() {
+  const depth = document.getElementById('depth').value;
+  document.getElementById('depth-hint').innerHTML = depthHints[depth];
+}
+
+// ── PROMPT BUILDER ────────────────────────────────────────────────────────────
+function buildPrompt() {
+  updateDepthHint();
+
+  const format = document.getElementById('format').value;
+  const depth  = document.getElementById('depth').value;
+  const langEl = document.getElementById('language');
+  const language = langEl.options[langEl.selectedIndex].text;
+  const activeModules = [...document.querySelectorAll('#modules-chips .chip.on')].map(c => c.dataset.val);
+
+  const pasteVisible = document.getElementById('paste-panel').style.display !== 'none';
+  const articleText  = pasteVisible
+    ? document.getElementById('article-text').value.trim()
+    : document.getElementById('article-url').value.trim();
+  const isUrl = !pasteVisible;
+
+  const formatLabels = {
+    investigation:'Investigation', breaking:'Breaking News', feature:'Feature / Long-form',
+    analysis:'Analysis / Commentary', opinion:'Opinion', explainer:'Explainer'
+  };
+  const moduleLabels = {
+    tone:        'Linguistic Tone — loaded modifier density',
+    balance:     'Source Balance — real-estate disparity matrix',
+    attribution: 'Attribution Framing — validation vs. skeptical verb mapping',
+    agency:      'Agency Clarity — passive voice scanner',
+    narrative:   'Narrative Control — who drives the story forward'
+  };
+
+  // ── FORMAT THRESHOLDS ──
+  const thresholds = {
+    investigation: `— Source ratio flag threshold: 2:1 (investigations require near-equal real-estate; any greater imbalance is a critical finding)\n— Loaded modifier density flag: >1.5% of total word count\n— Passive voice: flag every instance that hides an accountable actor, even isolated ones`,
+    breaking:      `— Source ratio flag threshold: 3:1 (speed-reporting tolerance applies)\n— Loaded modifier density flag: >2.5% of total word count\n— Passive voice: flag recurring patterns; isolated instances are noted but not flagged`,
+    feature:       `— Source ratio flag threshold: 3:1 (narrative latitude allowed for long-form)\n— Loaded modifier density flag: >3% of total word count (feature voice permits more colour)\n— Passive voice: flag only systematic evasion across multiple paragraphs`,
+    analysis:      `— Source ratio flag threshold: 3:1\n— Loaded modifier density flag: >4% of total word count (analytical register allows qualified language)\n— Passive voice: flag only where factual accountability is actively obscured`,
+    opinion:       `— Source ratio: not flagged (opinion format permits single-voice argument)\n— Loaded modifier density: report count for information only — no flag threshold applies\n— Passive voice: flag only where factual claims (not arguments) obscure a responsible actor`,
+    explainer:     `— Source ratio flag threshold: 2.5:1\n— Loaded modifier density flag: >2% of total word count\n— Passive voice: flag every instance — explainers require maximum clarity of agency`
+  };
+
+  // ── SIGNAL DOT SCORING RULES (injected into every depth) ──────────────────
+  const dotScoringRules = `
+SIGNAL DOT SCORING — MANDATORY FOR ALL MODULES
+After analysing each active module, assign a signal intensity using exactly 5 dots.
+Filled dot = ● Empty dot = ○
+
+The dots represent how much evidence of structural asymmetry the system detected —
+NOT a judgment of the journalist. High signal = more to investigate. Low signal = less found.
+
+Use this label scale:
+  ●○○○○  minimal signal   — barely detectable, within normal range for this format
+  ●●○○○  low signal       — some indicators present, below flag threshold
+  ●●●○○  moderate signal  — noticeable pattern, approaching or at flag threshold
+  ●●●●○  strong signal    — clearly above threshold, warrants editorial attention
+  ●●●●●  high signal      — significant structural asymmetry detected
+
+Dot calculation rules per module:
+
+LINGUISTIC TONE dots:
+  Density 0–0.5%      → ●○○○○ minimal
+  Density 0.5–1.5%    → ●●○○○ low
+  Density 1.5–2.5%    → ●●●○○ moderate
+  Density 2.5–4%      → ●●●●○ strong
+  Density >4%         → ●●●●● high
+
+SOURCE BALANCE dots:
+  Ratio 1:1 to 1.5:1  → ●○○○○ minimal
+  Ratio 1.5:1 to 2:1  → ●●○○○ low
+  Ratio 2:1 to 3:1    → ●●●○○ moderate
+  Ratio 3:1 to 4:1    → ●●●●○ strong
+  Ratio >4:1          → ●●●●● high
+
+ATTRIBUTION FRAMING dots (measure asymmetry between groups):
+  <10% verb asymmetry between groups  → ●○○○○ minimal
+  10–25% asymmetry                    → ●●○○○ low
+  25–40% asymmetry                    → ●●●○○ moderate
+  40–60% asymmetry                    → ●●●●○ strong
+  >60% asymmetry                      → ●●●●● high
+
+AGENCY CLARITY dots:
+  0 passive instances flagged         → ●○○○○ minimal
+  1–2 instances                       → ●●○○○ low
+  3–4 instances                       → ●●●○○ moderate
+  5–7 instances                       → ●●●●○ strong
+  8+ instances                        → ●●●●● high
+
+NARRATIVE CONTROL dots (measure deviation from 50/50):
+  45–55% dominant actor               → ●○○○○ minimal
+  55–62%                              → ●●○○○ low
+  62–70%                              → ●●●○○ moderate
+  70–80%                              → ●●●●○ strong
+  >80%                                → ●●●●● high
+
+Format the dots line as:
+[Module name padded to 20 chars]  [5 dots]  [label]
+
+Example:
+Linguistic Tone       ●●●○○  moderate signal
+Source Balance        ●●●●○  strong signal
+`;
+
+  // ── DEPTH-SPECIFIC EXECUTION RULES ──
+  const depthInstructions = {
+
+    light: `AUDIT DEPTH: LIGHT
+You are running a fast pre-publish check. Speed and clarity are the priority.
+
+WHAT TO DO:
+— Read the article once.
+— For each active module, form an overall impression only. Do not count deeply. Do not list items.
+— Assign a signal dot score to each active module using the dot scoring rules above.
+— Write one sentence of explanation per module. No more.
+— Assign an overall risk level: LOW, MEDIUM, or HIGH.
+— Write one key takeaway sentence (plain language, no jargon).
+— Write one editorial advisory sentence. Stop.
+
+WHAT NOT TO DO:
+— Do not quote specific words or phrases from the article.
+— Do not list flagged items.
+— Do not write more than one sentence per module.
+— Do not produce the Standard or Deep format. Produce the Light format below.
+
+LIGHT OUTPUT FORMAT:
+⚖️ DNA BIAS CHECK — [LOW / MEDIUM / HIGH]
+🧠 [One-sentence plain-language takeaway]
+
+${activeModules.map(m => {
+  const names = {tone:'Linguistic Tone',balance:'Source Balance',attribution:'Attribution Framing',agency:'Agency Clarity',narrative:'Narrative Control'};
+  return `${(names[m]||m).padEnd(20)}  [●●●○○]  [X signal] — [one sentence]`;
+}).join('\n')}
+
+🧭 [One-sentence editorial advisory]`,
+
+    standard: `AUDIT DEPTH: STANDARD
+You are running a full editorial scorecard. Accuracy and completeness matter.
+
+WHAT TO DO:
+— Carefully read the full article.
+— For each active module, calculate the relevant metric from the article text.
+— Assign a signal dot score to each active module using the dot scoring rules above.
+— Report counts and percentages where applicable.
+— For Narrative Control, produce the bar visualization.
+— Assign an overall risk level: LOW, MEDIUM, or HIGH.
+— Write a 1–2 line key takeaway in plain language.
+— Write one editorial advisory sentence. Stop.
+
+WHAT NOT TO DO:
+— Do not quote individual flagged words (note their count only).
+— Do not rewrite any sentences.
+— Do not add commentary, explanation, or praise.
+— Do not produce the Deep format. Produce the Standard scorecard below.
+
+STANDARD OUTPUT FORMAT:
+⚖️ DNA BIAS SCORECARD — [LOW / MEDIUM / HIGH]
+🧠 Key Takeaway: [1–2 plain-language sentences]
+
+${activeModules.map(m => {
+  const details = {
+    tone:        'Linguistic Tone       [●●●○○]  [X signal]  — [N] modifiers / density [X]%',
+    balance:     'Source Balance        [●●●○○]  [X signal]  — [Actor A]: [N] words ([X]%) / [Actor B]: [N] words ([Y]%)',
+    attribution: 'Attribution Framing   [●●●○○]  [X signal]  — Group A: [X]% validating / Group B: [X]% skeptical',
+    agency:      'Agency Clarity        [●●●○○]  [X signal]  — [N] passive constructions flagged',
+    narrative:   'Narrative Control     [●●●○○]  [label]\n  [Actor A]  ████████░░  [N]%\n  [Actor B]  ████░░░░░░  [N]%'
+  }; return details[m] || `${m}  [●●●○○]  [label]`;
+}).join('\n')}
+
+🧭 [One-sentence editorial advisory]`,
+
+    deep: `AUDIT DEPTH: DEEP — FULL FORENSIC AUDIT
+You are running a complete forensic analysis. Precision and granular evidence are required.
+
+WHAT TO DO — MODULE BY MODULE:
+
+${activeModules.includes('tone') ? `LINGUISTIC TONE:
+— List every loaded modifier found, quoted exactly as it appears in the article.
+— Note whether each appears in narrative prose or inside a direct quote.
+— Calculate density: (total loaded modifiers) ÷ (total word count) × 100.
+— Assess whether the density is within or above the format threshold.
+— Assign the signal dot score using the dot scoring rules.` : ''}
+
+${activeModules.includes('balance') ? `SOURCE BALANCE:
+— Count exact word counts for each distinct voice or actor in the article.
+— Calculate percentage of total word count per voice.
+— Note the paragraph zone (opening / mid / closing) where each voice appears.
+— Calculate primary-to-counter ratio and state whether it exceeds the format threshold.
+— Assign the signal dot score using the dot scoring rules.` : ''}
+
+${activeModules.includes('attribution') ? `ATTRIBUTION FRAMING:
+— List every attribution verb in the article.
+— Assign each verb to its category: Validating (proves, demonstrates, exposes, clarifies) / Neutral (says, states, notes, adds) / Skeptical (claims, alleges, asserts, purports, contends).
+— Map verb categories to the source group they accompany.
+— Calculate the percentage distribution per group and the asymmetry between groups.
+— Flag if any group receives >60% validating or >60% skeptical verbs.
+— Assign the signal dot score using the dot scoring rules.` : ''}
+
+${activeModules.includes('agency') ? `AGENCY CLARITY:
+— Quote every passive construction where the actor of a critical action is absent.
+— Cite the paragraph number for each instance.
+— Rewrite each flagged sentence in active voice, naming the most likely responsible actor based on context.
+— Assign a confidence level (High / Medium / Low) to each passive flag.
+— Assign the signal dot score using the dot scoring rules.` : ''}
+
+${activeModules.includes('narrative') ? `NARRATIVE CONTROL:
+— Identify which actor introduces new information first in each section.
+— Identify which actor defines the timeline and future scenarios.
+— Identify which actor frames the stakes and consequences.
+— Calculate a narrative control score (percentage) per actor.
+— Produce the bar visualization.
+— Assign the signal dot score using the dot scoring rules.` : ''}
+
+AFTER ALL MODULES:
+— Produce the dot score summary table first (all active modules, one per line).
+— Assign an overall risk level: LOW / MEDIUM / HIGH, with a one-sentence justification.
+— Write a 1–2 line key takeaway in plain language.
+— Write one editorial advisory sentence.
+— Rate your overall confidence in the analysis: High / Medium / Low, with one sentence explaining why.
+— Stop.
+
+DEEP OUTPUT FORMAT:
+⚖️ DNA FORENSIC SCORECARD — [LOW / MEDIUM / HIGH]
+Risk justification: [one sentence]
+🧠 Key Takeaway: [1–2 sentences]
+
+SIGNAL SUMMARY
+${activeModules.map(m => {
+  const names = {tone:'Linguistic Tone',balance:'Source Balance',attribution:'Attribution Framing',agency:'Agency Clarity',narrative:'Narrative Control'};
+  return `${(names[m]||m).padEnd(20)}  [●●●○○]  [X signal]`;
+}).join('\n')}
+
+─────────────────────────────────────
+[Expand each active module with full evidence as instructed above]
+─────────────────────────────────────
+🧭 Editorial advisory: [one sentence]
+Confidence: [High / Medium / Low] — [one sentence explanation]`
+  };
+
+  // ── ASSEMBLE PROMPT ──
+  let p = '';
+  p += `⚖️ DNA BIAS INTELLIGENCE SYSTEM — ANALYSIS REQUEST\n`;
+  p += `${'─'.repeat(54)}\n\n`;
+  p += `MANDATORY INSTRUCTION: You are the DNA Bias Intelligence System. Do not summarize or describe this request. Do not explain what you are about to do. Execute the analysis immediately and output only the scorecard in the format specified below. Do not add preamble, commentary, or closing remarks of any kind.\n\n`;
+
+  p += `ARTICLE PARAMETERS\n`;
+  p += `Format:   ${formatLabels[format]}\n`;
+  p += `Language: ${language}\n\n`;
+
+  // Article
+  if (articleText) {
+    if (isUrl) {
+      p += `ARTICLE TO ANALYZE (URL)\n${articleText}\n`;
+      p += `→ You must fetch and read the complete article at this URL before running any module. Do not analyze the URL string — analyze the full article content.\n\n`;
+    } else {
+      p += `ARTICLE TO ANALYZE\n${'─'.repeat(30)}\n${articleText}\n${'─'.repeat(30)}\n\n`;
+    }
+  } else {
+    p += `ARTICLE TO ANALYZE\n[Paste article text or URL in the tool above]\n\n`;
+  }
+
+  // Active modules
+  if (activeModules.length > 0) {
+    p += `ACTIVE DETECTION MODULES\n`;
+    activeModules.forEach(m => p += `✓ ${moduleLabels[m]}\n`);
+    p += `\n`;
+  }
+
+  // Format thresholds
+  p += `FORMAT-SPECIFIC THRESHOLDS — ${formatLabels[format].toUpperCase()}\n`;
+  p += thresholds[format] + `\n\n`;
+
+  // Dot scoring rules + depth instructions
+  p += `${'─'.repeat(54)}\n`;
+  p += dotScoringRules + `\n`;
+  p += `${'─'.repeat(54)}\n`;
+  p += depthInstructions[depth] + `\n\n`;
+
+  // Anti-hallucination
+  p += `${'─'.repeat(54)}\n`;
+  p += `ANTI-HALLUCINATION RULES\n`;
+  p += `1. Only flag what is actually present in the article text. Do not infer or assume.\n`;
+  p += `2. Every number must be calculated from the article. If a metric cannot be calculated, write: Insufficient data.\n`;
+  p += `3. Do not describe this system or your process. Execute and output.\n`;
+  p += `4. Do not use the example text from this prompt as if it came from the article.\n\n`;
+
+  // Editor's specific concern
+  const concern = (document.getElementById('editor-concern').value || '').trim();
+  if (concern) {
+    p += `${'─'.repeat(54)}\n`;
+    p += `EDITOR'S SPECIFIC CONCERN\n`;
+    p += `Before completing the scorecard, the editor flagged this:\n`;
+    p += `"${concern}"\n\n`;
+    p += `Investigate this directly in addition to the active modules.\n`;
+    p += `Do not fold it into the general advisory — address it explicitly as its own line in the scorecard, labeled: Editor's concern.\n\n`;
+  }
+
+  // RFE/RL expert finder
+  p += `${'─'.repeat(54)}\n`;
+  p += `INTERNAL EXPERT REFERRAL — MANDATORY FINAL SECTION\n\n`;
+  p += `After the scorecard and advisory are complete, add a section titled:\n`;
+  p += `"Who to talk to inside RFE/RL"\n\n`;
+  p += `Instructions:\n`;
+  p += `— Search the RFE/RL organization directory and People graph (which you have access to via Microsoft 365).\n`;
+  p += `— Based on the topic, region, and language of the article being analyzed, identify 2–4 relevant colleagues inside RFE/RL who have expertise in:\n`;
+  p += `  • The geographic region or country covered in the article\n`;
+  p += `  • The subject matter (politics, security, economics, human rights, media, etc.)\n`;
+  p += `  • The language service that covers this region (e.g. Radio Farda for Iran/Persian content)\n`;
+  p += `— For each person found, render a Copilot people card or hyperlink using their name. Include:\n`;
+  p += `  • Full name (as a clickable @mention or people card link)\n`;
+  p += `  • Title / role\n`;
+  p += `  • Service or bureau\n`;
+  p += `  • A one-line note on why they are relevant to this specific article\n`;
+  p += `  • A clear CTA such as: [📧 Email] [💬 Chat in Teams] [👤 View profile]\n\n`;
+  p += `If no directly relevant colleagues are found in the directory, suggest the most relevant service desk or editorial bureau instead.\n\n`;
+  p += `Format this section as a clean, scannable list — not a paragraph. Each person gets their own block.\n\n`;
+  p += `Do not invent names. Only surface people who exist in the RFE/RL directory.\n\n`;
+
+  // Follow-up suggestion
+  p += `${'─'.repeat(54)}\n`;
+  p += `FOLLOW-UP SUGGESTION (after outputting the scorecard)\n`;
+  p += `After the scorecard is complete, suggest 2–3 relevant articles from the web that cover the same event or topic from different angles or outlets. Use web search to find them. Present each as: Outlet name — Headline — URL. Label this section: "Related coverage you may want to compare."\n`;
+
+  window._generatedPrompt = p;
+}
+
+// ── COPY ──────────────────────────────────────────────────────────────────────
+function copyPrompt() {
+  const text = window._generatedPrompt || '';
+  if (!text) return;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('copy-btn');
+    btn.classList.add('copied');
+    btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><polyline points="2,7 5,10 12,3" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg> Copied!`;
+    document.getElementById('copy-toast').classList.add('show');
+    setTimeout(() => {
+      btn.classList.remove('copied');
+      btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="4" y="4" width="8" height="8" rx="1.5" stroke="white" stroke-width="1.3"/><path d="M3 10H2a1 1 0 01-1-1V2a1 1 0 011-1h7a1 1 0 011 1v1" stroke="white" stroke-width="1.3" stroke-linecap="round"/></svg> Copy Prompt`;
+      document.getElementById('copy-toast').classList.remove('show');
+    }, 2200);
+  });
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+buildPrompt();
+</script>
+</body>
+</html>
