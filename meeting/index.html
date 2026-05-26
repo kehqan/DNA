@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meeting Recap — DNA360</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Noto+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ── TOKENS ─────────────────────────────────────── */
+:root {
+  --ivory:   #F8F7F6;
+  --bg:      #F0EFED;
+  --teal:    #1A3948;
+  --teal2:   #24506A;
+  --flame:   #FF5400;
+  --stone:   #B9CCCC;
+  --honey:   #FFC047;
+  --border:  rgba(26,57,72,0.09);
+  --muted:   rgba(26,57,72,0.52);
+  --soft:    rgba(26,57,72,0.36);
+  --glass:   rgba(255,255,255,0.55);
+  --glass-b: rgba(255,255,255,0.85);
+  --gs: 0 8px 32px rgba(26,57,72,0.10), 0 1.5px 4px rgba(26,57,72,0.06);
+  --gi: inset 0 1px 0 rgba(255,255,255,0.92), inset 0 -1px 0 rgba(26,57,72,0.03);
+  --eo: cubic-bezier(0.25,0.46,0.45,0.94);
+  --serif: 'Lora', Georgia, serif;
+  --sans:  'Noto Sans', system-ui, sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--teal);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── SCENE ──────────────────────────────────────── */
+.scene {
+  position: fixed; inset: 0; z-index: 0;
+  pointer-events: none; overflow: hidden;
+  background: #F0EFED;
+}
+.orb { position: absolute; border-radius: 50%; filter: blur(90px); }
+.o1 {
+  width: 520px; height: 420px; top: -100px; left: -80px;
+  background: radial-gradient(ellipse, rgba(255,84,0,0.26) 0%, rgba(255,140,60,0.10) 45%, transparent 70%);
+}
+.o2 {
+  width: 400px; height: 340px; top: 40%; right: -100px;
+  background: radial-gradient(ellipse, rgba(26,57,72,0.12) 0%, rgba(26,57,72,0.03) 55%, transparent 75%);
+}
+.o3 {
+  width: 320px; height: 260px; bottom: 10%; left: 30%;
+  background: radial-gradient(ellipse, rgba(255,192,71,0.14) 0%, transparent 65%);
+}
+
+/* ── NAV PILL ───────────────────────────────────── */
+.nav-wrap {
+  position: sticky; top: 0; z-index: 50;
+  display: flex; justify-content: center;
+  padding: 14px 24px 0;
+  pointer-events: none;
+}
+.nav-pill {
+  display: inline-flex; align-items: center; gap: 2px;
+  background: rgba(26,57,72,0.82);
+  backdrop-filter: blur(28px) saturate(2);
+  -webkit-backdrop-filter: blur(28px) saturate(2);
+  border: 1px solid rgba(255,255,255,0.11);
+  border-radius: 100px; padding: 5px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.22), 0 2px 8px rgba(0,0,0,0.14),
+              inset 0 1px 0 rgba(255,255,255,0.14), inset 0 -1px 0 rgba(0,0,0,0.18);
+  pointer-events: all; max-width: 100%;
+}
+.wordmark {
+  font-family: var(--serif); font-size: 17px; font-weight: 400;
+  color: rgba(248,247,246,0.93);
+  padding: 6px 14px 6px 12px;
+  border-right: 1px solid rgba(255,255,255,0.10);
+  margin-right: 4px; white-space: nowrap; letter-spacing: -0.01em;
+}
+.wordmark em { font-style: normal; color: var(--flame); font-weight: 600; }
+.wordmark sub {
+  font-family: var(--sans); font-size: 9px; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: rgba(185,204,204,0.55); vertical-align: middle;
+  margin-left: 3px; font-style: normal;
+}
+.ntab {
+  font-size: 12.5px; font-weight: 500;
+  color: rgba(185,204,204,0.70);
+  padding: 7px 14px; border-radius: 100px;
+  cursor: pointer; transition: color 180ms, background 180ms;
+  white-space: nowrap; text-decoration: none; display: block;
+}
+.ntab:hover { color: rgba(248,247,246,0.95); }
+.ntab.on {
+  background: rgba(255,255,255,0.13); color: #fff;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.18), inset 0 -1px 0 rgba(0,0,0,0.12);
+}
+.nav-sep { width: 1px; height: 20px; background: rgba(255,255,255,0.08); margin: 0 2px; flex-shrink: 0; }
+.nav-back {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 12px; font-weight: 500;
+  color: rgba(185,204,204,0.65);
+  padding: 7px 12px; border-radius: 100px;
+  cursor: pointer; transition: color 180ms;
+  text-decoration: none;
+}
+.nav-back:hover { color: rgba(248,247,246,0.9); }
+.nav-back svg { flex-shrink: 0; }
+
+/* ── LAYOUT ─────────────────────────────────────── */
+.wrapper {
+  position: relative; z-index: 1;
+  max-width: 680px; margin: 0 auto;
+  padding: 28px 24px 80px;
+}
+
+/* ── HERO ───────────────────────────────────────── */
+.hero {
+  margin: 30px 0 32px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.hero-eyebrow {
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 0.13em; text-transform: uppercase;
+  color: var(--soft);
+  display: flex; align-items: center; gap: 8px;
+}
+.pdot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--honey);
+  animation: pring 2.6s ease-in-out infinite; flex-shrink: 0;
+}
+@keyframes pring {
+  0%,100% { box-shadow: 0 0 0 0 rgba(255,192,71,0.5); }
+  50%      { box-shadow: 0 0 0 6px rgba(255,192,71,0); }
+}
+.hero-title {
+  font-family: var(--serif);
+  font-size: clamp(24px, 4.5vw, 36px);
+  font-weight: 400; color: var(--teal);
+  line-height: 1.2; letter-spacing: -0.02em;
+}
+.hero-title em { font-style: italic; color: var(--teal2); }
+.hero-sub {
+  font-size: 13.5px; line-height: 1.65;
+  color: var(--muted); max-width: 480px; margin-top: 2px;
+}
+
+/* ── GLASS CARD ─────────────────────────────────── */
+.card {
+  border-radius: 18px;
+  background: var(--glass);
+  backdrop-filter: blur(20px) saturate(1.8);
+  -webkit-backdrop-filter: blur(20px) saturate(1.8);
+  border: 1px solid var(--glass-b);
+  box-shadow: var(--gs), var(--gi);
+  padding: 22px 24px;
+  margin-bottom: 14px;
+  animation: rise 420ms var(--eo) both;
+}
+.card:nth-child(1) { animation-delay: 40ms; }
+.card:nth-child(2) { animation-delay: 80ms; }
+.card:nth-child(3) { animation-delay: 120ms; }
+.card:nth-child(4) { animation-delay: 160ms; }
+.card:nth-child(5) { animation-delay: 200ms; }
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── CARD HEADER ────────────────────────────────── */
+.card-head {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 16px;
+}
+.card-head-icon {
+  width: 32px; height: 32px; border-radius: 9px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.chi-honey { background: rgba(255,192,71,0.14); border: 1px solid rgba(255,192,71,0.28); }
+.chi-flame  { background: rgba(255,84,0,0.10);   border: 1px solid rgba(255,84,0,0.20); }
+.chi-teal   { background: rgba(26,57,72,0.08);   border: 1px solid rgba(26,57,72,0.15); }
+.card-head-icon svg { width: 16px; height: 16px; }
+.card-label {
+  font-family: var(--serif); font-size: 15px; font-weight: 500;
+  color: var(--teal); flex: 1;
+}
+.card-hint {
+  font-size: 11px; color: var(--soft); font-style: italic;
+}
+
+/* ── FORM ELEMENTS ──────────────────────────────── */
+.field-wrap { display: flex; flex-direction: column; gap: 6px; }
+.field-label {
+  font-size: 11px; font-weight: 600; letter-spacing: 0.07em;
+  text-transform: uppercase; color: var(--soft);
+}
+.field-input {
+  width: 100%; padding: 11px 14px;
+  font-family: var(--sans); font-size: 14px; color: var(--teal);
+  background: rgba(255,255,255,0.70);
+  border: 1.5px solid rgba(26,57,72,0.13);
+  border-radius: 10px; outline: none;
+  box-shadow: inset 0 1px 3px rgba(26,57,72,0.05);
+  transition: border-color 180ms, box-shadow 180ms;
+}
+.field-input:focus {
+  border-color: rgba(26,57,72,0.35);
+  box-shadow: inset 0 1px 3px rgba(26,57,72,0.06), 0 0 0 3px rgba(26,57,72,0.07);
+}
+.field-input::placeholder { color: rgba(26,57,72,0.30); }
+.field-sub {
+  font-size: 11.5px; color: var(--soft); line-height: 1.5;
+}
+
+/* ── DESTINATION PILLS ──────────────────────────── */
+.dest-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.dest-btn {
+  display: flex; flex-direction: column; gap: 4px;
+  padding: 12px 14px; border-radius: 12px;
+  background: rgba(255,255,255,0.60);
+  border: 1.5px solid rgba(26,57,72,0.12);
+  cursor: pointer; text-align: left;
+  transition: all 180ms var(--eo);
+  box-shadow: 0 1px 4px rgba(26,57,72,0.05);
+}
+.dest-btn:hover {
+  background: rgba(255,255,255,0.82);
+  border-color: rgba(26,57,72,0.22);
+  transform: translateY(-1px);
+}
+.dest-btn.on {
+  background: var(--teal);
+  border-color: var(--teal);
+  box-shadow: 0 4px 16px rgba(26,57,72,0.22), inset 0 1px 0 rgba(255,255,255,0.12);
+  transform: translateY(-1px);
+}
+.dest-icon { font-size: 16px; line-height: 1; }
+.dest-name {
+  font-size: 12.5px; font-weight: 600; color: var(--teal);
+  transition: color 180ms;
+}
+.dest-btn.on .dest-name { color: var(--ivory); }
+.dest-tone {
+  font-size: 10.5px; color: var(--soft); line-height: 1.4;
+  transition: color 180ms;
+}
+.dest-btn.on .dest-tone { color: rgba(185,204,204,0.75); }
+
+/* ── SECTION TOGGLES ────────────────────────────── */
+.sections-grid {
+  display: flex; flex-wrap: wrap; gap: 8px;
+}
+.sec-chip {
+  display: flex; align-items: center; gap: 6px;
+  padding: 7px 13px; border-radius: 100px;
+  font-size: 12px; font-weight: 500;
+  border: 1.5px solid rgba(26,57,72,0.14);
+  background: rgba(255,255,255,0.60);
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 160ms var(--eo);
+  user-select: none;
+}
+.sec-chip:hover:not(.locked) {
+  background: rgba(255,255,255,0.82);
+  color: var(--teal);
+}
+.sec-chip.on {
+  background: rgba(26,57,72,0.08);
+  border-color: rgba(26,57,72,0.28);
+  color: var(--teal);
+}
+.sec-chip.locked {
+  background: rgba(26,57,72,0.06);
+  border-color: rgba(26,57,72,0.18);
+  color: var(--teal2); cursor: default;
+}
+.sec-check {
+  width: 14px; height: 14px; border-radius: 50%;
+  border: 1.5px solid rgba(26,57,72,0.25);
+  display: flex; align-items: center; justify-content: center;
+  transition: all 160ms;
+  flex-shrink: 0;
+}
+.sec-chip.on .sec-check {
+  background: var(--teal); border-color: var(--teal);
+}
+.sec-chip.locked .sec-check {
+  background: var(--teal2); border-color: var(--teal2);
+}
+.sec-check svg { opacity: 0; transition: opacity 120ms; }
+.sec-chip.on .sec-check svg,
+.sec-chip.locked .sec-check svg { opacity: 1; }
+
+/* ── ACTION ITEMS STATUS ────────────────────────── */
+.status-panel {
+  margin-top: 16px; padding-top: 16px;
+  border-top: 1px solid var(--border);
+  transition: opacity 240ms, max-height 240ms var(--eo);
+  overflow: hidden; max-height: 120px;
+}
+.status-panel.hidden { opacity: 0; max-height: 0; pointer-events: none; }
+.status-label {
+  font-size: 11px; font-weight: 600; letter-spacing: 0.07em;
+  text-transform: uppercase; color: var(--soft); margin-bottom: 10px;
+}
+.status-chips { display: flex; flex-wrap: wrap; gap: 7px; }
+.st-chip {
+  padding: 5px 13px; border-radius: 100px;
+  font-size: 11.5px; font-weight: 500;
+  border: 1.5px solid rgba(26,57,72,0.13);
+  background: rgba(255,255,255,0.60);
+  color: var(--muted); cursor: pointer;
+  transition: all 150ms var(--eo);
+}
+.st-chip:hover { background: rgba(255,255,255,0.85); color: var(--teal); }
+.st-chip.on {
+  background: rgba(255,84,0,0.10);
+  border-color: rgba(255,84,0,0.28);
+  color: var(--flame);
+}
+
+/* ── CTA ────────────────────────────────────────── */
+.cta-row {
+  display: flex; gap: 10px; align-items: center;
+  margin-top: 6px;
+}
+.btn-copy {
+  flex: 1; padding: 14px 20px;
+  font-family: var(--sans); font-size: 14px; font-weight: 600;
+  color: var(--ivory); background: var(--teal);
+  border: none; border-radius: 12px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  box-shadow: 0 4px 18px rgba(26,57,72,0.22), inset 0 1px 0 rgba(255,255,255,0.10);
+  transition: transform 150ms var(--eo), box-shadow 150ms, background 200ms;
+  position: relative; overflow: hidden;
+}
+.btn-copy:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(26,57,72,0.28), inset 0 1px 0 rgba(255,255,255,0.12);
+}
+.btn-copy:active { transform: scale(0.98); }
+.btn-copy.copied {
+  background: #1f7a45;
+  box-shadow: 0 4px 18px rgba(31,122,69,0.30), inset 0 1px 0 rgba(255,255,255,0.14);
+}
+.btn-outlook {
+  padding: 14px 18px;
+  font-family: var(--sans); font-size: 13.5px; font-weight: 600;
+  color: var(--teal); background: rgba(255,255,255,0.70);
+  border: 1.5px solid rgba(26,57,72,0.18); border-radius: 12px; cursor: pointer;
+  display: flex; align-items: center; gap: 7px; white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(26,57,72,0.07), inset 0 1px 0 rgba(255,255,255,0.9);
+  transition: transform 150ms var(--eo), background 150ms;
+  text-decoration: none;
+}
+.btn-outlook:hover {
+  background: rgba(255,255,255,0.92); transform: translateY(-1px);
+}
+.btn-outlook:active { transform: scale(0.97); }
+
+/* ── DESTINATION TONE BADGE ─────────────────────── */
+.tone-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 12px; border-radius: 100px;
+  font-size: 11px; font-weight: 600;
+  background: rgba(26,57,72,0.07); color: var(--teal2);
+  border: 1px solid rgba(26,57,72,0.12);
+  margin-top: 10px;
+  transition: all 220ms var(--eo);
+}
+
+/* ── CAROUSEL ───────────────────────────────────── */
+.crs-section { margin-top: 8px; animation: rise 420ms var(--eo) 260ms both; }
+.crs-header { margin-bottom: 12px; }
+.crs-header-title {
+  font-family: var(--serif); font-size: 16px; font-weight: 400;
+  color: var(--teal); margin-bottom: 2px;
+}
+.crs-header-sub { font-size: 11.5px; color: var(--soft); }
+.crs-box {
+  border-radius: 18px;
+  background: var(--glass);
+  backdrop-filter: blur(20px) saturate(1.8);
+  -webkit-backdrop-filter: blur(20px) saturate(1.8);
+  border: 1px solid var(--glass-b);
+  box-shadow: var(--gs), var(--gi);
+  overflow: hidden;
+}
+.crs-progress { height: 3px; background: rgba(26,57,72,0.08); }
+.crs-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--flame), #ff7a40);
+  transition: width 360ms var(--eo);
+  border-radius: 0 3px 3px 0;
+}
+.crs-track { display: flex; transition: transform 360ms var(--eo); will-change: transform; }
+.crs-slide {
+  min-width: 100%; padding: 22px 24px;
+  display: flex; flex-direction: column; gap: 16px; align-items: center;
+}
+.crs-illustration {
+  width: 100%; max-width: 400px;
+  background: rgba(26,57,72,0.04); border: 1px solid rgba(26,57,72,0.07);
+  border-radius: 12px; overflow: hidden;
+}
+.crs-illustration svg { display: block; width: 100%; }
+.crs-copy { text-align: center; max-width: 360px; }
+.crs-step-num {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--flame); margin-bottom: 5px;
+}
+.crs-step-title {
+  font-family: var(--serif); font-size: 16px; font-weight: 500;
+  color: var(--teal); margin-bottom: 7px; line-height: 1.3;
+}
+.crs-step-body { font-size: 12.5px; line-height: 1.65; color: var(--muted); }
+.crs-controls {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 18px 16px;
+  border-top: 1px solid rgba(26,57,72,0.06);
+}
+.crs-dots { display: flex; gap: 7px; align-items: center; }
+.cdot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: rgba(26,57,72,0.18); cursor: pointer;
+  transition: background 200ms, width 200ms;
+  border: none; padding: 0;
+}
+.cdot.on { background: var(--flame); width: 22px; border-radius: 100px; }
+.crs-arrows { display: flex; gap: 8px; }
+.crs-btn {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: rgba(255,255,255,0.65);
+  border: 1.5px solid rgba(26,57,72,0.16);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 2px 8px rgba(26,57,72,0.07), inset 0 1px 0 rgba(255,255,255,0.9);
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: background 150ms, transform 150ms var(--eo);
+  color: var(--teal);
+}
+.crs-btn:hover { background: var(--teal); color: var(--ivory); transform: scale(1.06); }
+.crs-btn:active { transform: scale(0.95); }
+.crs-btn:disabled { opacity: 0.30; cursor: default; pointer-events: none; }
+
+/* ── SIDEBAR / NARROW ───────────────────────────── */
+@media (max-width: 420px) {
+  .wrapper { padding: 18px 13px 60px; }
+  .hero { margin: 22px 0 24px; }
+  .hero-title { font-size: 22px; }
+  .card { padding: 16px 16px; border-radius: 14px; }
+  .dest-grid { grid-template-columns: 1fr 1fr; gap: 7px; }
+  .dest-btn { padding: 10px 10px; }
+  .dest-name { font-size: 11.5px; }
+  .dest-tone { display: none; }
+  .crs-slide { padding: 16px 14px; gap: 12px; }
+  .crs-step-title { font-size: 14px; }
+  .crs-step-body { font-size: 12px; }
+  .wordmark sub { display: none; }
+  .cta-row { flex-direction: column; }
+  .btn-copy, .btn-outlook { width: 100%; justify-content: center; }
+}
+body.sidebar-mode .wrapper { max-width: 100%; padding: 16px 13px 60px; }
+body.sidebar-mode .dest-tone { display: none; }
+body.sidebar-mode .dest-btn { padding: 10px 10px; }
+body.sidebar-mode .cta-row { flex-direction: column; }
+body.sidebar-mode .btn-copy,
+body.sidebar-mode .btn-outlook { width: 100%; justify-content: center; }
+body.sidebar-mode .wordmark sub { display: none; }
+body.sidebar-mode .hero-title { font-size: 22px; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+</style>
+</head>
+<body>
+
+<div class="scene">
+  <div class="orb o1"></div>
+  <div class="orb o2"></div>
+  <div class="orb o3"></div>
+</div>
+
+<!-- NAV -->
+<div class="nav-wrap">
+  <div class="nav-pill">
+    <div class="wordmark">DNA<em>.</em><sub>360</sub></div>
+    <div class="nav-sep"></div>
+    <a class="nav-back" href="../">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M8 10L4 6.5 8 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      All tools
+    </a>
+    <div class="nav-sep"></div>
+    <div class="ntab on">Meeting Recap</div>
+  </div>
+</div>
+
+<div class="wrapper">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-eyebrow">
+      <span class="pdot"></span>
+      Prompt Generator · DNA360
+    </div>
+    <h1 class="hero-title">
+      Meeting Recap<br>
+      <em>Assistant</em>
+    </h1>
+    <p class="hero-sub">
+      Configure your recap below. A Copilot prompt is assembled silently in the background — copy it and paste it into Copilot inside Outlook.
+    </p>
+  </div>
+
+  <!-- CARD 1: Meeting identifier -->
+  <div class="card">
+    <div class="card-head">
+      <div class="card-head-icon chi-honey">
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="2" y="3" width="12" height="11" rx="2.5" stroke="#8a5e00" stroke-width="1.4"/>
+          <line x1="5" y1="1.5" x2="5" y2="4.5" stroke="#8a5e00" stroke-width="1.4" stroke-linecap="round"/>
+          <line x1="11" y1="1.5" x2="11" y2="4.5" stroke="#8a5e00" stroke-width="1.4" stroke-linecap="round"/>
+          <line x1="2" y1="7" x2="14" y2="7" stroke="#8a5e00" stroke-width="1.2" stroke-opacity="0.6"/>
+        </svg>
+      </div>
+      <div class="card-label">Meeting Identifier</div>
+    </div>
+    <div class="field-wrap">
+      <label class="field-label" for="meetingName">Meeting name or topic</label>
+      <input class="field-input" id="meetingName" type="text"
+        placeholder="e.g. Editorial Standup, Q2 Budget Review, Pangea Sync…"
+        oninput="generate()" autocomplete="off" spellcheck="false">
+      <div class="field-sub">Copilot will search your Calendar and Teams to locate this meeting automatically.</div>
+    </div>
+  </div>
+
+  <!-- CARD 2: Output destination -->
+  <div class="card">
+    <div class="card-head">
+      <div class="card-head-icon chi-flame">
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M2 4h12M2 8h8M2 12h10" stroke="#FF5400" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="card-label">Output Destination</div>
+    </div>
+    <div class="dest-grid" id="destGrid">
+      <button class="dest-btn on" data-dest="loop" onclick="setDest(this)">
+        <div class="dest-icon">📋</div>
+        <div class="dest-name">Loop Page</div>
+        <div class="dest-tone">Structured · markdown headers · full detail</div>
+      </button>
+      <button class="dest-btn" data-dest="email" onclick="setDest(this)">
+        <div class="dest-icon">✉️</div>
+        <div class="dest-name">Email Summary</div>
+        <div class="dest-tone">Concise · paragraph form · no emoji headers</div>
+      </button>
+      <button class="dest-btn" data-dest="word" onclick="setDest(this)">
+        <div class="dest-icon">📄</div>
+        <div class="dest-name">Word Document</div>
+        <div class="dest-tone">Formal · document language · full sections</div>
+      </button>
+      <button class="dest-btn" data-dest="teams" onclick="setDest(this)">
+        <div class="dest-icon">💬</div>
+        <div class="dest-name">Teams Post</div>
+        <div class="dest-tone">Punchy · bullet-led · short & scannable</div>
+      </button>
+    </div>
+    <div class="tone-badge" id="toneBadge">
+      <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><circle cx="5" cy="5" r="4" stroke="currentColor" stroke-width="1.2"/><path d="M5 3.5v2.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><circle cx="5" cy="7.5" r="0.5" fill="currentColor"/></svg>
+      <span id="toneText">Tone: Structured markdown with emoji section headers — formatted for Loop</span>
+    </div>
+  </div>
+
+  <!-- CARD 3: Sections to include -->
+  <div class="card">
+    <div class="card-head">
+      <div class="card-head-icon chi-teal">
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="1.5" y="2.5" width="13" height="11" rx="2" stroke="#1A3948" stroke-width="1.3"/>
+          <line x1="5" y1="2.5" x2="5" y2="13.5" stroke="#1A3948" stroke-width="1.1" stroke-opacity="0.4"/>
+          <rect x="6.5" y="5" width="6" height="1.5" rx="0.75" fill="#1A3948" fill-opacity="0.25"/>
+          <rect x="6.5" y="8" width="4.5" height="1.5" rx="0.75" fill="#1A3948" fill-opacity="0.25"/>
+          <rect x="6.5" y="11" width="5.5" height="1.5" rx="0.75" fill="#1A3948" fill-opacity="0.25"/>
+        </svg>
+      </div>
+      <div class="card-label">Sections to include</div>
+      <div class="card-hint">tap to toggle</div>
+    </div>
+    <div class="sections-grid" id="sectionsGrid">
+
+      <div class="sec-chip locked" data-sec="info">
+        <div class="sec-check">
+          <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3.5" stroke="white" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        🗓️ Meeting Info
+      </div>
+
+      <div class="sec-chip on" data-sec="agenda" onclick="toggleSec(this)">
+        <div class="sec-check">
+          <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3.5" stroke="white" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        📌 Agenda / Purpose
+      </div>
+
+      <div class="sec-chip on" data-sec="discussion" onclick="toggleSec(this)">
+        <div class="sec-check">
+          <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3.5" stroke="white" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        💬 Key Discussion Points
+      </div>
+
+      <div class="sec-chip on" data-sec="decisions" onclick="toggleSec(this)">
+        <div class="sec-check">
+          <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3.5" stroke="white" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        ✅ Decisions Made
+      </div>
+
+      <div class="sec-chip on" data-sec="actions" onclick="toggleSec(this)" id="actionChip">
+        <div class="sec-check">
+          <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3.5" stroke="white" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        🎯 Action Items
+      </div>
+
+      <div class="sec-chip on" data-sec="nextsteps" onclick="toggleSec(this)">
+        <div class="sec-check">
+          <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3.5" stroke="white" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        🔜 Next Steps
+      </div>
+
+      <div class="sec-chip on" data-sec="notes" onclick="toggleSec(this)">
+        <div class="sec-check">
+          <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3.5" stroke="white" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        📝 Additional Notes
+      </div>
+
+    </div>
+
+    <!-- Action items status sub-panel -->
+    <div class="status-panel" id="statusPanel">
+      <div class="status-label">Default action item status</div>
+      <div class="status-chips">
+        <div class="st-chip" data-status="Not Started" onclick="setStatus(this)">Not Started</div>
+        <div class="st-chip" data-status="In Progress" onclick="setStatus(this)">In Progress</div>
+        <div class="st-chip on" data-status="TBD" onclick="setStatus(this)">TBD</div>
+        <div class="st-chip" data-status="" onclick="setStatus(this)">Leave blank</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA CARD -->
+  <div class="card">
+    <div class="cta-row">
+      <button class="btn-copy" id="copyBtn" onclick="copyPrompt()">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <rect x="5" y="4" width="9" height="10" rx="2" stroke="currentColor" stroke-width="1.4"/>
+          <path d="M11 4V3a1 1 0 00-1-1H3a1 1 0 00-1 1v9a1 1 0 001 1h1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>
+        <span id="copyLabel">Copy Prompt</span>
+      </button>
+      <a class="btn-outlook" href="https://outlook.office.com/mail/" target="_blank" rel="noopener">
+        <svg width="17" height="17" viewBox="0 0 17 17" fill="none">
+          <rect x="1.5" y="3.5" width="14" height="10" rx="2.5" stroke="#0072C6" stroke-width="1.4"/>
+          <path d="M1.5 6.5l6.3 4a1.2 1.2 0 001.4 0l6.3-4" stroke="#0072C6" stroke-width="1.3"/>
+        </svg>
+        Open Outlook
+      </a>
+    </div>
+  </div>
+
+  <!-- CAROUSEL -->
+  <div class="crs-section">
+    <div class="crs-header">
+      <div class="crs-header-title">How it works</div>
+      <div class="crs-header-sub">3 steps · about 20 seconds</div>
+    </div>
+    <div class="crs-box">
+      <div class="crs-progress">
+        <div class="crs-progress-bar" id="crsProgress" style="width:33.33%"></div>
+      </div>
+      <div class="crs-track" id="crsTrack">
+
+        <!-- Slide 1 -->
+        <div class="crs-slide">
+          <div class="crs-illustration">
+            <svg viewBox="0 0 400 180" xmlns="http://www.w3.org/2000/svg">
+              <rect width="400" height="180" fill="#F4F3F1"/>
+              <rect x="20" y="16" width="360" height="148" rx="12" fill="white" fill-opacity="0.70" stroke="#E8E6E3" stroke-width="1"/>
+              <!-- Meeting name field -->
+              <rect x="36" y="30" width="120" height="7" rx="3.5" fill="#1A3948" fill-opacity="0.13"/>
+              <rect x="36" y="44" width="328" height="28" rx="7" fill="white" stroke="#D4D0CB" stroke-width="1"/>
+              <rect x="48" y="54" width="110" height="7" rx="3.5" fill="#1A3948" fill-opacity="0.22"/>
+              <!-- Animated cursor -->
+              <rect x="161" y="52" width="2" height="11" rx="1" fill="#1A3948" fill-opacity="0.6">
+                <animate attributeName="opacity" values="1;0;1" dur="1s" repeatCount="indefinite"/>
+              </rect>
+              <!-- Destination pills -->
+              <rect x="36" y="84" width="150" height="7" rx="3.5" fill="#1A3948" fill-opacity="0.10"/>
+              <rect x="36" y="98" width="80" height="30" rx="9" fill="#1A3948"/>
+              <rect x="40" y="108" width="56" height="6" rx="3" fill="white" fill-opacity="0.55"/>
+              <rect x="124" y="98" width="80" height="30" rx="9" fill="white" stroke="#D4D0CB" stroke-width="1"/>
+              <rect x="128" y="108" width="52" height="6" rx="3" fill="#1A3948" fill-opacity="0.20"/>
+              <rect x="212" y="98" width="80" height="30" rx="9" fill="white" stroke="#D4D0CB" stroke-width="1"/>
+              <rect x="216" y="108" width="52" height="6" rx="3" fill="#1A3948" fill-opacity="0.20"/>
+              <rect x="300" y="98" width="64" height="30" rx="9" fill="white" stroke="#D4D0CB" stroke-width="1"/>
+              <rect x="304" y="108" width="40" height="6" rx="3" fill="#1A3948" fill-opacity="0.20"/>
+              <!-- Section chips row -->
+              <rect x="36" y="142" width="52" height="18" rx="9" fill="#1A3948" fill-opacity="0.08" stroke="#1A3948" stroke-opacity="0.22" stroke-width="1"/>
+              <rect x="94" y="142" width="68" height="18" rx="9" fill="#1A3948" fill-opacity="0.08" stroke="#1A3948" stroke-opacity="0.22" stroke-width="1"/>
+              <rect x="168" y="142" width="52" height="18" rx="9" fill="#1A3948" fill-opacity="0.08" stroke="#1A3948" stroke-opacity="0.22" stroke-width="1"/>
+              <rect x="226" y="142" width="60" height="18" rx="9" fill="#1A3948" fill-opacity="0.08" stroke="#1A3948" stroke-opacity="0.22" stroke-width="1"/>
+            </svg>
+          </div>
+          <div class="crs-copy">
+            <div class="crs-step-num">Step 1 of 3</div>
+            <div class="crs-step-title">Name the meeting &amp; configure</div>
+            <div class="crs-step-body">Type the meeting name — Copilot will find it. Choose your output destination and toggle the sections you need for this particular recap.</div>
+          </div>
+        </div>
+
+        <!-- Slide 2 -->
+        <div class="crs-slide">
+          <div class="crs-illustration">
+            <svg viewBox="0 0 400 180" xmlns="http://www.w3.org/2000/svg">
+              <rect width="400" height="180" fill="#F4F3F1"/>
+              <rect x="20" y="16" width="360" height="148" rx="12" fill="white" fill-opacity="0.70" stroke="#E8E6E3" stroke-width="1"/>
+              <!-- Invisible prompt lines -->
+              <rect x="36" y="30" width="280" height="6" rx="3" fill="#1A3948" fill-opacity="0.06"/>
+              <rect x="36" y="42" width="240" height="6" rx="3" fill="#1A3948" fill-opacity="0.06"/>
+              <rect x="36" y="54" width="260" height="6" rx="3" fill="#1A3948" fill-opacity="0.06"/>
+              <rect x="36" y="66" width="180" height="6" rx="3" fill="#1A3948" fill-opacity="0.06"/>
+              <rect x="36" y="78" width="220" height="6" rx="3" fill="#1A3948" fill-opacity="0.06"/>
+              <!-- hint text -->
+              <rect x="36" y="94" width="150" height="5" rx="2.5" fill="#1A3948" fill-opacity="0.10"/>
+              <!-- Copy button -->
+              <rect x="36" y="108" width="160" height="38" rx="10" fill="#1A3948"/>
+              <rect x="52" y="122" width="14" height="14" rx="3" fill="none" stroke="white" stroke-width="1.3" stroke-opacity="0.8"/>
+              <rect x="56" y="119" width="5" height="4" rx="1" fill="white" fill-opacity="0.8"/>
+              <rect x="54" y="126" width="9" height="1.5" rx="0.75" fill="white" fill-opacity="0.55"/>
+              <rect x="54" y="129.5" width="7" height="1.5" rx="0.75" fill="white" fill-opacity="0.55"/>
+              <rect x="72" y="124" width="70" height="6" rx="3" fill="white" fill-opacity="0.65"/>
+              <!-- Outlook button -->
+              <rect x="206" y="108" width="130" height="38" rx="10" fill="white" stroke="#D4D0CB" stroke-width="1"/>
+              <circle cx="228" cy="127" r="8" fill="none" stroke="#0072C6" stroke-width="1.6"/>
+              <path d="M224 127h8M228 123v8" stroke="#0072C6" stroke-width="1.2" stroke-linecap="round" opacity="0.6"/>
+              <rect x="241" y="123" width="60" height="6" rx="3" fill="#1A3948" fill-opacity="0.22"/>
+              <rect x="241" y="132" width="42" height="4" rx="2" fill="#1A3948" fill-opacity="0.13"/>
+              <!-- green flash bar -->
+              <rect x="36" y="152" width="160" height="3" rx="1.5" fill="#1f7a45" fill-opacity="0.18"/>
+            </svg>
+          </div>
+          <div class="crs-copy">
+            <div class="crs-step-num">Step 2 of 3</div>
+            <div class="crs-step-title">Copy your prompt</div>
+            <div class="crs-step-body">Hit <strong>Copy Prompt</strong>. The full structured instruction is assembled invisibly from your choices. Then click <strong>Open Outlook</strong> to jump straight there.</div>
+          </div>
+        </div>
+
+        <!-- Slide 3 -->
+        <div class="crs-slide">
+          <div class="crs-illustration">
+            <svg viewBox="0 0 400 180" xmlns="http://www.w3.org/2000/svg">
+              <rect width="400" height="180" fill="#F4F3F1"/>
+              <!-- Outlook shell -->
+              <rect x="20" y="12" width="360" height="156" rx="10" fill="white" stroke="#E8E6E3" stroke-width="1"/>
+              <!-- Sidebar strip -->
+              <rect x="20" y="12" width="60" height="156" rx="10" fill="#0f2d3d"/>
+              <rect x="72" y="12" width="8" height="156" fill="#0f2d3d"/>
+              <!-- Nav icons in sidebar -->
+              <circle cx="50" cy="38" r="9" fill="white" fill-opacity="0.10"/>
+              <circle cx="50" cy="38" r="5" fill="white" fill-opacity="0.35"/>
+              <rect x="38" y="58" width="24" height="4" rx="2" fill="white" fill-opacity="0.14"/>
+              <rect x="38" y="67" width="24" height="4" rx="2" fill="white" fill-opacity="0.14"/>
+              <rect x="38" y="76" width="24" height="4" rx="2" fill="white" fill-opacity="0.14"/>
+              <!-- Copilot panel right -->
+              <rect x="272" y="16" width="104" height="148" rx="0" fill="#F7F8FF"/>
+              <rect x="272" y="16" width="1" height="148" fill="#E4E4EF"/>
+              <!-- Copilot header -->
+              <rect x="278" y="22" width="92" height="20" rx="4" fill="white" stroke="#E4E4EF" stroke-width="1"/>
+              <circle cx="290" cy="32" r="5" fill="none" stroke="#0072C6" stroke-width="1.4"/>
+              <circle cx="290" cy="32" r="2" fill="#0072C6"/>
+              <rect x="300" y="28" width="44" height="4" rx="2" fill="#1A3948" fill-opacity="0.22"/>
+              <rect x="300" y="35" width="30" height="3.5" rx="1.75" fill="#1A3948" fill-opacity="0.12"/>
+              <!-- Pasted user bubble -->
+              <rect x="308" y="50" width="60" height="20" rx="6" fill="#0072C6" fill-opacity="0.13"/>
+              <rect x="312" y="55" width="48" height="4" rx="2" fill="#0072C6" fill-opacity="0.55"/>
+              <rect x="312" y="62" width="36" height="4" rx="2" fill="#0072C6" fill-opacity="0.35"/>
+              <!-- AI response building -->
+              <rect x="278" y="78" width="86" height="70" rx="5" fill="white" stroke="#E4E4EF" stroke-width="1"/>
+              <rect x="284" y="84" width="60" height="4" rx="2" fill="#1A3948" fill-opacity="0.20"/>
+              <rect x="284" y="91" width="74" height="3" rx="1.5" fill="#1A3948" fill-opacity="0.10"/>
+              <rect x="284" y="97" width="66" height="3" rx="1.5" fill="#1A3948" fill-opacity="0.10"/>
+              <rect x="284" y="104" width="50" height="4" rx="2" fill="#1A3948" fill-opacity="0.16"/>
+              <rect x="284" y="111" width="70" height="3" rx="1.5" fill="#1A3948" fill-opacity="0.10"/>
+              <rect x="284" y="117" width="58" height="3" rx="1.5" fill="#1A3948" fill-opacity="0.10"/>
+              <rect x="284" y="124" width="44" height="4" rx="2" fill="#1A3948" fill-opacity="0.14"/>
+              <!-- Input bar -->
+              <rect x="278" y="152" width="92" height="20" rx="5" fill="white" stroke="#E4E4EF" stroke-width="1"/>
+              <rect x="284" y="158" width="56" height="5" rx="2.5" fill="#1A3948" fill-opacity="0.13"/>
+              <rect x="352" y="154" width="12" height="12" rx="3" fill="#0072C6" fill-opacity="0.65"/>
+              <!-- Arrow from mail area to copilot -->
+              <path d="M210 90 Q240 82 268 90" stroke="#FF5400" stroke-width="1.8" fill="none" stroke-dasharray="4 3" stroke-linecap="round"/>
+              <polygon points="268,86 272,92 264,92" fill="#FF5400" fill-opacity="0.8"/>
+              <text x="138" y="84" font-family="system-ui" font-size="10" fill="#FF5400" font-weight="600">Paste here</text>
+              <text x="144" y="97" font-family="system-ui" font-size="8.5" fill="#1A3948" fill-opacity="0.50">Ctrl + V → Send</text>
+              <!-- Mail list placeholder -->
+              <rect x="90" y="22" width="174" height="8" rx="3" fill="#1A3948" fill-opacity="0.05"/>
+              <rect x="90" y="38" width="174" height="26" rx="4" fill="#1A3948" fill-opacity="0.04"/>
+              <rect x="90" y="70" width="174" height="26" rx="4" fill="#1A3948" fill-opacity="0.04"/>
+              <rect x="90" y="102" width="174" height="26" rx="4" fill="#1A3948" fill-opacity="0.04"/>
+            </svg>
+          </div>
+          <div class="crs-copy">
+            <div class="crs-step-num">Step 3 of 3</div>
+            <div class="crs-step-title">Paste into Copilot &amp; get your recap</div>
+            <div class="crs-step-body">Open the Copilot sidebar in Outlook. Paste with <strong>Ctrl+V</strong> and send. Copilot finds the meeting, reads the transcript or chat, and returns a structured recap ready to drop into your chosen destination.</div>
+          </div>
+        </div>
+
+      </div><!-- /track -->
+      <div class="crs-controls">
+        <div class="crs-dots" id="crsDots">
+          <button class="cdot on" onclick="goSlide(0)"></button>
+          <button class="cdot"    onclick="goSlide(1)"></button>
+          <button class="cdot"    onclick="goSlide(2)"></button>
+        </div>
+        <div class="crs-arrows">
+          <button class="crs-btn" id="crsBack" onclick="stepSlide(-1)" disabled>
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M8.5 10.5L4.5 6.5l4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <button class="crs-btn" id="crsFwd" onclick="stepSlide(1)">
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M4.5 2.5l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+      </div>
+    </div><!-- /crs-box -->
+  </div><!-- /crs-section -->
+
+</div><!-- /wrapper -->
+
+<script>
+/* ── Sidebar detection ──────────────────────────── */
+function detectSidebar() {
+  document.body.classList.toggle('sidebar-mode', window.innerWidth <= 420);
+}
+detectSidebar();
+window.addEventListener('resize', detectSidebar);
+
+/* ── State ──────────────────────────────────────── */
+let dest    = 'loop';
+let status  = 'TBD';
+let sections = {
+  info:       true,   // locked
+  agenda:     true,
+  discussion: true,
+  decisions:  true,
+  actions:    true,
+  nextsteps:  true,
+  notes:      true
+};
+
+/* ── Destination ────────────────────────────────── */
+const DEST_META = {
+  loop:  {
+    tone: 'Tone: Structured markdown with emoji section headers — formatted for Loop',
+    instruction: 'Format the output as a structured Loop page using markdown. Use the exact section headers with emoji as specified. Be thorough and detailed.'
+  },
+  email: {
+    tone: 'Tone: Concise paragraph prose — clean email format, no emoji headers',
+    instruction: 'Format the output as a clean, professional email summary. Use plain prose paragraphs. No emoji. No markdown headers. Keep it concise enough to read in under two minutes.'
+  },
+  word: {
+    tone: 'Tone: Formal document language — complete sections, Word-ready',
+    instruction: 'Format the output as a formal Word document. Use professional document language. Numbered headings. Full complete sentences throughout. Suitable for filing or external distribution.'
+  },
+  teams: {
+    tone: 'Tone: Punchy and scannable — short bullets, Teams post style',
+    instruction: 'Format the output as a brief Teams channel post. Keep it short and scannable. Lead with the most important decisions and action items. Use short bullet points. Maximum 300 words total.'
+  }
+};
+
+function setDest(btn) {
+  document.querySelectorAll('.dest-btn').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  dest = btn.dataset.dest;
+  document.getElementById('toneText').textContent = DEST_META[dest].tone;
+  generate();
+}
+
+/* ── Sections ───────────────────────────────────── */
+function toggleSec(chip) {
+  const sec = chip.dataset.sec;
+  const isOn = chip.classList.toggle('on');
+  sections[sec] = isOn;
+  // show/hide status panel
+  const panel = document.getElementById('statusPanel');
+  panel.classList.toggle('hidden', !sections.actions);
+  generate();
+}
+
+/* ── Status ─────────────────────────────────────── */
+function setStatus(chip) {
+  document.querySelectorAll('.st-chip').forEach(c => c.classList.remove('on'));
+  chip.classList.add('on');
+  status = chip.dataset.status;
+  generate();
+}
+
+/* ── Prompt builder ─────────────────────────────── */
+function buildSectionList() {
+  const map = {
+    info:       '## 🗓️ Meeting Info\n- **Meeting:** [Title]\n- **Date:** [Date & Time]\n- **Organizer:** [Name]\n- **Attendees:** [List names of confirmed participants only]',
+    agenda:     '## 📌 Agenda / Purpose\nSummarize the meeting\'s stated purpose or agenda in 1–2 sentences.',
+    discussion: '## 💬 Key Discussion Points\nFor each major topic discussed, write a short paragraph (2–4 sentences) capturing what was said, by whom, and any context. Use subheadings for each topic.',
+    decisions:  '## ✅ Decisions Made\nList every decision reached during the meeting as a bullet point. Include who made or approved the decision.',
+    actions:    buildActionSection(),
+    nextsteps:  '## 🔜 Next Steps & Follow-ups\nSummarize agreed next steps, including any follow-up meetings or deliverables mentioned.',
+    notes:      '## 📝 Additional Notes\nFlag any unresolved questions, parking lot items, or risks raised but not addressed.'
+  };
+  return Object.entries(sections)
+    .filter(([k, v]) => v)
+    .map(([k]) => map[k])
+    .join('\n\n');
+}
+
+function buildActionSection() {
+  const statusCol = status ? status : '(leave blank)';
+  return `## 🎯 Action Items\nPresent as a table:\n| # | Task | Owner | Deadline | Status |\n|---|------|-------|----------|--------|\n(Fill from transcript. If no deadline was stated, write "TBD". Default status: ${statusCol}.)`;
+}
+
+function generate() {
+  const name = document.getElementById('meetingName').value.trim();
+  const meetingRef = name
+    ? `the meeting titled "${name}"`
+    : 'the most recent relevant meeting you can find in my Calendar or Teams';
+
+  const secList = buildSectionList();
+  const destInstruction = DEST_META[dest].instruction;
+
+  const prompt =
+`You are my meeting notes assistant. Recap ${meetingRef} and create structured, professional meeting notes.
+
+${destInstruction}
+
+Use this format:
+
+${secList}
+
+---
+
+Rules:
+- Be factual and specific. Reference who said what.
+- Do NOT fabricate details not in the transcript or chat.
+- Keep language concise and professional.
+- If transcription was unavailable, state that clearly and use only meeting chat data.`;
+
+  window._generatedPrompt = prompt;
+}
+
+/* ── Copy ───────────────────────────────────────── */
+function copyPrompt() {
+  generate();
+  const p = window._generatedPrompt || '';
+  navigator.clipboard.writeText(p).then(() => {
+    const btn = document.getElementById('copyBtn');
+    const lbl = document.getElementById('copyLabel');
+    btn.classList.add('copied');
+    lbl.textContent = 'Prompt copied ✓';
+    setTimeout(() => {
+      btn.classList.remove('copied');
+      lbl.textContent = 'Copy Prompt';
+    }, 2400);
+  });
+}
+
+/* ── Carousel ───────────────────────────────────── */
+let cur = 0;
+const TOTAL = 3;
+const track = document.getElementById('crsTrack');
+const prog  = document.getElementById('crsProgress');
+const dots  = document.querySelectorAll('.cdot');
+const backB = document.getElementById('crsBack');
+const fwdB  = document.getElementById('crsFwd');
+
+function goSlide(n) {
+  cur = Math.max(0, Math.min(n, TOTAL - 1));
+  track.style.transform = `translateX(-${cur * 100}%)`;
+  prog.style.width = `${((cur + 1) / TOTAL) * 100}%`;
+  dots.forEach((d, i) => d.classList.toggle('on', i === cur));
+  backB.disabled = cur === 0;
+  fwdB.disabled  = cur === TOTAL - 1;
+}
+function stepSlide(d) { goSlide(cur + d); }
+
+/* touch swipe */
+let ts = 0, tx = 0;
+const box = document.querySelector('.crs-box');
+box.addEventListener('touchstart', e => { ts = e.touches[0].clientX; tx = 0; }, {passive:true});
+box.addEventListener('touchmove',  e => { tx = e.touches[0].clientX - ts; }, {passive:true});
+box.addEventListener('touchend',   () => { if (Math.abs(tx) > 44) stepSlide(tx < 0 ? 1 : -1); });
+
+/* ── Init ───────────────────────────────────────── */
+generate();
+</script>
+</body>
+</html>
