@@ -1,9 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Memory Hunter — PilotDesk</title>
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Noto+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -25,11 +25,12 @@ body{font-family:var(--sans);background:#F0EFED;min-height:100vh;overflow-x:hidd
 .o3{width:380px;height:320px;bottom:8%;left:22%;background:radial-gradient(ellipse,rgba(255,192,71,0.14) 0%,transparent 65%);}
 .wrap{position:relative;z-index:1;max-width:800px;margin:0 auto;padding:0 20px 80px;}
 
-/* NAV */
+/* NAV — wordmark replaced, all else identical */
 .nav-wrap{position:sticky;top:0;z-index:50;display:flex;justify-content:center;padding:14px 24px 0;pointer-events:none;}
 .nav-pill{display:inline-flex;align-items:center;gap:2px;background:rgba(26,57,72,0.84);backdrop-filter:blur(28px) saturate(2);-webkit-backdrop-filter:blur(28px) saturate(2);border:1px solid rgba(255,255,255,0.12);border-radius:100px;padding:5px;box-shadow:0 8px 32px rgba(0,0,0,0.22),0 2px 8px rgba(0,0,0,0.14),inset 0 1px 0 rgba(255,255,255,0.14),inset 0 -1px 0 rgba(0,0,0,0.18);pointer-events:all;}
-.wordmark{font-family:var(--serif);font-size:16px;color:rgba(248,247,246,0.92);padding:6px 14px 6px 12px;border-right:1px solid rgba(255,255,255,0.10);margin-right:4px;}
+.wordmark{font-family:var(--serif);font-size:16px;color:rgba(248,247,246,0.92);padding:6px 14px 6px 12px;border-right:1px solid rgba(255,255,255,0.10);margin-right:4px;display:flex;align-items:center;gap:5px;text-decoration:none;}
 .wordmark em{font-style:normal;color:var(--flame);font-weight:600;}
+.wordmark svg{opacity:0.6;flex-shrink:0;}
 .ntab{font-size:12px;font-weight:500;color:rgba(185,204,204,0.72);padding:7px 13px;border-radius:100px;cursor:pointer;transition:color 180ms,background 180ms;white-space:nowrap;}
 .ntab:hover{color:rgba(248,247,246,0.95);}
 .ntab.on{background:rgba(255,255,255,0.13);color:#fff;}
@@ -79,7 +80,7 @@ textarea::placeholder,input[type=text]::placeholder{color:var(--stone);}
 .chip.on.f{background:var(--flame);border-color:var(--flame);}
 .chip.on.h{background:var(--honey);border-color:var(--honey);color:var(--teal);}
 
-/* CERTAINTY DOTS — replaces sliders */
+/* CERTAINTY DOTS */
 .cert-row{display:flex;align-items:center;gap:10px;margin-top:10px;padding:10px 13px;border-radius:10px;background:rgba(255,255,255,0.50);border:1px solid rgba(26,57,72,0.08);}
 .cert-lbl{font-size:11px;font-weight:600;color:var(--soft);flex:1;}
 .cert-dots{display:flex;gap:5px;}
@@ -172,10 +173,13 @@ textarea::placeholder,input[type=text]::placeholder{color:var(--stone);}
 <div class="scene"><div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div></div>
 <div class="wrap">
 
-<!-- NAV -->
+<!-- NAV — wordmark is now PilotDesk with back arrow, all tabs identical -->
 <div class="nav-wrap">
   <div class="nav-pill">
-    <div class="wordmark">Memory<em>.</em>Hunter</div>
+    <a class="wordmark" href="../">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M8 10L4 6.5 8 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Pilot<em>Desk</em>
+    </a>
     <div class="ntab on" onclick="showView('builder')">Build</div>
     <div class="ntab" onclick="showView('fast')">Fast ⚡</div>
     <div class="ntab" onclick="showView('history')">History <span class="nbadge" id="hist-count">0</span></div>
@@ -187,7 +191,7 @@ textarea::placeholder,input[type=text]::placeholder{color:var(--stone);}
 <!-- ══════════════ BUILDER ══════════════ -->
 <div class="view active" id="view-builder">
   <div class="hero">
-    <div class="eyebrow"><div class="pdot"></div> Copilot Prompt Generator</div>
+    <div class="eyebrow"><div class="pdot"></div> RFE/RL · PilotDesk</div>
     <h1>Find What You <em>Can't Quite</em> Remember</h1>
     <p>Signal fusion across email, Teams, meetings, files — the more signals, the sharper the search.</p>
   </div>
@@ -261,7 +265,7 @@ textarea::placeholder,input[type=text]::placeholder{color:var(--stone);}
     </div>
   </div>
 
-  <!-- CHANNELS + TIME (collapsed into one card) -->
+  <!-- CHANNELS + TIME -->
   <div class="sdiv"><h2>Where &amp; when</h2><div class="rule"></div></div>
   <div class="card stagger4">
     <div class="fl" style="margin-bottom:8px;">Channels to search</div>
@@ -297,7 +301,7 @@ textarea::placeholder,input[type=text]::placeholder{color:var(--stone);}
     </div>
   </div>
 
-  <!-- MEMORY CLUES (collapsible) -->
+  <!-- MEMORY CLUES -->
   <div style="text-align:center;margin:6px 0 12px;">
     <span id="clues-toggle" onclick="toggleClues()" style="font-size:12px;font-weight:600;color:var(--teal2);cursor:pointer;border-bottom:1px dashed rgba(26,57,72,0.25);padding-bottom:1px;">+ Add memory clues (file format, visuals, project name…)</span>
   </div>
@@ -417,7 +421,7 @@ textarea::placeholder,input[type=text]::placeholder{color:var(--stone);}
   </div>
 </div>
 
-</div>
+</div><!-- /wrap -->
 
 <script>
 var people=[], memPeople=[], history=[], currentVar='full', cluesOpen=false;
@@ -431,7 +435,6 @@ function showView(v){
   const map={builder:0,fast:1,history:2,tips:3};
   document.querySelectorAll('.ntab')[map[v]].classList.add('on');
 }
-
 function tog(el){el.classList.toggle('on');}
 function togCh(el){el.classList.toggle('on');}
 function solo(el,g){
@@ -443,7 +446,6 @@ function setVar(el,v){
   document.querySelectorAll('.var-btn').forEach(b=>b.classList.remove('on'));
   el.classList.add('on');
 }
-
 function setCert(type,val,el){
   certs[type]=val;
   const container=el.closest('.cert-dots');
@@ -454,13 +456,11 @@ function setCert(type,val,el){
   const lbl=document.getElementById(type+'-cert-v');
   if(lbl){lbl.textContent=certLabels[val][1];lbl.style.cssText=certLabels[val][2];}
 }
-
 function toggleClues(){
   cluesOpen=!cluesOpen;
   document.getElementById('clues-card').style.display=cluesOpen?'block':'none';
   document.getElementById('clues-toggle').textContent=cluesOpen?'− Hide memory clues':'+ Add memory clues (file format, visuals, project name…)';
 }
-
 function addPerson(){
   const inp=document.getElementById('person-in');
   const n=inp.value.trim();
@@ -479,15 +479,8 @@ function renderPeople(){
   const mw=document.getElementById('mem-wrap');
   const mp=document.getElementById('mem-pills');
   const avail=memPeople.filter(n=>!people.includes(n));
-  if(avail.length){
-    mw.style.display='block';
-    mp.innerHTML=avail.map(n=>`<div class="ppill mem" onclick="addFromMem('${n}')">${n} +</div>`).join('');
-  } else {mw.style.display='none';}
-}
-
-function getCertLabel(type){
-  const v=certs[type];
-  return certLabels[v][1].toLowerCase();
+  if(avail.length){mw.style.display='block';mp.innerHTML=avail.map(n=>`<div class="ppill mem" onclick="addFromMem('${n}')">${n} +</div>`).join('');}
+  else{mw.style.display='none';}
 }
 function getCertInstruction(type){
   const v=certs[type];
@@ -495,10 +488,8 @@ function getCertInstruction(type){
   if(v===3)return 'these exact words likely appear verbatim';
   return 'balance exact and fuzzy matching';
 }
-
 function getChips(id){return [...document.querySelectorAll('#'+id+' .chip.on')].map(e=>e.textContent.trim());}
 function getChannels(){return [...document.querySelectorAll('#channels .ch-pill.on .ch-lbl')].map(e=>e.textContent.trim());}
-
 function updateStrength(){
   let s=0;
   if(document.getElementById('topic').value.trim())s+=30;
@@ -520,7 +511,6 @@ function updateStrength(){
   msg.textContent=msgs[mi];
   msg.style.color=s>=70?'var(--green)':s>=40?'#8a5e00':'var(--soft)';
 }
-
 function generate(){
   const topic=document.getElementById('topic').value.trim();
   const kw=document.getElementById('keywords').value.trim();
@@ -535,69 +525,17 @@ function generate(){
   const timeStr=tf||(timeframe.length?timeframe.join(', '):'Not specified');
   const chStr=channels.length?channels.join(', '):'All channels';
   const pStr=priority.length?priority[0]:'Cross-channel match';
-
+  const certKW=certLabels[certs.kw][1].toLowerCase();
+  const certP=certLabels[certs.p][1].toLowerCase();
+  const certT=certLabels[certs.t][1].toLowerCase();
   let prompt='';
   if(currentVar==='full'){
-    prompt=`You are an enterprise search assistant. Help me locate a document or resource across my work environment.
-
-PRIORITY: Rank results that appear across MULTIPLE channels (email + meeting, chat + file, etc.) above single-source hits. This is the primary ranking signal.
-
----------------------------------------
-WHAT I'M LOOKING FOR
----------------------------------------
-Topic: ${topic||'(see keywords)'}
-Type: ${dtype.length?dtype.join(', '):'Unknown — search all types'}${why?'\nWhy: '+why:''}
-
----------------------------------------
-KEYWORDS
----------------------------------------
-${kw||'Not specified'}
-Certainty: ${getCertLabel('kw')} — ${getCertInstruction('kw')}
-
----------------------------------------
-PEOPLE
----------------------------------------
-${people.length?people.join(', '):'Not specified — search broadly'}
-Certainty: ${getCertLabel('p')}
-
----------------------------------------
-CHANNELS
----------------------------------------
-${chStr}
-
----------------------------------------
-TIMEFRAME
----------------------------------------
-${timeStr}
-Certainty: ${getCertLabel('t')}
-${clues?`\n---------------------------------------\nMEMORY CLUES\n---------------------------------------\n${clues}`:''}
-
----------------------------------------
-RANKING PRIORITY
----------------------------------------
-${pStr}
-
----------------------------------------
-WHAT I WANT
----------------------------------------
-1. Search across: ${chStr}
-2. Rank by relevance — weight cross-channel overlap most heavily
-3. For each result: type · why it matches · brief summary · direct link
-4. If no match: suggest better queries, missing keywords, most likely channel
----------------------------------------`;
+    prompt=`You are an enterprise search assistant. Help me locate a document or resource across my work environment.\n\nPRIORITY: Rank results that appear across MULTIPLE channels (email + meeting, chat + file, etc.) above single-source hits.\n\n---------------------------------------\nWHAT I'M LOOKING FOR\n---------------------------------------\nTopic: ${topic||'(see keywords)'}\nType: ${dtype.length?dtype.join(', '):'Unknown — search all types'}${why?'\nWhy: '+why:''}\n\n---------------------------------------\nKEYWORDS\n---------------------------------------\n${kw||'Not specified'}\nCertainty: ${certKW} — ${getCertInstruction('kw')}\n\n---------------------------------------\nPEOPLE\n---------------------------------------\n${people.length?people.join(', '):'Not specified — search broadly'}\nCertainty: ${certP}\n\n---------------------------------------\nCHANNELS\n---------------------------------------\n${chStr}\n\n---------------------------------------\nTIMEFRAME\n---------------------------------------\n${timeStr}\nCertainty: ${certT}${clues?'\n\n---------------------------------------\nMEMORY CLUES\n---------------------------------------\n'+clues:''}\n\n---------------------------------------\nRANKING PRIORITY\n---------------------------------------\n${pStr}\n\n---------------------------------------\nWHAT I WANT\n---------------------------------------\n1. Search across: ${chStr}\n2. Rank by relevance — weight cross-channel overlap most heavily\n3. For each result: type · why it matches · brief summary · direct link\n4. If no match: suggest better queries, missing keywords, most likely channel\n---------------------------------------`;
   } else if(currentVar==='brief'){
-    prompt=`Search across my ${chStr} for: ${topic||kw}
-
-Keywords (${getCertLabel('kw')}): ${kw||'—'}
-People (${getCertLabel('p')}): ${people.length?people.join(', '):'any'}
-When (${getCertLabel('t')}): ${timeStr}
-Type: ${dtype.length?dtype.join(', '):'any'}${clues?'\nClues: '+clues:''}
-
-Prioritise cross-channel matches. Return top results with type, match reason, and link.`;
+    prompt=`Search across my ${chStr} for: ${topic||kw}\n\nKeywords (${certKW}): ${kw||'—'}\nPeople (${certP}): ${people.length?people.join(', '):'any'}\nWhen (${certT}): ${timeStr}\nType: ${dtype.length?dtype.join(', '):'any'}${clues?'\nClues: '+clues:''}\n\nPrioritise cross-channel matches. Return top results with type, match reason, and link.`;
   } else {
-    prompt=`Find (${topic||kw}) across my ${chStr} — keywords: ${kw||'—'} [${getCertLabel('kw')}], people: ${people.length?people.join(', '):'any'} [${getCertLabel('p')}], time: ${timeStr} [${getCertLabel('t')}]${clues?' clues: '+clues:''}. Rank by cross-channel overlap. Return top 5 with type + link.`;
+    prompt=`Find (${topic||kw}) across my ${chStr} — keywords: ${kw||'—'} [${certKW}], people: ${people.length?people.join(', '):'any'} [${certP}], time: ${timeStr} [${certT}]${clues?' clues: '+clues:''}. Rank by cross-channel overlap. Return top 5 with type + link.`;
   }
-
   document.getElementById('output-area').style.display='block';
   document.getElementById('output-box').innerText=prompt;
   const s=parseInt(document.getElementById('s-pct').textContent);
@@ -609,23 +547,19 @@ Prioritise cross-channel matches. Return top results with type, match reason, an
   document.getElementById('copy-btn').textContent='Copy prompt';
   document.getElementById('copy-btn').classList.remove('done');
 }
-
 function generateFast(){
   const t=document.getElementById('f-topic').value.trim();
   if(!t){alert('Enter a topic.');return;}
   const p=document.getElementById('f-people').value.trim();
   const tm=document.getElementById('f-time').value.trim();
   const kw=document.getElementById('f-kw').value.trim();
-  const prompt=`Search across my email, Teams, SharePoint, and meetings for: ${t}${kw?'\nKeywords: '+kw:''}${p?'\nPeople: '+p:''}${tm?'\nTimeframe: '+tm:''}
-
-Prioritise results appearing in multiple channels. Return top 5 matches with type, match reason, and direct link. If nothing found, suggest better search terms.`;
+  const prompt=`Search across my email, Teams, SharePoint, and meetings for: ${t}${kw?'\nKeywords: '+kw:''}${p?'\nPeople: '+p:''}${tm?'\nTimeframe: '+tm:''}\n\nPrioritise results appearing in multiple channels. Return top 5 matches with type, match reason, and direct link. If nothing found, suggest better search terms.`;
   document.getElementById('fast-out-area').style.display='block';
   document.getElementById('fast-out-box').innerText=prompt;
   document.getElementById('fast-out-area').scrollIntoView({behavior:'smooth',block:'start'});
   document.getElementById('fast-copy-btn').textContent='Copy prompt';
   document.getElementById('fast-copy-btn').classList.remove('done');
 }
-
 function doCopy(boxId,btnId){
   navigator.clipboard.writeText(document.getElementById(boxId).innerText).then(()=>{
     const b=document.getElementById(btnId);
@@ -633,7 +567,6 @@ function doCopy(boxId,btnId){
     setTimeout(()=>{b.textContent='Copy prompt';b.classList.remove('done');},2500);
   });
 }
-
 function saveHistory(){
   const topic=document.getElementById('topic').value.trim()||'Untitled';
   const kw=document.getElementById('keywords').value.trim();
@@ -646,27 +579,13 @@ function saveHistory(){
   b.textContent='Saved ✓';b.style.color='var(--green)';
   setTimeout(()=>{b.textContent='Save to history';b.style.color='';},2000);
 }
-function deleteHistory(i,e){
-  e.stopPropagation();
-  history.splice(i,1);
-  renderHistory();
-  document.getElementById('hist-count').textContent=history.length||'0';
-}
+function deleteHistory(i,e){e.stopPropagation();history.splice(i,1);renderHistory();document.getElementById('hist-count').textContent=history.length||'0';}
 function renderHistory(){
   const list=document.getElementById('hist-list');
   const empty=document.getElementById('hist-empty');
   if(!history.length){empty.style.display='block';list.innerHTML='';return;}
   empty.style.display='none';
-  list.innerHTML=history.map((h,i)=>`
-    <div class="hist-item" onclick="loadHistory(${i})">
-      <div class="hist-icon">🔍</div>
-      <div class="hist-body">
-        <div class="hist-title">${h.topic}</div>
-        <div class="hist-meta">${h.date} · ${h.channels.slice(0,3).join(', ')}</div>
-        <div class="hist-tags">${h.people.slice(0,3).map(p=>`<span class="htag">${p}</span>`).join('')}${h.kw?`<span class="htag">${h.kw.split(',')[0].trim()}</span>`:''}</div>
-      </div>
-      <div class="hist-del" onclick="deleteHistory(${i},event)" title="Delete">×</div>
-    </div>`).join('');
+  list.innerHTML=history.map((h,i)=>`<div class="hist-item" onclick="loadHistory(${i})"><div class="hist-icon">🔍</div><div class="hist-body"><div class="hist-title">${h.topic}</div><div class="hist-meta">${h.date} · ${h.channels.slice(0,3).join(', ')}</div><div class="hist-tags">${h.people.slice(0,3).map(p=>`<span class="htag">${p}</span>`).join('')}${h.kw?`<span class="htag">${h.kw.split(',')[0].trim()}</span>`:''}</div></div><div class="hist-del" onclick="deleteHistory(${i},event)" title="Delete">×</div></div>`).join('');
 }
 function loadHistory(i){
   const h=history[i];
