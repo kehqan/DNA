@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fact-Check Assistant — PilotDesk</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Noto+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ── TOKENS ─────────────────────────────────────── */
+:root {
+  --ivory:   #F8F7F6;
+  --bg:      #F0EFED;
+  --teal:    #1A3948;
+  --teal2:   #24506A;
+  --flame:   #FF5400;
+  --stone:   #B9CCCC;
+  --honey:   #FFC047;
+  --border:  rgba(26,57,72,0.09);
+  --muted:   rgba(26,57,72,0.52);
+  --soft:    rgba(26,57,72,0.36);
+  --glass:   rgba(255,255,255,0.55);
+  --glass-b: rgba(255,255,255,0.85);
+  --gs: 0 8px 32px rgba(26,57,72,0.10), 0 1.5px 4px rgba(26,57,72,0.06);
+  --gi: inset 0 1px 0 rgba(255,255,255,0.92), inset 0 -1px 0 rgba(26,57,72,0.03);
+  --eo: cubic-bezier(0.25,0.46,0.45,0.94);
+  --serif: 'Lora', Georgia, serif;
+  --sans:  'Noto Sans', system-ui, sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--teal);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── SCENE ──────────────────────────────────────── */
+.scene {
+  position: fixed; inset: 0; z-index: 0;
+  pointer-events: none; overflow: hidden;
+  background: #F0EFED;
+}
+.orb { position: absolute; border-radius: 50%; filter: blur(90px); }
+.o1 {
+  width: 580px; height: 460px; top: -120px; left: -100px;
+  background: radial-gradient(ellipse, rgba(255,84,0,0.28) 0%, rgba(255,140,60,0.11) 45%, transparent 70%);
+}
+.o2 {
+  width: 460px; height: 380px; top: 35%; right: -120px;
+  background: radial-gradient(ellipse, rgba(26,57,72,0.13) 0%, rgba(26,57,72,0.04) 55%, transparent 75%);
+}
+.o3 {
+  width: 360px; height: 300px; bottom: 12%; left: 28%;
+  background: radial-gradient(ellipse, rgba(255,192,71,0.15) 0%, transparent 65%);
+}
+
+/* ── NAV PILL ───────────────────────────────────── */
+.nav-wrap {
+  position: sticky; top: 0; z-index: 50;
+  display: flex; justify-content: center;
+  padding: 14px 24px 0;
+  pointer-events: none;
+}
+.nav-pill {
+  display: inline-flex; align-items: center; gap: 2px;
+  background: rgba(26,57,72,0.82);
+  backdrop-filter: blur(28px) saturate(2);
+  -webkit-backdrop-filter: blur(28px) saturate(2);
+  border: 1px solid rgba(255,255,255,0.11);
+  border-radius: 100px; padding: 5px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.22), 0 2px 8px rgba(0,0,0,0.14),
+              inset 0 1px 0 rgba(255,255,255,0.14), inset 0 -1px 0 rgba(0,0,0,0.18);
+  pointer-events: all; max-width: 100%;
+}
+.wordmark {
+  font-family: var(--serif); font-size: 17px; font-weight: 400;
+  color: rgba(248,247,246,0.93);
+  padding: 6px 14px 6px 12px;
+  border-right: 1px solid rgba(255,255,255,0.10);
+  margin-right: 4px; white-space: nowrap; letter-spacing: -0.01em;
+  display: flex; align-items: center; gap: 5px; text-decoration: none;
+  transition: color 180ms;
+}
+.wordmark:hover { color: #fff; }
+.wordmark em { font-style: normal; color: var(--flame); font-weight: 600; }
+.wordmark svg { opacity: 0.6; flex-shrink: 0; }
+.nav-sep { width: 1px; height: 20px; background: rgba(255,255,255,0.08); margin: 0 2px; flex-shrink: 0; }
+.ntab {
+  font-size: 12.5px; font-weight: 500;
+  color: rgba(185,204,204,0.70);
+  padding: 7px 14px; border-radius: 100px;
+  white-space: nowrap;
+}
+.ntab.on {
+  background: rgba(255,255,255,0.13); color: #fff;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.18), inset 0 -1px 0 rgba(0,0,0,0.12);
+}
+
+/* ── LAYOUT ─────────────────────────────────────── */
+.wrapper {
+  position: relative; z-index: 1;
+  max-width: 700px; margin: 0 auto;
+  padding: 28px 24px 80px;
+}
+
+/* ── HERO ───────────────────────────────────────── */
+.hero {
+  margin: 30px 0 32px;
+  display: flex; flex-direction: column; gap: 8px;
+  animation: rise 420ms var(--eo) both;
+}
+@keyframes rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.hero-eyebrow {
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 0.13em; text-transform: uppercase;
+  color: var(--soft); display: flex; align-items: center; gap: 8px;
+}
+.pdot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--flame); animation: pring 2.6s ease-in-out infinite; flex-shrink: 0;
+}
+@keyframes pring {
+  0%,100% { box-shadow: 0 0 0 0 rgba(255,84,0,0.45); }
+  50%      { box-shadow: 0 0 0 6px rgba(255,84,0,0); }
+}
+.hero-title {
+  font-family: var(--serif);
+  font-size: clamp(24px, 4.5vw, 36px);
+  font-weight: 400; color: var(--teal);
+  line-height: 1.2; letter-spacing: -0.02em;
+}
+.hero-title em { font-style: italic; color: var(--teal2); }
+.hero-sub {
+  font-size: 13.5px; line-height: 1.65;
+  color: var(--muted); max-width: 480px; margin-top: 2px;
+}
+
+/* ── GLASS CARD ─────────────────────────────────── */
+.card {
+  border-radius: 18px;
+  background: var(--glass);
+  backdrop-filter: blur(20px) saturate(1.8);
+  -webkit-backdrop-filter: blur(20px) saturate(1.8);
+  border: 1px solid var(--glass-b);
+  box-shadow: var(--gs), var(--gi);
+  padding: 22px 24px;
+  margin-bottom: 14px;
+  animation: rise 420ms var(--eo) both;
+}
+.card:nth-child(1) { animation-delay: 40ms; }
+.card:nth-child(2) { animation-delay: 80ms; }
+.card:nth-child(3) { animation-delay: 120ms; }
+.card:nth-child(4) { animation-delay: 160ms; }
+.card:nth-child(5) { animation-delay: 200ms; }
+
+/* ── CARD HEADER ────────────────────────────────── */
+.card-head {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 16px;
+}
+.card-head-icon {
+  width: 32px; height: 32px; border-radius: 9px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.chi-flame  { background: rgba(255,84,0,0.10);   border: 1px solid rgba(255,84,0,0.20); }
+.chi-teal   { background: rgba(26,57,72,0.08);   border: 1px solid rgba(26,57,72,0.15); }
+.chi-honey  { background: rgba(255,192,71,0.14); border: 1px solid rgba(255,192,71,0.28); }
+.chi-stone  { background: rgba(185,204,204,0.25);border: 1px solid rgba(185,204,204,0.40); }
+.card-head-icon svg { width: 16px; height: 16px; }
+.card-label {
+  font-family: var(--serif); font-size: 15px; font-weight: 500;
+  color: var(--teal); flex: 1;
+}
+.card-hint { font-size: 11px; color: var(--soft); font-style: italic; }
+
+/* ── FORM ELEMENTS ──────────────────────────────── */
+.field-label {
+  font-size: 11px; font-weight: 600; letter-spacing: 0.07em;
+  text-transform: uppercase; color: var(--soft); margin-bottom: 8px; display: block;
+}
+.field-input, .field-textarea, .field-select {
+  width: 100%; font-family: var(--sans); font-size: 14px; color: var(--teal);
+  background: rgba(255,255,255,0.70);
+  border: 1.5px solid rgba(26,57,72,0.13);
+  border-radius: 10px; outline: none;
+  box-shadow: inset 0 1px 3px rgba(26,57,72,0.05);
+  transition: border-color 180ms, box-shadow 180ms;
+}
+.field-input {
+  padding: 11px 14px; height: 44px;
+}
+.field-textarea {
+  padding: 12px 14px; min-height: 100px;
+  resize: vertical; line-height: 1.6;
+}
+.field-input:focus, .field-textarea:focus, .field-select:focus {
+  border-color: rgba(26,57,72,0.35);
+  box-shadow: inset 0 1px 3px rgba(26,57,72,0.06), 0 0 0 3px rgba(26,57,72,0.07);
+}
+.field-input::placeholder, .field-textarea::placeholder { color: rgba(26,57,72,0.30); }
+.field-select {
+  padding: 11px 36px 11px 14px; height: 44px;
+  -webkit-appearance: none; appearance: none; cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%231A3948' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 14px center;
+}
+.field-sub {
+  font-size: 11.5px; color: var(--soft); line-height: 1.5; margin-top: 6px;
+}
+
+/* ── INPUT TABS ─────────────────────────────────── */
+.input-tabs { display: flex; gap: 6px; margin-bottom: 14px; }
+.itab {
+  padding: 6px 16px; border-radius: 100px; font-size: 12px; font-weight: 600;
+  border: 1px solid var(--border); background: rgba(255,255,255,0.55);
+  color: var(--muted); cursor: pointer; transition: all 160ms var(--eo);
+}
+.itab.on { background: var(--teal); color: var(--ivory); border-color: var(--teal); }
+.itab:hover:not(.on) { background: rgba(255,255,255,0.85); }
+
+/* ── SCOPE TOGGLE ───────────────────────────────── */
+.scope-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 0;
+}
+.scope-btn {
+  display: flex; flex-direction: column; gap: 3px;
+  padding: 12px 14px; border-radius: 12px;
+  background: rgba(255,255,255,0.60);
+  border: 1.5px solid rgba(26,57,72,0.12);
+  cursor: pointer; text-align: left;
+  transition: all 180ms var(--eo);
+}
+.scope-btn:hover {
+  background: rgba(255,255,255,0.82); border-color: rgba(26,57,72,0.22);
+  transform: translateY(-1px);
+}
+.scope-btn.on {
+  background: var(--teal); border-color: var(--teal);
+  box-shadow: 0 4px 16px rgba(26,57,72,0.22), inset 0 1px 0 rgba(255,255,255,0.12);
+  transform: translateY(-1px);
+}
+.scope-icon { font-size: 16px; line-height: 1; margin-bottom: 2px; }
+.scope-name { font-size: 12.5px; font-weight: 600; color: var(--teal); transition: color 180ms; }
+.scope-btn.on .scope-name { color: var(--ivory); }
+.scope-desc { font-size: 10.5px; color: var(--soft); line-height: 1.4; transition: color 180ms; }
+.scope-btn.on .scope-desc { color: rgba(185,204,204,0.75); }
+
+/* Specific claim panel — slides in */
+.specific-panel {
+  overflow: hidden; max-height: 0;
+  transition: max-height 280ms var(--eo), opacity 220ms, margin-top 220ms;
+  opacity: 0; margin-top: 0;
+}
+.specific-panel.open {
+  max-height: 160px; opacity: 1; margin-top: 12px;
+}
+
+/* ── CLAIM TYPE CHIPS ───────────────────────────── */
+.chip-row { display: flex; flex-wrap: wrap; gap: 7px; }
+.chip {
+  padding: 6px 14px; border-radius: 100px;
+  font-size: 12px; font-weight: 500;
+  border: 1.5px solid rgba(26,57,72,0.13);
+  background: rgba(255,255,255,0.60);
+  color: var(--muted); cursor: pointer;
+  transition: all 160ms var(--eo); user-select: none;
+}
+.chip:hover { background: rgba(255,255,255,0.85); color: var(--teal); }
+.chip.on {
+  background: rgba(26,57,72,0.09); border-color: rgba(26,57,72,0.28); color: var(--teal);
+}
+
+/* ── GRID ROW ───────────────────────────────────── */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.field-wrap { display: flex; flex-direction: column; }
+
+/* ── RISK LEVEL ─────────────────────────────────── */
+.risk-chips { display: flex; gap: 8px; }
+.risk-chip {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 10px 12px; border-radius: 12px;
+  border: 1.5px solid rgba(26,57,72,0.12);
+  background: rgba(255,255,255,0.60);
+  cursor: pointer; transition: all 180ms var(--eo); text-align: center;
+}
+.risk-chip:hover { background: rgba(255,255,255,0.85); transform: translateY(-1px); }
+.risk-chip.on-low {
+  background: rgba(31,122,69,0.09); border-color: rgba(31,122,69,0.28);
+  box-shadow: 0 2px 12px rgba(31,122,69,0.12);
+}
+.risk-chip.on-medium {
+  background: rgba(255,192,71,0.12); border-color: rgba(200,140,0,0.28);
+  box-shadow: 0 2px 12px rgba(200,140,0,0.10);
+}
+.risk-chip.on-high {
+  background: rgba(255,84,0,0.09); border-color: rgba(255,84,0,0.28);
+  box-shadow: 0 2px 12px rgba(255,84,0,0.12);
+}
+.risk-dot { width: 9px; height: 9px; border-radius: 50%; }
+.rd-low    { background: #1f7a45; }
+.rd-medium { background: #c98a00; }
+.rd-high   { background: var(--flame); }
+.risk-name { font-size: 12px; font-weight: 600; color: var(--teal); }
+.risk-desc { font-size: 10px; color: var(--soft); line-height: 1.3; }
+
+/* ── FOCUS CHIPS ────────────────────────────────── */
+.focus-chips { display: flex; flex-wrap: wrap; gap: 7px; }
+.focus-chip {
+  display: flex; align-items: center; gap: 6px;
+  padding: 7px 14px; border-radius: 100px;
+  font-size: 12px; font-weight: 500;
+  border: 1.5px solid rgba(26,57,72,0.13);
+  background: rgba(255,255,255,0.60);
+  color: var(--muted); cursor: pointer;
+  transition: all 160ms var(--eo); user-select: none;
+}
+.focus-chip:hover { background: rgba(255,255,255,0.85); color: var(--teal); }
+.focus-chip.on {
+  background: var(--flame); border-color: var(--flame); color: #fff;
+  box-shadow: 0 3px 12px rgba(255,84,0,0.28);
+}
+.focus-chip-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: rgba(26,57,72,0.25); flex-shrink: 0;
+  transition: background 160ms;
+}
+.focus-chip.on .focus-chip-dot { background: rgba(255,255,255,0.55); }
+
+/* ── CTA ────────────────────────────────────────── */
+.cta-row {
+  display: flex; gap: 10px; align-items: center; margin-top: 6px;
+}
+.btn-copy {
+  flex: 1; padding: 14px 20px;
+  font-family: var(--sans); font-size: 14px; font-weight: 600;
+  color: var(--ivory); background: var(--teal);
+  border: none; border-radius: 12px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  box-shadow: 0 4px 18px rgba(26,57,72,0.22), inset 0 1px 0 rgba(255,255,255,0.10);
+  transition: transform 150ms var(--eo), box-shadow 150ms, background 200ms;
+}
+.btn-copy:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(26,57,72,0.28), inset 0 1px 0 rgba(255,255,255,0.12);
+}
+.btn-copy:active { transform: scale(0.98); }
+.btn-copy.copied {
+  background: #1f7a45;
+  box-shadow: 0 4px 18px rgba(31,122,69,0.30), inset 0 1px 0 rgba(255,255,255,0.14);
+}
+.btn-outlook {
+  padding: 14px 18px;
+  font-family: var(--sans); font-size: 13.5px; font-weight: 600;
+  color: var(--teal); background: rgba(255,255,255,0.70);
+  border: 1.5px solid rgba(26,57,72,0.18); border-radius: 12px; cursor: pointer;
+  display: flex; align-items: center; gap: 7px; white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(26,57,72,0.07), inset 0 1px 0 rgba(255,255,255,0.9);
+  transition: transform 150ms var(--eo), background 150ms; text-decoration: none;
+}
+.btn-outlook:hover { background: rgba(255,255,255,0.92); transform: translateY(-1px); }
+
+/* ── SIGNAL BAR — live prompt readiness ─────────── */
+.signal-bar-wrap { margin: 0 0 20px; animation: rise 420ms var(--eo) 20ms both; }
+.signal-label-row {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 7px;
+}
+.signal-label {
+  font-size: 11px; font-weight: 600; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--soft);
+}
+.signal-pct { font-size: 11px; font-weight: 700; color: var(--soft); transition: color 300ms; }
+.signal-track {
+  height: 4px; background: rgba(26,57,72,0.09);
+  border-radius: 100px; overflow: hidden;
+}
+.signal-fill {
+  height: 100%; border-radius: 100px;
+  background: linear-gradient(90deg, var(--flame), #ff7a40);
+  transition: width 500ms var(--eo), background 400ms;
+}
+.signal-msg { font-size: 11px; color: var(--soft); margin-top: 5px; transition: color 300ms; }
+
+/* ── DIVIDER ────────────────────────────────────── */
+.card-divider { height: 1px; background: var(--border); margin: 16px 0; }
+
+/* ── SIDEBAR ────────────────────────────────────── */
+@media (max-width: 420px) {
+  .wrapper { padding: 18px 13px 60px; }
+  .hero { margin: 22px 0 24px; }
+  .hero-title { font-size: 22px; }
+  .card { padding: 16px 16px; border-radius: 14px; }
+  .grid-2 { grid-template-columns: 1fr; gap: 10px; }
+  .scope-grid { grid-template-columns: 1fr 1fr; gap: 7px; }
+  .scope-desc { display: none; }
+  .risk-chips { flex-direction: column; }
+  .cta-row { flex-direction: column; }
+  .btn-copy, .btn-outlook { width: 100%; justify-content: center; }
+  .wordmark svg { display: none; }
+}
+body.sidebar-mode .wrapper { max-width: 100%; padding: 16px 13px 60px; }
+body.sidebar-mode .grid-2 { grid-template-columns: 1fr; gap: 10px; }
+body.sidebar-mode .scope-desc { display: none; }
+body.sidebar-mode .risk-chips { flex-direction: row; }
+body.sidebar-mode .cta-row { flex-direction: column; }
+body.sidebar-mode .btn-copy, body.sidebar-mode .btn-outlook { width: 100%; justify-content: center; }
+body.sidebar-mode .hero-title { font-size: 22px; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+</style>
+</head>
+<body>
+
+<div class="scene">
+  <div class="orb o1"></div>
+  <div class="orb o2"></div>
+  <div class="orb o3"></div>
+</div>
+
+<!-- NAV -->
+<div class="nav-wrap">
+  <div class="nav-pill">
+    <a class="wordmark" href="../">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M8 10L4 6.5 8 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Pilot<em>Desk</em>
+    </a>
+    <div class="nav-sep"></div>
+    <div class="ntab on">Fact-Check Assistant</div>
+  </div>
+</div>
+
+<div class="wrapper">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-eyebrow">
+      <span class="pdot"></span>
+      Prompt Generator · PilotDesk
+    </div>
+    <h1 class="hero-title">
+      Fact-Check<br><em>Assistant</em>
+    </h1>
+    <p class="hero-sub">
+      Turn any claim or article into a structured Copilot verification prompt. Configure below — the prompt builds silently in the background.
+    </p>
+  </div>
+
+  <!-- SIGNAL BAR -->
+  <div class="signal-bar-wrap">
+    <div class="signal-label-row">
+      <span class="signal-label">Prompt readiness</span>
+      <span class="signal-pct" id="sigPct">0%</span>
+    </div>
+    <div class="signal-track">
+      <div class="signal-fill" id="sigFill" style="width:0%"></div>
+    </div>
+    <div class="signal-msg" id="sigMsg">Enter a claim or URL to begin</div>
+  </div>
+
+  <!-- CARD 1: WHAT TO CHECK -->
+  <div class="card">
+    <div class="card-head">
+      <div class="card-head-icon chi-flame">
+        <svg viewBox="0 0 16 16" fill="none"><path d="M8 2C6 4.5 5 6.5 5.5 9a3 3 0 005.5-1.5C11 5.5 9.5 4 8 2z" stroke="#FF5400" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.5 10.5C5.5 11 5 12 5.5 13" stroke="#FF5400" stroke-width="1.4" stroke-linecap="round"/></svg>
+      </div>
+      <div class="card-label">What to check</div>
+    </div>
+
+    <!-- Input mode tabs -->
+    <div class="input-tabs">
+      <div class="itab on" id="tabPaste" onclick="switchInputMode('paste')">Paste Claim / Text</div>
+      <div class="itab" id="tabUrl"   onclick="switchInputMode('url')">Article URL</div>
+    </div>
+
+    <!-- Paste panel -->
+    <div id="pastePanel">
+      <label class="field-label" for="claimText">Claim or text</label>
+      <textarea class="field-textarea" id="claimText"
+        placeholder="Paste the full claim, quote, statistic, or article text you want to fact-check…"
+        oninput="updateSignal(); generate()"></textarea>
+    </div>
+
+    <!-- URL panel -->
+    <div id="urlPanel" style="display:none">
+      <label class="field-label" for="articleUrl">Article URL</label>
+      <input class="field-input" id="articleUrl" type="url"
+        placeholder="https://www.rferl.org/…"
+        oninput="updateSignal(); generate()">
+      <div class="field-sub">Copilot will fetch and read the full article before running any verification.</div>
+    </div>
+
+    <!-- Scope: general vs specific -->
+    <div class="card-divider"></div>
+    <label class="field-label">Scope of check</label>
+    <div class="scope-grid">
+      <button class="scope-btn on" id="scopeGeneral" onclick="setScope('general')">
+        <div class="scope-icon">🔭</div>
+        <div class="scope-name">General fact-check</div>
+        <div class="scope-desc">Verify the overall accuracy of the content</div>
+      </button>
+      <button class="scope-btn" id="scopeSpecific" onclick="setScope('specific')">
+        <div class="scope-icon">🎯</div>
+        <div class="scope-name">Specific claim</div>
+        <div class="scope-desc">Highlight a particular claim to verify</div>
+      </button>
+    </div>
+
+    <!-- Specific claim input — slides in -->
+    <div class="specific-panel" id="specificPanel">
+      <label class="field-label" for="specificClaim">Specific claim to verify</label>
+      <textarea class="field-textarea" id="specificClaim"
+        placeholder="Paste or type the exact sentence, quote, or statistic you want checked…"
+        style="min-height:80px"
+        oninput="updateSignal(); generate()"></textarea>
+    </div>
+  </div>
+
+  <!-- CARD 2: CLAIM DETAILS -->
+  <div class="card">
+    <div class="card-head">
+      <div class="card-head-icon chi-teal">
+        <svg viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" stroke="#1A3948" stroke-width="1.4"/><line x1="5" y1="6" x2="11" y2="6" stroke="#1A3948" stroke-width="1.2" stroke-linecap="round" stroke-opacity="0.6"/><line x1="5" y1="9" x2="9" y2="9" stroke="#1A3948" stroke-width="1.2" stroke-linecap="round" stroke-opacity="0.6"/></svg>
+      </div>
+      <div class="card-label">Claim details</div>
+    </div>
+
+    <!-- Claim type -->
+    <div style="margin-bottom:16px">
+      <label class="field-label">Claim type</label>
+      <div class="chip-row" id="claimTypeChips">
+        <div class="chip on"  data-val="statistic"  onclick="soloChip(this,'claimTypeChips')">Statistic / Number</div>
+        <div class="chip"     data-val="quote"       onclick="soloChip(this,'claimTypeChips')">Quote</div>
+        <div class="chip"     data-val="event"       onclick="soloChip(this,'claimTypeChips')">Event / Date</div>
+        <div class="chip"     data-val="attribution" onclick="soloChip(this,'claimTypeChips')">Attribution</div>
+        <div class="chip"     data-val="causal"      onclick="soloChip(this,'claimTypeChips')">Causal claim</div>
+      </div>
+    </div>
+
+    <!-- Topic + Region -->
+    <div class="grid-2">
+      <div class="field-wrap">
+        <label class="field-label" for="topic">Topic</label>
+        <input class="field-input" id="topic" type="text"
+          placeholder="e.g. sanctions, elections…"
+          oninput="updateSignal(); generate()">
+      </div>
+      <div class="field-wrap">
+        <label class="field-label" for="region">Region</label>
+        <input class="field-input" id="region" type="text"
+          placeholder="e.g. Ukraine, Iran…"
+          oninput="updateSignal(); generate()">
+      </div>
+    </div>
+
+    <!-- Source of claim -->
+    <div style="margin-top:14px">
+      <label class="field-label" for="sourceSelect">Source of claim</label>
+      <select class="field-select" id="sourceSelect" onchange="generate()">
+        <option value="unknown">Unknown</option>
+        <option value="interview">Interview</option>
+        <option value="document">Document</option>
+        <option value="media_article">Media article</option>
+        <option value="social_media">Social media</option>
+        <option value="official_statement">Official statement</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- CARD 3: EDITORIAL RISK -->
+  <div class="card">
+    <div class="card-head">
+      <div class="card-head-icon chi-honey">
+        <svg viewBox="0 0 16 16" fill="none"><path d="M8 2L9.5 6.5H14L10.5 9L11.5 13.5L8 11L4.5 13.5L5.5 9L2 6.5H6.5L8 2Z" stroke="#8a5e00" stroke-width="1.4" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="card-label">Editorial risk level</div>
+      <div class="card-hint">if published unchecked</div>
+    </div>
+    <div class="risk-chips">
+      <button class="risk-chip" id="riskLow" onclick="setRisk('low')">
+        <div class="risk-dot rd-low"></div>
+        <div class="risk-name">Low</div>
+        <div class="risk-desc">Minor detail</div>
+      </button>
+      <button class="risk-chip on-medium" id="riskMedium" onclick="setRisk('medium')">
+        <div class="risk-dot rd-medium"></div>
+        <div class="risk-name">Medium</div>
+        <div class="risk-desc">Key context</div>
+      </button>
+      <button class="risk-chip" id="riskHigh" onclick="setRisk('high')">
+        <div class="risk-dot rd-high"></div>
+        <div class="risk-name">High</div>
+        <div class="risk-desc">Could damage credibility</div>
+      </button>
+    </div>
+  </div>
+
+  <!-- CARD 4: WHAT DO YOU NEED -->
+  <div class="card">
+    <div class="card-head">
+      <div class="card-head-icon chi-stone">
+        <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5.5" stroke="#1A3948" stroke-width="1.4" stroke-opacity="0.6"/><path d="M8 5.5v3M8 10.5v.5" stroke="#1A3948" stroke-width="1.4" stroke-linecap="round" stroke-opacity="0.7"/></svg>
+      </div>
+      <div class="card-label">What do you need?</div>
+      <div class="card-hint">choose one focus</div>
+    </div>
+    <div class="focus-chips">
+      <div class="focus-chip on" data-focus="verify" onclick="soloFocus(this)">
+        <div class="focus-chip-dot"></div>
+        Verify truth
+      </div>
+      <div class="focus-chip" data-focus="source" onclick="soloFocus(this)">
+        <div class="focus-chip-dot"></div>
+        Find original source
+      </div>
+      <div class="focus-chip" data-focus="coverage" onclick="soloFocus(this)">
+        <div class="focus-chip-dot"></div>
+        Cross-check coverage
+      </div>
+      <div class="focus-chip" data-focus="context" onclick="soloFocus(this)">
+        <div class="focus-chip-dot"></div>
+        Detect missing context
+      </div>
+      <div class="focus-chip" data-focus="debunked" onclick="soloFocus(this)">
+        <div class="focus-chip-dot"></div>
+        Check if already debunked
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA CARD -->
+  <div class="card">
+    <div class="cta-row">
+      <button class="btn-copy" id="copyBtn" onclick="copyPrompt()">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <rect x="5" y="4" width="9" height="10" rx="2" stroke="currentColor" stroke-width="1.4"/>
+          <path d="M11 4V3a1 1 0 00-1-1H3a1 1 0 00-1 1v9a1 1 0 001 1h1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>
+        <span id="copyLabel">Copy Prompt</span>
+      </button>
+      <a class="btn-outlook" href="https://outlook.office.com/mail/" target="_blank" rel="noopener">
+        <svg width="17" height="17" viewBox="0 0 17 17" fill="none">
+          <rect x="1.5" y="3.5" width="14" height="10" rx="2.5" stroke="#0072C6" stroke-width="1.4"/>
+          <path d="M1.5 6.5l6.3 4a1.2 1.2 0 001.4 0l6.3-4" stroke="#0072C6" stroke-width="1.3"/>
+        </svg>
+        Open Outlook
+      </a>
+    </div>
+  </div>
+
+</div><!-- /wrapper -->
+
+<script>
+/* ── Sidebar detection ──────────────────────────── */
+function detectSidebar() {
+  document.body.classList.toggle('sidebar-mode', window.innerWidth <= 420);
+}
+detectSidebar();
+window.addEventListener('resize', detectSidebar);
+
+/* ── State ──────────────────────────────────────── */
+let inputMode = 'paste';   // paste | url
+let scope     = 'general'; // general | specific
+let risk      = 'medium';  // low | medium | high
+let claimType = 'statistic';
+let focus     = 'verify';
+
+/* ── Input mode toggle ──────────────────────────── */
+function switchInputMode(mode) {
+  inputMode = mode;
+  document.getElementById('tabPaste').classList.toggle('on', mode === 'paste');
+  document.getElementById('tabUrl').classList.toggle('on', mode === 'url');
+  document.getElementById('pastePanel').style.display = mode === 'paste' ? '' : 'none';
+  document.getElementById('urlPanel').style.display   = mode === 'url'   ? '' : 'none';
+  updateSignal(); generate();
+}
+
+/* ── Scope toggle ───────────────────────────────── */
+function setScope(s) {
+  scope = s;
+  document.getElementById('scopeGeneral').classList.toggle('on', s === 'general');
+  document.getElementById('scopeSpecific').classList.toggle('on', s === 'specific');
+  const panel = document.getElementById('specificPanel');
+  panel.classList.toggle('open', s === 'specific');
+  updateSignal(); generate();
+}
+
+/* ── Risk ───────────────────────────────────────── */
+function setRisk(r) {
+  risk = r;
+  ['low','medium','high'].forEach(v => {
+    const el = document.getElementById('risk' + v.charAt(0).toUpperCase() + v.slice(1));
+    el.className = 'risk-chip' + (v === r ? ' on-' + v : '');
+  });
+  generate();
+}
+
+/* ── Solo chip (claim type) ─────────────────────── */
+function soloChip(el, groupId) {
+  document.querySelectorAll(`#${groupId} .chip`).forEach(c => c.classList.remove('on'));
+  el.classList.add('on');
+  claimType = el.dataset.val;
+  generate();
+}
+
+/* ── Solo focus chip ────────────────────────────── */
+function soloFocus(el) {
+  document.querySelectorAll('.focus-chip').forEach(c => c.classList.remove('on'));
+  el.classList.add('on');
+  focus = el.dataset.focus;
+  generate();
+}
+
+/* ── Signal strength ────────────────────────────── */
+function updateSignal() {
+  let score = 0;
+
+  const claim = document.getElementById('claimText').value.trim();
+  const url   = document.getElementById('articleUrl').value.trim();
+  const specific = document.getElementById('specificClaim').value.trim();
+  const topic    = document.getElementById('topic').value.trim();
+  const region   = document.getElementById('region').value.trim();
+
+  if (inputMode === 'paste' && claim)  score += 40;
+  if (inputMode === 'url'   && url)    score += 40;
+  if (scope === 'specific' && specific) score += 20;
+  if (topic)  score += 15;
+  if (region) score += 10;
+  if (score > 0) score += 15; // bonus for just having started
+
+  score = Math.min(score, 100);
+
+  const fill = document.getElementById('sigFill');
+  const pct  = document.getElementById('sigPct');
+  const msg  = document.getElementById('sigMsg');
+
+  fill.style.width = score + '%';
+  pct.textContent  = score + '%';
+  pct.style.color  = score >= 70 ? '#1f7a45' : score >= 40 ? '#8a5e00' : 'var(--soft)';
+
+  const msgs = [
+    'Enter a claim or URL to begin',
+    'Add topic or region to sharpen the prompt',
+    'Good — specify the scope to focus further',
+    'Strong signal — ready to generate',
+    'Precise prompt ready ✓'
+  ];
+  const mi = score === 0 ? 0 : score < 30 ? 1 : score < 60 ? 2 : score < 90 ? 3 : 4;
+  msg.textContent = msgs[mi];
+  msg.style.color = score >= 70 ? '#1f7a45' : score >= 40 ? '#8a5e00' : 'var(--soft)';
+
+  if (score >= 70) {
+    fill.style.background = 'linear-gradient(90deg, #1f7a45, #2ea055)';
+  } else if (score >= 40) {
+    fill.style.background = 'linear-gradient(90deg, #c98a00, #e0a800)';
+  } else {
+    fill.style.background = 'linear-gradient(90deg, var(--flame), #ff7a40)';
+  }
+}
+
+/* ── Focus prompt map ───────────────────────────── */
+const FOCUS_MAP = {
+  verify:   {
+    label: 'Verify truth',
+    instruction: 'Your primary task is to verify whether this claim is true, false, partially true, or unverifiable. Cross-reference multiple independent sources. Provide a verdict with evidence and sourcing.'
+  },
+  source:   {
+    label: 'Find original source',
+    instruction: 'Your primary task is to trace this claim to its original source. Who made it first? When? In what context? Has it been quoted correctly or taken out of context?'
+  },
+  coverage: {
+    label: 'Cross-check coverage',
+    instruction: 'Your primary task is to cross-check how this claim has been covered across different outlets and perspectives. Who is reporting it? Who is not? Are there conflicting accounts?'
+  },
+  context:  {
+    label: 'Detect missing context',
+    instruction: 'Your primary task is to detect what context is missing from this claim. What is not being said? What background information would change how a reader understands it? Flag selective framing.'
+  },
+  debunked: {
+    label: 'Check if already debunked',
+    instruction: 'Your primary task is to check whether this claim has already been addressed or debunked by established fact-checking organisations (AFP Fact Check, Reuters Fact Check, BBC Reality Check, Snopes, PolitiFact, Full Fact, Bellingcat, DFRLab). Report their findings.'
+  }
+};
+
+const CLAIM_TYPE_MAP = {
+  statistic:  'Statistic or numerical claim',
+  quote:      'Quote or attributed statement',
+  event:      'Event or date claim',
+  attribution:'Attribution (who said or did something)',
+  causal:     'Causal or cause-and-effect claim'
+};
+
+const SOURCE_MAP = {
+  unknown:           'Unknown / unattributed',
+  interview:         'Interview',
+  document:          'Document or report',
+  media_article:     'Media article',
+  social_media:      'Social media post',
+  official_statement:'Official statement'
+};
+
+const RISK_MAP = {
+  low:    'Low — minor detail; limited audience impact if wrong',
+  medium: 'Medium — key contextual point; could mislead if unchecked',
+  high:   'High — central claim; could damage editorial credibility if wrong'
+};
+
+/* ── Prompt builder ─────────────────────────────── */
+function generate() {
+  const claimText  = document.getElementById('claimText').value.trim();
+  const articleUrl = document.getElementById('articleUrl').value.trim();
+  const specific   = document.getElementById('specificClaim').value.trim();
+  const topic      = document.getElementById('topic').value.trim();
+  const region     = document.getElementById('region').value.trim();
+  const source     = document.getElementById('sourceSelect').value;
+
+  const focusMeta = FOCUS_MAP[focus];
+
+  let contentBlock = '';
+  if (inputMode === 'paste') {
+    if (claimText) {
+      contentBlock = `CONTENT TO ANALYSE\n${'─'.repeat(40)}\n${claimText}\n${'─'.repeat(40)}\n`;
+    } else {
+      contentBlock = `CONTENT TO ANALYSE\n[Paste claim or article text above]\n`;
+    }
+  } else {
+    if (articleUrl) {
+      contentBlock = `ARTICLE URL\n${articleUrl}\n→ Fetch and read the full article at this URL before running any verification. Do not analyse the URL string — analyse the article content.\n`;
+    } else {
+      contentBlock = `ARTICLE URL\n[Enter article URL above]\n`;
+    }
+  }
+
+  let scopeBlock = '';
+  if (scope === 'general') {
+    scopeBlock = `SCOPE: GENERAL FACT-CHECK\nAnalyse the overall accuracy of the content above. Identify the most significant factual claims and verify each one.`;
+  } else {
+    scopeBlock = `SCOPE: SPECIFIC CLAIM\nFocus your verification on this specific claim extracted from the content:\n\n"${specific || '[Paste specific claim above]'}"\n\nDo not broaden the scope unless the specific claim cannot be evaluated without wider context.`;
+  }
+
+  const topicLine  = topic  ? `Topic:   ${topic}`  : '';
+  const regionLine = region ? `Region:  ${region}` : '';
+  const contextLines = [topicLine, regionLine].filter(Boolean).join('\n');
+
+  const prompt =
+`✅ PILOTDESK FACT-CHECK ASSISTANT — VERIFICATION REQUEST
+${'─'.repeat(54)}
+
+MANDATORY INSTRUCTION: You are a professional fact-checking assistant embedded in the RFE/RL editorial workflow. Do not summarise or describe this request. Execute the verification immediately. Output only the structured fact-check report in the format specified below. No preamble.
+
+${'─'.repeat(54)}
+CONTENT
+${'─'.repeat(54)}
+
+${contentBlock}
+${scopeBlock}
+
+${'─'.repeat(54)}
+CLAIM PARAMETERS
+${'─'.repeat(54)}
+
+Claim type:     ${CLAIM_TYPE_MAP[claimType]}
+Source of claim: ${SOURCE_MAP[source]}
+Editorial risk:  ${RISK_MAP[risk]}${contextLines ? '\n' + contextLines : ''}
+
+${'─'.repeat(54)}
+PRIMARY FOCUS — ${focusMeta.label.toUpperCase()}
+${'─'.repeat(54)}
+
+${focusMeta.instruction}
+
+${'─'.repeat(54)}
+OUTPUT FORMAT — use this structure exactly
+${'─'.repeat(54)}
+
+✅ FACT-CHECK REPORT
+
+VERDICT
+[TRUE / FALSE / PARTIALLY TRUE / MISLEADING / UNVERIFIABLE / NEEDS MORE INFORMATION]
+Confidence: [High / Medium / Low]
+Risk if published unchecked: ${RISK_MAP[risk].split('—')[0].trim()}
+
+FINDING
+[2–4 sentences summarising what the evidence shows. Be specific. No padding.]
+
+EVIDENCE
+▸ [Source name] — [What it says] — [URL if available]
+▸ [Source name] — [What it says] — [URL if available]
+▸ [Source name] — [What it says] — [URL if available]
+[Include at least 2 independent sources. State if sources are in conflict.]
+
+CONTEXT
+[Any essential background that changes how the claim should be understood. Flag selective framing, missing information, or relevant historical context. 2–3 bullets max.]
+
+RED FLAGS
+[Any indicators of deliberate manipulation, state media origin, known disinformation pattern, or missing attribution. Omit if none detected.]
+
+RECOMMENDED EDITORIAL ACTION
+[→ One clear line: what the journalist or editor should do next]
+
+${'─'.repeat(54)}
+ANTI-HALLUCINATION RULES
+${'─'.repeat(54)}
+
+1. Only report what sources actually say. Do not infer or assume.
+2. If a claim cannot be verified, say so explicitly: "Insufficient evidence to verify."
+3. Do not cite TASS, IRNA, BelTA, Xinhua, or RT as reliable sources for factual claims — note them as state media only.
+4. If you find conflicting reports, present both and flag the conflict.
+5. Do not fabricate URLs. If no URL is available, state the source name only.
+6. Use web search to check current information — do not rely on training data alone for recent events.`;
+
+  window._generatedPrompt = prompt;
+}
+
+/* ── Copy ───────────────────────────────────────── */
+function copyPrompt() {
+  generate();
+  const p = window._generatedPrompt || '';
+  navigator.clipboard.writeText(p).then(() => {
+    const btn = document.getElementById('copyBtn');
+    const lbl = document.getElementById('copyLabel');
+    btn.classList.add('copied');
+    lbl.textContent = 'Prompt copied ✓';
+    setTimeout(() => {
+      btn.classList.remove('copied');
+      lbl.textContent = 'Copy Prompt';
+    }, 2400);
+  });
+}
+
+/* ── Init ───────────────────────────────────────── */
+updateSignal();
+generate();
+</script>
+</body>
+</html>
