@@ -227,7 +227,7 @@
 
     #pd-anim-iframe {
       display: block;
-      width: 100%;
+      width: 50%;
       height: 720px;
       border: none;
       margin-top: 28px;
