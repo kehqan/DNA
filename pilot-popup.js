@@ -228,7 +228,7 @@
     #pd-anim-iframe {
       display: block;
       width: 100%;
-      height: 430px;
+      height: 720px;
       border: none;
       margin-top: 28px;
       /* scale the 900px animation down to fit 480px panel */
