@@ -185,7 +185,7 @@
     /* ── RIGHT: animation panel — hero frame ── */
     #pd-anim-panel {
       flex-shrink: 0;
-      width: 580px;
+      width: 540px;        /* panel width */
       border-radius: 16px;
       overflow: hidden;
       box-shadow:
@@ -196,7 +196,6 @@
       position: relative;
     }
 
-    /* "See it in action" label above iframe */
     #pd-anim-label {
       position: absolute;
       top: 0; left: 0; right: 0;
@@ -207,6 +206,7 @@
       padding: 0 12px;
       gap: 7px;
       z-index: 2;
+      border-radius: 16px 16px 0 0;
     }
     #pd-anim-label span {
       font-family: 'Noto Sans', system-ui, sans-serif;
@@ -227,12 +227,10 @@
 
     #pd-anim-iframe {
       display: block;
-      width: 100%;
-      height: 720px;
       border: none;
-      margin-top: 28px;
-      /* scale the 900px animation down to fit 480px panel */
+      /* exact dimensions set by JS based on 900×560 source + panel width */
       transform-origin: top left;
+      margin-top: 28px; /* clear the label bar */
     }
 
     /* Backdrop dismiss */
@@ -349,7 +347,7 @@
     if (!wrap || !panel) return;
 
     const wr     = wrap.getBoundingClientRect();
-    const pw     = panel.offsetWidth  || 814; // 220 bubble + 12 gap + 580 anim + borders
+    const pw     = panel.offsetWidth  || 784; // 220 bubble + 12 gap + 540 anim + 2px borders
     const ph     = panel.offsetHeight || 370;
     const margin = 12;
     const vw     = window.innerWidth;
@@ -372,17 +370,25 @@
     panel.style.top  = top  + 'px';
     panel.style.left = left + 'px';
 
-    // Scale iframe: animation is designed at 900px wide, panel is 580px
+    // Scale iframe: animation source is exactly 900×560px
     const iframe = document.getElementById('pd-anim-iframe');
-    if (iframe) {
-      const animW  = 900;
-      const panelW = document.getElementById('pd-anim-panel').offsetWidth || 580;
-      const scale  = panelW / animW;
+    const animPanel = document.getElementById('pd-anim-panel');
+    if (iframe && animPanel) {
+      const ANIM_W = 900;
+      const ANIM_H = 560;
+      const LABEL  = 28;                             // label bar height px
+      const panelW = animPanel.offsetWidth || 540;
+      const scale  = panelW / ANIM_W;               // e.g. 540/900 = 0.6
+      const scaledH = Math.round(ANIM_H * scale);   // visible animation height
+
+      // iframe source size — full 900×560
+      iframe.style.width  = ANIM_W + 'px';
+      iframe.style.height = ANIM_H + 'px';
+      // scale it down to fit panel width exactly
       iframe.style.transform = `scale(${scale})`;
-      iframe.style.width     = animW + 'px';
-      iframe.style.height    = Math.round(338 / scale) + 'px';
-      const animPanel = document.getElementById('pd-anim-panel');
-      animPanel.style.height = Math.round(338 * scale) + 28 + 'px';
+      iframe.style.transformOrigin = 'top left';
+      // container height = label bar + scaled animation height
+      animPanel.style.height = (LABEL + scaledH) + 'px';
     }
   }
 
@@ -419,6 +425,15 @@
     document.head.appendChild(style);
 
     document.body.insertAdjacentHTML('beforeend', buildHTML());
+
+    // Recalculate scaling once iframe has loaded
+    const iframeEl = document.getElementById('pd-anim-iframe');
+    if (iframeEl) {
+      iframeEl.addEventListener('load', () => {
+        const panel = document.getElementById('pd-panel');
+        if (panel && panel.classList.contains('open')) positionPanel();
+      });
+    }
 
     // Make pilot clickable
     const wrap = document.getElementById('owlWrap');
