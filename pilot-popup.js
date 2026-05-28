@@ -60,9 +60,9 @@
       pointer-events: all;
     }
 
-    /* ── LEFT: speech bubble ── */
+    /* ── LEFT: speech bubble — compact companion ── */
     #pd-bubble {
-      width: 300px;
+      width: 220px;
       flex-shrink: 0;
       position: relative;
     }
@@ -182,10 +182,10 @@
     .pd-footer-left { font-size: 9.5px; color: rgba(26,57,72,0.38); line-height: 1.4; }
     .pd-version     { font-size: 9px; font-weight: 700; letter-spacing: 0.07em; color: rgba(255,84,0,0.55); white-space: nowrap; }
 
-    /* ── RIGHT: animation panel ── */
+    /* ── RIGHT: animation panel — hero frame ── */
     #pd-anim-panel {
       flex-shrink: 0;
-      width: 480px;
+      width: 580px;
       border-radius: 16px;
       overflow: hidden;
       box-shadow:
@@ -349,7 +349,7 @@
     if (!wrap || !panel) return;
 
     const wr     = wrap.getBoundingClientRect();
-    const pw     = panel.offsetWidth  || 804; // 300 + 12 gap + 480 + borders
+    const pw     = panel.offsetWidth  || 814; // 220 bubble + 12 gap + 580 anim + borders
     const ph     = panel.offsetHeight || 370;
     const margin = 12;
     const vw     = window.innerWidth;
@@ -372,19 +372,17 @@
     panel.style.top  = top  + 'px';
     panel.style.left = left + 'px';
 
-    // Scale iframe: animation is designed at 900px wide, panel is 480px
+    // Scale iframe: animation is designed at 900px wide, panel is 580px
     const iframe = document.getElementById('pd-anim-iframe');
     if (iframe) {
       const animW  = 900;
-      const panelW = document.getElementById('pd-anim-panel').offsetWidth || 480;
+      const panelW = document.getElementById('pd-anim-panel').offsetWidth || 580;
       const scale  = panelW / animW;
-      // iframe needs to be scaled down; its container clips it
       iframe.style.transform = `scale(${scale})`;
       iframe.style.width     = animW + 'px';
-      iframe.style.height    = Math.round(338 / scale) + 'px'; // 338 = scaled visible height
-      // container height = scaled height
+      iframe.style.height    = Math.round(338 / scale) + 'px';
       const animPanel = document.getElementById('pd-anim-panel');
-      animPanel.style.height = Math.round(338 * scale) + 28 + 'px'; // +28 for label bar
+      animPanel.style.height = Math.round(338 * scale) + 28 + 'px';
     }
   }
 
