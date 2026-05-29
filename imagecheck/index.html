@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Image Authenticity Check — PilotDesk</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Noto+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ── TOKENS ─────────────────────────────────────── */
+:root {
+  --ivory:   #F8F7F6;
+  --bg:      #F0EFED;
+  --teal:    #1A3948;
+  --teal2:   #24506A;
+  --flame:   #FF5400;
+  --stone:   #B9CCCC;
+  --honey:   #FFC047;
+  --violet:  #7850C8;
+  --violet2: #533db5;
+
+  /* ── Readable text — no more ghost opacity ── */
+  --body:    #1A3948;          /* primary text, full weight */
+  --muted:   #4a6070;          /* secondary text — readable */
+  --hint:    #6b7f8a;          /* tertiary / labels — still legible */
+  --soft:    #8a9da6;          /* placeholder-level only — never main content */
+
+  --border:  rgba(26,57,72,0.12);
+  --glass:   rgba(255,255,255,0.55);
+  --glass-b: rgba(255,255,255,0.85);
+  --gs: 0 8px 32px rgba(26,57,72,0.10), 0 1.5px 4px rgba(26,57,72,0.06);
+  --gi: inset 0 1px 0 rgba(255,255,255,0.92), inset 0 -1px 0 rgba(26,57,72,0.03);
+  --eo: cubic-bezier(0.25,0.46,0.45,0.94);
+  --serif: 'Lora', Georgia, serif;
+  --sans:  'Noto Sans', system-ui, sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--body);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── SCENE ──────────────────────────────────────── */
+.scene {
+  position: fixed; inset: 0; z-index: 0;
+  pointer-events: none; overflow: hidden;
+  background: #F0EFED;
+}
+.orb { position: absolute; border-radius: 50%; filter: blur(90px); }
+.o1 {
+  width: 580px; height: 460px; top: -120px; left: -100px;
+  background: radial-gradient(ellipse, rgba(120,80,200,0.22) 0%, rgba(120,80,200,0.06) 45%, transparent 70%);
+}
+.o2 {
+  width: 460px; height: 380px; top: 35%; right: -120px;
+  background: radial-gradient(ellipse, rgba(26,57,72,0.13) 0%, rgba(26,57,72,0.04) 55%, transparent 75%);
+}
+.o3 {
+  width: 360px; height: 300px; bottom: 12%; left: 28%;
+  background: radial-gradient(ellipse, rgba(255,192,71,0.12) 0%, transparent 65%);
+}
+
+/* ── NAV ────────────────────────────────────────── */
+.nav-wrap {
+  position: sticky; top: 0; z-index: 50;
+  display: flex; justify-content: center;
+  padding: 14px 24px 0;
+  pointer-events: none;
+}
+.nav-pill {
+  display: inline-flex; align-items: center; gap: 2px;
+  background: rgba(26,57,72,0.82);
+  backdrop-filter: blur(28px) saturate(2);
+  -webkit-backdrop-filter: blur(28px) saturate(2);
+  border: 1px solid rgba(255,255,255,0.11);
+  border-radius: 100px; padding: 5px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.22), 0 2px 8px rgba(0,0,0,0.14),
+              inset 0 1px 0 rgba(255,255,255,0.14), inset 0 -1px 0 rgba(0,0,0,0.18);
+  pointer-events: all; max-width: 100%;
+}
+.wordmark {
+  font-family: var(--serif); font-size: 17px; font-weight: 400;
+  color: rgba(248,247,246,0.93);
+  padding: 6px 14px 6px 12px;
+  border-right: 1px solid rgba(255,255,255,0.10);
+  margin-right: 4px; white-space: nowrap; letter-spacing: -0.01em;
+  display: flex; align-items: center; gap: 5px; text-decoration: none;
+  transition: color 180ms;
+}
+.wordmark:hover { color: #fff; }
+.wordmark em { font-style: normal; color: var(--flame); font-weight: 600; }
+.wordmark svg { opacity: 0.6; flex-shrink: 0; }
+.nav-sep { width: 1px; height: 20px; background: rgba(255,255,255,0.08); margin: 0 2px; flex-shrink: 0; }
+.ntab {
+  font-size: 12.5px; font-weight: 500;
+  color: rgba(185,204,204,0.80);
+  padding: 7px 14px; border-radius: 100px;
+  white-space: nowrap;
+}
+.ntab.on {
+  background: rgba(255,255,255,0.13); color: #fff;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.18), inset 0 -1px 0 rgba(0,0,0,0.12);
+}
+
+/* ── LAYOUT ─────────────────────────────────────── */
+.wrapper {
+  position: relative; z-index: 1;
+  max-width: 700px; margin: 0 auto;
+  padding: 28px 24px 80px;
+}
+
+/* ── HERO ───────────────────────────────────────── */
+.hero {
+  margin: 30px 0 32px;
+  display: flex; flex-direction: column; gap: 8px;
+  animation: rise 420ms var(--eo) both;
+}
+@keyframes rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.hero-eyebrow {
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 0.13em; text-transform: uppercase;
+  color: var(--hint); display: flex; align-items: center; gap: 8px;
+}
+.pdot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--violet);
+  animation: pring 2.6s ease-in-out infinite; flex-shrink: 0;
+}
+@keyframes pring {
+  0%,100% { box-shadow: 0 0 0 0 rgba(120,80,200,0.5); }
+  50%      { box-shadow: 0 0 0 6px rgba(120,80,200,0); }
+}
+.hero-title {
+  font-family: var(--serif);
+  font-size: clamp(24px, 4.5vw, 36px);
+  font-weight: 400; color: var(--teal);
+  line-height: 1.2; letter-spacing: -0.02em;
+}
+.hero-title em { font-style: italic; color: var(--teal2); }
+.hero-sub {
+  font-size: 14px; line-height: 1.65;
+  color: var(--muted); max-width: 480px; margin-top: 2px;
+}
+
+/* ── GLASS CARD ─────────────────────────────────── */
+.card {
+  border-radius: 18px;
+  background: var(--glass);
+  backdrop-filter: blur(20px) saturate(1.8);
+  -webkit-backdrop-filter: blur(20px) saturate(1.8);
+  border: 1px solid var(--glass-b);
+  box-shadow: var(--gs), var(--gi);
+  padding: 22px 24px;
+  margin-bottom: 14px;
+  animation: rise 420ms var(--eo) both;
+}
+.card:nth-child(1) { animation-delay: 40ms; }
+.card:nth-child(2) { animation-delay: 80ms; }
+.card:nth-child(3) { animation-delay: 120ms; }
+.card:nth-child(4) { animation-delay: 160ms; }
+.card:nth-child(5) { animation-delay: 200ms; }
+.card:nth-child(6) { animation-delay: 240ms; }
+
+/* ── CARD HEADER ────────────────────────────────── */
+.card-head {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 16px;
+}
+.card-head-icon {
+  width: 32px; height: 32px; border-radius: 9px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.chi-violet { background: rgba(120,80,200,0.12); border: 1px solid rgba(120,80,200,0.28); }
+.chi-flame  { background: rgba(255,84,0,0.10);   border: 1px solid rgba(255,84,0,0.22); }
+.chi-teal   { background: rgba(26,57,72,0.10);   border: 1px solid rgba(26,57,72,0.20); }
+.chi-honey  { background: rgba(255,192,71,0.16); border: 1px solid rgba(255,192,71,0.32); }
+.chi-stone  { background: rgba(185,204,204,0.30);border: 1px solid rgba(185,204,204,0.50); }
+.card-head-icon svg { width: 16px; height: 16px; }
+
+.card-label {
+  font-family: var(--serif); font-size: 15px; font-weight: 500;
+  color: var(--teal); flex: 1;
+}
+
+/* card-hint replaced entirely — use .card-tag inline instead */
+.card-tag-inline {
+  font-size: 10.5px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+  padding: 3px 9px; border-radius: 100px;
+  background: rgba(26,57,72,0.07); border: 1px solid rgba(26,57,72,0.14);
+  color: var(--hint);
+}
+.card-tag-inline.t-violet {
+  background: rgba(120,80,200,0.10); border-color: rgba(120,80,200,0.25);
+  color: var(--violet2);
+}
+
+/* ── FORM ELEMENTS ──────────────────────────────── */
+.field-label {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.07em;
+  text-transform: uppercase; color: var(--hint); margin-bottom: 8px; display: block;
+}
+.field-input, .field-textarea, .field-select {
+  width: 100%; font-family: var(--sans); font-size: 14px; color: var(--body);
+  background: rgba(255,255,255,0.75);
+  border: 1.5px solid rgba(26,57,72,0.16);
+  border-radius: 10px; outline: none;
+  box-shadow: inset 0 1px 3px rgba(26,57,72,0.04);
+  transition: border-color 180ms, box-shadow 180ms;
+}
+.field-input  { padding: 11px 14px; height: 44px; }
+.field-textarea { padding: 12px 14px; min-height: 90px; resize: vertical; line-height: 1.6; }
+.field-input:focus, .field-textarea:focus, .field-select:focus {
+  border-color: rgba(120,80,200,0.50);
+  box-shadow: inset 0 1px 3px rgba(26,57,72,0.04), 0 0 0 3px rgba(120,80,200,0.10);
+}
+.field-input::placeholder, .field-textarea::placeholder { color: #a8b8c0; }
+
+/* helper text under inputs — actual readable colour */
+.field-sub {
+  font-size: 12px; color: var(--muted); line-height: 1.55; margin-top: 7px;
+}
+
+.field-select {
+  padding: 11px 14px; height: 44px; cursor: pointer; appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%231A3948' stroke-opacity='.5' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 14px center;
+}
+
+/* ── INPUT TABS ─────────────────────────────────── */
+.input-tabs { display: flex; gap: 6px; margin-bottom: 14px; }
+.itab {
+  padding: 6px 16px; border-radius: 100px; font-size: 12px; font-weight: 600;
+  border: 1px solid rgba(26,57,72,0.16); background: rgba(255,255,255,0.60);
+  color: var(--muted); cursor: pointer; transition: all 160ms var(--eo);
+}
+.itab:hover { color: var(--teal); border-color: rgba(26,57,72,0.28); }
+.itab.on { background: var(--teal); color: var(--ivory); border-color: var(--teal); }
+
+/* ── CARD DIVIDER ───────────────────────────────── */
+.card-divider { height: 1px; background: rgba(26,57,72,0.10); margin: 16px 0; }
+
+/* ── UPLOAD NOTICE BANNER ───────────────────────── */
+.upload-notice {
+  display: flex; align-items: flex-start; gap: 11px;
+  padding: 13px 16px; border-radius: 11px;
+  background: rgba(120,80,200,0.08); border: 1.5px solid rgba(120,80,200,0.28);
+  margin-bottom: 0;
+}
+.upload-notice-icon {
+  width: 28px; height: 28px; border-radius: 8px; flex-shrink: 0;
+  background: rgba(120,80,200,0.15); border: 1px solid rgba(120,80,200,0.30);
+  display: flex; align-items: center; justify-content: center;
+}
+.upload-notice-icon svg { width: 14px; height: 14px; }
+.upload-notice-body { flex: 1; }
+.upload-notice-title {
+  font-size: 13px; font-weight: 700; color: var(--violet2); margin-bottom: 4px;
+}
+.upload-notice-text {
+  font-size: 12.5px; color: var(--muted); line-height: 1.55;
+}
+.upload-notice-text strong { color: var(--teal); font-weight: 700; }
+
+/* ── IMAGE TYPE CHIPS ───────────────────────────── */
+.type-grid {
+  display: grid; grid-template-columns: 1fr 1fr 1fr;
+  gap: 7px;
+}
+.type-btn {
+  padding: 10px 12px; border-radius: 10px; cursor: pointer;
+  background: rgba(255,255,255,0.60); border: 1.5px solid rgba(26,57,72,0.12);
+  font-size: 12px; font-weight: 600; color: var(--muted);
+  text-align: center; transition: all 160ms var(--eo);
+  display: flex; flex-direction: column; align-items: center; gap: 5px;
+}
+.type-btn .type-icon { font-size: 17px; line-height: 1; }
+.type-btn:hover { border-color: rgba(120,80,200,0.35); color: var(--teal); background: rgba(255,255,255,0.85); }
+.type-btn.on {
+  background: rgba(120,80,200,0.10); border-color: rgba(120,80,200,0.40);
+  color: var(--violet2);
+  box-shadow: 0 2px 10px rgba(120,80,200,0.14);
+}
+
+/* ── PRIORITY CHIPS ─────────────────────────────── */
+.priority-chips { display: flex; gap: 8px; }
+.priority-chip {
+  flex: 1; padding: 13px 8px; border-radius: 11px; cursor: pointer;
+  background: rgba(255,255,255,0.60); border: 1.5px solid rgba(26,57,72,0.12);
+  text-align: center; transition: all 160ms var(--eo);
+  display: flex; flex-direction: column; gap: 4px; align-items: center;
+}
+.p-dot { width: 9px; height: 9px; border-radius: 50%; margin-bottom: 2px; }
+.pd-low    { background: #2d8f56; }
+.pd-medium { background: #c88a00; }
+.pd-high   { background: var(--flame); }
+.priority-name { font-size: 12.5px; font-weight: 700; color: var(--teal); }
+.priority-desc { font-size: 11px; color: var(--muted); font-weight: 500; }
+.priority-chip.on-low    { background: rgba(45,143,86,0.10);   border-color: rgba(45,143,86,0.40); }
+.priority-chip.on-medium { background: rgba(200,138,0,0.10);   border-color: rgba(200,138,0,0.40); }
+.priority-chip.on-high   { background: rgba(255,84,0,0.09);    border-color: rgba(255,84,0,0.35); }
+
+/* ── SUSPICION CHIPS ────────────────────────────── */
+.sus-chips { display: flex; flex-wrap: wrap; gap: 7px; }
+.sus-chip {
+  padding: 7px 14px; border-radius: 100px; font-size: 12.5px; font-weight: 500;
+  background: rgba(255,255,255,0.65); border: 1.5px solid rgba(26,57,72,0.14);
+  color: var(--muted); cursor: pointer; transition: all 150ms var(--eo);
+}
+.sus-chip:hover { border-color: rgba(120,80,200,0.35); color: var(--teal); background: rgba(255,255,255,0.90); }
+.sus-chip.on {
+  background: rgba(120,80,200,0.12); border-color: rgba(120,80,200,0.40);
+  color: var(--violet2); font-weight: 600;
+}
+
+/* ── FOCUS CHIPS ────────────────────────────────── */
+.focus-chips { display: flex; flex-wrap: wrap; gap: 7px; }
+.focus-chip {
+  padding: 7px 15px; border-radius: 100px; font-size: 12.5px; font-weight: 500;
+  background: rgba(255,255,255,0.65); border: 1.5px solid rgba(26,57,72,0.14);
+  color: var(--muted); cursor: pointer; transition: all 160ms var(--eo);
+  display: flex; align-items: center; gap: 7px;
+}
+.focus-chip:hover { color: var(--teal); border-color: rgba(26,57,72,0.28); background: rgba(255,255,255,0.90); }
+.focus-chip-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: rgba(26,57,72,0.25); flex-shrink: 0; transition: background 160ms;
+}
+.focus-chip.on {
+  background: var(--violet); border-color: var(--violet); color: #fff;
+  box-shadow: 0 3px 14px rgba(120,80,200,0.32);
+}
+.focus-chip.on .focus-chip-dot { background: rgba(255,255,255,0.60); }
+
+/* ── SIGNAL BAR ─────────────────────────────────── */
+.signal-bar-wrap { margin: 0 0 20px; animation: rise 420ms var(--eo) 20ms both; }
+.signal-label-row {
+  display: flex; justify-content: space-between; align-items: center; margin-bottom: 7px;
+}
+.signal-label {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase;
+  color: var(--hint);
+}
+.signal-pct { font-size: 12px; font-weight: 700; color: var(--hint); transition: color 300ms; }
+.signal-track { height: 5px; background: rgba(26,57,72,0.10); border-radius: 100px; overflow: hidden; }
+.signal-fill {
+  height: 100%; border-radius: 100px;
+  background: linear-gradient(90deg, var(--violet), #9b6fec);
+  transition: width 500ms var(--eo);
+}
+.signal-msg { font-size: 12px; color: var(--muted); margin-top: 6px; transition: color 300ms; font-weight: 500; }
+
+/* ── CTA ────────────────────────────────────────── */
+.cta-row { display: flex; gap: 10px; align-items: center; margin-top: 6px; }
+.btn-copy {
+  flex: 1; padding: 14px 20px;
+  font-family: var(--sans); font-size: 14px; font-weight: 600;
+  color: var(--ivory); background: var(--teal);
+  border: none; border-radius: 12px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  box-shadow: 0 4px 18px rgba(26,57,72,0.22), inset 0 1px 0 rgba(255,255,255,0.10);
+  transition: transform 150ms var(--eo), box-shadow 150ms, background 200ms;
+}
+.btn-copy:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(26,57,72,0.28), inset 0 1px 0 rgba(255,255,255,0.12); }
+.btn-copy:active { transform: scale(0.98); }
+.btn-copy.copied {
+  background: #1f7a45;
+  box-shadow: 0 4px 18px rgba(31,122,69,0.30), inset 0 1px 0 rgba(255,255,255,0.14);
+}
+.btn-outlook {
+  padding: 14px 18px;
+  font-family: var(--sans); font-size: 13.5px; font-weight: 600;
+  color: var(--teal); background: rgba(255,255,255,0.80);
+  border: 1.5px solid rgba(26,57,72,0.20); border-radius: 12px; cursor: pointer;
+  display: flex; align-items: center; gap: 7px; white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(26,57,72,0.07), inset 0 1px 0 rgba(255,255,255,0.9);
+  transition: transform 150ms var(--eo), background 150ms; text-decoration: none;
+}
+.btn-outlook:hover { background: rgba(255,255,255,0.96); transform: translateY(-1px); }
+
+/* ── GRID 2 ─────────────────────────────────────── */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+/* ── RESPONSIVE ─────────────────────────────────── */
+@media (max-width: 420px) {
+  .wrapper { padding: 18px 13px 60px; }
+  .hero { margin: 22px 0 24px; }
+  .hero-title { font-size: 22px; }
+  .card { padding: 16px 16px; border-radius: 14px; }
+  .grid-2 { grid-template-columns: 1fr; gap: 10px; }
+  .type-grid { grid-template-columns: 1fr 1fr; }
+  .priority-chips { flex-direction: column; }
+  .cta-row { flex-direction: column; }
+  .btn-copy, .btn-outlook { width: 100%; justify-content: center; }
+  .wordmark svg { display: none; }
+}
+body.sidebar-mode .wrapper { max-width: 100%; padding: 16px 13px 60px; }
+body.sidebar-mode .grid-2 { grid-template-columns: 1fr; gap: 10px; }
+body.sidebar-mode .type-grid { grid-template-columns: 1fr 1fr; }
+body.sidebar-mode .priority-chips { flex-direction: row; }
+body.sidebar-mode .cta-row { flex-direction: column; }
+body.sidebar-mode .btn-copy, body.sidebar-mode .btn-outlook { width: 100%; justify-content: center; }
+body.sidebar-mode .hero-title { font-size: 22px; }
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+</style>
+</head>
+<body>
+
+<div class="scene">
+  <div class="orb o1"></div>
+  <div class="orb o2"></div>
+  <div class="orb o3"></div>
+</div>
+
+<!-- NAV -->
+<div class="nav-wrap">
+  <div class="nav-pill">
+    <a class="wordmark" href="../">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M8 10L4 6.5 8 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Pilot<em>Desk</em>
+    </a>
+    <div class="nav-sep"></div>
+    <div class="ntab on">Image Authenticity Check</div>
+  </div>
+</div>
+
+<div class="wrapper">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-eyebrow">
+      <span class="pdot"></span>
+      Prompt Generator · PilotDesk
+    </div>
+    <h1 class="hero-title">
+      Image Authenticity<br><em>Check</em>
+    </h1>
+    <p class="hero-sub">
+      Detect AI-generated, manipulated, or misleading images before publication. Configure below — a forensic analysis prompt is built in the background.
+    </p>
+  </div>
+
+  <!-- SIGNAL BAR -->
+  <div class="signal-bar-wrap">
+    <div class="signal-label-row">
+      <span class="signal-label">Prompt readiness</span>
+      <span class="signal-pct" id="sigPct">0%</span>
+    </div>
+    <div class="signal-track">
+      <div class="signal-fill" id="sigFill" style="width:0%"></div>
+    </div>
+    <div class="signal-msg" id="sigMsg">Provide an image URL or upload the image directly in Copilot</div>
+  </div>
+
+  <!-- CARD 1: IMAGE INPUT -->
+  <div class="card">
+    <div class="card-head">
+      <div class="card-head-icon chi-violet">
+        <svg viewBox="0 0 16 16" fill="none">
+          <rect x="1.5" y="3" width="13" height="10" rx="2" stroke="#7850C8" stroke-width="1.3"/>
+          <circle cx="5.5" cy="7" r="1.5" stroke="#7850C8" stroke-width="1.2"/>
+          <path d="M1.5 11l3.5-3.5 2.5 2.5 2-2.5 4 4" stroke="#7850C8" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="card-label">Image to analyse</div>
+    </div>
+
+    <div class="input-tabs">
+      <div class="itab on" id="tabUrl" onclick="switchMode('url')">Image URL</div>
+      <div class="itab" id="tabUpload" onclick="switchMode('upload')">Upload in Copilot</div>
+    </div>
+
+    <!-- URL panel -->
+    <div id="urlPanel">
+      <label class="field-label" for="imageUrl">Image URL</label>
+      <input class="field-input" id="imageUrl" type="url"
+        placeholder="https://example.com/image.jpg"
+        oninput="updateSignal(); generate()">
+      <div class="field-sub">Paste the direct URL to the image. Copilot will access and analyse it.</div>
+    </div>
+
+    <!-- Upload panel -->
+    <div id="uploadPanel" style="display:none">
+      <div class="upload-notice">
+        <div class="upload-notice-icon">
+          <svg viewBox="0 0 16 16" fill="none">
+            <path d="M8 3v7M5 7l3-4 3 4" stroke="#7850C8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M3 12h10" stroke="#7850C8" stroke-width="1.4" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="upload-notice-body">
+          <div class="upload-notice-title">Upload the image directly in Copilot</div>
+          <div class="upload-notice-text">
+            Copy the prompt below, then open Copilot and <strong>attach the image before pasting</strong>.
+            Use the paperclip icon in Copilot's message box to upload your file.
+            The prompt already instructs Copilot to analyse the attached image — don't forget to include it.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-divider"></div>
+
+    <!-- Image type -->
+    <label class="field-label">Image type</label>
+    <div class="type-grid" id="typeGrid">
+      <div class="type-btn on" data-type="news" onclick="soloType(this)">
+        <span class="type-icon">📰</span>News photo
+      </div>
+      <div class="type-btn" data-type="social" onclick="soloType(this)">
+        <span class="type-icon">📱</span>Social media
+      </div>
+      <div class="type-btn" data-type="portrait" onclick="soloType(this)">
+        <span class="type-icon">🧑</span>Portrait
+      </div>
+      <div class="type-btn" data-type="event" onclick="soloType(this)">
+        <span class="type-icon">🎤</span>Event photo
+      </div>
+      <div class="type-btn" data-type="screenshot" onclick="soloType(this)">
+        <span class="type-icon">🖥️</span>Screenshot
+      </div>
+      <div class="type-btn" data-type="product" onclick="soloType(this)">
+        <span class="type-icon">📦</span>Product / other
+      </div>
+    </div>
+  </div>
+
+  <!-- CARD 2: CONTEXT -->
+  <div class="card">
+    <div class="card-head">
+      <div class="card-head-icon chi-teal">
+        <svg viewBox="0 0 16 16" fill="none">
+          <circle cx="8" cy="8" r="5.5" stroke="#1A3948" stroke-width="1.3"/>
+          <path d="M8 5.5v3M8 10.5v.5" stroke="#1A3948" stroke-width="1.3" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="card-label">Claimed context</div>
+      <span class="card-tag-inline">Fills context — add whatever you know</span>
+    </div>
+
+    <div class="grid-2" style="margin-bottom:12px">
+      <div>
+        <label class="field-label" for="claimedSource">Claimed source</label>
+        <input class="field-input" id="claimedSource" type="text"
+          placeholder="e.g. Reuters, Telegram channel…"
+          oninput="updateSignal(); generate()">
+      </div>
+      <div>
+        <label class="field-label" for="claimedEvent">Claimed event</label>
+        <input class="field-input" id="claimedEvent" type="text"
+          placeholder="e.g. Kyiv, March 2024…"
+          oninput="updateSignal(); generate()">
+      </div>
+    </div>
+
+    <div style="margin-bottom:12px">
+      <label class="field-label" for="whereFound">Where it was found</label>
+      <input class="field-input" id="whereFound" type="text"
+        placeholder="e.g. shared on X/Twitter, received via WhatsApp, embedded in article…"
+        oninput="updateSignal(); generate()">
+    </div>
+
+    <div>
+      <label class="field-label" for="suspectedOrigin">Suspected origin</label>
+      <input class="field-input" id="suspectedOrigin" type="text"
+        placeholder="e.g. possibly AI-generated, may be from a different conflict…"
+        oninput="updateSignal(); generate()">
+    </div>
+  </div>
+
+  <!-- CARD 3: WHAT LOOKS WRONG -->
+  <div class="card">
+    <div class="card-head">
+      <div class="card-head-icon chi-flame">
+        <svg viewBox="0 0 16 16" fill="none">
+          <path d="M8 2C6 4.5 5 6.5 5.5 9a3 3 0 005.5-1.5C11 5.5 9.5 4 8 2z" stroke="#FF5400" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M6.5 10.5C5.5 11 5 12 5.5 13" stroke="#FF5400" stroke-width="1.3" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="card-label">What looks suspicious?</div>
+      <span class="card-tag-inline">Select all that apply</span>
+    </div>
+    <div class="sus-chips" id="susChips">
+      <div class="sus-chip" onclick="toggleSus(this)">Hands / fingers</div>
+      <div class="sus-chip" onclick="toggleSus(this)">Face or eyes</div>
+      <div class="sus-chip" onclick="toggleSus(this)">Lighting inconsistency</div>
+      <div class="sus-chip" onclick="toggleSus(this)">Blurred edges</div>
+      <div class="sus-chip" onclick="toggleSus(this)">Background weirdness</div>
+      <div class="sus-chip" onclick="toggleSus(this)">Warped text / logos</div>
+      <div class="sus-chip" onclick="toggleSus(this)">Object doesn't fit scene</div>
+      <div class="sus-chip" onclick="toggleSus(this)">Too perfect / over-polished</div>
+      <div class="sus-chip" onclick="toggleSus(this)">Doesn't match claimed date/place</div>
+      <div class="sus-chip" onclick="toggleSus(this)">Nothing obvious — full check</div>
+    </div>
+  </div>
+
+  <!-- CARD 4: VERIFICATION PRIORITY -->
+  <div class="card">
+    <div class="card-head">
+      <div class="card-head-icon chi-honey">
+        <svg viewBox="0 0 16 16" fill="none">
+          <path d="M8 2L9.5 6.5H14L10.5 9L11.5 13.5L8 11L4.5 13.5L5.5 9L2 6.5H6.5L8 2Z" stroke="#8a5e00" stroke-width="1.3" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="card-label">Verification priority</div>
+      <span class="card-tag-inline">Editorial stakes</span>
+    </div>
+    <div class="priority-chips">
+      <div class="priority-chip" id="priLow" onclick="setPriority('low')">
+        <div class="p-dot pd-low"></div>
+        <div class="priority-name">Low</div>
+        <div class="priority-desc">Casual curiosity</div>
+      </div>
+      <div class="priority-chip on-medium" id="priMedium" onclick="setPriority('medium')">
+        <div class="p-dot pd-medium"></div>
+        <div class="priority-name">Medium</div>
+        <div class="priority-desc">Editorial check</div>
+      </div>
+      <div class="priority-chip" id="priHigh" onclick="setPriority('high')">
+        <div class="p-dot pd-high"></div>
+        <div class="priority-name">High</div>
+        <div class="priority-desc">High-risk misinformation</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CARD 5: FORENSIC FOCUS -->
+  <div class="card">
+    <div class="card-head">
+      <div class="card-head-icon chi-stone">
+        <svg viewBox="0 0 16 16" fill="none">
+          <circle cx="7" cy="7" r="4.5" stroke="#1A3948" stroke-width="1.3"/>
+          <line x1="10.18" y1="10.18" x2="13" y2="13" stroke="#1A3948" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="card-label">Forensic focus</div>
+      <span class="card-tag-inline">Choose one primary angle</span>
+    </div>
+    <div class="focus-chips">
+      <div class="focus-chip on" data-focus="full" onclick="soloFocus(this)">
+        <div class="focus-chip-dot"></div>
+        Full forensic scan
+      </div>
+      <div class="focus-chip" data-focus="ai" onclick="soloFocus(this)">
+        <div class="focus-chip-dot"></div>
+        AI generation detection
+      </div>
+      <div class="focus-chip" data-focus="manipulation" onclick="soloFocus(this)">
+        <div class="focus-chip-dot"></div>
+        Manipulation / editing
+      </div>
+      <div class="focus-chip" data-focus="context" onclick="soloFocus(this)">
+        <div class="focus-chip-dot"></div>
+        Context mismatch
+      </div>
+      <div class="focus-chip" data-focus="anatomy" onclick="soloFocus(this)">
+        <div class="focus-chip-dot"></div>
+        Human anatomy check
+      </div>
+    </div>
+  </div>
+
+  <!-- CARD 6: COPY -->
+  <div class="card">
+    <div class="cta-row">
+      <button class="btn-copy" id="copyBtn" onclick="copyPrompt()">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <rect x="5" y="4" width="9" height="10" rx="2" stroke="currentColor" stroke-width="1.4"/>
+          <path d="M11 4V3a1 1 0 00-1-1H3a1 1 0 00-1 1v9a1 1 0 001 1h1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>
+        <span id="copyLabel">Copy Prompt</span>
+      </button>
+      <a class="btn-outlook" href="https://outlook.office.com/mail/" target="_blank" rel="noopener">
+        <svg width="17" height="17" viewBox="0 0 17 17" fill="none">
+          <rect x="1.5" y="3.5" width="14" height="10" rx="2.5" stroke="#0072C6" stroke-width="1.4"/>
+          <path d="M1.5 6.5l6.3 4a1.2 1.2 0 001.4 0l6.3-4" stroke="#0072C6" stroke-width="1.3"/>
+        </svg>
+        Open Outlook
+      </a>
+    </div>
+  </div>
+
+</div><!-- /wrapper -->
+
+<script>
+/* ── Sidebar detection ──────────────────────────── */
+function detectSidebar() {
+  document.body.classList.toggle('sidebar-mode', window.innerWidth <= 420);
+}
+detectSidebar();
+window.addEventListener('resize', detectSidebar);
+
+/* ── State ──────────────────────────────────────── */
+let inputMode = 'url';
+let imageType = 'news';
+let priority  = 'medium';
+let focus     = 'full';
+
+/* ── Input mode toggle ──────────────────────────── */
+function switchMode(mode) {
+  inputMode = mode;
+  document.getElementById('tabUrl').classList.toggle('on', mode === 'url');
+  document.getElementById('tabUpload').classList.toggle('on', mode === 'upload');
+  document.getElementById('urlPanel').style.display    = mode === 'url'    ? '' : 'none';
+  document.getElementById('uploadPanel').style.display = mode === 'upload' ? '' : 'none';
+  updateSignal(); generate();
+}
+
+/* ── Image type solo ────────────────────────────── */
+function soloType(el) {
+  document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('on'));
+  el.classList.add('on');
+  imageType = el.dataset.type;
+  updateSignal(); generate();
+}
+
+/* ── Suspicion toggle ───────────────────────────── */
+function toggleSus(el) {
+  el.classList.toggle('on');
+  updateSignal(); generate();
+}
+
+/* ── Priority ───────────────────────────────────── */
+function setPriority(p) {
+  priority = p;
+  ['low','medium','high'].forEach(v => {
+    const el = document.getElementById('pri' + v.charAt(0).toUpperCase() + v.slice(1));
+    el.className = 'priority-chip' + (v === p ? ' on-' + v : '');
+  });
+  updateSignal(); generate();
+}
+
+/* ── Focus solo ─────────────────────────────────── */
+function soloFocus(el) {
+  document.querySelectorAll('.focus-chip').forEach(c => c.classList.remove('on'));
+  el.classList.add('on');
+  focus = el.dataset.focus;
+  generate();
+}
+
+/* ── Signal bar ─────────────────────────────────── */
+function updateSignal() {
+  const url  = document.getElementById('imageUrl').value.trim();
+  const src  = document.getElementById('claimedSource').value.trim();
+  const evt  = document.getElementById('claimedEvent').value.trim();
+  const whr  = document.getElementById('whereFound').value.trim();
+  const sus  = document.querySelectorAll('.sus-chip.on').length;
+
+  let score = 0;
+  const hasImage = (inputMode === 'url' && url) || inputMode === 'upload';
+  if (hasImage)  score += 40;
+  if (src || evt || whr) score += 25;
+  if (sus > 0)   score += 20;
+  if (priority !== 'medium') score += 10;
+  score = Math.min(score, 95);
+
+  document.getElementById('sigFill').style.width = score + '%';
+  document.getElementById('sigPct').textContent = score + '%';
+
+  let msg = 'Provide an image URL or switch to Upload in Copilot to begin';
+  if (score >= 80) msg = 'Strong signal — ready for a precision forensic report';
+  else if (score >= 55) msg = 'Good signal — adding context sharpens the analysis';
+  else if (score >= 30) msg = 'Basic signal — mark suspicions and add source context';
+  else if (hasImage) msg = 'Image set — add context and suspicions for a deeper analysis';
+
+  document.getElementById('sigMsg').textContent = msg;
+  document.getElementById('sigPct').style.color =
+    score >= 70 ? '#7850C8' : '#6b7f8a';
+}
+
+/* ── Prompt builder ─────────────────────────────── */
+function generate() {
+  const url     = document.getElementById('imageUrl').value.trim();
+  const src     = document.getElementById('claimedSource').value.trim();
+  const evt     = document.getElementById('claimedEvent').value.trim();
+  const whr     = document.getElementById('whereFound').value.trim();
+  const sus_org = document.getElementById('suspectedOrigin').value.trim();
+  const susArr  = [...document.querySelectorAll('.sus-chip.on')].map(c => c.textContent.trim());
+
+  const IMAGE_TYPE_MAP = {
+    news:       'News photo',
+    social:     'Social media post',
+    portrait:   'Portrait',
+    event:      'Event photo',
+    screenshot: 'Screenshot',
+    product:    'Product / other',
+  };
+  const PRIORITY_MAP = {
+    low:    'Casual curiosity — light editorial check',
+    medium: 'Editorial check — standard pre-publication review',
+    high:   'High-risk misinformation — maximum scrutiny required',
+  };
+  const FOCUS_MAP = {
+    full:        'Run the full 8-layer forensic analysis. Score all categories. Do not skip any layer.',
+    ai:          'Prioritise AI generation detection. Focus on AI artifact signals, composition perfection, generative model traits. Still score all 8 layers but weight AI Artifacts and Composition Signature highest.',
+    manipulation:'Prioritise manipulation and editing detection. Focus on lighting consistency, shadow physics, texture discontinuities, and blended edges. Weight Lighting, Texture, and Scene Logic highest.',
+    context:     'Prioritise context mismatch analysis. Focus on whether the image is consistent with the claimed event, date, location, and source. Weight Context Consistency and Metadata highest.',
+    anatomy:     'Prioritise human anatomy analysis. Focus on hands, fingers, facial symmetry, eyes, teeth, and body proportions. Weight Anatomy highest.',
+  };
+
+  let imageBlock = '';
+  if (inputMode === 'url' && url) {
+    imageBlock = `IMAGE:\n${url}\n`;
+  } else if (inputMode === 'upload') {
+    imageBlock = `IMAGE:\n[Attached directly in this Copilot message — analyse the uploaded image file]\n`;
+  } else {
+    imageBlock = `IMAGE:\n[No image provided yet — add URL or upload the image in Copilot]\n`;
+  }
+
+  const contextLines = [
+    src     ? `- Claimed source: ${src}`  : '',
+    whr     ? `- Where it was found: ${whr}` : '',
+    evt     ? `- Claimed event: ${evt}` : '',
+    sus_org ? `- Suspected origin: ${sus_org}` : '',
+  ].filter(Boolean);
+
+  const contextBlock = contextLines.length
+    ? `CONTEXT:\n${contextLines.join('\n')}\n`
+    : `CONTEXT:\n- No additional context provided\n`;
+
+  const susBlock = susArr.length
+    ? `USER SUSPICIONS:\n${susArr.map(s => `- ${s}`).join('\n')}\n`
+    : `USER SUSPICIONS:\nNone specified — perform a neutral full-spectrum scan\n`;
+
+  const sep = '─'.repeat(54);
+
+  const prompt =
+`🔍 PILOTDESK IMAGE AUTHENTICITY CHECK — FORENSIC ANALYSIS REQUEST
+${sep}
+
+MANDATORY INSTRUCTION: You are VISUAL_FORENSICS_ENGINE v1 — an advanced image verification and forensic analysis system for editorial and investigative environments. Do not summarise or describe this request. Execute the forensic analysis immediately using the framework below. Output only the structured VISUAL FORENSICS CARD. No preamble.
+
+${sep}
+IMAGE INPUT
+${sep}
+
+${imageBlock}
+IMAGE TYPE: ${IMAGE_TYPE_MAP[imageType]}
+
+${sep}
+CONTEXT
+${sep}
+
+${contextBlock}
+${susBlock}
+VERIFICATION PRIORITY: ${PRIORITY_MAP[priority]}
+
+${sep}
+PRIMARY FORENSIC FOCUS
+${sep}
+
+${FOCUS_MAP[focus]}
+
+${sep}
+FORENSIC ANALYSIS FRAMEWORK — evaluate ALL 8 layers
+${sep}
+
+1. ANATOMY & HUMAN STRUCTURE
+   - Hands, fingers, joints
+   - Face symmetry, teeth, eyes
+   - Body proportions
+
+2. LIGHTING & SHADOW PHYSICS
+   - Light direction consistency
+   - Shadow realism
+   - Reflection logic
+
+3. TEXTURE & MATERIAL REALISM
+   - Skin texture (natural variation vs smooth)
+   - Object surfaces (plastic, glass, food)
+   - Noise and grain patterns
+
+4. SCENE LOGIC & PHYSICS
+   - Object interaction correctness
+   - Perspective coherence
+   - Background realism
+
+5. AI ARTIFACT DETECTION
+   - Warped text or logos
+   - Repetition patterns
+   - Blended edges
+   - Structural inconsistencies
+
+6. COMPOSITION SIGNATURE
+   - Does the image look "over-optimised"?
+   - Unrealistic aesthetic perfection
+   - Typical traits of generative models
+
+7. METADATA EXPECTATION ANALYSIS
+   (Note: if metadata is not available, reason about likelihood)
+   - Should this image normally have EXIF?
+   - Does absence increase suspicion?
+
+8. CONSISTENCY WITH CLAIMED CONTEXT
+   - Does the image match the claimed event?
+   - Any mismatch in environment, objects, or setup?
+
+${sep}
+SCORING — score each category
+${sep}
+
+- Anatomy: /5
+- Lighting: /5
+- Texture: /5
+- Scene Logic: /5
+- AI Artifacts: /5
+- Composition Signature: /5
+- Context Consistency: /5
+- Metadata Trustworthiness: /5
+
+${sep}
+OUTPUT FORMAT — STRICT, DO NOT BREAK STRUCTURE
+${sep}
+
+[VISUAL FORENSICS CARD]
+
+Final Verdict:
+(✅ Likely Real | ⚠️ Uncertain | 🚫 Likely AI-generated | 🛠 Manipulated)
+
+Confidence: (0–100%)
+
+---
+Score Breakdown:
+- Anatomy: X/5
+- Lighting: X/5
+- Texture: X/5
+- Scene Logic: X/5
+- AI Artifacts: X/5
+- Composition: X/5
+- Context Match: X/5
+- Metadata: X/5
+
+---
+Key Evidence:
+✅ Real Signals:
+- (list only strong indicators)
+
+⚠️ Suspicious Signals:
+- (list only high-confidence anomalies)
+
+---
+Risk Assessment:
+- Misuse risk (low / medium / high)
+- Why this image could mislead people
+
+---
+Final Explanation (max 6 bullets):
+- Clear, factual reasoning
+- No fluff
+- No repetition
+
+${sep}
+RESTRICTIONS
+${sep}
+
+- Do NOT hallucinate metadata
+- Do NOT claim certainty without strong signals
+- Do NOT use vague language like "feels AI"
+- Always justify claims with visible evidence`;
+
+  window._currentPrompt = prompt;
+}
+
+/* ── Copy ───────────────────────────────────────── */
+function copyPrompt() {
+  generate();
+  const prompt = window._currentPrompt || '';
+  if (!prompt) return;
+  navigator.clipboard.writeText(prompt).then(() => {
+    const btn   = document.getElementById('copyBtn');
+    const label = document.getElementById('copyLabel');
+    btn.classList.add('copied');
+    label.textContent = 'Copied!';
+    setTimeout(() => {
+      btn.classList.remove('copied');
+      label.textContent = 'Copy Prompt';
+    }, 2200);
+  });
+}
+
+/* ── Init ───────────────────────────────────────── */
+generate();
+</script>
+</body>
+</html>
