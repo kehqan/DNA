@@ -272,7 +272,8 @@ body.sidebar-mode .owl-wrap { width: 72px; height: 72px; top: -8px; right: -4px;
 .tool-card:nth-child(2) { animation-delay: 110ms; }
 .tool-card:nth-child(3) { animation-delay: 160ms; }
 .tool-card:nth-child(4) { animation-delay: 210ms; }
-.tool-card:nth-child(5) { animation-delay: 260ms; grid-column: 1 / -1; max-width: calc(50% - 7px); margin: 0 auto; }
+.tool-card:nth-child(5) { animation-delay: 260ms; }
+.tool-card:nth-child(6) { animation-delay: 310ms; }
 
 @keyframes rise {
   from { opacity: 0; transform: translateY(10px); }
@@ -296,6 +297,7 @@ body.sidebar-mode .owl-wrap { width: 72px; height: 72px; top: -8px; right: -4px;
 .ci-teal   { background: rgba(26,57,72,0.08);  border: 1px solid rgba(26,57,72,0.14); }
 .ci-honey  { background: rgba(255,192,71,0.14);border: 1px solid rgba(255,192,71,0.26); }
 .ci-stone  { background: rgba(185,204,204,0.25);border: 1px solid rgba(185,204,204,0.40); }
+.ci-violet { background: rgba(120,80,200,0.09); border: 1px solid rgba(120,80,200,0.20); }
 
 .card-icon svg { width: 20px; height: 20px; }
 
@@ -306,6 +308,7 @@ body.sidebar-mode .owl-wrap { width: 72px; height: 72px; top: -8px; right: -4px;
   padding: 3px 9px; border-radius: 100px; white-space: nowrap; flex-shrink: 0;
 }
 .ct-live { background: rgba(255,84,0,0.10); color: var(--flame); border: 1px solid rgba(255,84,0,0.18); }
+.ct-beta { background: rgba(120,80,200,0.10); color: #533db5; border: 1px solid rgba(120,80,200,0.22); }
 .ct-soon { background: rgba(26,57,72,0.07); color: var(--soft); border: 1px solid rgba(26,57,72,0.12); }
 
 .card-name {
@@ -727,7 +730,7 @@ body.sidebar-mode .nav-wrap { padding: 10px 12px 0; }
             <circle cx="15" cy="2.5" r="1" fill="#8a5e00"/>
           </svg>
         </div>
-        <span class="card-tag ct-live">Live</span>
+        <span class="card-tag ct-beta">Live</span>
       </div>
       <div>
         <div class="card-name">Meeting Recap</div>
