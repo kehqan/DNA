@@ -2,11 +2,29 @@
 <html>
 <head>
   <meta charset="UTF-8" />
+  <!--
+    commands.html — DNA Bias Analyzer
+    ─────────────────────────────────
+    This file is the FunctionFile referenced in the manifest.
+    It must be a SEPARATE file from the main taskpane.
+    
+    Office loads this page in a hidden context to execute ribbon button
+    commands. If Commands.Url points to your main app page instead,
+    Office cannot find its required function exports and fails silently —
+    the ribbon button either doesn't appear or does nothing when clicked.
+    
+    Deploy this file at:
+    https://kehqan.github.io/DNA/commands.html
+  -->
   <script src="https://appsforoffice.microsoft.com/lib/1.1/hosted/office.js" type="text/javascript"></script>
   <script>
-    // This file is required by the manifest as the FunctionFile.
-    // Add any ribbon button command functions here in future.
-    Office.onReady(function() {});
+    Office.onReady(function() {
+      // No-op — this file exists purely to satisfy the FunctionFile requirement.
+      // Add named functions here if you add ExecuteFunction ribbon buttons later.
+      // Example:
+      //   function runBiasCheck(event) { ... event.completed(); }
+      //   Office.actions.associate("runBiasCheck", runBiasCheck);
+    });
   </script>
 </head>
 <body></body>
