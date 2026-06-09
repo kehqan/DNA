@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PilotDesk</title>
+
+  <!-- Office.js — required for all Office Add-ins -->
+  <script src="https://appsforoffice.microsoft.com/lib/1.1/hosted/office.js" type="text/javascript"></script>
+
+  <!-- Google Fonts — Liquid Glass × Ahoy typography -->
+  <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&family=Noto+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    /* ── Design Tokens: Liquid Glass × Ahoy ───────────────────── */
+    :root {
+      --ivory:  #F8F7F6;
+      --teal:   #1A3948;
+      --teal2:  #24506A;
+      --flame:  #FF5400;
+      --stone:  #B9CCCC;
+      --honey:  #FFC047;
+      --border: rgba(26,57,72,0.09);
+      --muted:  rgba(26,57,72,0.52);
+      --soft:   rgba(26,57,72,0.36);
+      --glass:  rgba(255,255,255,0.60);
+      --glass-b:rgba(255,255,255,0.88);
+      --gs: 0 6px 24px rgba(26,57,72,0.10), 0 1px 4px rgba(26,57,72,0.06);
+      --gi: inset 0 1px 0 rgba(255,255,255,0.92), inset 0 -1px 0 rgba(26,57,72,0.03);
+      --eo: cubic-bezier(0.25,0.46,0.45,0.94);
+      --serif: 'Lora', Georgia, serif;
+      --sans:  'Noto Sans', system-ui, sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%; font-family: var(--sans);
+      background: #EDECEA; overflow-x: hidden;
+    }
+
+    /* ── Ambient orbs ──────────────────────────────────────────── */
+    .scene {
+      position: fixed; inset: 0; z-index: 0;
+      pointer-events: none; overflow: hidden;
+    }
+    .orb { position: absolute; border-radius: 50%; filter: blur(70px); }
+    .o1 {
+      width: 320px; height: 260px; top: -80px; left: -60px;
+      background: radial-gradient(ellipse, rgba(255,84,0,0.28) 0%, transparent 68%);
+    }
+    .o2 {
+      width: 260px; height: 220px; top: 40%; right: -80px;
+      background: radial-gradient(ellipse, rgba(26,57,72,0.13) 0%, transparent 70%);
+    }
+    .o3 {
+      width: 220px; height: 180px; bottom: 10%; left: 20%;
+      background: radial-gradient(ellipse, rgba(255,192,71,0.15) 0%, transparent 65%);
+    }
+
+    /* ── Shell ──────────────────────────────────────────────────── */
+    .shell {
+      position: relative; z-index: 1;
+      min-height: 100vh;
+      padding: 0 0 24px;
+      display: flex; flex-direction: column;
+    }
+
+    /* ── Header ─────────────────────────────────────────────────── */
+    .header {
+      padding: 16px 16px 12px;
+      display: flex; align-items: center; gap: 10px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(255,255,255,0.50);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      position: sticky; top: 0; z-index: 20;
+    }
+    .logo-mark {
+      width: 32px; height: 32px; border-radius: 9px;
+      background: var(--teal);
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 2px 8px rgba(26,57,72,0.24);
+      flex-shrink: 0;
+    }
+    .logo-mark svg { width: 18px; height: 18px; }
+    .wordmark {
+      font-family: var(--serif); font-size: 17px;
+      color: var(--teal); font-weight: 500; flex: 1;
+    }
+    .wordmark em { font-style: normal; color: var(--flame); font-weight: 600; }
+    .host-chip {
+      font-size: 9px; font-weight: 700; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--teal2);
+      background: rgba(26,57,72,0.08); border: 1px solid rgba(26,57,72,0.12);
+      padding: 3px 8px; border-radius: 100px;
+    }
+
+    /* ── Content area ───────────────────────────────────────────── */
+    .content { padding: 14px 14px 0; flex: 1; display: flex; flex-direction: column; gap: 12px; }
+
+    /* ── Card ───────────────────────────────────────────────────── */
+    .card {
+      border-radius: 16px; padding: 16px;
+      background: var(--glass);
+      backdrop-filter: blur(20px) saturate(1.8);
+      -webkit-backdrop-filter: blur(20px) saturate(1.8);
+      border: 1px solid var(--glass-b);
+      box-shadow: var(--gs), var(--gi);
+      animation: rise 380ms var(--eo) both;
+    }
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .card:nth-child(2) { animation-delay: 50ms; }
+    .card:nth-child(3) { animation-delay: 100ms; }
+    .card:nth-child(4) { animation-delay: 150ms; }
+
+    /* ── Eyebrow ────────────────────────────────────────────────── */
+    .eyebrow {
+      font-size: 9px; font-weight: 700; letter-spacing: 0.11em;
+      text-transform: uppercase; color: var(--soft);
+      margin-bottom: 10px; display: flex; align-items: center; gap: 6px;
+    }
+    .pdot {
+      width: 5px; height: 5px; border-radius: 50%; background: var(--flame);
+      animation: pring 2.5s ease-in-out infinite;
+    }
+    @keyframes pring {
+      0%,100% { box-shadow: 0 0 0 0 rgba(255,84,0,0.4); }
+      50%      { box-shadow: 0 0 0 4px rgba(255,84,0,0); }
+    }
+
+    /* ── Form elements ──────────────────────────────────────────── */
+    label {
+      display: block; font-size: 11px; font-weight: 600;
+      color: var(--teal); margin-bottom: 5px; letter-spacing: 0.01em;
+    }
+    select, textarea {
+      width: 100%; font-family: var(--sans); font-size: 13px;
+      color: var(--teal); background: rgba(255,255,255,0.75);
+      border: 1px solid rgba(26,57,72,0.18);
+      border-radius: 10px; padding: 9px 12px;
+      outline: none; appearance: none;
+      transition: border-color 160ms, box-shadow 160ms;
+      box-shadow: 0 1px 4px rgba(26,57,72,0.05);
+    }
+    select:focus, textarea:focus {
+      border-color: var(--teal2);
+      box-shadow: 0 0 0 3px rgba(26,57,72,0.10);
+    }
+    select { cursor: pointer; }
+    textarea { resize: vertical; min-height: 76px; line-height: 1.5; }
+    .form-row { margin-bottom: 10px; }
+    .form-row:last-child { margin-bottom: 0; }
+    .form-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+    /* ── Context banner ─────────────────────────────────────────── */
+    .ctx-banner {
+      font-size: 11.5px; color: var(--teal2); line-height: 1.45;
+      background: rgba(26,57,72,0.05);
+      border: 1px solid rgba(26,57,72,0.10);
+      border-radius: 10px; padding: 9px 11px;
+      font-style: italic; display: none;
+    }
+    .ctx-banner.visible { display: block; }
+    .ctx-label {
+      font-size: 9px; font-weight: 700; letter-spacing: 0.09em;
+      text-transform: uppercase; color: var(--soft);
+      margin-bottom: 4px; font-style: normal;
+    }
+
+    /* ── Generate button ────────────────────────────────────────── */
+    .gen-btn {
+      width: 100%; padding: 12px; border-radius: 12px;
+      background: var(--teal); color: var(--ivory);
+      font-family: var(--sans); font-size: 13px; font-weight: 600;
+      border: none; cursor: pointer; letter-spacing: 0.02em;
+      box-shadow: 0 4px 16px rgba(26,57,72,0.28), inset 0 1px 0 rgba(255,255,255,0.12);
+      transition: transform 150ms var(--eo), box-shadow 150ms, background 150ms;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .gen-btn:hover {
+      background: var(--teal2);
+      box-shadow: 0 6px 20px rgba(26,57,72,0.34), inset 0 1px 0 rgba(255,255,255,0.14);
+      transform: translateY(-1px);
+    }
+    .gen-btn:active { transform: scale(0.98); }
+    .gen-btn.loading { opacity: 0.72; pointer-events: none; }
+
+    /* ── Output area ────────────────────────────────────────────── */
+    .output-card { display: none; }
+    .output-card.visible { display: block; }
+
+    .prompt-out {
+      font-family: var(--serif); font-size: 13.5px; line-height: 1.6;
+      color: var(--teal); white-space: pre-wrap; word-break: break-word;
+    }
+
+    .out-actions {
+      display: flex; gap: 8px; margin-top: 14px;
+      flex-wrap: wrap;
+    }
+
+    .abtn {
+      font-size: 12px; font-weight: 600; color: var(--teal);
+      padding: 7px 14px; border-radius: 100px;
+      border: 1.5px solid rgba(26,57,72,0.22);
+      background: rgba(255,255,255,0.70);
+      backdrop-filter: blur(8px);
+      box-shadow: 0 2px 6px rgba(26,57,72,0.07), inset 0 1px 0 rgba(255,255,255,0.9);
+      transition: transform 140ms var(--eo), background 140ms, color 140ms;
+      cursor: pointer; font-family: var(--sans);
+      display: flex; align-items: center; gap: 5px;
+    }
+    .abtn:hover { background: var(--teal); color: var(--ivory); border-color: transparent; }
+    .abtn:active { transform: scale(0.97); }
+    .abtn.flame {
+      background: var(--flame); color: #fff; border-color: transparent;
+      box-shadow: 0 3px 12px rgba(255,84,0,0.32), inset 0 1px 0 rgba(255,255,255,0.22);
+    }
+    .abtn.flame:hover { background: #e04600; }
+
+    /* ── Toast ─────────────────────────────────────────────────── */
+    .toast {
+      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(8px);
+      background: var(--teal); color: #fff;
+      font-size: 12px; font-weight: 500; padding: 8px 18px;
+      border-radius: 100px; opacity: 0; pointer-events: none;
+      transition: opacity 200ms, transform 200ms;
+      white-space: nowrap; z-index: 100;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* ── Status line ───────────────────────────────────────────── */
+    .status {
+      font-size: 11px; color: var(--soft); text-align: center;
+      padding: 6px 0 0; min-height: 20px;
+    }
+    .status.err { color: var(--flame); }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Ambient scene -->
+<div class="scene">
+  <div class="orb o1"></div>
+  <div class="orb o2"></div>
+  <div class="orb o3"></div>
+</div>
+
+<div class="shell">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="logo-mark">
+      <!-- Pilot mascot mark — simplified inline SVG -->
+      <svg viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="9" cy="7" r="4" fill="#FF5400"/>
+        <path d="M3 15c0-3.314 2.686-6 6-6s6 2.686 6 6" stroke="#F8F7F6" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <span class="wordmark">Pilot<em>Desk</em></span>
+    <span class="host-chip" id="hostChip">Office</span>
+  </div>
+
+  <!-- Content -->
+  <div class="content">
+
+    <!-- Context card — shows selected text if any -->
+    <div class="card" id="ctxCard">
+      <div class="eyebrow"><span class="pdot"></span>Document context</div>
+      <div class="ctx-banner" id="ctxBanner">
+        <div class="ctx-label">Selected text</div>
+        <span id="ctxText"></span>
+      </div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.5" id="ctxHint">
+        Select text in your document to use it as context for the prompt.
+      </div>
+    </div>
+
+    <!-- Controls card -->
+    <div class="card">
+      <div class="eyebrow">Prompt settings</div>
+
+      <div class="form-cols">
+        <div class="form-row">
+          <label for="roleSelect">My role</label>
+          <select id="roleSelect">
+            <option value="journalist">Journalist / Reporter</option>
+            <option value="editor">Editor</option>
+            <option value="producer">Producer</option>
+            <option value="service_director">Service Director</option>
+            <option value="digital">Digital / Social</option>
+            <option value="researcher">Researcher / Analyst</option>
+            <option value="translation">Translator</option>
+            <option value="management">Management</option>
+            <option value="tech">Tech / IT</option>
+          </select>
+        </div>
+
+        <div class="form-row">
+          <label for="taskSelect">Task type</label>
+          <select id="taskSelect">
+            <option value="write">Write / Draft</option>
+            <option value="edit">Edit / Improve</option>
+            <option value="summarize">Summarize</option>
+            <option value="translate">Translate</option>
+            <option value="research">Research / Find</option>
+            <option value="analyze">Analyze</option>
+            <option value="brainstorm">Brainstorm</option>
+            <option value="email">Draft Email</option>
+            <option value="brief">Morning Brief</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <label for="langSelect">Output language</label>
+        <select id="langSelect">
+          <option value="English">English</option>
+          <option value="Persian / Farsi">Persian / Farsi (فارسی)</option>
+          <option value="Russian">Russian (Русский)</option>
+          <option value="Arabic">Arabic (العربية)</option>
+          <option value="Ukrainian">Ukrainian (Українська)</option>
+          <option value="Azerbaijani">Azerbaijani</option>
+          <option value="Georgian">Georgian</option>
+          <option value="Romanian">Romanian</option>
+          <option value="Czech">Czech</option>
+        </select>
+      </div>
+
+      <div class="form-row">
+        <label for="topicInput">Topic or instruction (optional)</label>
+        <textarea id="topicInput" placeholder="e.g. Write a 200-word explainer on Iran's election results for a general audience…"></textarea>
+      </div>
+
+      <button class="gen-btn" id="genBtn" onclick="generatePrompt()">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <path d="M7 1L8.7 5.3L13 7L8.7 8.7L7 13L5.3 8.7L1 7L5.3 5.3L7 1Z" fill="currentColor"/>
+        </svg>
+        Generate Copilot Prompt
+      </button>
+      <div class="status" id="status"></div>
+    </div>
+
+    <!-- Output card (hidden until generated) -->
+    <div class="card output-card" id="outputCard">
+      <div class="eyebrow">
+        <span class="pdot"></span>Generated prompt
+      </div>
+      <div class="prompt-out" id="promptOut"></div>
+      <div class="out-actions">
+        <button class="abtn flame" onclick="copyPrompt()">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <rect x="4" y="4" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.4"/>
+            <path d="M2 8V2h6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+          </svg>
+          Copy
+        </button>
+        <button class="abtn" onclick="insertIntoDoc()">Insert into doc</button>
+        <button class="abtn" onclick="clearOutput()">Clear</button>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /shell -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ── Office.js bootstrap ──────────────────────────────────────── */
+let currentSelection = "";
+let currentHost = "Office";
+
+Office.onReady(function(info) {
+  // Detect host app and update the chip
+  if (info.host) {
+    const hostMap = {
+      [Office.HostType.Word]:        "Word",
+      [Office.HostType.Excel]:       "Excel",
+      [Office.HostType.PowerPoint]:  "PowerPoint",
+      [Office.HostType.Outlook]:     "Outlook",
+    };
+    currentHost = hostMap[info.host] || "Office";
+    document.getElementById("hostChip").textContent = currentHost;
+  }
+
+  // Try to read selection on load
+  readSelection();
+});
+
+/* ── Read selected text from document ───────────────────────── */
+async function readSelection() {
+  try {
+    if (Office.context.requirements.isSetSupported("WordApi", "1.1")) {
+      await Word.run(async (context) => {
+        const sel = context.document.getSelection();
+        sel.load("text");
+        await context.sync();
+        handleSelection(sel.text);
+      });
+    } else {
+      Office.context.document.getSelectedDataAsync(
+        Office.CoercionType.Text,
+        function(result) {
+          if (result.status === Office.AsyncResultStatus.Succeeded) {
+            handleSelection(result.value);
+          }
+        }
+      );
+    }
+  } catch(e) {
+    // Silent — selection reading is optional
+  }
+}
+
+function handleSelection(text) {
+  const trimmed = (text || "").trim();
+  currentSelection = trimmed;
+  const banner = document.getElementById("ctxBanner");
+  const hint   = document.getElementById("ctxHint");
+  const ctxTxt = document.getElementById("ctxText");
+
+  if (trimmed && trimmed.length > 0) {
+    const preview = trimmed.length > 220 ? trimmed.slice(0, 220) + "…" : trimmed;
+    ctxTxt.textContent = preview;
+    banner.classList.add("visible");
+    hint.style.display = "none";
+  } else {
+    banner.classList.remove("visible");
+    hint.style.display = "block";
+  }
+}
+
+/* ── Prompt generation ───────────────────────────────────────── */
+const ROLE_CONTEXT = {
+  journalist:       "You are a journalist and reporter at RFE/RL. You cover breaking news and in-depth stories for international audiences.",
+  editor:           "You are an editor at RFE/RL responsible for accuracy, clarity, and editorial standards.",
+  producer:         "You are a digital/broadcast producer at RFE/RL working on multimedia content.",
+  service_director: "You are a service director at RFE/RL managing editorial strategy and staff.",
+  digital:          "You are a digital and social media specialist at RFE/RL crafting platform-native content.",
+  researcher:       "You are a researcher and analyst at RFE/RL conducting open-source research and analysis.",
+  translation:      "You are a translator at RFE/RL working across languages while preserving journalistic tone.",
+  management:       "You are in RFE/RL management, working on strategy, communication, and organizational decisions.",
+  tech:             "You are in the technology/IT department at RFE/RL, supporting editorial and infrastructure systems.",
+};
+
+const TASK_INSTRUCTIONS = {
+  write:      "Draft the following content. Be clear, accurate, and audience-appropriate:",
+  edit:       "Improve the following text for clarity, accuracy, and journalistic style:",
+  summarize:  "Summarize the following content concisely, preserving key facts and context:",
+  translate:  "Translate the following text accurately, preserving tone and journalistic register:",
+  research:   "Research and provide well-sourced information on the following topic:",
+  analyze:    "Analyze the following, providing structured insights and key takeaways:",
+  brainstorm: "Generate creative, practical ideas for the following:",
+  email:      "Draft a professional email for the following purpose:",
+  brief:      "Create a concise morning editorial brief covering the following topics or context:",
+};
+
+function generatePrompt() {
+  const role     = document.getElementById("roleSelect").value;
+  const task     = document.getElementById("taskSelect").value;
+  const lang     = document.getElementById("langSelect").value;
+  const topic    = document.getElementById("topicInput").value.trim();
+  const btn      = document.getElementById("genBtn");
+  const status   = document.getElementById("status");
+
+  if (!topic && !currentSelection) {
+    status.textContent = "Add a topic or select text in your document first.";
+    status.className = "status err";
+    return;
+  }
+
+  status.textContent = "";
+  status.className = "status";
+  btn.classList.add("loading");
+  btn.textContent = "Generating…";
+
+  // Build the prompt
+  const roleCtx  = ROLE_CONTEXT[role]    || ROLE_CONTEXT.journalist;
+  const taskInst = TASK_INSTRUCTIONS[task] || TASK_INSTRUCTIONS.write;
+  const langLine = lang !== "English"
+    ? `\nRespond entirely in ${lang}.`
+    : "";
+
+  let contextBlock = "";
+  if (currentSelection) {
+    contextBlock = `\n\n---\nDocument context (selected text):\n"${currentSelection}"\n---`;
+  }
+
+  let topicBlock = "";
+  if (topic) {
+    topicBlock = `\n\n${taskInst}\n${topic}`;
+  } else if (currentSelection) {
+    topicBlock = `\n\n${taskInst}`;
+  }
+
+  const prompt =
+    `${roleCtx}${langLine}${contextBlock}${topicBlock}\n\nPlease respond in a professional journalistic tone appropriate for RFE/RL's international audiences.`.trim();
+
+  // Simulate brief delay for UX feel
+  setTimeout(() => {
+    document.getElementById("promptOut").textContent = prompt;
+    document.getElementById("outputCard").classList.add("visible");
+    btn.classList.remove("loading");
+    btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1L8.7 5.3L13 7L8.7 8.7L7 13L5.3 8.7L1 7L5.3 5.3L7 1Z" fill="currentColor"/></svg> Generate Copilot Prompt`;
+    // Scroll output into view
+    document.getElementById("outputCard").scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }, 320);
+}
+
+/* ── Copy to clipboard ───────────────────────────────────────── */
+function copyPrompt() {
+  const text = document.getElementById("promptOut").textContent;
+  if (!text) return;
+  navigator.clipboard.writeText(text).then(() => {
+    showToast("Prompt copied to clipboard");
+  }).catch(() => {
+    // Fallback
+    const ta = document.createElement("textarea");
+    ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta); ta.select();
+    document.execCommand("copy");
+    document.body.removeChild(ta);
+    showToast("Prompt copied");
+  });
+}
+
+/* ── Insert into document ─────────────────────────────────────── */
+async function insertIntoDoc() {
+  const text = document.getElementById("promptOut").textContent;
+  if (!text) return;
+
+  try {
+    if (Office.context.requirements.isSetSupported("WordApi", "1.1")) {
+      await Word.run(async (context) => {
+        const range = context.document.getSelection();
+        range.insertText("\n\n[COPILOT PROMPT]\n" + text + "\n[/COPILOT PROMPT]", "End");
+        await context.sync();
+      });
+      showToast("Inserted into document");
+    } else {
+      Office.context.document.setSelectedDataAsync(
+        "\n\n" + text,
+        { coercionType: Office.CoercionType.Text },
+        function(result) {
+          if (result.status === Office.AsyncResultStatus.Succeeded) {
+            showToast("Inserted into document");
+          }
+        }
+      );
+    }
+  } catch(e) {
+    showToast("Could not insert — copy instead");
+  }
+}
+
+/* ── Clear output ─────────────────────────────────────────────── */
+function clearOutput() {
+  document.getElementById("outputCard").classList.remove("visible");
+  document.getElementById("promptOut").textContent = "";
+  document.getElementById("status").textContent = "";
+}
+
+/* ── Toast ────────────────────────────────────────────────────── */
+function showToast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 2400);
+}
+
+/* ── Listen for selection changes ────────────────────────────── */
+// Poll every 2s as Office selection events are host-dependent
+setInterval(readSelection, 2000);
+</script>
+</body>
+</html>
