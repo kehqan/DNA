@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OSINT Tools Directory</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0d0f12;
+    --surface: #13161b;
+    --surface2: #1a1e25;
+    --surface3: #20252e;
+    --border: rgba(255,255,255,0.07);
+    --border-hover: rgba(255,255,255,0.14);
+    --text: #e8eaf0;
+    --text-muted: #7a8499;
+    --text-dim: #4a5268;
+    --accent: #4f8ef7;
+    --accent-bg: rgba(79,142,247,0.1);
+    --accent-border: rgba(79,142,247,0.3);
+    --danger: #f76f6f;
+    --danger-bg: rgba(247,111,111,0.1);
+
+    --cat-ai: #7c6af7; --cat-ai-bg: rgba(124,106,247,0.1);
+    --cat-archive: #3ec98c; --cat-archive-bg: rgba(62,201,140,0.1);
+    --cat-db: #f5a623; --cat-db-bg: rgba(245,166,35,0.1);
+    --cat-docs: #4f8ef7; --cat-docs-bg: rgba(79,142,247,0.1);
+    --cat-fin: #52c97a; --cat-fin-bg: rgba(82,201,122,0.1);
+    --cat-geo: #f76f8e; --cat-geo-bg: rgba(247,111,142,0.1);
+    --cat-mon: #f7a24f; --cat-mon-bg: rgba(247,162,79,0.1);
+    --cat-proj: #a67ff7; --cat-proj-bg: rgba(166,127,247,0.1);
+    --cat-rec: #f76f6f; --cat-rec-bg: rgba(247,111,111,0.1);
+    --cat-cap: #4fd8f7; --cat-cap-bg: rgba(79,216,247,0.1);
+    --cat-search: #b0b8cc; --cat-search-bg: rgba(176,184,204,0.1);
+    --cat-social: #f76fb8; --cat-social-bg: rgba(247,111,184,0.1);
+    --cat-vis: #f7d24f; --cat-vis-bg: rgba(247,210,79,0.1);
+    --cat-custom: #3ec9c9; --cat-custom-bg: rgba(62,201,201,0.1);
+  }
+
+  html { scroll-behavior: smooth; }
+  body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; font-size: 14px; line-height: 1.6; min-height: 100vh; }
+
+  /* ─── Header ─── */
+  header { border-bottom: 1px solid var(--border); padding: 2rem 2rem 1.5rem; position: sticky; top: 0; z-index: 100; background: var(--bg); }
+  .header-inner { max-width: 1200px; margin: 0 auto; }
+  .header-top { display: flex; align-items: baseline; gap: 1rem; margin-bottom: 1.25rem; flex-wrap: wrap; }
+  h1 { font-family: 'Space Grotesk', sans-serif; font-size: clamp(1.25rem, 3vw, 1.75rem); font-weight: 700; letter-spacing: -0.03em; color: var(--text); }
+  h1 span { color: var(--accent); }
+
+  .count-badge { font-size: 11px; font-weight: 600; background: var(--accent-bg); color: var(--accent); padding: 3px 9px; border-radius: 999px; border: 1px solid var(--accent-border); letter-spacing: 0.04em; }
+
+  .controls { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .search-wrap { position: relative; flex: 1; min-width: 220px; }
+  .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-dim); pointer-events: none; width: 16px; height: 16px; }
+  input[type=search] { width: 100%; padding: 9px 12px 9px 36px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: inherit; font-size: 14px; outline: none; transition: border-color 0.15s; -webkit-appearance: none; }
+  input[type=search]::placeholder { color: var(--text-dim); }
+  input[type=search]:focus { border-color: var(--accent); }
+  input[type=search]::-webkit-search-cancel-button { display: none; }
+
+  .view-toggle { display: flex; gap: 4px; }
+  .icon-btn { height: 34px; background: var(--surface); border: 1px solid var(--border); border-radius: 7px; cursor: pointer; color: var(--text-dim); display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.15s; padding: 0 10px; font-family: inherit; font-size: 13px; white-space: nowrap; }
+  .icon-btn svg { flex-shrink: 0; }
+  .icon-btn:hover { color: var(--text); border-color: var(--border-hover); }
+  .icon-btn.active { background: var(--accent-bg); border-color: var(--accent-border); color: var(--accent); }
+  .icon-btn.add-btn { border-color: rgba(79,142,247,0.25); color: var(--accent); }
+  .icon-btn.add-btn:hover { background: var(--accent-bg); }
+  .icon-btn.w34 { width: 34px; padding: 0; }
+
+  .filter-row { display: flex; gap: 6px; flex-wrap: wrap; max-width: 1200px; margin: 1rem auto 0; }
+  .pill { padding: 4px 12px; border-radius: 999px; border: 1px solid var(--border); font-size: 12px; font-weight: 500; cursor: pointer; color: var(--text-muted); background: transparent; transition: all 0.15s; white-space: nowrap; font-family: inherit; }
+  .pill:hover { border-color: var(--border-hover); color: var(--text); }
+  .pill.active { color: #fff; }
+  .pill[data-cat="All"].active { background: var(--accent); border-color: var(--accent); }
+  .pill[data-cat="AI Tools"].active { background: var(--cat-ai); border-color: var(--cat-ai); }
+  .pill[data-cat="Archiving"].active { background: var(--cat-archive); border-color: var(--cat-archive); }
+  .pill[data-cat="Database"].active { background: var(--cat-db); border-color: var(--cat-db); color: #1a1200; }
+  .pill[data-cat="Documents"].active { background: var(--cat-docs); border-color: var(--cat-docs); }
+  .pill[data-cat="Financial"].active { background: var(--cat-fin); border-color: var(--cat-fin); color: #0a1f14; }
+  .pill[data-cat="Geolocation"].active { background: var(--cat-geo); border-color: var(--cat-geo); }
+  .pill[data-cat="Monitoring"].active { background: var(--cat-mon); border-color: var(--cat-mon); color: #1a0f00; }
+  .pill[data-cat="Project Management"].active { background: var(--cat-proj); border-color: var(--cat-proj); }
+  .pill[data-cat="Public Records"].active { background: var(--cat-rec); border-color: var(--cat-rec); }
+  .pill[data-cat="Screen Capture"].active { background: var(--cat-cap); border-color: var(--cat-cap); color: #001a1f; }
+  .pill[data-cat="Search"].active { background: var(--cat-search); border-color: var(--cat-search); color: #111; }
+  .pill[data-cat="Social Media"].active { background: var(--cat-social); border-color: var(--cat-social); }
+  .pill[data-cat="Visuals"].active { background: var(--cat-vis); border-color: var(--cat-vis); color: #1a1000; }
+  .pill[data-cat="Custom"].active { background: var(--cat-custom); border-color: var(--cat-custom); color: #001a1a; }
+
+  /* ─── Main ─── */
+  main { max-width: 1200px; margin: 0 auto; padding: 1.5rem 2rem 4rem; }
+  .result-info { font-size: 12px; color: var(--text-dim); margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem; }
+  .result-info strong { color: var(--text-muted); }
+
+  /* ─── Grid ─── */
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; transition: border-color 0.15s, background 0.15s; text-decoration: none; position: relative; overflow: hidden; }
+  .card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; opacity: 0; transition: opacity 0.2s; }
+  .card:hover { border-color: var(--border-hover); background: var(--surface2); }
+  .card:hover::before { opacity: 1; }
+  .card.custom-card { border-color: rgba(62,201,201,0.2); }
+  .card.custom-card::before { background: var(--cat-custom) !important; }
+
+  .card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+  .card-name { font-weight: 600; font-size: 14px; color: var(--text); text-decoration: none; line-height: 1.3; flex: 1; }
+  .card-actions { display: flex; gap: 4px; flex-shrink: 0; }
+  .ext-icon { color: var(--text-dim); }
+  .del-btn { color: var(--text-dim); background: none; border: none; cursor: pointer; padding: 0; display: flex; align-items: center; transition: color 0.15s; }
+  .del-btn:hover { color: var(--danger); }
+  .card-desc { font-size: 12px; color: var(--text-muted); line-height: 1.5; flex: 1; }
+  .card-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+  .tag { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 999px; letter-spacing: 0.03em; text-transform: uppercase; }
+
+  /* ─── List ─── */
+  .list { display: flex; flex-direction: column; }
+  .list-item { display: flex; align-items: center; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--border); text-decoration: none; color: inherit; transition: padding-left 0.15s; position: relative; }
+  .list-item:hover { padding-left: 6px; }
+  .list-item:first-child { border-top: 1px solid var(--border); }
+  .list-name { font-weight: 500; font-size: 14px; color: var(--text); min-width: 160px; }
+  .list-desc { font-size: 13px; color: var(--text-muted); flex: 1; }
+  .list-tags { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; min-width: 140px; }
+  .list-del { color: var(--text-dim); background: none; border: none; cursor: pointer; padding: 4px; display: flex; align-items: center; flex-shrink: 0; transition: color 0.15s; }
+  .list-del:hover { color: var(--danger); }
+
+  /* ─── Empty ─── */
+  .empty { text-align: center; padding: 5rem 2rem; color: var(--text-dim); }
+  .empty h2 { font-family: 'Space Grotesk', sans-serif; font-size: 1.1rem; margin-bottom: 0.5rem; color: var(--text-muted); }
+  .empty p { font-size: 13px; }
+
+  /* ─── Tag colors ─── */
+  .t-ai   { background: var(--cat-ai-bg);      color: var(--cat-ai); }
+  .t-arc  { background: var(--cat-archive-bg);  color: var(--cat-archive); }
+  .t-db   { background: var(--cat-db-bg);       color: var(--cat-db); }
+  .t-doc  { background: var(--cat-docs-bg);     color: var(--cat-docs); }
+  .t-fin  { background: var(--cat-fin-bg);      color: var(--cat-fin); }
+  .t-geo  { background: var(--cat-geo-bg);      color: var(--cat-geo); }
+  .t-mon  { background: var(--cat-mon-bg);      color: var(--cat-mon); }
+  .t-proj { background: var(--cat-proj-bg);     color: var(--cat-proj); }
+  .t-rec  { background: var(--cat-rec-bg);      color: var(--cat-rec); }
+  .t-cap  { background: var(--cat-cap-bg);      color: var(--cat-cap); }
+  .t-sea  { background: var(--cat-search-bg);   color: var(--cat-search); }
+  .t-soc  { background: var(--cat-social-bg);   color: var(--cat-social); }
+  .t-vis  { background: var(--cat-vis-bg);      color: var(--cat-vis); }
+  .t-cus  { background: var(--cat-custom-bg);   color: var(--cat-custom); }
+
+  /* ─── Card accent bars ─── */
+  .card[data-primary="AI Tools"]::before         { background: var(--cat-ai); }
+  .card[data-primary="Archiving"]::before        { background: var(--cat-archive); }
+  .card[data-primary="Database"]::before         { background: var(--cat-db); }
+  .card[data-primary="Documents"]::before        { background: var(--cat-docs); }
+  .card[data-primary="Financial"]::before        { background: var(--cat-fin); }
+  .card[data-primary="Geolocation"]::before      { background: var(--cat-geo); }
+  .card[data-primary="Monitoring"]::before       { background: var(--cat-mon); }
+  .card[data-primary="Project Management"]::before { background: var(--cat-proj); }
+  .card[data-primary="Public Records"]::before   { background: var(--cat-rec); }
+  .card[data-primary="Screen Capture"]::before   { background: var(--cat-cap); }
+  .card[data-primary="Search"]::before           { background: var(--cat-search); }
+  .card[data-primary="Social Media"]::before     { background: var(--cat-social); }
+  .card[data-primary="Visuals"]::before          { background: var(--cat-vis); }
+  .card[data-primary="Custom"]::before           { background: var(--cat-custom); }
+
+  /* ─── Modal overlay ─── */
+  .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; align-items: center; justify-content: center; padding: 1rem; }
+  .overlay.open { display: flex; }
+
+  .modal { background: var(--surface2); border: 1px solid var(--border-hover); border-radius: 14px; width: 100%; max-width: 480px; padding: 0; overflow: hidden; }
+  .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border); }
+  .modal-title { font-family: 'Space Grotesk', sans-serif; font-size: 1rem; font-weight: 700; letter-spacing: -0.02em; }
+  .modal-close { background: none; border: none; color: var(--text-dim); cursor: pointer; padding: 4px; display: flex; align-items: center; border-radius: 6px; transition: color 0.15s; }
+  .modal-close:hover { color: var(--text); }
+
+  .modal-body { padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
+
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field label { font-size: 12px; font-weight: 500; color: var(--text-muted); letter-spacing: 0.03em; text-transform: uppercase; }
+  .field input, .field textarea, .field select {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+    color: var(--text); font-family: inherit; font-size: 14px; padding: 9px 12px;
+    outline: none; transition: border-color 0.15s; width: 100%;
+  }
+  .field input::placeholder, .field textarea::placeholder { color: var(--text-dim); }
+  .field input:focus, .field textarea:focus, .field select:focus { border-color: var(--accent); }
+  .field textarea { resize: vertical; min-height: 72px; line-height: 1.5; }
+  .field select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%234a5268' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; cursor: pointer; }
+  .field select option { background: #1a1e25; }
+
+  /* multi-select category chips */
+  .cat-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .cat-chip { padding: 4px 11px; border-radius: 999px; border: 1px solid var(--border); font-size: 12px; font-weight: 500; cursor: pointer; color: var(--text-muted); background: transparent; transition: all 0.15s; font-family: inherit; }
+  .cat-chip:hover { border-color: var(--border-hover); color: var(--text); }
+  .cat-chip.selected { background: var(--accent-bg); border-color: var(--accent-border); color: var(--accent); }
+
+  .field-hint { font-size: 11px; color: var(--text-dim); margin-top: -2px; }
+
+  .modal-footer { padding: 1rem 1.5rem; border-top: 1px solid var(--border); display: flex; gap: 8px; justify-content: flex-end; }
+  .btn { padding: 8px 18px; border-radius: 8px; font-family: inherit; font-size: 14px; font-weight: 500; cursor: pointer; border: 1px solid var(--border); background: transparent; color: var(--text-muted); transition: all 0.15s; }
+  .btn:hover { border-color: var(--border-hover); color: var(--text); }
+  .btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn-primary:hover { background: #3a7de8; border-color: #3a7de8; color: #fff; }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .error-msg { font-size: 12px; color: var(--danger); display: none; }
+  .error-msg.show { display: block; }
+
+  /* ─── Toast ─── */
+  .toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--surface3); border: 1px solid var(--border-hover); border-radius: 8px; padding: 10px 18px; font-size: 13px; color: var(--text); z-index: 300; transition: transform 0.25s ease, opacity 0.25s ease; opacity: 0; white-space: nowrap; }
+  .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+  @media (max-width: 640px) {
+    header { padding: 1.25rem 1rem 1rem; }
+    main { padding: 1rem 1rem 3rem; }
+    .filter-row { margin: 0.75rem 1rem 0; }
+    .list-tags { display: none; }
+    .list-name { min-width: 120px; }
+    .icon-btn span { display: none; }
+    .icon-btn.add-btn { padding: 0; width: 34px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="header-top">
+      <h1>OSINT <span>Tools</span> Directory</h1>
+      <span class="count-badge" id="badge">95 tools</span>
+    </div>
+    <div class="controls">
+      <div class="search-wrap">
+        <svg class="search-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="7" cy="7" r="5"/><path d="M11 11l3 3"/>
+        </svg>
+        <input type="search" id="search" placeholder="Search tools, keywords, categories…" autocomplete="off">
+      </div>
+      <button class="icon-btn add-btn" onclick="openModal()" title="Add a tool">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 1v12M1 7h12"/></svg>
+        <span>Add tool</span>
+      </button>
+      <button class="icon-btn" onclick="exportJSON()" title="Export custom tools as JSON">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M7 1v8M4 6l3 3 3-3M2 11h10"/></svg>
+      </button>
+      <div class="view-toggle">
+        <button class="icon-btn w34 active" id="btn-grid" title="Grid view" onclick="setView('grid')">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><rect x="0" y="0" width="6" height="6" rx="1"/><rect x="8" y="0" width="6" height="6" rx="1"/><rect x="0" y="8" width="6" height="6" rx="1"/><rect x="8" y="8" width="6" height="6" rx="1"/></svg>
+        </button>
+        <button class="icon-btn w34" id="btn-list" title="List view" onclick="setView('list')">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><rect x="0" y="1" width="14" height="2" rx="1"/><rect x="0" y="6" width="14" height="2" rx="1"/><rect x="0" y="11" width="14" height="2" rx="1"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+  <div class="filter-row" id="filters"></div>
+</header>
+
+<main>
+  <div class="result-info" id="result-info"></div>
+  <div id="container"></div>
+</main>
+
+<!-- Add Tool Modal -->
+<div class="overlay" id="overlay" onclick="overlayClick(event)">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-title">Add a tool</span>
+      <button class="modal-close" onclick="closeModal()" aria-label="Close">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3l10 10M13 3L3 13"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label for="f-name">Tool name <span style="color:var(--danger)">*</span></label>
+        <input type="text" id="f-name" placeholder="e.g. Shodan" maxlength="80" oninput="validateForm()">
+        <span class="error-msg" id="err-name">Name is required.</span>
+      </div>
+      <div class="field">
+        <label for="f-url">URL <span style="color:var(--danger)">*</span></label>
+        <input type="url" id="f-url" placeholder="https://example.com" oninput="validateForm()">
+        <span class="error-msg" id="err-url">Enter a valid URL starting with http.</span>
+      </div>
+      <div class="field">
+        <label for="f-desc">Description</label>
+        <textarea id="f-desc" placeholder="What does it do? What's it useful for?" maxlength="200" rows="2"></textarea>
+      </div>
+      <div class="field">
+        <label>Categories</label>
+        <div class="cat-chips" id="cat-chips"></div>
+        <span class="field-hint">Select one or more. Leave blank to mark as Custom.</span>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" id="save-btn" onclick="saveNewTool()" disabled>Add tool</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── Built-in tools ───────────────────────────────────────────────────────────
+const builtIn = [
+  {name:"ChatGPT",url:"https://chatgpt.com/",desc:"OpenAI's flagship chatbot",cats:["AI Tools"]},
+  {name:"Earshot",url:"https://earshot.ngo/",desc:"Audio analysis for investigating human rights and public interest events",cats:["AI Tools"]},
+  {name:"Journalists Toolbox",url:"https://journaliststoolbox.ai/",desc:"A collection of AI tools and resources for journalists",cats:["AI Tools"]},
+  {name:"GeoSpy",url:"https://app.geospy.ai/",desc:"AI-assisted geolocation from photos (experimental, not 100% accurate)",cats:["Geolocation","AI Tools"]},
+  {name:"DorkGPT",url:"https://www.dorkgpt.com/",desc:"AI-powered suggestions for Google search dorks",cats:["Search","AI Tools"]},
+  {name:"Prompt Bakery",url:"https://searchwhisperer.ai/prompt/",desc:"Get suggestions for better AI chatbot prompts",cats:["Search","AI Tools"]},
+  {name:"Lampyre",url:"https://lampyre.io/",desc:"Paid OSINT tool to search for, analyze and visualize data",cats:["Search","AI Tools"]},
+  {name:"Sight Engine",url:"https://sightengine.com/detect-ai-generated-images",desc:"Detect AI-generated images",cats:["AI Tools","Visuals"]},
+  {name:"Google NotebookLM",url:"https://notebooklm.google/",desc:"Turn documents into audio and visual summaries",cats:["Documents","AI Tools"]},
+  {name:"Google Pinpoint",url:"https://journaliststudio.google.com/pinpoint/collections",desc:"Save and analyze collections of documents for research",cats:["Documents","AI Tools"]},
+  {name:"Betaface",url:"https://betaface.com/demo.html",desc:"Facial recognition tool for identifying people in images",cats:["Visuals","AI Tools"]},
+  {name:"Face++",url:"https://www.faceplusplus.com/",desc:"Facial recognition tool (may not be free)",cats:["Visuals","AI Tools"]},
+  {name:"FindClone",url:"https://findclone.ru/",desc:"Image searches in Russia",cats:["Visuals","AI Tools"]},
+  {name:"Kairos",url:"https://www.kairos.com/",desc:"Facial recognition tool for identifying people in images (may not be free)",cats:["Visuals","AI Tools"]},
+  {name:"PimEyes",url:"https://pimeyes.com/en",desc:"Reverse image search for faces",cats:["Visuals","AI Tools"]},
+  {name:"Search4Faces",url:"https://search4faces.com/en/",desc:"Facial recognition for social media profile photos",cats:["Visuals","Social Media","AI Tools"]},
+  {name:"Bellingcat Auto-Archiver",url:"https://www.bellingcat.com/resources/2022/09/22/preserve-vital-online-content-with-bellingcats-auto-archiver-tool/",desc:"Bellingcat's online tool for auto-archiving vital online content",cats:["Archiving"]},
+  {name:"Wayback Machine",url:"https://web.archive.org/",desc:"Archive websites and other media online, including browser extensions",cats:["Archiving"]},
+  {name:"Webrecorder",url:"https://webrecorder.net/",desc:"Alternative web archiving tool to Wayback Machine",cats:["Archiving"]},
+  {name:"Molfar",url:"https://molfar.com/en/useful-apps-registers",desc:"Search public and business registries worldwide for people and companies",cats:["Database"]},
+  {name:"OCCRP / Aleph",url:"https://occrp.atlassian.net/servicedesk/customer/portals",desc:"Organized Crime and Corruption Reporting Project database",cats:["Database"]},
+  {name:"Offshore Leaks (ICIJ)",url:"https://offshoreleaks.icij.org/",desc:"People listed in Pandora, Paradise, Panama Papers and more",cats:["Database"]},
+  {name:"Open Corporates",url:"https://opencorporates.com/",desc:"Information on legal entities — companies and officers worldwide",cats:["Database"]},
+  {name:"Open Ownership",url:"https://www.openownership.org/en/map/",desc:"Check whether countries have beneficial ownership transparency laws",cats:["Database"]},
+  {name:"Open Sanctions",url:"https://www.opensanctions.org/",desc:"Search for people and companies targeted by sanctions",cats:["Database"]},
+  {name:"ProPublica Non-Profit DB",url:"https://projects.propublica.org/nonprofits/",desc:"Non-profit IRS filings for U.S. organizations",cats:["Database"]},
+  {name:"Skopenow",url:"https://www.skopenow.com/",desc:"Paid OSINT and background check service",cats:["Database"]},
+  {name:"Truth Finder",url:"https://www.truthfinder.com/",desc:"Paid background check service",cats:["Database"]},
+  {name:"SEC Codes",url:"https://www.sec.gov/answers/form8k.htm",desc:"SEC reportable event codes for 8-K filings",cats:["Financial"]},
+  {name:"Census Geocoder",url:"https://geocoding.geo.census.gov/geocoder/",desc:"Convert addresses into geographic coordinates",cats:["Geolocation"]},
+  {name:"Copernicus",url:"https://browser.dataspace.copernicus.eu/",desc:"Satellite imagery with option to filter cloud cover (medium resolution)",cats:["Geolocation"]},
+  {name:"EO Sentinel Browser",url:"https://apps.sentinel-hub.com/eo-browser/",desc:"Older version of the Copernicus satellite browser",cats:["Geolocation"]},
+  {name:"Find That Spot",url:"https://www.findthatspot.io/",desc:"Search in OpenStreetMap",cats:["Geolocation"]},
+  {name:"Geoconfirmed",url:"https://geoconfirmed.org/",desc:"Community-based geolocation platform focused on Ukraine",cats:["Geolocation"]},
+  {name:"Google Earth",url:"https://earth.google.com/web/",desc:"3D maps and satellite imagery for geolocation",cats:["Geolocation"]},
+  {name:"Google Maps",url:"https://www.google.com/maps/",desc:"Google maps for searches and creating custom My Maps",cats:["Geolocation"]},
+  {name:"Map Switcher",url:"https://chromewebstore.google.com/detail/map-switcher/fanpjcbgdinjeknjikpfnldfpnnpkelb",desc:"Chrome extension to quickly switch between map services",cats:["Geolocation"]},
+  {name:"Mapillary",url:"https://www.mapillary.com/",desc:"Alternative street-level mapping database to Google Street View",cats:["Geolocation"]},
+  {name:"NASA FIRMS",url:"https://firms.modaps.eosdis.nasa.gov/",desc:"Global near-real-time monitoring of fires",cats:["Geolocation"]},
+  {name:"WolframAlpha",url:"https://www.wolframalpha.com/",desc:"Cross-reference historical weather data for geolocation verification",cats:["Geolocation"]},
+  {name:"Yandex Maps",url:"https://yandex.com/maps",desc:"Russian mapping service useful for Eastern Europe and Central Asia",cats:["Geolocation"]},
+  {name:"Distill",url:"https://distill.io/",desc:"Track and monitor changes on websites (also a Chrome extension)",cats:["Monitoring"]},
+  {name:"Visual Ping",url:"https://visualping.io/",desc:"Monitor websites for information and changes",cats:["Monitoring"]},
+  {name:"Hunchly",url:"https://hunch.ly/",desc:"Keep investigations organized and automatically capture web pages",cats:["Project Management"]},
+  {name:"OSINT Tracker",url:"https://app.osintracker.com/",desc:"Open source investigation tool for keeping projects organized",cats:["Project Management"]},
+  {name:"Start.me",url:"https://about.start.me/",desc:"Create shareable organized collections of internet bookmarks",cats:["Project Management"]},
+  {name:"Epieos",url:"https://epieos.com/",desc:"Reverse phone number and email address lookup",cats:["Public Records"]},
+  {name:"MuckRock",url:"https://www.muckrock.com/",desc:"File, track and share public records requests",cats:["Public Records"]},
+  {name:"Osint.rocks",url:"https://osint.rocks/",desc:"Reverse searches by email, username, phone number and domain/IP",cats:["Search","Public Records"]},
+  {name:"Property Shark",url:"https://www.propertyshark.com/mason/",desc:"Real estate documents and property deeds",cats:["Documents"]},
+  {name:"Forensic OSINT",url:"https://www.forensicosint.com/",desc:"Full webpage capturing and preservation tool",cats:["Screen Capture"]},
+  {name:"GoFullPage",url:"https://chromewebstore.google.com/detail/gofullpage-full-page-scre/fdpohaocaechififmbbbbbknoalclacl",desc:"Chrome extension to screenshot entire web pages",cats:["Screen Capture"]},
+  {name:"Screenpresso",url:"https://www.screenpresso.com/",desc:"Screen capture for websites, desktop apps and video recording",cats:["Screen Capture"]},
+  {name:"AI Search Whisperer",url:"https://google.digitaldigging.org/index2.html",desc:"Suggestions to improve your Google searches",cats:["Search"]},
+  {name:"Blackbird",url:"https://blackbird-osint.herokuapp.com/",desc:"Search for usernames across online accounts",cats:["Search"]},
+  {name:"Candid",url:"https://candid.org/",desc:"Non-profit research and grants data for U.S. organizations",cats:["Search"]},
+  {name:"Castrick",url:"https://castrickclues.com/",desc:"Reverse WhoIs lookup tool",cats:["Search"]},
+  {name:"Defastra",url:"https://docs.defastra.com/docs/fraud-prevention-introduction",desc:"Fraud prevention and identity verification tools",cats:["Search"]},
+  {name:"Google Dorks",url:"https://docs.google.com/document/d/1KNB4PlxyQ8ekqtoJ6ra2dg3N646YSGDtLRKce1Uhl1M/edit",desc:"Cheat sheet for advanced Google search operators",cats:["Search"]},
+  {name:"I Search From",url:"http://isearchfrom.com/",desc:"Search Google as if from a different location or device",cats:["Search"]},
+  {name:"Instant Username Search",url:"https://instantusername.com/",desc:"Search for usernames across online platforms instantly",cats:["Search"]},
+  {name:"North Data",url:"https://www.northdata.com/",desc:"Search for information on European companies",cats:["Search"]},
+  {name:"Osint Industries",url:"https://www.osint.industries/",desc:"Reverse search by email, username and phone number (paid)",cats:["Search"]},
+  {name:"OSINT Tools",url:"https://osint.lolarchiver.com/",desc:"Reverse email and phone number searches",cats:["Search"]},
+  {name:"People Data Labs",url:"https://www.peopledatalabs.com/",desc:"Background information on people and companies (100 free searches/month)",cats:["Search"]},
+  {name:"Predicta Search",url:"https://www.predictasearch.com/",desc:"Reverse email and phone number searches",cats:["Search"]},
+  {name:"Privacy Watch",url:"https://privacywatch.app/tools/username-checker",desc:"Username checker for OSINT research",cats:["Search"]},
+  {name:"Reverse Who Is",url:"https://www.reversewhois.io/",desc:"Search for domains registered by specific companies or people",cats:["Search"]},
+  {name:"Sherlockeye",url:"https://sherlockeye.io/",desc:"Paid OSINT tools boosted with automation",cats:["Search"]},
+  {name:"What's My Name",url:"https://whatsmyname.app/",desc:"Search for account usernames across hundreds of platforms",cats:["Search"]},
+  {name:"Who Am I",url:"https://chromewebstore.google.com/detail/who-am-i/gdnhlhadhgnhaenfcphpeakdghkccfoo",desc:"Chrome extension for username searches",cats:["Search"]},
+  {name:"Whoisology",url:"https://whoisology.com/",desc:"Reverse WhoIs searches and domain ownership history",cats:["Search"]},
+  {name:"WhoXY",url:"https://www.whoxy.com/",desc:"Search for domain registration information",cats:["Search"]},
+  {name:"Hunter",url:"https://chromewebstore.google.com/detail/hunter-email-finder-exten/hgmhmanijnjhaffoampdlllchpolkdnj",desc:"Find company email patterns to locate specific contacts",cats:["Search"]},
+  {name:"OneTab",url:"https://chromewebstore.google.com/detail/onetab/chphlpgkkbolifaimnlloiipkdnihall",desc:"Chrome extension to save and manage browser tabs",cats:["Search"]},
+  {name:"Deck Blue",url:"https://deck.blue/",desc:"TweetDeck-style interface for Bluesky",cats:["Social Media"]},
+  {name:"Deleted Tweet Finder",url:"https://cache.digitaldigging.org/",desc:"Search archived copies of deleted tweets",cats:["Social Media"]},
+  {name:"InstaHunt",url:"https://instahunt.huntintel.io/",desc:"Search Instagram posts by geographic location",cats:["Social Media"]},
+  {name:"MW Geofind",url:"https://mattw.io/youtube-geofind/location",desc:"Search YouTube videos by geographic location",cats:["Social Media"]},
+  {name:"Open Measures",url:"https://public.openmeasures.io/timeline",desc:"Track trends in social media posts (limited for free users)",cats:["Social Media"]},
+  {name:"Story Saver",url:"https://www.storysaver.net/",desc:"Download and save social media videos and stories",cats:["Social Media"]},
+  {name:"Telegram",url:"https://telegram.org/",desc:"Messaging app widely used for OSINT source monitoring",cats:["Social Media"]},
+  {name:"Twitter/X Advanced Search",url:"https://x.com/search-advanced",desc:"Advanced search filters for Twitter/X",cats:["Social Media"]},
+  {name:"Who Posted What",url:"https://whopostedwhat.com/",desc:"Search tools for historical Facebook posts",cats:["Social Media"]},
+  {name:"YouTube Advanced Search",url:"https://www.google.com/advanced_video_search",desc:"Advanced search filters for YouTube",cats:["Social Media"]},
+  {name:"Bing Image Search",url:"https://www.bing.com/images",desc:"Microsoft Bing image search",cats:["Visuals"]},
+  {name:"DiffChecker",url:"https://www.diffchecker.com/image-compare/",desc:"Compare and highlight differences between images",cats:["Visuals"]},
+  {name:"FaceCheck.ID",url:"https://facecheck.id/",desc:"Identify people in photos using face search",cats:["Visuals"]},
+  {name:"Fake Image Detector",url:"https://www.fakeimagedetector.com/",desc:"Check if an image is likely to be AI-generated or manipulated",cats:["Visuals"]},
+  {name:"Firefox Image Search",url:"https://addons.mozilla.org/en-US/firefox/addon/search_by_image/",desc:"Firefox browser extension for reverse image search",cats:["Visuals"]},
+  {name:"FotoForensics",url:"https://fotoforensics.com/",desc:"Analyze whether an image has likely been altered",cats:["Visuals"]},
+  {name:"Google Reverse Image",url:"https://www.google.com/",desc:"Find similar images and duplicates via Google Lens",cats:["Visuals"]},
+  {name:"InVid",url:"https://www.invid-project.eu/tools-and-services/invid-verification-plugin/",desc:"Verify video content to help debunk fake news",cats:["Visuals"]},
+  {name:"Metadata2go",url:"https://metadata2go.com",desc:"Metadata reader for media files (images, video, audio)",cats:["Visuals"]},
+  {name:"Tineye",url:"https://tineye.com/",desc:"Reverse image search with indexed history",cats:["Visuals"]},
+  {name:"Turboscribe",url:"https://turboscribe.ai",desc:"Transcription service for video and audio files",cats:["Visuals"]},
+  {name:"Yandex Images",url:"https://yandex.com/images",desc:"Yandex reverse image search, strong for Eastern European content",cats:["Visuals"]},
+];
+
+const catClass = {
+  "AI Tools":"ai","Archiving":"arc","Database":"db","Documents":"doc","Financial":"fin",
+  "Geolocation":"geo","Monitoring":"mon","Project Management":"proj","Public Records":"rec",
+  "Screen Capture":"cap","Search":"sea","Social Media":"soc","Visuals":"vis","Custom":"cus"
+};
+
+const STORAGE_KEY = "osint_custom_tools";
+
+// ─── State ────────────────────────────────────────────────────────────────────
+let customTools = [];
+let activeCat = "All";
+let currentView = "grid";
+let selectedCats = new Set();
+
+function loadCustom() {
+  try { customTools = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); } catch(e) { customTools = []; }
+}
+function saveCustom() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(customTools)); } catch(e) {}
+}
+
+loadCustom();
+
+const allBuiltInCats = [...new Set(builtIn.flatMap(t=>t.cats))].sort();
+
+function getAllTools() {
+  return [...builtIn, ...customTools.map(t=>({...t,_custom:true}))];
+}
+
+function getAllCats() {
+  const all = new Set(getAllTools().flatMap(t=>t.cats));
+  return [...all].sort();
+}
+
+// ─── Filter pills ─────────────────────────────────────────────────────────────
+function buildPills() {
+  const filtersEl = document.getElementById('filters');
+  filtersEl.innerHTML = '';
+  const cats = ["All", ...getAllCats()];
+  cats.forEach(c => {
+    const b = document.createElement('button');
+    b.className = 'pill' + (c === activeCat ? ' active' : '');
+    b.dataset.cat = c;
+    b.textContent = c;
+    b.onclick = () => {
+      activeCat = c;
+      document.querySelectorAll('.pill').forEach(p=>p.classList.remove('active'));
+      b.classList.add('active');
+      render();
+    };
+    filtersEl.appendChild(b);
+  });
+}
+
+// ─── Modal ────────────────────────────────────────────────────────────────────
+function openModal() {
+  selectedCats.clear();
+  document.getElementById('f-name').value = '';
+  document.getElementById('f-url').value = '';
+  document.getElementById('f-desc').value = '';
+  document.getElementById('err-name').classList.remove('show');
+  document.getElementById('err-url').classList.remove('show');
+  document.getElementById('save-btn').disabled = true;
+  buildCatChips();
+  document.getElementById('overlay').classList.add('open');
+  document.getElementById('f-name').focus();
+}
+
+function closeModal() {
+  document.getElementById('overlay').classList.remove('open');
+}
+
+function overlayClick(e) {
+  if(e.target === document.getElementById('overlay')) closeModal();
+}
+
+document.addEventListener('keydown', e => { if(e.key==='Escape') closeModal(); });
+
+function buildCatChips() {
+  const container = document.getElementById('cat-chips');
+  container.innerHTML = '';
+  allBuiltInCats.forEach(c => {
+    const b = document.createElement('button');
+    b.className = 'cat-chip' + (selectedCats.has(c)?' selected':'');
+    b.textContent = c;
+    b.onclick = () => {
+      if(selectedCats.has(c)) { selectedCats.delete(c); b.classList.remove('selected'); }
+      else { selectedCats.add(c); b.classList.add('selected'); }
+    };
+    container.appendChild(b);
+  });
+}
+
+function validateForm() {
+  const name = document.getElementById('f-name').value.trim();
+  const url = document.getElementById('f-url').value.trim();
+  const validUrl = url.startsWith('http://') || url.startsWith('https://');
+  const ok = name.length > 0 && url.length > 0 && validUrl;
+  document.getElementById('save-btn').disabled = !ok;
+  return ok;
+}
+
+function saveNewTool() {
+  if(!validateForm()) return;
+  const name = document.getElementById('f-name').value.trim();
+  const url = document.getElementById('f-url').value.trim();
+  const desc = document.getElementById('f-desc').value.trim();
+  const cats = selectedCats.size > 0 ? [...selectedCats] : ["Custom"];
+
+  customTools.push({name, url, desc, cats, _custom:true});
+  saveCustom();
+  closeModal();
+  buildPills();
+  render();
+  showToast(`"${name}" added`);
+}
+
+// ─── Delete ───────────────────────────────────────────────────────────────────
+function deleteCustomTool(name, url) {
+  customTools = customTools.filter(t => !(t.name===name && t.url===url));
+  saveCustom();
+  buildPills();
+  render();
+  showToast('Tool removed');
+}
+
+// ─── Toast ────────────────────────────────────────────────────────────────────
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 2500);
+}
+
+// ─── Export ───────────────────────────────────────────────────────────────────
+function exportJSON() {
+  if(!customTools.length) { showToast('No custom tools to export yet'); return; }
+  const data = JSON.stringify(customTools.map(({_custom,...t})=>t), null, 2);
+  const blob = new Blob([data], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'custom-osint-tools.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  showToast(`Exported ${customTools.length} custom tool${customTools.length>1?'s':''}`);
+}
+
+// ─── View ─────────────────────────────────────────────────────────────────────
+function setView(v) {
+  currentView = v;
+  document.getElementById('btn-grid').classList.toggle('active', v==='grid');
+  document.getElementById('btn-list').classList.toggle('active', v==='list');
+  render();
+}
+
+// ─── Tag HTML ─────────────────────────────────────────────────────────────────
+function tagHTML(cat) {
+  return `<span class="tag t-${catClass[cat]||'sea'}">${cat}</span>`;
+}
+
+const delIcon = `<svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 2l9 9M11 2L2 11"/></svg>`;
+
+// ─── Render ───────────────────────────────────────────────────────────────────
+function render() {
+  const q = document.getElementById('search').value.toLowerCase().trim();
+  const allTools = getAllTools();
+
+  const filtered = allTools.filter(t => {
+    const matchCat = activeCat==="All" || t.cats.includes(activeCat);
+    const matchQ = !q ||
+      t.name.toLowerCase().includes(q) ||
+      t.desc.toLowerCase().includes(q) ||
+      t.cats.some(c=>c.toLowerCase().includes(q));
+    return matchCat && matchQ;
+  });
+
+  document.getElementById('badge').textContent = `${allTools.length} tool${allTools.length!==1?'s':''}`;
+  const info = document.getElementById('result-info');
+  if(q || activeCat!=="All") {
+    info.innerHTML = `<strong>${filtered.length}</strong> of ${allTools.length} tools${q?` matching "<strong>${q}</strong>"`:''}`
+  } else {
+    info.textContent = `${allTools.length} tools across ${getAllCats().length} categories`;
+  }
+
+  const container = document.getElementById('container');
+  if(!filtered.length) {
+    container.className='';
+    container.innerHTML = `<div class="empty"><h2>No tools found</h2><p>Try a different search term or clear the filters.</p></div>`;
+    return;
+  }
+
+  if(currentView === 'grid') {
+    container.className = 'grid';
+    container.innerHTML = filtered.map(t => {
+      const tags = t.cats.map(tagHTML).join('');
+      const primary = t.cats[0];
+      const isCustom = !!t._custom;
+      const delBtnAttr = isCustom ? `data-name="${encodeURIComponent(t.name)}" data-url="${encodeURIComponent(t.url)}"` : '';
+      return `<div class="card${isCustom?' custom-card':''}" data-primary="${primary}">
+        <div class="card-header">
+          <a class="card-name" href="${t.url}" target="_blank" rel="noopener">${t.name}</a>
+          <div class="card-actions">
+            <a href="${t.url}" target="_blank" rel="noopener" class="ext-icon" title="Open">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 10L10 2M10 2H5M10 2V7"/></svg>
+            </a>
+            ${isCustom?`<button class="del-btn" title="Remove tool" ${delBtnAttr} onclick="handleDelete(this)">${delIcon}</button>`:''}
+          </div>
+        </div>
+        <p class="card-desc">${t.desc||'No description.'}</p>
+        <div class="card-tags">${tags}</div>
+      </div>`;
+    }).join('');
+  } else {
+    container.className = 'list';
+    container.innerHTML = filtered.map(t => {
+      const tags = t.cats.map(tagHTML).join('');
+      const isCustom = !!t._custom;
+      const delBtnAttr = isCustom ? `data-name="${encodeURIComponent(t.name)}" data-url="${encodeURIComponent(t.url)}"` : '';
+      return `<div class="list-item">
+        <a href="${t.url}" target="_blank" rel="noopener" class="list-name">${t.name}</a>
+        <span class="list-desc">${t.desc||''}</span>
+        <span class="list-tags">${tags}</span>
+        ${isCustom?`<button class="list-del" title="Remove tool" ${delBtnAttr} onclick="handleDelete(this)">${delIcon}</button>`:''}
+      </div>`;
+    }).join('');
+  }
+}
+
+function handleDelete(btn) {
+  const name = decodeURIComponent(btn.dataset.name);
+  const url = decodeURIComponent(btn.dataset.url);
+  deleteCustomTool(name, url);
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+document.getElementById('search').addEventListener('input', render);
+buildPills();
+render();
+</script>
+</body>
+</html>
