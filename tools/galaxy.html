@@ -142,7 +142,7 @@ const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 let DPR = window.devicePixelRatio || 1;
 
-let view = { x: 0, y: 0, scale: 0.16 }; // world->screen scale at start (zoomed out)
+let view = { x: 0, y: 0, scale: 0.12 };
 let dragging = false, lastX = 0, lastY = 0, dragMoved = false;
 
 let TOOLS = [], CATS = [];
@@ -193,18 +193,25 @@ function draw() {
   CATS.forEach(c => {
     const [sx, sy] = worldToScreen(c.x, c.y);
     if (sx < -200 || sx > window.innerWidth + 200 || sy < -200 || sy > window.innerHeight + 200) return;
-    const r = Math.max(10, Math.min(70, Math.sqrt(c.count) * 8 * view.scale));
-    const grad = ctx.createRadialGradient(sx, sy, 0, sx, sy, r * 3);
-    grad.addColorStop(0, c.color + '33');
+    const r = Math.max(14, c.radius * view.scale);
+    const grad = ctx.createRadialGradient(sx, sy, 0, sx, sy, r * 1.7);
+    grad.addColorStop(0, c.color + '2e');
+    grad.addColorStop(0.7, c.color + '12');
     grad.addColorStop(1, c.color + '00');
     ctx.fillStyle = grad;
-    ctx.beginPath(); ctx.arc(sx, sy, r * 3, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(sx, sy, r * 1.7, 0, Math.PI * 2); ctx.fill();
 
-    if (view.scale < 0.55) {
-      ctx.font = `500 ${Math.max(10, Math.min(15, 13))}px 'Lora', serif`;
-      ctx.fillStyle = 'rgba(26,57,72,0.55)';
+    // subtle territory boundary ring
+    ctx.strokeStyle = c.color + '30';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.arc(sx, sy, r, 0, Math.PI * 2); ctx.stroke();
+
+    if (view.scale < 0.5) {
+      const fontSize = Math.max(11, Math.min(16, 10 + Math.sqrt(c.count) * 0.5));
+      ctx.font = `600 ${fontSize}px 'Lora', serif`;
+      ctx.fillStyle = 'rgba(26,57,72,0.7)';
       ctx.textAlign = 'center';
-      ctx.fillText(c.name.split('|')[0].trim(), sx, sy - r - 6);
+      ctx.fillText(c.name.split('|')[0].trim(), sx, sy - r - 8);
     }
   });
 
