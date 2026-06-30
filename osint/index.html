@@ -408,22 +408,43 @@ const catClass = {
   "Screen Capture":"cap","Search":"sea","Social Media":"soc","Visuals":"vis","Custom":"cus"
 };
 
-const STORAGE_KEY = "osint_custom_tools";
+// ─── Supabase (shared team-wide custom tools) ──────────────────────────────────
+const SUPABASE_URL = "https://yiewnykbchfadipznpet.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlpZXdueWtiY2hmYWRpcHpucGV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxNzM3NTUsImV4cCI6MjA5NDc0OTc1NX0.utnlpToZGH7hno0QTXlrtWvzKDgP28Gv3Je7BBIRwmM";
+const TABLE = "osint_tools";
+
+function sbHeaders(extra) {
+  return Object.assign({
+    "apikey": SUPABASE_KEY,
+    "Authorization": `Bearer ${SUPABASE_KEY}`,
+    "Content-Type": "application/json"
+  }, extra || {});
+}
 
 // ─── State ────────────────────────────────────────────────────────────────────
 let customTools = [];
 let activeCat = "All";
 let currentView = "grid";
 let selectedCats = new Set();
+let customLoaded = false;
+let customLoadFailed = false;
 
-function loadCustom() {
-  try { customTools = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); } catch(e) { customTools = []; }
+async function loadCustom() {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?select=*&order=created_at.desc`, {
+      headers: sbHeaders()
+    });
+    if (!res.ok) throw new Error('fetch failed');
+    const rows = await res.json();
+    customTools = rows.map(r => ({ id: r.id, name: r.name, url: r.url, desc: r.description, cats: r.cats && r.cats.length ? r.cats : ["Custom"] }));
+    customLoaded = true;
+    customLoadFailed = false;
+  } catch (e) {
+    customTools = [];
+    customLoaded = true;
+    customLoadFailed = true;
+  }
 }
-function saveCustom() {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(customTools)); } catch(e) {}
-}
-
-loadCustom();
 
 const allBuiltInCats = [...new Set(builtIn.flatMap(t=>t.cats))].sort();
 
@@ -504,28 +525,57 @@ function validateForm() {
   return ok;
 }
 
-function saveNewTool() {
+async function saveNewTool() {
   if(!validateForm()) return;
   const name = document.getElementById('f-name').value.trim();
   const url = document.getElementById('f-url').value.trim();
   const desc = document.getElementById('f-desc').value.trim();
   const cats = selectedCats.size > 0 ? [...selectedCats] : ["Custom"];
 
-  customTools.push({name, url, desc, cats, _custom:true});
-  saveCustom();
-  closeModal();
-  buildPills();
-  render();
-  showToast(`"${name}" added`);
+  const saveBtn = document.getElementById('save-btn');
+  saveBtn.disabled = true;
+  saveBtn.textContent = 'Adding…';
+
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}`, {
+      method: 'POST',
+      headers: sbHeaders({ 'Prefer': 'return=representation' }),
+      body: JSON.stringify({ name, url, description: desc, cats })
+    });
+    if (!res.ok) throw new Error('insert failed');
+    const [row] = await res.json();
+    customTools.unshift({ id: row.id, name: row.name, url: row.url, desc: row.description, cats: row.cats });
+    closeModal();
+    buildPills();
+    render();
+    showToast(`"${name}" added`);
+  } catch (e) {
+    showToast('Could not save — check your connection and try again');
+  } finally {
+    saveBtn.textContent = 'Add tool';
+    saveBtn.disabled = false;
+  }
 }
 
 // ─── Delete ───────────────────────────────────────────────────────────────────
-function deleteCustomTool(name, url) {
-  customTools = customTools.filter(t => !(t.name===name && t.url===url));
-  saveCustom();
+async function deleteCustomTool(id) {
+  const prev = customTools;
+  customTools = customTools.filter(t => t.id !== id);
   buildPills();
   render();
-  showToast('Tool removed');
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?id=eq.${id}`, {
+      method: 'DELETE',
+      headers: sbHeaders()
+    });
+    if (!res.ok) throw new Error('delete failed');
+    showToast('Tool removed');
+  } catch (e) {
+    customTools = prev;
+    buildPills();
+    render();
+    showToast('Could not remove tool — try again');
+  }
 }
 
 // ─── Toast ────────────────────────────────────────────────────────────────────
@@ -601,7 +651,7 @@ function render() {
       const tags = t.cats.map(tagHTML).join('');
       const primary = t.cats[0];
       const isCustom = !!t._custom;
-      const delBtnAttr = isCustom ? `data-name="${encodeURIComponent(t.name)}" data-url="${encodeURIComponent(t.url)}"` : '';
+      const delBtnAttr = isCustom ? `data-id="${t.id}"` : '';
       return `<div class="card${isCustom?' custom-card':''}" data-primary="${primary}">
         <div class="card-header">
           <a class="card-name" href="${t.url}" target="_blank" rel="noopener">${t.name}</a>
@@ -621,7 +671,7 @@ function render() {
     container.innerHTML = filtered.map(t => {
       const tags = t.cats.map(tagHTML).join('');
       const isCustom = !!t._custom;
-      const delBtnAttr = isCustom ? `data-name="${encodeURIComponent(t.name)}" data-url="${encodeURIComponent(t.url)}"` : '';
+      const delBtnAttr = isCustom ? `data-id="${t.id}"` : '';
       return `<div class="list-item">
         <a href="${t.url}" target="_blank" rel="noopener" class="list-name">${t.name}</a>
         <span class="list-desc">${t.desc||''}</span>
@@ -633,15 +683,25 @@ function render() {
 }
 
 function handleDelete(btn) {
-  const name = decodeURIComponent(btn.dataset.name);
-  const url = decodeURIComponent(btn.dataset.url);
-  deleteCustomTool(name, url);
+  const id = btn.dataset.id;
+  deleteCustomTool(id);
 }
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
 document.getElementById('search').addEventListener('input', render);
 buildPills();
-render();
+container_loading();
+loadCustom().then(() => {
+  buildPills();
+  render();
+  if (customLoadFailed) showToast('Could not load shared tools — showing built-ins only');
+});
+
+function container_loading() {
+  document.getElementById('container').innerHTML = `<div class="empty"><h2>Loading tools…</h2><p>Fetching the shared OSINT tool list.</p></div>`;
+  document.getElementById('result-info').textContent = '';
+}
+
 </script>
 </body>
 </html>
