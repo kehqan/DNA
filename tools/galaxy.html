@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PilotDesk Tool Galaxy</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&family=Noto+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ivory:   #F8F7F6;
+  --teal:    #1A3948;
+  --teal2:   #24506A;
+  --flame:   #FF5400;
+  --honey:   #FFC047;
+  --border:  rgba(26,57,72,0.09);
+  --muted:   rgba(26,57,72,0.52);
+  --soft:    rgba(26,57,72,0.36);
+  --glass:   rgba(255,255,255,0.55);
+  --glass-b: rgba(255,255,255,0.85);
+  --gs: 0 8px 32px rgba(26,57,72,0.10), 0 1.5px 4px rgba(26,57,72,0.06);
+  --gi: inset 0 1px 0 rgba(255,255,255,0.92), inset 0 -1px 0 rgba(26,57,72,0.03);
+  --eo: cubic-bezier(0.25,0.46,0.45,0.94);
+  --serif: 'Lora', Georgia, serif;
+  --sans:  'Noto Sans', system-ui, sans-serif;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; overflow: hidden; font-family: var(--sans); color: var(--teal); -webkit-font-smoothing: antialiased; background: #EDEAE6; }
+
+#canvas { position: fixed; inset: 0; display: block; cursor: grab; }
+#canvas.dragging { cursor: grabbing; }
+
+.nav-wrap { position: fixed; top: 0; left: 0; right: 0; z-index: 50; display: flex; justify-content: center; padding: 12px 24px 0; pointer-events: none; }
+.nav-pill { display: inline-flex; align-items: center; gap: 2px; background: rgba(26,57,72,0.80);
+  backdrop-filter: blur(28px) saturate(2); -webkit-backdrop-filter: blur(28px) saturate(2);
+  border: 1px solid rgba(255,255,255,0.12); border-radius: 100px; padding: 5px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.22), 0 2px 8px rgba(0,0,0,0.14),
+    inset 0 1px 0 rgba(255,255,255,0.14), inset 0 -1px 0 rgba(0,0,0,0.18);
+  pointer-events: all; }
+.wordmark { font-family: var(--serif); font-size: 17px; color: rgba(248,247,246,0.92);
+  padding: 6px 16px 6px 12px; border-right: 1px solid rgba(255,255,255,0.10); margin-right: 4px; }
+.wordmark em { font-style: normal; color: var(--flame); font-weight: 600; }
+.ntab { font-size: 13px; font-weight: 500; color: rgba(185,204,204,0.72); padding: 7px 16px;
+  border-radius: 100px; cursor: pointer; transition: color 180ms, background 180ms; text-decoration: none; display: inline-block; }
+.ntab:hover { color: rgba(248,247,246,0.95); }
+.ntab.on { background: rgba(255,255,255,0.13); color: #fff;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.18), inset 0 -1px 0 rgba(0,0,0,0.12); }
+
+.searchbox { position: fixed; top: 70px; left: 50%; transform: translateX(-50%); z-index: 45;
+  width: min(480px, 86vw); }
+.searchbox input {
+  width: 100%; font-family: var(--sans); font-size: 14px; color: var(--teal);
+  padding: 12px 18px 12px 40px; border-radius: 100px;
+  background: var(--glass); backdrop-filter: blur(20px) saturate(1.8); -webkit-backdrop-filter: blur(20px) saturate(1.8);
+  border: 1px solid var(--glass-b); box-shadow: var(--gs), var(--gi);
+  outline: none;
+}
+.searchbox svg { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--soft); pointer-events: none; }
+.search-results {
+  margin-top: 8px; max-height: 50vh; overflow-y: auto; border-radius: 14px;
+  background: var(--glass); backdrop-filter: blur(20px) saturate(1.8); -webkit-backdrop-filter: blur(20px) saturate(1.8);
+  border: 1px solid var(--glass-b); box-shadow: var(--gs), var(--gi); display: none;
+}
+.search-results.show { display: block; }
+.sr-item { padding: 9px 16px; font-size: 12.5px; color: var(--teal); cursor: pointer; border-bottom: 1px solid var(--border); }
+.sr-item:last-child { border-bottom: none; }
+.sr-item:hover { background: rgba(26,57,72,0.06); }
+.sr-item b { font-weight: 600; }
+.sr-item span { display: block; font-size: 10.5px; color: var(--soft); margin-top: 2px; }
+
+.legend { position: fixed; bottom: 18px; left: 18px; z-index: 40; max-width: 250px;
+  background: var(--glass); backdrop-filter: blur(20px) saturate(1.8); -webkit-backdrop-filter: blur(20px) saturate(1.8);
+  border: 1px solid var(--glass-b); box-shadow: var(--gs), var(--gi); border-radius: 14px; padding: 12px 14px;
+  font-size: 11px; color: var(--muted); line-height: 1.5; }
+.legend b { color: var(--teal); }
+
+.hint { position: fixed; bottom: 18px; right: 18px; z-index: 40;
+  background: var(--glass); backdrop-filter: blur(20px) saturate(1.8); -webkit-backdrop-filter: blur(20px) saturate(1.8);
+  border: 1px solid var(--glass-b); box-shadow: var(--gs), var(--gi); border-radius: 100px;
+  padding: 9px 18px; font-size: 11.5px; color: var(--muted); display: flex; align-items: center; gap: 10px; }
+
+/* tool detail card */
+.card-pop {
+  position: fixed; z-index: 60; max-width: 280px;
+  background: var(--glass); backdrop-filter: blur(24px) saturate(1.9); -webkit-backdrop-filter: blur(24px) saturate(1.9);
+  border: 1px solid var(--glass-b); box-shadow: 0 16px 44px rgba(26,57,72,0.20), var(--gi);
+  border-radius: 16px; padding: 16px 18px; display: none; pointer-events: all;
+  animation: pop 200ms var(--eo) both;
+}
+.card-pop.show { display: block; }
+@keyframes pop { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+.cp-name { font-family: var(--serif); font-size: 16px; color: var(--teal); margin-bottom: 6px; line-height: 1.3; }
+.cp-desc { font-size: 12px; color: var(--muted); line-height: 1.5; margin-bottom: 10px; }
+.cp-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.cp-tag { font-size: 9px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+  padding: 3px 8px; border-radius: 100px; background: rgba(26,57,72,0.08); color: var(--teal2); }
+.cp-link { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; color: #fff;
+  background: var(--flame); padding: 8px 16px; border-radius: 100px; text-decoration: none;
+  box-shadow: 0 2px 10px rgba(255,84,0,0.42); }
+.cp-close { position: absolute; top: 10px; right: 10px; width: 22px; height: 22px; border-radius: 50%;
+  background: rgba(26,57,72,0.08); border: none; cursor: pointer; color: var(--muted); font-size: 12px; }
+
+#loading { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+  font-family: var(--serif); font-size: 16px; color: var(--soft); z-index: 100; background: #EDEAE6; }
+</style>
+</head>
+<body>
+
+<div id="loading">Charting the galaxy…</div>
+<canvas id="canvas"></canvas>
+
+<div class="nav-wrap">
+  <div class="nav-pill">
+    <div class="wordmark">PilotDesk<em>.</em></div>
+    <a class="ntab" href="/tools/">Tools</a>
+    <div class="ntab on">Galaxy</div>
+  </div>
+</div>
+
+<div class="searchbox">
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+  <input id="search" type="text" placeholder="Find a tool in the galaxy…" autocomplete="off">
+  <div class="search-results" id="searchResults"></div>
+</div>
+
+<div class="legend">
+  <b>Tool Galaxy</b><br>
+  2,811 tools clustered by category. Each "sun" is a topic; tools drift toward shared categories.
+</div>
+
+<div class="hint">🖱️ Drag to pan · scroll to zoom · click a star</div>
+
+<div class="card-pop" id="cardPop">
+  <button class="cp-close" id="cpClose">✕</button>
+  <div class="cp-name" id="cpName"></div>
+  <div class="cp-desc" id="cpDesc"></div>
+  <div class="cp-tags" id="cpTags"></div>
+  <a class="cp-link" id="cpLink" target="_blank" rel="noopener noreferrer">Open tool →</a>
+</div>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+let DPR = window.devicePixelRatio || 1;
+
+let view = { x: 0, y: 0, scale: 0.16 }; // world->screen scale at start (zoomed out)
+let dragging = false, lastX = 0, lastY = 0, dragMoved = false;
+
+let TOOLS = [], CATS = [];
+let hoverIdx = -1;
+
+function resize() {
+  DPR = window.devicePixelRatio || 1;
+  canvas.width = window.innerWidth * DPR;
+  canvas.height = window.innerHeight * DPR;
+  canvas.style.width = window.innerWidth + 'px';
+  canvas.style.height = window.innerHeight + 'px';
+}
+window.addEventListener('resize', resize);
+resize();
+
+fetch('/tools/pilotdesk-galaxy.json')
+  .then(r => r.json())
+  .then(data => {
+    TOOLS = data.tools;
+    CATS = data.categories;
+    document.getElementById('loading').style.display = 'none';
+    requestAnimationFrame(draw);
+  })
+  .catch(err => {
+    document.getElementById('loading').textContent = 'Could not load galaxy data.';
+    console.error(err);
+  });
+
+function worldToScreen(x, y) {
+  return [
+    (x - view.x) * view.scale + window.innerWidth / 2,
+    (y - view.y) * view.scale + window.innerHeight / 2
+  ];
+}
+function screenToWorld(sx, sy) {
+  return [
+    (sx - window.innerWidth / 2) / view.scale + view.x,
+    (sy - window.innerHeight / 2) / view.scale + view.y
+  ];
+}
+
+function draw() {
+  ctx.save();
+  ctx.scale(DPR, DPR);
+  ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+
+  // category sun glow (always visible, label fades by zoom)
+  CATS.forEach(c => {
+    const [sx, sy] = worldToScreen(c.x, c.y);
+    if (sx < -200 || sx > window.innerWidth + 200 || sy < -200 || sy > window.innerHeight + 200) return;
+    const r = Math.max(10, Math.min(70, Math.sqrt(c.count) * 8 * view.scale));
+    const grad = ctx.createRadialGradient(sx, sy, 0, sx, sy, r * 3);
+    grad.addColorStop(0, c.color + '33');
+    grad.addColorStop(1, c.color + '00');
+    ctx.fillStyle = grad;
+    ctx.beginPath(); ctx.arc(sx, sy, r * 3, 0, Math.PI * 2); ctx.fill();
+
+    if (view.scale < 0.55) {
+      ctx.font = `500 ${Math.max(10, Math.min(15, 13))}px 'Lora', serif`;
+      ctx.fillStyle = 'rgba(26,57,72,0.55)';
+      ctx.textAlign = 'center';
+      ctx.fillText(c.name.split('|')[0].trim(), sx, sy - r - 6);
+    }
+  });
+
+  // tool stars
+  const showLabels = view.scale > 1.1;
+  TOOLS.forEach((t, i) => {
+    const [sx, sy] = worldToScreen(t.x, t.y);
+    if (sx < -20 || sx > window.innerWidth + 20 || sy < -20 || sy > window.innerHeight + 20) return;
+    const isHover = i === hoverIdx;
+    const radius = isHover ? 5.5 : 2.6;
+    ctx.beginPath();
+    ctx.fillStyle = isHover ? '#FF5400' : t.color;
+    ctx.globalAlpha = isHover ? 1 : 0.85;
+    ctx.arc(sx, sy, radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+
+    if (showLabels || isHover) {
+      ctx.font = `500 11px 'Noto Sans', sans-serif`;
+      ctx.fillStyle = isHover ? '#1A3948' : 'rgba(26,57,72,0.62)';
+      ctx.textAlign = 'left';
+      ctx.fillText(t.name.length > 34 ? t.name.slice(0, 32) + '…' : t.name, sx + 7, sy + 3.5);
+    }
+  });
+
+  ctx.restore();
+  requestAnimationFrame(draw);
+}
+
+// --- pan ---
+canvas.addEventListener('mousedown', e => {
+  dragging = true; dragMoved = false; lastX = e.clientX; lastY = e.clientY;
+  canvas.classList.add('dragging');
+});
+window.addEventListener('mousemove', e => {
+  if (!dragging) { hitTestHover(e.clientX, e.clientY); return; }
+  const dx = e.clientX - lastX, dy = e.clientY - lastY;
+  if (Math.abs(dx) > 2 || Math.abs(dy) > 2) dragMoved = true;
+  view.x -= dx / view.scale;
+  view.y -= dy / view.scale;
+  lastX = e.clientX; lastY = e.clientY;
+});
+window.addEventListener('mouseup', e => {
+  dragging = false;
+  canvas.classList.remove('dragging');
+  if (!dragMoved) handleClick(e.clientX, e.clientY);
+});
+
+// --- zoom ---
+canvas.addEventListener('wheel', e => {
+  e.preventDefault();
+  const [wx, wy] = screenToWorld(e.clientX, e.clientY);
+  const factor = Math.exp(-e.deltaY * 0.0012);
+  view.scale = Math.min(8, Math.max(0.04, view.scale * factor));
+  const [nwx, nwy] = screenToWorld(e.clientX, e.clientY);
+  view.x += wx - nwx;
+  view.y += wy - nwy;
+}, { passive: false });
+
+function hitTestHover(sx, sy) {
+  let found = -1, bestD = 12;
+  for (let i = 0; i < TOOLS.length; i++) {
+    const [tx, ty] = worldToScreen(TOOLS[i].x, TOOLS[i].y);
+    const d = Math.hypot(tx - sx, ty - sy);
+    if (d < bestD) { bestD = d; found = i; }
+  }
+  hoverIdx = found;
+  canvas.style.cursor = found >= 0 ? 'pointer' : (dragging ? 'grabbing' : 'grab');
+}
+
+function handleClick(sx, sy) {
+  if (hoverIdx >= 0) {
+    showCard(TOOLS[hoverIdx], sx, sy);
+  } else {
+    hideCard();
+  }
+}
+
+// --- detail card ---
+const cardPop = document.getElementById('cardPop');
+function showCard(t, sx, sy) {
+  document.getElementById('cpName').textContent = t.name;
+  document.getElementById('cpDesc').textContent = t.description || 'No description available.';
+  document.getElementById('cpTags').innerHTML = t.categories.slice(0, 3)
+    .map(c => `<span class="cp-tag">${escapeHtml(c)}</span>`).join('');
+  document.getElementById('cpLink').href = t.url;
+
+  let left = sx + 16, top = sy - 10;
+  if (left + 280 > window.innerWidth) left = sx - 296;
+  if (top + 200 > window.innerHeight) top = window.innerHeight - 210;
+  cardPop.style.left = left + 'px';
+  cardPop.style.top = Math.max(70, top) + 'px';
+  cardPop.classList.add('show');
+}
+function hideCard() { cardPop.classList.remove('show'); }
+document.getElementById('cpClose').addEventListener('click', hideCard);
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+// --- search ---
+const searchInput = document.getElementById('search');
+const searchResults = document.getElementById('searchResults');
+let debounceTimer;
+searchInput.addEventListener('input', e => {
+  clearTimeout(debounceTimer);
+  const q = e.target.value.trim().toLowerCase();
+  debounceTimer = setTimeout(() => {
+    if (!q) { searchResults.classList.remove('show'); searchResults.innerHTML = ''; return; }
+    const matches = TOOLS.map((t, i) => ({ t, i }))
+      .filter(({ t }) => t.name.toLowerCase().includes(q) || (t.description || '').toLowerCase().includes(q))
+      .slice(0, 12);
+    if (!matches.length) {
+      searchResults.innerHTML = '<div class="sr-item">No matches</div>';
+    } else {
+      searchResults.innerHTML = matches.map(({ t, i }) =>
+        `<div class="sr-item" data-i="${i}"><b>${escapeHtml(t.name)}</b><span>${escapeHtml((t.categories||[])[0]||'')}</span></div>`
+      ).join('');
+      searchResults.querySelectorAll('.sr-item').forEach(el => {
+        el.addEventListener('click', () => {
+          const i = parseInt(el.getAttribute('data-i'));
+          flyTo(TOOLS[i]);
+          searchResults.classList.remove('show');
+        });
+      });
+    }
+    searchResults.classList.add('show');
+  }, 150);
+});
+
+function flyTo(t) {
+  view.x = t.x; view.y = t.y; view.scale = 2.2;
+  hoverIdx = TOOLS.indexOf(t);
+  const [sx, sy] = worldToScreen(t.x, t.y);
+  setTimeout(() => showCard(t, sx, sy), 50);
+}
+</script>
+
+</body>
+</html>
