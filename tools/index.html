@@ -213,7 +213,7 @@ const loadmoreWrap = document.getElementById('loadmoreWrap');
 const searchInput = document.getElementById('search');
 const clearBtn = document.getElementById('clearBtn');
 
-fetch('./pilotdesk-taxonomy.json')
+fetch('/tools/pilotdesk-taxonomy.json')
   .then(r => r.json())
   .then(data => {
     ALL = data.tools;
