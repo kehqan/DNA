@@ -86,6 +86,8 @@ html, body { margin: 0; height: 100%; overflow: hidden; font-family: var(--sans)
 .sr-item:hover { background: rgba(var(--inkC),0.06); }
 .sr-item b { font-weight: 600; }
 .sr-item span { display: block; font-size: 10.5px; color: var(--soft); margin-top: 2px; direction: ltr; text-align: left; font-family: var(--sans); }
+.sr-seeall { text-align: center; color: var(--flame); font-weight: 600; direction: ltr; }
+.sr-seeall:hover { background: rgba(var(--inkC),0.06); }
 
 .legend { position: fixed; bottom: 18px; left: 18px; z-index: 40; max-width: 270px;
   background: var(--glass); backdrop-filter: blur(20px) saturate(1.8); -webkit-backdrop-filter: blur(20px) saturate(1.8);
@@ -570,21 +572,35 @@ function articlesForEntity(id) {
 
 // --- paginated "see all articles" modal ---
 const PAGE_SIZE = 10;
-let modalArticles = [], modalPage = 1;
+let modalArticles = [], modalPage = 1, modalContext = null;
 const modalBackdrop = document.getElementById('modalBackdrop');
 const modalList = document.getElementById('modalList');
 const modalPager = document.getElementById('modalPager');
 
-function openArticlesModal(e) {
-  modalArticles = articlesForEntity(e.id);
+function openModal(title, articles) {
+  modalArticles = articles;
   modalPage = 1;
-  currentEntity = e;
-  document.getElementById('modalTitle').textContent = e.name;
+  document.getElementById('modalTitle').textContent = title;
   document.getElementById('modalSub').textContent = `${modalArticles.length.toLocaleString()} articles`;
   renderModalPage();
   modalBackdrop.classList.add('show');
 }
-function closeArticlesModal() { modalBackdrop.classList.remove('show'); }
+function openArticlesModal(e) {
+  modalContext = { type: 'entity', entity: e };
+  currentEntity = e;
+  openModal(e.name, articlesForEntity(e.id));
+}
+function searchArticles(q) {
+  q = q.trim().toLowerCase();
+  if (!q) return [];
+  return ARTICLES.filter(t => titleOf(t).toLowerCase().includes(q) || (descOf(t) || '').toLowerCase().includes(q));
+}
+function openSearchModal(query) {
+  modalContext = { type: 'search', query };
+  currentEntity = null;
+  openModal(`Search: "${query}"`, searchArticles(query));
+}
+function closeArticlesModal() { modalBackdrop.classList.remove('show'); modalContext = null; }
 document.getElementById('modalClose').addEventListener('click', closeArticlesModal);
 modalBackdrop.addEventListener('mousedown', e => { if (e.target === modalBackdrop) closeArticlesModal(); });
 
@@ -645,30 +661,29 @@ function escapeHtml(s) {
 
 const searchInput = document.getElementById('search');
 const searchResults = document.getElementById('searchResults');
-let debounceTimer;
+const SEARCH_PREVIEW = 8;
+let debounceTimer, lastQuery = '';
 searchInput.addEventListener('input', e => {
   clearTimeout(debounceTimer);
   const q = e.target.value.trim().toLowerCase();
+  lastQuery = e.target.value.trim();
   debounceTimer = setTimeout(() => {
     if (!q) { searchResults.classList.remove('show'); searchResults.innerHTML = ''; return; }
     if (mode === 'topics') {
-      const matches = ARTICLES.map((t, i) => ({ t, i }))
-        .filter(({ t }) => titleOf(t).toLowerCase().includes(q) || (descOf(t) || '').toLowerCase().includes(q))
-        .slice(0, 14);
-      renderResults(matches.map(({ t }) => ({
+      const matches = ARTICLES.filter(t => titleOf(t).toLowerCase().includes(q) || (descOf(t) || '').toLowerCase().includes(q));
+      const preview = matches.slice(0, SEARCH_PREVIEW).map(t => ({
         label: titleOf(t), sub: (t.categories || [])[0] || '', onClick: () => flyToArticle(t)
-      })));
+      }));
+      renderResults(preview, matches.length, lastQuery);
     } else {
-      const matches = ENTITIES.map((t, i) => ({ t, i }))
-        .filter(({ t }) => t.name.toLowerCase().includes(q))
-        .slice(0, 14);
-      renderResults(matches.map(({ t }) => ({
+      const matches = ENTITIES.filter(t => t.name.toLowerCase().includes(q));
+      renderResults(matches.map(t => ({
         label: t.name, sub: t.type, onClick: () => flyToEntity(t)
-      })));
+      })), matches.length, lastQuery);
     }
   }, 150);
 });
-function renderResults(items) {
+function renderResults(items, totalCount, query) {
   const rtl = mode === 'topics' && lang === 'fa';
   const labelStyle = rtl ? 'direction:rtl;text-align:right;font-family:var(--fa);display:block;' : '';
   if (!items.length) {
@@ -677,8 +692,16 @@ function renderResults(items) {
     searchResults.innerHTML = items.map((it, i) =>
       `<div class="sr-item" data-i="${i}" style="direction:ltr;text-align:left;font-family:var(--sans);"><b style="${labelStyle}">${escapeHtml(it.label)}</b><span>${escapeHtml(it.sub)}</span></div>`
     ).join('');
-    searchResults.querySelectorAll('.sr-item').forEach((el, i) => {
+    if (totalCount > items.length) {
+      searchResults.innerHTML += `<div class="sr-item sr-seeall" id="srSeeAll">See all ${totalCount.toLocaleString()} results →</div>`;
+    }
+    searchResults.querySelectorAll('.sr-item[data-i]').forEach((el, i) => {
       el.addEventListener('click', () => { items[i].onClick(); searchResults.classList.remove('show'); });
+    });
+    const seeAll = document.getElementById('srSeeAll');
+    if (seeAll) seeAll.addEventListener('click', () => {
+      searchResults.classList.remove('show');
+      openSearchModal(query);
     });
   }
   searchResults.classList.add('show');
@@ -729,12 +752,18 @@ function setLang(l) {
   if (cardPop.classList.contains('show') && currentEntity) {
     showEntityCard(currentEntity);
   }
-  if (modalBackdrop.classList.contains('show') && currentEntity) {
-    renderModalPage();
-    document.getElementById('modalSub').textContent = `${modalArticles.length.toLocaleString()} articles`;
-  }
   if (cardPop.classList.contains('show') && !currentEntity) {
     hideCard();
+  }
+  if (modalBackdrop.classList.contains('show') && modalContext) {
+    if (modalContext.type === 'entity') {
+      modalArticles = articlesForEntity(modalContext.entity.id);
+    } else if (modalContext.type === 'search') {
+      modalArticles = searchArticles(modalContext.query);
+    }
+    modalPage = 1;
+    renderModalPage();
+    document.getElementById('modalSub').textContent = `${modalArticles.length.toLocaleString()} articles`;
   }
 }
 
