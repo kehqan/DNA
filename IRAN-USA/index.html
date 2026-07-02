@@ -286,6 +286,18 @@ html, body { margin: 0; height: 100%; overflow: hidden; font-family: var(--sans)
 .bm-chip { font-size: 11.5px; font-weight: 500; padding: 6px 14px; border-radius: 100px; border: 1px solid var(--border); background: transparent; color: var(--teal2); cursor: pointer; font-family: var(--sans); transition: all 150ms; }
 .bm-chip:hover { border-color: var(--teal2); }
 .bm-chip.sel { background: var(--teal); color: #fff; border-color: var(--teal); }
+.bm-cov-toggle { display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 14px; border-radius: 12px;
+  border: 1px dashed var(--border); background: transparent; color: var(--muted); cursor: pointer; font-family: var(--sans);
+  font-size: 12.5px; font-weight: 500; text-align: left; transition: all 150ms; margin-bottom: 8px; }
+.bm-cov-toggle:last-child { margin-bottom: 0; }
+.bm-cov-toggle:hover { border-color: var(--teal2); color: var(--teal); background: rgba(var(--inkC),0.03); }
+.bm-cov-toggle.on { border-style: solid; border-color: var(--teal2); background: rgba(36,80,106,0.06); color: var(--teal); }
+.bct-box { width: 16px; height: 16px; border-radius: 5px; border: 1.5px solid currentColor; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 10px; transition: all 180ms; }
+.bm-cov-toggle.on .bct-box { background: var(--teal2); border-color: var(--teal2); color: #fff; }
+.bct-copy { flex: 1; }
+.bct-title { display: block; font-weight: 600; }
+.bct-sub { display: block; font-size: 10.5px; color: var(--soft); margin-top: 1px; font-weight: 400; }
+.bm-cov-toggle.on .bct-sub { color: var(--muted); }
 .bm-footer { display: flex; gap: 10px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); flex-shrink: 0; }
 .bm-cancel { flex: 1; padding: 10px; border: 1px solid var(--border); border-radius: 100px; background: transparent; color: var(--teal2); font-size: 12.5px; font-weight: 600; cursor: pointer; font-family: var(--sans); }
 .bm-submit { flex: 2; padding: 10px; border: none; border-radius: 100px; background: var(--flame); color: #fff; font-size: 13px; font-weight: 700; cursor: pointer; font-family: var(--sans); box-shadow: 0 2px 10px rgba(255,84,0,0.4); }
@@ -307,6 +319,83 @@ html, body { margin: 0; height: 100%; overflow: hidden; font-family: var(--sans)
 /* Toast */
 .pd-toast { position: fixed; bottom: 60px; left: 50%; transform: translateX(-50%) translateY(12px); z-index: 99; background: var(--teal); color: #fff; font-size: 12.5px; font-weight: 500; padding: 9px 20px; border-radius: 100px; box-shadow: 0 4px 18px rgba(26,57,72,0.3); opacity: 0; pointer-events: none; transition: opacity 220ms, transform 220ms; white-space: nowrap; }
 .pd-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ===== Welcome / Explainer overlay ===== */
+.welcome-bd { position: fixed; inset: 0; z-index: 200; display: none; align-items: center; justify-content: center;
+  padding: 24px; overflow-y: auto;
+  background: radial-gradient(1200px 700px at 20% 10%, rgba(36,80,106,0.55), transparent 60%),
+              radial-gradient(900px 600px at 85% 85%, rgba(255,84,0,0.14), transparent 55%),
+              rgba(14,26,32,0.92);
+  backdrop-filter: blur(14px) saturate(1.4); -webkit-backdrop-filter: blur(14px) saturate(1.4); }
+.welcome-bd.show { display: flex; animation: fadeIn 260ms var(--eo) both; }
+.welcome-bd::before { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0.5;
+  background-image: radial-gradient(1.2px 1.2px at 12% 22%, rgba(255,255,255,0.8) 50%, transparent 51%),
+    radial-gradient(1px 1px at 34% 68%, rgba(255,255,255,0.55) 50%, transparent 51%),
+    radial-gradient(1.4px 1.4px at 58% 14%, rgba(255,192,71,0.85) 50%, transparent 51%),
+    radial-gradient(1px 1px at 72% 44%, rgba(255,255,255,0.6) 50%, transparent 51%),
+    radial-gradient(1.3px 1.3px at 88% 76%, rgba(143,201,221,0.8) 50%, transparent 51%),
+    radial-gradient(1px 1px at 20% 86%, rgba(255,255,255,0.5) 50%, transparent 51%),
+    radial-gradient(1.1px 1.1px at 46% 38%, rgba(255,84,0,0.7) 50%, transparent 51%),
+    radial-gradient(1px 1px at 64% 90%, rgba(255,255,255,0.55) 50%, transparent 51%),
+    radial-gradient(1.2px 1.2px at 80% 8%, rgba(255,255,255,0.7) 50%, transparent 51%); }
+.welcome-card { position: relative; width: min(880px, 100%); margin: auto; border-radius: 24px; padding: 40px 44px 32px;
+  background: rgba(248,247,246,0.06); border: 1px solid rgba(255,255,255,0.14);
+  box-shadow: 0 40px 100px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.12); color: #F8F7F6; }
+.wc-kicker { font-size: 10.5px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(255,192,71,0.9); margin-bottom: 12px; }
+.wc-title { font-family: var(--serif); font-size: clamp(26px, 4.4vw, 40px); line-height: 1.15; margin: 0 0 10px; font-weight: 500; }
+.wc-title em { font-style: italic; color: var(--flame); }
+.wc-lede { font-size: 14px; line-height: 1.75; color: rgba(248,247,246,0.72); max-width: 620px; margin-bottom: 8px; }
+.wc-lede b { color: #fff; font-weight: 600; }
+.wc-fa { font-family: var(--fa); direction: rtl; text-align: right; font-size: 13px; color: rgba(248,247,246,0.55); margin-bottom: 24px; line-height: 1.9; }
+.wc-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 26px; }
+@media (max-width: 720px) { .wc-steps { grid-template-columns: 1fr; } .welcome-card { padding: 28px 22px 24px; } }
+.wc-step { position: relative; border-radius: 16px; padding: 18px 16px 16px; background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.10); transition: transform 200ms var(--eo), background 200ms; }
+.wc-step:hover { transform: translateY(-3px); background: rgba(255,255,255,0.08); }
+.wc-step-glyph { width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center;
+  margin-bottom: 12px; font-size: 16px; background: rgba(255,84,0,0.16); border: 1px solid rgba(255,84,0,0.35); }
+.wc-step:nth-child(2) .wc-step-glyph { background: rgba(255,192,71,0.14); border-color: rgba(255,192,71,0.35); }
+.wc-step:nth-child(3) .wc-step-glyph { background: rgba(143,201,221,0.14); border-color: rgba(143,201,221,0.35); }
+.wc-step-num { position: absolute; top: 14px; right: 14px; font-family: var(--serif); font-size: 22px; color: rgba(255,255,255,0.18); }
+.wc-step-title { font-size: 13.5px; font-weight: 700; margin-bottom: 6px; }
+.wc-step-body { font-size: 12px; line-height: 1.65; color: rgba(248,247,246,0.66); }
+.wc-step-body b { color: rgba(255,255,255,0.92); font-weight: 600; }
+.wc-foot { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.wc-start { font-family: var(--sans); font-size: 14px; font-weight: 700; color: #fff; border: none; cursor: pointer;
+  padding: 13px 26px; border-radius: 100px; background: linear-gradient(135deg, var(--flame) 0%, #e04800 100%);
+  box-shadow: 0 6px 24px rgba(255,84,0,0.45); transition: transform 150ms, box-shadow 150ms; }
+.wc-start:hover { transform: translateY(-1px); box-shadow: 0 8px 30px rgba(255,84,0,0.55); }
+.wc-skip { font-size: 12.5px; color: rgba(248,247,246,0.55); background: none; border: none; cursor: pointer; font-family: var(--sans); }
+.wc-skip:hover { color: rgba(248,247,246,0.85); }
+.wc-datapill { margin-left: auto; font-size: 11px; color: rgba(248,247,246,0.5); }
+@media (max-width: 720px) { .wc-datapill { margin-left: 0; } }
+
+/* ===== Journey stepper ===== */
+.journey { position: fixed; top: 62px; left: 50%; transform: translateX(-50%); z-index: 44;
+  display: inline-flex; align-items: center; gap: 2px; padding: 4px 6px; border-radius: 100px;
+  background: var(--glass); backdrop-filter: blur(20px) saturate(1.8); -webkit-backdrop-filter: blur(20px) saturate(1.8);
+  border: 1px solid var(--glass-b); box-shadow: var(--gs), var(--gi); white-space: nowrap; max-width: 94vw; overflow-x: auto; }
+.journey::-webkit-scrollbar { display: none; }
+.j-step { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 600; color: var(--muted);
+  padding: 5px 11px; border-radius: 100px; cursor: pointer; transition: background 160ms, color 160ms; font-family: var(--sans); border: none; background: none; }
+.j-step:hover { background: rgba(var(--inkC),0.06); color: var(--teal); }
+.j-dot { width: 15px; height: 15px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+  font-size: 8.5px; font-weight: 800; color: var(--teal2); background: rgba(var(--inkC),0.08); flex-shrink: 0; transition: background 200ms, color 200ms; }
+.j-step.done { color: var(--teal); }
+.j-step.done .j-dot { background: var(--flame); color: #fff; }
+.j-sep { color: var(--soft); font-size: 10px; padding: 0 1px; }
+.j-help { font-size: 11px; font-weight: 700; color: var(--flame); padding: 5px 11px 5px 8px; border-radius: 100px; cursor: pointer;
+  border: none; background: none; font-family: var(--sans); border-left: 1px solid var(--border); margin-left: 3px; }
+.j-help:hover { background: rgba(255,84,0,0.08); }
+.j-close { width: 18px; height: 18px; border-radius: 50%; border: none; cursor: pointer; font-size: 9px;
+  color: var(--soft); background: rgba(var(--inkC),0.06); margin: 0 3px 0 1px; flex-shrink: 0; }
+.j-close:hover { background: rgba(var(--inkC),0.14); color: var(--teal); }
+.searchbox { top: 118px; }
+.spotlight-wrap, .coll-panel { top: 118px !important; }
+
+/* hint auto-fade */
+.hint { transition: opacity 500ms ease; }
+.hint.faded { opacity: 0; pointer-events: none; }
 </style>
 </head>
 <body>
@@ -330,12 +419,14 @@ html, body { margin: 0; height: 100%; overflow: hidden; font-family: var(--sans)
     <button class="ntab lang" id="themeDark">Dark</button>
     <span class="nav-divider"></span>
     <button class="ntab lang" id="tabCollections">✦ Collections</button>
+    <span class="nav-divider"></span>
+    <button class="ntab lang" id="howBtn" title="How this product works">? Guide</button>
   </div>
 </div>
 
 <div class="searchbox">
   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-  <input id="search" type="text" placeholder="Find an article in the galaxy…" autocomplete="off">
+  <input id="search" type="text" placeholder="Step 1 — search the archive: try 'JCPOA', 'sanctions', 'تحریم'…" autocomplete="off">
   <div class="search-results" id="searchResults"></div>
 </div>
 
@@ -358,6 +449,51 @@ html, body { margin: 0; height: 100%; overflow: hidden; font-family: var(--sans)
 <div class="legend" id="legend"></div>
 
 <div class="hint" id="hint">Drag to pan, scroll to zoom, click a star</div>
+
+<div class="journey" id="journey" style="display:none;">
+  <button class="j-step" id="jStep1" title="Type any topic into the search bar — every match lights up in the archive."><span class="j-dot">1</span>Search a keyword</button>
+  <span class="j-sep">→</span>
+  <button class="j-step" id="jStep2" title="In the search results, press ＋ Collection to save this keyword into a research dossier."><span class="j-dot">2</span>Save to a collection</button>
+  <span class="j-sep">→</span>
+  <button class="j-step" id="jStep3" title="Open ✦ Collections and press Generate to compile everything into an AI research prompt."><span class="j-dot">3</span>Generate AI brief</button>
+  <button class="j-help" id="jHelp">How it works</button>
+  <button class="j-close" id="jClose" title="Hide guide">✕</button>
+</div>
+
+<div class="welcome-bd" id="welcomeBd">
+  <div class="welcome-card">
+    <div class="wc-kicker">Radio Farda · RFE/RL — Archive Intelligence</div>
+    <h1 class="wc-title">Every star is a story.<br>Turn <em>7,800+ articles</em> into your next investigation.</h1>
+    <p class="wc-lede">This is Radio Farda's Iran–US coverage rendered as an explorable galaxy. Each point of light is <b>one published article</b>; articles that share a topic gravitate into the same constellation, and a second view maps the <b>people, places and institutions</b> that connect them. From here, a three-step workflow takes you from raw archive to a ready-to-run AI research brief.</p>
+    <p class="wc-fa">هر ستاره یک مقاله است؛ جستجو کنید، کلیدواژه‌ها را در «کالکشن» ذخیره کنید و در پایان یک بریف پژوهشی برای هوش مصنوعی بسازید.</p>
+    <div class="wc-steps">
+      <div class="wc-step">
+        <span class="wc-step-num">I</span>
+        <div class="wc-step-glyph">🔭</div>
+        <div class="wc-step-title">Explore &amp; search</div>
+        <div class="wc-step-body">Pan and zoom the galaxy, or type a term into the search bar. Every result is a real article — with its <b>date, topic cluster and source link</b>. Switch to <b>People &amp; places</b> to navigate by entity instead.</div>
+      </div>
+      <div class="wc-step">
+        <span class="wc-step-num">II</span>
+        <div class="wc-step-glyph">✦</div>
+        <div class="wc-step-title">Keywords → Collections</div>
+        <div class="wc-step-body">A search you want to keep becomes a <b>keyword</b>. Keywords live inside a <b>collection</b> — a research dossier that tracks article counts, date spans, top entities, and the <b>overlaps between your keywords</b>, where stories usually hide.</div>
+      </div>
+      <div class="wc-step">
+        <span class="wc-step-num">III</span>
+        <div class="wc-step-glyph">⚡</div>
+        <div class="wc-step-title">AI brief</div>
+        <div class="wc-step-body">One click compiles a collection into a structured <b>research prompt</b> — editorial role, research question, archive intelligence, recommended web searches, output format. Paste it into <b>Copilot or any LLM</b>: the archive grounds it, the model reasons over it.</div>
+      </div>
+    </div>
+    <div class="wc-foot">
+      <button class="wc-start" id="wcStart">Start exploring →</button>
+      <button class="wc-skip" id="wcSkip">Skip, I know my way around</button>
+      <span class="wc-datapill">Source: radiofarda.com · Iran–US coverage · computed stats contain no AI-generated text</span>
+    </div>
+  </div>
+</div>
+
 
 <div class="card-pop" id="cardPop">
   <button class="cp-close" id="cpClose">✕</button>
@@ -1059,17 +1195,22 @@ function renderResults(items, totalCount, query) {
   searchResults.classList.add('show');
 }
 
+function flyTween(tx, ty, ts, done) {
+  const sx0 = view.x, sy0 = view.y, ss0 = view.scale, t0 = performance.now(), dur = 700;
+  function step(now) {
+    const p = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - p, 3);
+    view.x = sx0 + (tx - sx0) * e; view.y = sy0 + (ty - sy0) * e; view.scale = ss0 + (ts - ss0) * e;
+    if (p < 1) requestAnimationFrame(step); else if (done) done();
+  }
+  requestAnimationFrame(step);
+}
 function flyToArticle(t) {
-  view.x = t.x; view.y = t.y; view.scale = 2.4;
   hoverIdx = ARTICLES.indexOf(t);
-  const [sx, sy] = worldToScreen(t.x, t.y);
-  setTimeout(() => showArticleCard(t, sx, sy), 50);
+  flyTween(t.x, t.y, 2.4, () => { const [sx, sy] = worldToScreen(t.x, t.y); showArticleCard(t, sx, sy); });
 }
 function flyToEntity(t) {
-  view.x = t.x; view.y = t.y; view.scale = 0.35;
   hoverIdx = ENTITIES.indexOf(t);
-  const [sx, sy] = worldToScreen(t.x, t.y);
-  setTimeout(() => showEntityCard(t, sx, sy), 50);
+  flyTween(t.x, t.y, 0.35, () => { const [sx, sy] = worldToScreen(t.x, t.y); showEntityCard(t, sx, sy); });
 }
 
 const tabTopics = document.getElementById('tabTopics');
@@ -1221,6 +1362,22 @@ buildSpotlightPanel();
           <button class="bm-chip" data-val="deep">Deep Dive</button>
         </div>
       </div>
+      <div class="bm-section"><div class="bm-label">Coverage Lens</div>
+        <button class="bm-cov-toggle" id="bmExternalMedia">
+          <span class="bct-box">✓</span>
+          <span class="bct-copy">
+            <span class="bct-title">Compare with other news outlets</span>
+            <span class="bct-sub">Ask the model to look beyond Radio Farda — how did Reuters, AP, BBC, Iran International, AFP and others cover these keywords?</span>
+          </span>
+        </button>
+        <button class="bm-cov-toggle" id="bmCoverageGaps">
+          <span class="bct-box">✓</span>
+          <span class="bct-copy">
+            <span class="bct-title">Find the coverage gaps</span>
+            <span class="bct-sub">Ask the model to explicitly flag what Radio Farda missed, what other outlets missed, and thin spots in the archive itself.</span>
+          </span>
+        </button>
+      </div>
       <div class="bm-section">
         <button class="bm-new-piece-toggle" id="bmNewPieceToggle">
           <span class="bnpt-dot">✎</span>
@@ -1318,7 +1475,7 @@ function pdRenderPanel() {
 function pdRenderList() {
   let html = `<div class="coll-head"><span class="coll-head-title">Collections</span><button class="coll-newbtn" id="collNewBtn">＋ New</button></div><div class="coll-body">`;
   if (!PD_COLLS.length) {
-    html += `<div class="coll-empty">No collections yet.<br><br>Search any keyword, then click <b style="color:var(--flame)">＋ Collection</b> in the results to start building your first research workspace.</div>`;
+    html += `<div class="coll-empty"><b>A collection is your research dossier.</b><br><br>① Search any keyword in the bar above<br>② In the results, press <b style="color:var(--flame)">＋ Collection</b><br>③ Come back here and hit <b>Generate AI Deep Brief</b><br><br>Each keyword you save keeps tracking its article count, date span and top entities — and the brief compiles all of it into one prompt for Copilot or any LLM.</div>`;
   } else {
     html += PD_COLLS.map(c => `
       <div class="coll-card" data-id="${c.id}">
@@ -1457,6 +1614,12 @@ function pdOpenBriefModal(collId) {
     });
   });
   document.getElementById('bmQuestion').value = '';
+  // reset coverage-lens toggles
+  const emTog = document.getElementById('bmExternalMedia');
+  const cgTog = document.getElementById('bmCoverageGaps');
+  emTog.classList.remove('on'); cgTog.classList.remove('on');
+  emTog.onclick = () => emTog.classList.toggle('on');
+  cgTog.onclick = () => cgTog.classList.toggle('on');
   // reset new piece toggle
   const tog = document.getElementById('bmNewPieceToggle');
   const fld = document.getElementById('bmNewPieceField');
@@ -1484,17 +1647,19 @@ document.getElementById('bmSubmit').addEventListener('click', () => {
   const lens = document.querySelector('#bmLens .bm-chip.sel')?.dataset.val || 'investigative';
   const format = document.querySelector('#bmFormat .bm-chip.sel')?.dataset.val || 'full';
   const depth = document.querySelector('#bmDepth .bm-chip.sel')?.dataset.val || 'standard';
+  const externalMedia = document.getElementById('bmExternalMedia').classList.contains('on');
+  const coverageGaps = document.getElementById('bmCoverageGaps').classList.contains('on');
   const newPiece = document.getElementById('bmNewPieceToggle').classList.contains('on')
     ? (document.getElementById('bmNewPieceTopic').value.trim() || '')
     : '';
   const c = pdById(briefCollId); if (!c) return;
-  const text = pdBuildPrompt(c, q, lens, format, depth, newPiece);
+  const text = pdBuildPrompt(c, q, lens, format, depth, newPiece, externalMedia, coverageGaps);
   pdCloseBriefModal();
-  pdShowPrompt(text, q, c, {lens, format, depth, newPiece});
+  pdShowPrompt(text, q, c, {lens, format, depth, newPiece, externalMedia, coverageGaps});
 });
 
 /* ---- Prompt Engine ---- */
-function pdBuildPrompt(c, question, lens, format, depth, newPiece) {
+function pdBuildPrompt(c, question, lens, format, depth, newPiece, externalMedia, coverageGaps) {
   const total = c.keywords.reduce((s,k)=>s+(k.agg?.total||0),0);
   const allMin = c.keywords.map(k=>k.agg?.dateMin).filter(Boolean).sort();
   const allMax = c.keywords.map(k=>k.agg?.dateMax).filter(Boolean).sort();
@@ -1567,6 +1732,7 @@ ${sharedTopics.map(t => `  • ${t.name} — in: ${t.hits.map(h=>`"${h.kw}"`).jo
     ...terms.map(t => `"${t}" Iran -site:radiofarda.com`),
     terms.length > 1 ? `"${terms.join('" "')}": Iran` : null,
     ...sharedEntities.slice(0,3).map(e => `"${e.name}" Iran latest news`),
+    ...(externalMedia ? terms.map(t => `"${t}" Iran (Reuters OR AP OR BBC OR "Iran International" OR AFP)`) : []),
   ].filter(Boolean);
 
   /* ── ROLES ── */
@@ -1601,6 +1767,25 @@ PART 3 — SYNTHESIS & EDITORIAL OPPORTUNITIES\n
     deep: 'Apply full analytical depth. Trace second-order effects, challenge obvious interpretations, examine edge cases, and explicitly flag where the archive data is insufficient to draw conclusions.',
   };
 
+  /* ── OPTIONAL COVERAGE-LENS SECTIONS ── */
+  const externalMediaBlock = externalMedia ? `
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+## OTHER NEWS OUTLETS' COVERAGE
+The journalist wants to know how outlets beyond Radio Farda have covered ${terms.map(t=>`"${t}"`).join(', ')}. Using your web search tool, find and summarize coverage from other outlets (e.g. Reuters, AP, BBC Persian, Iran International, AFP, Bloomberg, VOA — and, where relevant, Iranian state media such as IRNA, ISNA, Tasnim, for contrast). For each outlet you find:
+  → Note the angle or framing it took, and how it compares to Radio Farda's framing in the archive above
+  → Note facts or sources it included that Radio Farda's archive does not surface
+  → Note where outlets agree or visibly disagree on facts, sourcing, or interpretation` : '';
+
+  const coverageGapsBlock = coverageGaps ? `
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+## COVERAGE GAP ANALYSIS
+Produce a dedicated, explicit gap analysis — do not fold this into general commentary. Structure it as:
+  A. ARCHIVE GAPS — periods, angles, or entity combinations where Radio Farda's own archive is thin or silent on ${terms.map(t=>`"${t}"`).join(', ')}
+  B. WHAT OTHERS COVERED THAT RADIO FARDA DIDN'T — ${externalMedia ? 'drawing on the outlet comparison above' : 'drawing on your web search'}, name specific stories or angles other outlets ran that don\\'t appear in the Radio Farda archive
+  C. WHAT RADIO FARDA COVERED THAT OTHERS DIDN'T — the reverse: angles or sourcing unique to Radio Farda's Persian-language reporting
+  D. THE OPENING — based on A–C, state plainly what a journalist could report today that would be genuinely new` : '';
+
+
   return `## ROLE
 ${roles[lens]||roles.investigative}
 
@@ -1633,7 +1818,7 @@ For each search result:
   → Note articles published AFTER the archive's latest date (${allMax[allMax.length-1]||'unknown'})
   → Note angles or entities NOT present in the Radio Farda archive
   → Note contradictions between Radio Farda's framing and external sources
-
+${externalMediaBlock}${coverageGapsBlock}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ## OUTPUT INSTRUCTIONS
 ${outputs[format]||outputs.full}
@@ -1723,7 +1908,7 @@ document.getElementById('ppSave').addEventListener('click', () => {
   if (!currentPrompt) return;
   const c = pdById(currentPrompt.collId); if (!c) return;
   const cfg = currentPrompt.config || {};
-  c.prompts.push({ text: currentPrompt.text, question: currentPrompt.question, lens: cfg.lens||'investigative', format: cfg.format||'full', depth: cfg.depth||'standard', newPiece: cfg.newPiece||'', createdAt: Date.now() });
+  c.prompts.push({ text: currentPrompt.text, question: currentPrompt.question, lens: cfg.lens||'investigative', format: cfg.format||'full', depth: cfg.depth||'standard', newPiece: cfg.newPiece||'', externalMedia: !!cfg.externalMedia, coverageGaps: !!cfg.coverageGaps, createdAt: Date.now() });
   c.updatedAt = Date.now(); pdSave();
   pdToast('Prompt saved to collection');
   document.getElementById('ppSave').textContent = '✓ Saved';
@@ -1734,5 +1919,83 @@ document.getElementById('ppSave').addEventListener('click', () => {
 /* ---- Init ---- */
 pdLoad();
 </script>
+
+<script>
+/* ===== Guided journey & explainer (additive module) ===== */
+(function () {
+  const LS_INTRO = 'galaxyIntroSeen_v1', LS_STEPS = 'galaxyJourney_v1', LS_JHIDE = 'galaxyJourneyHidden_v1';
+  const bd = document.getElementById('welcomeBd');
+  const journey = document.getElementById('journey');
+  const hint = document.getElementById('hint');
+  const lsGet = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
+  const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
+
+  /* -- steps state -- */
+  let steps = { s1: false, s2: false, s3: false };
+  try { steps = Object.assign(steps, JSON.parse(lsGet(LS_STEPS) || '{}')); } catch (e) {}
+  /* if the person already has collections, step 1+2 are behind them */
+  try {
+    const colls = JSON.parse(lsGet('pilotdesk_v1') || '[]');
+    if (Array.isArray(colls) && colls.length) { steps.s1 = true; steps.s2 = true; }
+  } catch (e) {}
+  if (typeof PD_COLLS !== 'undefined' && Array.isArray(PD_COLLS) && PD_COLLS.length) { steps.s1 = true; steps.s2 = true; }
+
+  function paint() {
+    document.getElementById('jStep1').classList.toggle('done', steps.s1);
+    document.getElementById('jStep2').classList.toggle('done', steps.s2);
+    document.getElementById('jStep3').classList.toggle('done', steps.s3);
+  }
+  function mark(k) { if (!steps[k]) { steps[k] = true; lsSet(LS_STEPS, JSON.stringify(steps)); paint(); } }
+
+  /* -- welcome overlay -- */
+  function openIntro() { bd.classList.add('show'); }
+  function closeIntro() { bd.classList.remove('show'); lsSet(LS_INTRO, '1'); }
+  document.getElementById('wcStart').addEventListener('click', () => {
+    closeIntro();
+    const s = document.getElementById('search');
+    if (s) setTimeout(() => s.focus(), 150);
+  });
+  document.getElementById('wcSkip').addEventListener('click', closeIntro);
+  bd.addEventListener('mousedown', e => { if (e.target === bd) closeIntro(); });
+  document.getElementById('howBtn').addEventListener('click', openIntro);
+  document.getElementById('jHelp').addEventListener('click', openIntro);
+  if (!lsGet(LS_INTRO)) openIntro();
+
+  /* -- journey visibility -- */
+  if (!lsGet(LS_JHIDE)) journey.style.display = 'inline-flex';
+  document.getElementById('jClose').addEventListener('click', () => { journey.style.display = 'none'; lsSet(LS_JHIDE, '1'); });
+
+  /* step buttons steer you to the right place */
+  document.getElementById('jStep1').addEventListener('click', () => { const s = document.getElementById('search'); if (s) s.focus(); });
+  document.getElementById('jStep2').addEventListener('click', () => {
+    const s = document.getElementById('search');
+    if (s && !s.value.trim()) { s.focus(); s.placeholder = "First search a keyword — then press ＋ Collection in the results"; }
+    else if (s) s.focus();
+  });
+  document.getElementById('jStep3').addEventListener('click', () => {
+    const c = document.getElementById('tabCollections'); if (c) c.click();
+  });
+
+  /* -- progress detection -- */
+  const searchEl = document.getElementById('search');
+  if (searchEl) searchEl.addEventListener('input', () => { if (searchEl.value.trim().length > 1) mark('s1'); });
+  document.addEventListener('click', e => {
+    if (e.target.closest && e.target.closest('#srCollBtn')) mark('s2');
+  }, true);
+  const pp = document.getElementById('promptPanelBd');
+  if (pp) new MutationObserver(() => { if (pp.classList.contains('show')) mark('s3'); })
+    .observe(pp, { attributes: true, attributeFilter: ['class'] });
+
+  paint();
+
+  /* -- hint pill fades after first real interaction (or 9s) -- */
+  let hintGone = false;
+  function fadeHint() { if (!hintGone && hint) { hintGone = true; hint.classList.add('faded'); } }
+  setTimeout(fadeHint, 9000);
+  const cv = document.getElementById('canvas');
+  if (cv) { cv.addEventListener('mousedown', fadeHint, { once: true }); cv.addEventListener('wheel', fadeHint, { once: true, passive: true }); }
+})();
+</script>
+
 </body>
 </html>
