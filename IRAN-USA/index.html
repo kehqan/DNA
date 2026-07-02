@@ -198,6 +198,99 @@ html, body { margin: 0; height: 100%; overflow: hidden; font-family: var(--sans)
 .pg-btn.active { background: var(--flame); color: #fff; font-weight: 600; }
 .pg-btn:disabled { color: var(--soft); cursor: default; opacity: 0.5; }
 .pg-dots { color: var(--soft); font-size: 12px; padding: 0 2px; }
+
+/* ===== AI Deep Brief Collections ===== */
+.coll-panel { position: fixed; top: 112px; right: 18px; z-index: 46; width: 320px; max-height: 78vh;
+  display: none; flex-direction: column; border-radius: 16px; overflow: hidden;
+  background: var(--glass); backdrop-filter: blur(24px) saturate(1.9); -webkit-backdrop-filter: blur(24px) saturate(1.9);
+  border: 1px solid var(--glass-b); box-shadow: var(--gs), var(--gi); }
+.coll-panel.show { display: flex; animation: fadeIn 180ms var(--eo) both; }
+.coll-head { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px 10px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+.coll-head-title { font-family: var(--serif); font-size: 15px; color: var(--teal); font-weight: 600; }
+.coll-newbtn { font-size: 11.5px; font-weight: 600; color: #fff; background: var(--flame); border: none; border-radius: 100px; padding: 6px 12px; cursor: pointer; font-family: var(--sans); }
+.coll-body { overflow-y: auto; flex: 1; padding: 8px; min-height: 0; }
+.coll-empty { padding: 22px 16px; text-align: center; font-size: 12px; color: var(--soft); line-height: 1.7; }
+.coll-card { border: 1px solid var(--border); border-radius: 12px; padding: 11px 13px; margin-bottom: 8px; cursor: pointer; background: rgba(var(--inkC),0.02); transition: background 150ms; }
+.coll-card:hover { background: rgba(var(--inkC),0.06); }
+.coll-card .cc-name { font-size: 13px; font-weight: 600; color: var(--teal); }
+.coll-card .cc-meta { font-size: 10.5px; color: var(--soft); margin-top: 3px; }
+.coll-card .cc-kws { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 7px; }
+.coll-kw-chip { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 100px; background: rgba(var(--inkC),0.08); color: var(--teal2); }
+.coll-detail { padding: 12px; display: flex; flex-direction: column; gap: 0; }
+.coll-back { display: flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 600; color: var(--teal2); background: rgba(var(--inkC),0.08); border: none; border-radius: 100px; padding: 6px 12px; cursor: pointer; font-family: var(--sans); margin-bottom: 10px; align-self: flex-start; }
+.coll-name-input { width: 100%; font-family: var(--serif); font-size: 16px; font-weight: 600; color: var(--teal); background: transparent; border: none; border-bottom: 1px solid var(--border); padding: 4px 0; outline: none; margin-bottom: 10px; }
+.coll-name-input:focus { border-color: var(--flame); }
+.kw-card { border: 1px solid var(--border); border-radius: 10px; padding: 9px 11px; margin-bottom: 7px; }
+.kw-card-header { display: flex; align-items: center; justify-content: space-between; }
+.kw-label { font-size: 13px; font-weight: 700; color: var(--teal); }
+.kw-count { font-size: 10.5px; color: var(--soft); }
+.kw-stats { margin-top: 5px; font-size: 10.5px; color: var(--muted); line-height: 1.6; }
+.kw-del { font-size: 11px; color: var(--soft); background: rgba(var(--inkC),0.06); border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; }
+.kw-del:hover { background: var(--flame); color: #fff; }
+.coll-generate-btn { width: 100%; margin-top: 12px; padding: 11px; border: none; border-radius: 100px; cursor: pointer; font-family: var(--sans); font-size: 13px; font-weight: 700; color: #fff; background: linear-gradient(135deg, var(--flame) 0%, #e04800 100%); box-shadow: 0 4px 16px rgba(255,84,0,0.38); transition: opacity 150ms, transform 100ms; display: flex; align-items: center; justify-content: center; gap: 7px; }
+.coll-generate-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+.coll-generate-btn:disabled { opacity: 0.4; cursor: default; transform: none; }
+.coll-delete-btn { margin-top: 8px; width: 100%; padding: 8px; border: 1px solid rgba(201,67,92,0.25); border-radius: 100px; background: transparent; color: #c9435c; font-size: 11.5px; font-weight: 600; cursor: pointer; font-family: var(--sans); }
+.coll-history-title { font-size: 10px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--soft); margin: 14px 0 6px; }
+.phi-item { border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; margin-bottom: 6px; cursor: pointer; }
+.phi-item:hover { background: rgba(var(--inkC),0.05); }
+.phi-q { font-size: 11.5px; color: var(--teal2); line-height: 1.4; }
+.phi-meta { font-size: 10px; color: var(--soft); margin-top: 3px; }
+/* Add-to-collection menu */
+.add-coll-menu { position: fixed; z-index: 90; width: 230px; max-height: 280px; overflow-y: auto; display: none;
+  background: var(--glass-b); backdrop-filter: blur(20px) saturate(1.8); -webkit-backdrop-filter: blur(20px) saturate(1.8);
+  border: 1px solid var(--border); box-shadow: var(--gs); border-radius: 12px; padding: 6px; }
+.add-coll-menu.show { display: block; }
+.acm-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--soft); padding: 6px 10px 4px; }
+.acm-item { padding: 8px 10px; border-radius: 7px; cursor: pointer; font-size: 12px; color: var(--teal); display: flex; align-items: center; justify-content: space-between; }
+.acm-item:hover { background: rgba(var(--inkC),0.07); }
+.acm-check { font-size: 10px; color: var(--flame); }
+.acm-new { padding: 8px 10px; border-radius: 7px; cursor: pointer; font-size: 12px; font-weight: 600; color: var(--flame); border-top: 1px solid var(--border); margin-top: 4px; }
+.acm-new:hover { background: rgba(255,84,0,0.07); }
+/* Pre-Brief Modal */
+.brief-modal-bd { position: fixed; inset: 0; z-index: 80; background: rgba(26,57,72,0.32); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); display: none; align-items: center; justify-content: center; padding: 24px; }
+.brief-modal-bd.show { display: flex; animation: fadeIn 180ms var(--eo) both; }
+.brief-modal { width: min(580px,100%); max-height: 88vh; display: flex; flex-direction: column; background: var(--glass-b); backdrop-filter: blur(30px) saturate(2); -webkit-backdrop-filter: blur(30px) saturate(2); border: 1px solid var(--glass-b); box-shadow: 0 24px 64px rgba(26,57,72,0.28); border-radius: 20px; padding: 22px 24px 18px; position: relative; animation: pop 220ms var(--eo) both; }
+.brief-modal-close { position: absolute; top: 16px; right: 16px; width: 26px; height: 26px; border-radius: 50%; background: rgba(var(--inkC),0.08); border: none; cursor: pointer; color: var(--muted); font-size: 13px; }
+.bm-title { font-family: var(--serif); font-size: 19px; color: var(--teal); margin: 0 0 3px; padding-right: 28px; }
+.bm-sub { font-size: 12px; color: var(--soft); margin-bottom: 16px; }
+.bm-scroll { overflow-y: auto; flex: 1; min-height: 0; }
+.bm-section { margin-bottom: 18px; }
+.bm-label { font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--soft); margin-bottom: 8px; }
+.inv-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 4px; }
+.inv-chip { background: rgba(var(--inkC),0.05); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; text-align: center; }
+.inv-val { font-size: 16px; font-weight: 700; color: var(--teal); font-family: var(--serif); }
+.inv-key { font-size: 9.5px; color: var(--soft); margin-top: 2px; }
+.bm-textarea { width: 100%; min-height: 68px; resize: vertical; font-family: var(--sans); font-size: 13px; color: var(--teal); background: rgba(var(--inkC),0.04); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; outline: none; }
+.bm-textarea:focus { border-color: var(--flame); }
+.bm-suggestions { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px; }
+.bm-sug { font-size: 11px; color: var(--teal2); padding: 4px 8px; border-radius: 6px; cursor: pointer; border: 1px solid transparent; }
+.bm-sug:hover { border-color: var(--border); background: rgba(var(--inkC),0.05); }
+.bm-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.bm-chip { font-size: 11.5px; font-weight: 500; padding: 6px 14px; border-radius: 100px; border: 1px solid var(--border); background: transparent; color: var(--teal2); cursor: pointer; font-family: var(--sans); transition: all 150ms; }
+.bm-chip:hover { border-color: var(--teal2); }
+.bm-chip.sel { background: var(--teal); color: #fff; border-color: var(--teal); }
+.bm-footer { display: flex; gap: 10px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); flex-shrink: 0; }
+.bm-cancel { flex: 1; padding: 10px; border: 1px solid var(--border); border-radius: 100px; background: transparent; color: var(--teal2); font-size: 12.5px; font-weight: 600; cursor: pointer; font-family: var(--sans); }
+.bm-submit { flex: 2; padding: 10px; border: none; border-radius: 100px; background: var(--flame); color: #fff; font-size: 13px; font-weight: 700; cursor: pointer; font-family: var(--sans); box-shadow: 0 2px 10px rgba(255,84,0,0.4); }
+.bm-submit:hover { opacity: 0.88; }
+/* Prompt Panel */
+.prompt-panel-bd { position: fixed; inset: 0; z-index: 85; background: rgba(26,57,72,0.36); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); display: none; align-items: center; justify-content: center; padding: 24px; }
+.prompt-panel-bd.show { display: flex; animation: fadeIn 180ms var(--eo) both; }
+.prompt-panel { width: min(680px,100%); max-height: 90vh; display: flex; flex-direction: column; background: var(--glass-b); backdrop-filter: blur(30px) saturate(2); -webkit-backdrop-filter: blur(30px) saturate(2); border: 1px solid var(--glass-b); box-shadow: 0 24px 64px rgba(26,57,72,0.28); border-radius: 20px; padding: 20px 22px 16px; position: relative; animation: pop 220ms var(--eo) both; }
+.pp-title { font-family: var(--serif); font-size: 18px; color: var(--teal); margin: 0 0 2px; padding-right: 28px; }
+.pp-meta { font-size: 11px; color: var(--soft); margin-bottom: 12px; }
+.prompt-panel-close { position: absolute; top: 16px; right: 16px; width: 26px; height: 26px; border-radius: 50%; background: rgba(var(--inkC),0.08); border: none; cursor: pointer; color: var(--muted); font-size: 13px; }
+.prompt-text-box { flex: 1; min-height: 0; overflow-y: auto; border-radius: 10px; padding: 14px 16px; background: rgba(var(--inkC),0.04); border: 1px solid var(--border); font-family: 'Courier New', monospace; font-size: 11.5px; color: var(--teal2); line-height: 1.8; white-space: pre-wrap; word-break: break-word; }
+.pp-token { font-size: 10.5px; color: var(--soft); margin: 8px 0 0; text-align: right; }
+.pp-actions { display: flex; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); flex-shrink: 0; }
+.pp-btn { flex: 1; padding: 10px; border-radius: 100px; font-family: var(--sans); font-size: 12.5px; font-weight: 600; cursor: pointer; border: none; transition: opacity 150ms; }
+.pp-btn-copy { background: var(--flame); color: #fff; box-shadow: 0 2px 10px rgba(255,84,0,0.38); }
+.pp-btn-secondary { background: rgba(var(--inkC),0.08); color: var(--teal2); }
+.pp-btn:hover { opacity: 0.82; }
+/* Toast */
+.pd-toast { position: fixed; bottom: 60px; left: 50%; transform: translateX(-50%) translateY(12px); z-index: 99; background: var(--teal); color: #fff; font-size: 12.5px; font-weight: 500; padding: 9px 20px; border-radius: 100px; box-shadow: 0 4px 18px rgba(26,57,72,0.3); opacity: 0; pointer-events: none; transition: opacity 220ms, transform 220ms; white-space: nowrap; }
+.pd-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 </style>
 </head>
 <body>
@@ -219,6 +312,8 @@ html, body { margin: 0; height: 100%; overflow: hidden; font-family: var(--sans)
     <span class="nav-divider"></span>
     <button class="ntab lang on" id="themeLight">Light</button>
     <button class="ntab lang" id="themeDark">Dark</button>
+    <span class="nav-divider"></span>
+    <button class="ntab lang" id="tabCollections">✦ Collections</button>
   </div>
 </div>
 
@@ -637,7 +732,7 @@ function openSearchModal(query) {
   currentEntity = null;
   openModal(`Search: "${query}"`, searchArticles(query));
 }
-function openBriefModal(query, results) {
+function openBriefModal_search(query, results) {
   modalContext = null;
   currentEntity = null;
   document.getElementById('modalTitle').textContent = `Brief: "${query}"`;
@@ -909,6 +1004,7 @@ function renderResults(items, totalCount, query) {
         <div class="sr-footer-left">
           <button class="sr-footer-btn" id="srExportBtn"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>Export</button>
           <button class="sr-footer-btn" id="srBriefBtn">Brief</button>
+          <button class="sr-footer-btn" id="srCollBtn" style="color:var(--flame);font-weight:700;">＋ Collection</button>
         </div>
         ${totalCount > items.length ? `<span class="sr-seeall-link" id="srSeeAll">See all ${totalCount.toLocaleString()} results →</span>` : ''}
       </div>`;
@@ -935,7 +1031,13 @@ function renderResults(items, totalCount, query) {
     const srBriefBtn = document.getElementById('srBriefBtn');
     if (srBriefBtn) srBriefBtn.addEventListener('click', () => {
       searchResults.classList.remove('show');
-      openBriefModal(query, lastResults);
+      openBriefModal_search(query, lastResults);
+    });
+    const srCollBtn = document.getElementById('srCollBtn');
+    if (srCollBtn) srCollBtn.addEventListener('click', ev => {
+      ev.stopPropagation();
+      const agg = computeAggregates(lastResults);
+      pdOpenAddMenu(query, lastResults, agg, srCollBtn);
     });
   }
   searchResults.classList.add('show');
@@ -1022,7 +1124,7 @@ function updateChrome() {
   search.querySelector('input').placeholder = mode === 'topics' ? 'Find an article in the galaxy…' : 'Find a person or place…';
 
   if (mode === 'topics') {
-    spotlightWrap.style.display = 'block';
+    if (!window.collPanelOpen) spotlightWrap.style.display = 'block';
     legend.innerHTML = `<b>Iran-USA Relations Galaxy</b><br>${ARTICLES.length.toLocaleString()} Radio Farda articles (2006-2026) clustered into ${CATS.length} topics by full-text analysis. Each sun is a theme.`;
     hint.textContent = 'Drag to pan, scroll to zoom, click a star';
   } else {
@@ -1063,5 +1165,494 @@ spClear.addEventListener('click', () => { spotlightId = null; refreshSpotlightUI
 buildSpotlightPanel();
 </script>
 
+<!-- ===== AI DEEP BRIEF COLLECTIONS ===== -->
+<div class="coll-panel" id="collPanel"></div>
+<div class="add-coll-menu" id="addCollMenu"></div>
+
+<div class="brief-modal-bd" id="briefModalBd">
+  <div class="brief-modal">
+    <button class="brief-modal-close" id="briefModalClose">✕</button>
+    <div class="bm-title" id="bmTitle">Generate AI Deep Brief</div>
+    <div class="bm-sub" id="bmSub"></div>
+    <div class="bm-scroll">
+      <div class="bm-section"><div class="bm-label">Material Inventory</div><div class="inv-grid" id="bmInventory"></div></div>
+      <div class="bm-section">
+        <div class="bm-label">Research Question</div>
+        <div class="bm-suggestions" id="bmSuggestions"></div>
+        <textarea class="bm-textarea" id="bmQuestion" placeholder="What would you like to investigate? E.g. What connections exist between these topics over time?"></textarea>
+      </div>
+      <div class="bm-section"><div class="bm-label">Analytical Lens</div>
+        <div class="bm-chips" id="bmLens">
+          <button class="bm-chip sel" data-val="investigative">Investigative</button>
+          <button class="bm-chip" data-val="diplomatic">Diplomatic</button>
+          <button class="bm-chip" data-val="security">Security</button>
+          <button class="bm-chip" data-val="economic">Economic</button>
+          <button class="bm-chip" data-val="narrative">Narrative</button>
+        </div>
+      </div>
+      <div class="bm-section"><div class="bm-label">Output Format</div>
+        <div class="bm-chips" id="bmFormat">
+          <button class="bm-chip sel" data-val="full">Full Brief</button>
+          <button class="bm-chip" data-val="summary">Executive Summary</button>
+          <button class="bm-chip" data-val="timeline">Timeline</button>
+          <button class="bm-chip" data-val="stories">Story Ideas</button>
+        </div>
+      </div>
+      <div class="bm-section"><div class="bm-label">Depth</div>
+        <div class="bm-chips" id="bmDepth">
+          <button class="bm-chip" data-val="overview">Overview</button>
+          <button class="bm-chip sel" data-val="standard">Standard</button>
+          <button class="bm-chip" data-val="deep">Deep Dive</button>
+        </div>
+      </div>
+    </div>
+    <div class="bm-footer">
+      <button class="bm-cancel" id="bmCancel">Cancel</button>
+      <button class="bm-submit" id="bmSubmit">Build Prompt →</button>
+    </div>
+  </div>
+</div>
+
+<div class="prompt-panel-bd" id="promptPanelBd">
+  <div class="prompt-panel">
+    <button class="prompt-panel-close" id="promptPanelClose">✕</button>
+    <div class="pp-title">AI Deep Brief — Copilot Prompt</div>
+    <div class="pp-meta" id="ppMeta"></div>
+    <div class="prompt-text-box" id="promptTextBox"></div>
+    <div class="pp-token" id="ppToken"></div>
+    <div class="pp-actions">
+      <button class="pp-btn pp-btn-copy" id="ppCopy">📋 Copy Prompt</button>
+      <button class="pp-btn pp-btn-secondary" id="ppCopilot">↗ Open Copilot</button>
+      <button class="pp-btn pp-btn-secondary" id="ppSave">💾 Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="pd-toast" id="pdToast"></div>
+
+<script>
+/* ==================== PilotDesk Collections ==================== */
+const PD_KEY = 'pilotdesk_v1';
+let PD_COLLS = [];
+window.collPanelOpen = false;
+let collDetailId = null;
+let briefCollId = null;
+let currentPrompt = null;
+
+/* ---- Storage ---- */
+function pdLoad() { try { const r = localStorage.getItem(PD_KEY); PD_COLLS = r ? JSON.parse(r) : []; if (!Array.isArray(PD_COLLS)) PD_COLLS = []; } catch(e) { PD_COLLS = []; } }
+function pdSave() { try { localStorage.setItem(PD_KEY, JSON.stringify(PD_COLLS)); } catch(e) {} }
+function pdById(id) { return PD_COLLS.find(c => c.id === id); }
+function pdNewId() { return 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2,5); }
+function pdCreate(name) {
+  const c = { id: pdNewId(), name: name || 'Untitled Collection', keywords: [], prompts: [], createdAt: Date.now(), updatedAt: Date.now() };
+  PD_COLLS.unshift(c); pdSave(); return c;
+}
+function pdAddKw(id, term, results, agg) {
+  const c = pdById(id); if (!c) return false;
+  if (c.keywords.find(k => k.term.toLowerCase() === term.toLowerCase())) return false;
+  c.keywords.push({ term, articles: results.slice(0,50).map(a=>({url:a.url,title:titleOf(a),date:a.date||''})), agg, addedAt: Date.now() });
+  c.updatedAt = Date.now(); pdSave(); return true;
+}
+function pdRemoveKw(id, term) {
+  const c = pdById(id); if (!c) return;
+  c.keywords = c.keywords.filter(k => k.term !== term); c.updatedAt = Date.now(); pdSave();
+}
+function pdDelete(id) { PD_COLLS = PD_COLLS.filter(c => c.id !== id); pdSave(); }
+
+/* ---- Toast ---- */
+let _toastT;
+function pdToast(msg) {
+  const el = document.getElementById('pdToast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(_toastT); _toastT = setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+/* ---- Panel ---- */
+const collPanel = document.getElementById('collPanel');
+
+function pdTogglePanel(force) {
+  window.collPanelOpen = force != null ? !!force : !window.collPanelOpen;
+  collPanel.classList.toggle('show', window.collPanelOpen);
+  document.getElementById('tabCollections').classList.toggle('on', window.collPanelOpen);
+  const sw = document.getElementById('spotlightWrap');
+  if (window.collPanelOpen) { if (sw) sw.style.display = 'none'; pdRenderPanel(); }
+  else { if (sw && document.getElementById('tabTopics').classList.contains('on')) sw.style.display = 'block'; }
+}
+
+document.getElementById('tabCollections').addEventListener('click', () => pdTogglePanel());
+
+function pdRenderPanel() {
+  if (!window.collPanelOpen) return;
+  if (collDetailId && pdById(collDetailId)) pdRenderDetail(pdById(collDetailId));
+  else { collDetailId = null; pdRenderList(); }
+}
+
+function pdRenderList() {
+  let html = `<div class="coll-head"><span class="coll-head-title">Collections</span><button class="coll-newbtn" id="collNewBtn">＋ New</button></div><div class="coll-body">`;
+  if (!PD_COLLS.length) {
+    html += `<div class="coll-empty">No collections yet.<br><br>Search any keyword, then click <b style="color:var(--flame)">＋ Collection</b> in the results to start building your first research workspace.</div>`;
+  } else {
+    html += PD_COLLS.map(c => `
+      <div class="coll-card" data-id="${c.id}">
+        <div class="cc-name">${escapeHtml(c.name)}</div>
+        <div class="cc-meta">${c.keywords.length} keyword${c.keywords.length===1?'':'s'} · ${c.keywords.reduce((s,k)=>s+(k.agg?.total||0),0).toLocaleString()} articles</div>
+        <div class="cc-kws">${c.keywords.slice(0,6).map(k=>`<span class="coll-kw-chip">${escapeHtml(k.term)}</span>`).join('')}</div>
+      </div>`).join('');
+  }
+  html += '</div>';
+  collPanel.innerHTML = html;
+  document.getElementById('collNewBtn')?.addEventListener('click', () => {
+    const name = prompt('Collection name:'); if (!name) return;
+    const c = pdCreate(name.trim()); collDetailId = c.id; pdRenderPanel();
+  });
+  collPanel.querySelectorAll('.coll-card').forEach(el => {
+    el.addEventListener('click', () => { collDetailId = el.dataset.id; pdRenderPanel(); });
+  });
+}
+
+function pdRenderDetail(c) {
+  const total = c.keywords.reduce((s,k)=>s+(k.agg?.total||0),0);
+  const kwHtml = c.keywords.map(k => {
+    const a = k.agg||{};
+    const topics = (a.clusters||[]).slice(0,3).map(([n,cnt])=>`${n} (${cnt})`).join(', ');
+    const ents = (a.entities||[]).slice(0,5).map(([n])=>n).join(', ');
+    return `<div class="kw-card">
+      <div class="kw-card-header"><span class="kw-label">🔍 ${escapeHtml(k.term)}</span><button class="kw-del" data-term="${escapeHtml(k.term)}">✕</button></div>
+      <div class="kw-count">${(a.total||0).toLocaleString()} articles · ${a.dateMin||'?'} – ${a.dateMax||'?'}</div>
+      ${topics?`<div class="kw-stats">Topics: ${escapeHtml(topics)}</div>`:''}
+      ${ents?`<div class="kw-stats">Entities: ${escapeHtml(ents)}</div>`:''}
+    </div>`;
+  }).join('') || `<div class="coll-empty" style="padding:12px 0;">No keywords yet.<br>Search a term and click ＋ Collection.</div>`;
+  const phHtml = c.prompts.length ? `<div class="coll-history-title">Prompt History (${c.prompts.length})</div>`+
+    c.prompts.slice().reverse().map((p,i)=>`<div class="phi-item" data-pidx="${c.prompts.length-1-i}"><div class="phi-q">${escapeHtml(p.question.slice(0,90))}${p.question.length>90?'…':''}</div><div class="phi-meta">${p.lens} · ${p.format} · ${new Date(p.createdAt).toLocaleDateString()}</div></div>`).join('') : '';
+
+  collPanel.innerHTML = `
+    <div class="coll-head"><span class="coll-head-title">Collection</span></div>
+    <div class="coll-body"><div class="coll-detail">
+      <button class="coll-back" id="collBack">◂ Back</button>
+      <input class="coll-name-input" id="collNameIn" value="${escapeHtml(c.name)}" placeholder="Collection name">
+      ${kwHtml}
+      <button class="coll-generate-btn" id="collGenerateBtn" ${!c.keywords.length?'disabled':''}>✦ Generate AI Deep Brief</button>
+      ${phHtml}
+      <button class="coll-delete-btn" id="collDeleteBtn">Delete Collection</button>
+    </div></div>`;
+
+  document.getElementById('collBack').addEventListener('click', () => { collDetailId = null; pdRenderPanel(); });
+  const ni = document.getElementById('collNameIn');
+  ni.addEventListener('change', () => { c.name = ni.value.trim()||'Untitled Collection'; c.updatedAt = Date.now(); pdSave(); });
+  collPanel.querySelectorAll('.kw-del').forEach(btn => {
+    btn.addEventListener('click', e => { e.stopPropagation(); pdRemoveKw(c.id, btn.dataset.term); pdRenderPanel(); });
+  });
+  document.getElementById('collGenerateBtn')?.addEventListener('click', () => pdOpenBriefModal(c.id));
+  document.getElementById('collDeleteBtn').addEventListener('click', () => {
+    if (confirm(`Delete "${c.name}"?`)) { pdDelete(c.id); collDetailId = null; pdRenderPanel(); }
+  });
+  collPanel.querySelectorAll('.phi-item').forEach(el => {
+    el.addEventListener('click', () => { const p = c.prompts[+el.dataset.pidx]; if (p) pdShowPrompt(p.text, p.question, c); });
+  });
+}
+
+/* ---- Add-to-collection menu ---- */
+const addCollMenu = document.getElementById('addCollMenu');
+let _acmTerm='', _acmResults=[], _acmAgg=null;
+
+function pdOpenAddMenu(term, results, agg, anchor) {
+  _acmTerm = term; _acmResults = results; _acmAgg = agg;
+  const inSome = PD_COLLS.filter(c => c.keywords.find(k=>k.term.toLowerCase()===term.toLowerCase())).map(c=>c.id);
+  let html = `<div class="acm-title">Add "${escapeHtml(term.slice(0,24))}" to collection</div>`;
+  if (!PD_COLLS.length) html += `<div class="acm-item" style="cursor:default;color:var(--soft);">No collections yet</div>`;
+  else html += PD_COLLS.map(c=>`<div class="acm-item" data-id="${c.id}">${escapeHtml(c.name)}${inSome.includes(c.id)?'<span class="acm-check">✓ added</span>':''}</div>`).join('');
+  html += `<div class="acm-new" id="acmNew">＋ New Collection…</div>`;
+  addCollMenu.innerHTML = html;
+  const r = anchor.getBoundingClientRect();
+  let left = r.left, top = r.bottom + 6;
+  if (left + 236 > window.innerWidth) left = window.innerWidth - 244;
+  if (top + 300 > window.innerHeight) top = Math.max(10, r.top - 306);
+  addCollMenu.style.left = Math.max(10,left)+'px'; addCollMenu.style.top = top+'px';
+  addCollMenu.classList.add('show');
+  addCollMenu.querySelectorAll('.acm-item[data-id]').forEach(el => {
+    el.addEventListener('click', () => {
+      const id = el.dataset.id, c = pdById(id);
+      if (pdAddKw(id, _acmTerm, _acmResults, _acmAgg)) pdToast(`Added "${_acmTerm}" to "${c.name}"`);
+      else pdToast(`Already in "${c.name}"`);
+      addCollMenu.classList.remove('show');
+      if (window.collPanelOpen) pdRenderPanel();
+    });
+  });
+  document.getElementById('acmNew')?.addEventListener('click', () => {
+    const name = prompt('New collection name:'); if (!name) return;
+    const c = pdCreate(name.trim());
+    pdAddKw(c.id, _acmTerm, _acmResults, _acmAgg);
+    pdToast(`Added "${_acmTerm}" to "${c.name}"`);
+    addCollMenu.classList.remove('show');
+    if (window.collPanelOpen) pdRenderPanel();
+  });
+}
+document.addEventListener('mousedown', e => { if (addCollMenu.classList.contains('show') && !addCollMenu.contains(e.target)) addCollMenu.classList.remove('show'); });
+
+/* ---- Pre-Brief Modal ---- */
+const briefModalBd = document.getElementById('briefModalBd');
+
+function pdOpenBriefModal(collId) {
+  const c = pdById(collId); if (!c) return;
+  briefCollId = collId;
+  const total = c.keywords.reduce((s,k)=>s+(k.agg?.total||0),0);
+  const dates = c.keywords.map(k=>k.agg?.dateMin).filter(Boolean).sort();
+  const datesMax = c.keywords.map(k=>k.agg?.dateMax).filter(Boolean).sort();
+  document.getElementById('bmTitle').textContent = c.name;
+  document.getElementById('bmSub').textContent = 'Review your material and configure the prompt.';
+  document.getElementById('bmInventory').innerHTML = [
+    {v:c.keywords.length, k:'Keywords'}, {v:total.toLocaleString(), k:'Articles'},
+    {v:c.keywords.length, k:'Briefs'}, {v:dates[0]||'—', k:'Earliest'},
+    {v:datesMax[datesMax.length-1]||'—', k:'Latest'}, {v:c.prompts.length, k:'Saved Prompts'},
+  ].map(({v,k})=>`<div class="inv-chip"><div class="inv-val">${v}</div><div class="inv-key">${k}</div></div>`).join('');
+  const terms = c.keywords.map(k=>k.term);
+  const sugs = terms.length > 1 ? [
+    `What connections exist between ${terms.join(', ')} over time?`,
+    `How have narratives around ${terms.join(' and ')} evolved?`,
+    `What major events link these topics?`,
+    `Who are the key actors across ${terms.join(', ')}?`,
+  ] : [
+    `What are the key narrative shifts in coverage of ${terms[0]||'this topic'}?`,
+    `Who are the most influential actors in coverage of ${terms[0]||'this topic'}?`,
+    `What editorial opportunities emerge from this data?`,
+  ];
+  document.getElementById('bmSuggestions').innerHTML = sugs.map(s=>`<span class="bm-sug">${escapeHtml(s)}</span>`).join('');
+  document.getElementById('bmSuggestions').querySelectorAll('.bm-sug').forEach(el => {
+    el.addEventListener('click', () => { document.getElementById('bmQuestion').value = el.textContent; });
+  });
+  ['bmLens','bmFormat','bmDepth'].forEach(gid => {
+    const g = document.getElementById(gid);
+    g.querySelectorAll('.bm-chip').forEach((btn,i) => {
+      btn.classList.toggle('sel', i===0);
+      btn.onclick = () => { g.querySelectorAll('.bm-chip').forEach(b=>b.classList.remove('sel')); btn.classList.add('sel'); };
+    });
+  });
+  document.getElementById('bmQuestion').value = '';
+  briefModalBd.classList.add('show');
+  setTimeout(() => document.getElementById('bmQuestion').focus(), 300);
+}
+
+function pdCloseBriefModal() { briefModalBd.classList.remove('show'); briefCollId = null; }
+document.getElementById('briefModalClose').addEventListener('click', pdCloseBriefModal);
+document.getElementById('bmCancel').addEventListener('click', pdCloseBriefModal);
+briefModalBd.addEventListener('mousedown', e => { if (e.target === briefModalBd) pdCloseBriefModal(); });
+
+document.getElementById('bmSubmit').addEventListener('click', () => {
+  const q = document.getElementById('bmQuestion').value.trim();
+  if (!q) { document.getElementById('bmQuestion').style.borderColor='var(--flame)'; return; }
+  const lens = document.querySelector('#bmLens .bm-chip.sel')?.dataset.val || 'investigative';
+  const format = document.querySelector('#bmFormat .bm-chip.sel')?.dataset.val || 'full';
+  const depth = document.querySelector('#bmDepth .bm-chip.sel')?.dataset.val || 'standard';
+  const c = pdById(briefCollId); if (!c) return;
+  const text = pdBuildPrompt(c, q, lens, format, depth);
+  pdCloseBriefModal();
+  pdShowPrompt(text, q, c, {lens, format, depth});
+});
+
+/* ---- Prompt Engine ---- */
+function pdBuildPrompt(c, question, lens, format, depth) {
+  const total = c.keywords.reduce((s,k)=>s+(k.agg?.total||0),0);
+  const allMin = c.keywords.map(k=>k.agg?.dateMin).filter(Boolean).sort();
+  const allMax = c.keywords.map(k=>k.agg?.dateMax).filter(Boolean).sort();
+  const span = allMin.length ? `${allMin[0]} to ${allMax[allMax.length-1]}` : 'unknown';
+
+  /* ── CROSS-KEYWORD ENTITY OVERLAP ── */
+  // Build a map: entityName → [{keyword, count}]
+  const entityMap = {};
+  c.keywords.forEach(k => {
+    (k.agg?.entities || []).forEach(([name, cnt]) => {
+      if (!entityMap[name]) entityMap[name] = [];
+      entityMap[name].push({ kw: k.term, cnt });
+    });
+  });
+  // Only entities in 2+ keywords, sorted by total mentions
+  const sharedEntities = Object.entries(entityMap)
+    .filter(([, hits]) => hits.length >= 2)
+    .map(([name, hits]) => ({ name, hits, total: hits.reduce((s,h)=>s+h.cnt,0) }))
+    .sort((a,b) => b.total - a.total)
+    .slice(0, 20);
+
+  // Shared topic clusters
+  const topicMap = {};
+  c.keywords.forEach(k => {
+    (k.agg?.clusters || []).forEach(([name, cnt]) => {
+      if (!topicMap[name]) topicMap[name] = [];
+      topicMap[name].push({ kw: k.term, cnt });
+    });
+  });
+  const sharedTopics = Object.entries(topicMap)
+    .filter(([, hits]) => hits.length >= 2)
+    .map(([name, hits]) => ({ name, hits }))
+    .slice(0, 10);
+
+  /* ── PER-KEYWORD ARTICLE LIST (top 15 most recent) ── */
+  const kwBlocks = c.keywords.map((k, i) => {
+    const a = k.agg || {};
+    const topics = (a.clusters||[]).slice(0,5).map(([n,cnt])=>`${n}: ${cnt} (${Math.round(cnt/(a.total||1)*100)}%)`).join(' | ');
+    const ents = (a.entities||[]).slice(0,10).map(([n,cnt])=>`${n} (${cnt})`).join(', ');
+    const peak = a.peakMonth ? `${a.peakMonth[0]} (${a.peakMonth[1]} articles)` : '—';
+    // Sort articles by date desc, take top 15
+    const arts = [...(k.articles||[])].sort((a,b)=>(b.date||'').localeCompare(a.date||'')).slice(0,15);
+    const artBlock = arts.length
+      ? arts.map(a => `  • [${a.date||'n/d'}] ${a.title||'Untitled'}\n    ${a.url}`).join('\n')
+      : '  (no article URLs stored — re-add this keyword to capture them)';
+    return `━━━ KEYWORD ${i+1}: "${k.term}" ━━━
+  Archive count : ${(a.total||0).toLocaleString()} articles
+  Date range    : ${a.dateMin||'?'} → ${a.dateMax||'?'}
+  Peak month    : ${peak}
+  Topic spread  : ${topics||'—'}
+  Top entities  : ${ents||'—'}
+
+  SAMPLE ARTICLES (${arts.length} most recent from archive):
+${artBlock}`;
+  }).join('\n\n');
+
+  /* ── CROSS-KEYWORD SECTION ── */
+  const overlapBlock = sharedEntities.length
+    ? `ENTITIES APPEARING ACROSS MULTIPLE KEYWORDS:
+${sharedEntities.map(e => `  • ${e.name} — appears in: ${e.hits.map(h=>`"${h.kw}" (${h.cnt}×)`).join(', ')}`).join('\n')}
+
+TOPIC CLUSTERS APPEARING ACROSS MULTIPLE KEYWORDS:
+${sharedTopics.map(t => `  • ${t.name} — in: ${t.hits.map(h=>`"${h.kw}"`).join(', ')}`).join('\n')}`
+    : '(Only one keyword in this collection — no cross-keyword overlap to compute.)';
+
+  /* ── WEB SEARCH QUERIES ── */
+  const terms = c.keywords.map(k => k.term);
+  const webQueries = [
+    ...terms.map(t => `"${t}" Iran site:radiofarda.com`),
+    ...terms.map(t => `"${t}" Iran -site:radiofarda.com`),
+    terms.length > 1 ? `"${terms.join('" "')}": Iran` : null,
+    ...sharedEntities.slice(0,3).map(e => `"${e.name}" Iran latest news`),
+  ].filter(Boolean);
+
+  /* ── ROLES ── */
+  const roles = {
+    investigative: 'You are a senior investigative journalist and geopolitical analyst specializing in Iranian affairs and US–Iran relations. You have access to both a curated archive of Radio Farda articles and live web search. Your task is to combine archive intelligence with current web findings to produce a rigorous, source-grounded brief.',
+    diplomatic: 'You are a diplomatic analyst and foreign policy researcher with deep expertise in US–Iran negotiations and multilateral diplomacy. You combine Persian-language archive research with live web intelligence.',
+    security: 'You are a security analyst and intelligence researcher focused on military posture, IRGC operations, and regional force projection — combining archive depth with current open-source intelligence.',
+    economic: 'You are an economic analyst specializing in sanctions regimes, energy markets, and the geopolitical economy of US–Iran relations, combining archival pattern analysis with current web data.',
+    narrative: 'You are a narrative analyst specializing in how Iranian affairs are framed — combining Radio Farda\'s Persian-language archive with external English and Farsi coverage to surface framing gaps.',
+  };
+
+  /* ── OUTPUT FORMATS ── */
+  const outputs = {
+    full: `Produce a structured intelligence brief in THREE PARTS:\n
+PART 1 — ARCHIVE ANALYSIS (based on the Radio Farda metadata and article URLs above)\n
+  1a. EXECUTIVE SUMMARY (200–300 words) — directly answering the research question\n  1b. TIMELINE OF KEY EVENTS — [YEAR] — [EVENT] — [KEYWORD(S) INVOLVED] — [SIGNIFICANCE]\n  1c. KEY ACTORS & CROSS-KEYWORD ROLES — focus on entities appearing in multiple keyword sets; explain their role in each\n  1d. NARRATIVE SHIFTS — 3–5 moments when the dominant framing changed and what drove it\n  1e. HIDDEN CONNECTIONS — non-obvious patterns that emerge from the entity and topic overlaps above\n  1f. ARCHIVE COVERAGE GAPS — periods or angles where Radio Farda coverage is thin or absent\n
+PART 2 — WEB INTELLIGENCE (run the web searches listed below, then report findings)\n
+  2a. Run each of the RECOMMENDED WEB SEARCHES below one by one\n  2b. For each search: report 3–5 key findings not already captured in the Radio Farda archive\n  2c. COVERAGE COMPARISON: what did Radio Farda cover that others missed? What did others cover that Radio Farda missed?\n  2d. RECENCY CHECK: are there developments in the last 6 months not reflected in the archive?\n
+PART 3 — SYNTHESIS & EDITORIAL OPPORTUNITIES\n
+  3a. STRATEGIC IMPLICATIONS — what does the combined archive + web picture suggest today?\n  3b. STORY IDEAS — 6–8 specific investigative pitches, each with: angle / key sources / timing / format\n  3c. RECOMMENDED NEXT STEPS — specific URLs to read, experts to contact, documents to FOIA`,
+
+    summary: `Produce a tight intelligence summary in THREE PARTS:\n  PART 1 — Archive findings (300 words max): key actors, timeline, cross-keyword patterns\n  PART 2 — Web check: run the recommended searches, report top 5 findings not in archive\n  PART 3 — 3 story ideas with angle, source, and timing`,
+
+    timeline: `Produce a COMBINED TIMELINE:\n  Step 1: Build a chronological timeline from the archive metadata above\n  Step 2: Run the recommended web searches and add events from the last 12 months\n  Format: [DATE] — [EVENT] — [SOURCE: archive or web] — [KEYWORDS INVOLVED]\n  Flag dates where multiple keywords intersect with the symbol ◈`,
+
+    stories: `Produce STORY IDEAS in TWO ROUNDS:\n  Round 1 — From archive patterns: 5 story ideas based on the article metadata and entity overlaps above\n  Round 2 — From web gaps: run the recommended searches, then identify 5 stories where there is web coverage that Radio Farda hasn't addressed yet\n  For each story: angle / key sources / timing / data needed / suggested format`,
+  };
+
+  const depths = {
+    overview: 'Be concise. Lead with the single most important finding in each section.',
+    standard: 'Balance depth and clarity. Support key claims with patterns from the archive. Distinguish confirmed patterns from inferences.',
+    deep: 'Apply full analytical depth. Trace second-order effects, challenge obvious interpretations, examine edge cases, and explicitly flag where the archive data is insufficient to draw conclusions.',
+  };
+
+  return `## ROLE
+${roles[lens]||roles.investigative}
+
+## PRIMARY RESEARCH QUESTION
+${question}
+
+This question is your editorial north star. Every section of your analysis must ultimately serve it.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+## RADIO FARDA ARCHIVE INTELLIGENCE
+Source: Radio Farda — Persian-language service of Radio Free Europe / Radio Liberty
+Coverage: Iranian and US–Iran affairs, 2006–2026
+Collection: "${c.name}" | Total articles in collection: ${total.toLocaleString()} | Span: ${span}
+
+${kwBlocks}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+## CROSS-KEYWORD INTELLIGENCE
+These are the structural connections in the archive — entities and topics that appear across multiple keyword searches. This is where the story likely lives.
+
+${overlapBlock}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+## RECOMMENDED WEB SEARCHES
+Run these searches one by one using your web search tool. Compare findings with the Radio Farda archive above.
+
+${webQueries.map((q,i)=>`  ${i+1}. ${q}`).join('\n')}
+
+For each search result:
+  → Note articles published AFTER the archive's latest date (${allMax[allMax.length-1]||'unknown'})
+  → Note angles or entities NOT present in the Radio Farda archive
+  → Note contradictions between Radio Farda's framing and external sources
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+## OUTPUT INSTRUCTIONS
+${outputs[format]||outputs.full}
+
+## DEPTH
+${depths[depth]||depths.standard}
+
+## ANALYTICAL STANDARDS
+- The article URLs above are from Radio Farda's archive. Do not fabricate summaries of articles you haven't read.
+- Distinguish what the archive metadata shows (counts, dates, entity frequency) from what you infer from it.
+- When reporting web search findings, cite the source URL.
+- Use Farsi transliterations consistently (Sepah, not "the Guards"; JCPOA not "the deal"; Majlis not "parliament").
+- Flag coverage gaps explicitly — thin archive years or missing entity combinations are as significant as dense coverage.
+- Write for a journalism audience: precise, non-speculative, actionable.
+
+## SOURCE CONTEXT
+Radio Farda is a Western-funded Persian-language broadcaster covering Iran. Its editorial lens is distinct from state media (IRIB, Tasnim, Fars) and from Persian-language diaspora outlets. Coverage volume and framing reflect that position. Factor this into any gap analysis.`;
+}
+
+/* ---- Prompt Panel ---- */
+const promptPanelBd = document.getElementById('promptPanelBd');
+
+function pdShowPrompt(text, question, coll, config) {
+  document.getElementById('ppMeta').textContent = `${coll.name} · ${coll.keywords.length} keywords · ${coll.keywords.reduce((s,k)=>s+(k.agg?.total||0),0).toLocaleString()} articles`;
+  document.getElementById('promptTextBox').textContent = text;
+  document.getElementById('ppToken').textContent = `~${Math.round(text.length/4).toLocaleString()} tokens (${text.length.toLocaleString()} chars)`;
+  currentPrompt = { text, question, collId: coll.id, config };
+  promptPanelBd.classList.add('show');
+}
+function pdClosePrompt() { promptPanelBd.classList.remove('show'); }
+document.getElementById('promptPanelClose').addEventListener('click', pdClosePrompt);
+promptPanelBd.addEventListener('mousedown', e => { if (e.target === promptPanelBd) pdClosePrompt(); });
+
+document.getElementById('ppCopy').addEventListener('click', () => {
+  if (!currentPrompt) return;
+  navigator.clipboard.writeText(currentPrompt.text).then(() => {
+    document.getElementById('ppCopy').textContent = '✓ Copied!';
+    pdToast('Prompt copied — paste into Copilot or any LLM');
+    setTimeout(() => document.getElementById('ppCopy').textContent = '📋 Copy Prompt', 2000);
+  }).catch(() => prompt('Copy prompt:', currentPrompt.text));
+});
+document.getElementById('ppCopilot').addEventListener('click', () => {
+  if (!currentPrompt) return;
+  navigator.clipboard.writeText(currentPrompt.text).catch(()=>{});
+  window.open('https://copilot.microsoft.com', '_blank', 'noopener');
+  pdToast('Copilot opened — paste your prompt');
+});
+document.getElementById('ppSave').addEventListener('click', () => {
+  if (!currentPrompt) return;
+  const c = pdById(currentPrompt.collId); if (!c) return;
+  const cfg = currentPrompt.config || {};
+  c.prompts.push({ text: currentPrompt.text, question: currentPrompt.question, lens: cfg.lens||'investigative', format: cfg.format||'full', depth: cfg.depth||'standard', createdAt: Date.now() });
+  c.updatedAt = Date.now(); pdSave();
+  pdToast('Prompt saved to collection');
+  document.getElementById('ppSave').textContent = '✓ Saved';
+  setTimeout(() => document.getElementById('ppSave').textContent = '💾 Save', 2000);
+  if (window.collPanelOpen && collDetailId === currentPrompt.collId) pdRenderPanel();
+});
+
+/* ---- Init ---- */
+pdLoad();
+</script>
 </body>
 </html>
