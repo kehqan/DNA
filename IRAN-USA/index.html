@@ -247,7 +247,23 @@ html, body { margin: 0; height: 100%; overflow: hidden; font-family: var(--sans)
 .acm-check { font-size: 10px; color: var(--flame); }
 .acm-new { padding: 8px 10px; border-radius: 7px; cursor: pointer; font-size: 12px; font-weight: 600; color: var(--flame); border-top: 1px solid var(--border); margin-top: 4px; }
 .acm-new:hover { background: rgba(255,84,0,0.07); }
-/* Pre-Brief Modal */
+/* New piece toggle */
+.bm-new-piece-toggle {
+  width: 100%; display: flex; align-items: center; gap: 10px; padding: 11px 14px;
+  border: 1.5px dashed var(--border); border-radius: 10px; background: transparent;
+  cursor: pointer; font-family: var(--sans); font-size: 12.5px; color: var(--teal2);
+  text-align: left; transition: all 180ms;
+}
+.bm-new-piece-toggle:hover { border-color: var(--flame); color: var(--teal); background: rgba(255,84,0,0.04); }
+.bm-new-piece-toggle.on { border-style: solid; border-color: var(--flame); background: rgba(255,84,0,0.07); color: var(--teal); }
+.bnpt-dot { width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid currentColor; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 9px; transition: all 180ms; }
+.bm-new-piece-toggle.on .bnpt-dot { background: var(--flame); border-color: var(--flame); color: #fff; }
+.bnpt-label { flex: 1; }
+.bm-new-piece-field { margin-top: 12px; animation: fadeIn 200ms var(--eo) both; }
+.bm-new-piece-input { width: 100%; font-family: var(--sans); font-size: 13px; color: var(--teal); background: rgba(var(--inkC),0.04); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; outline: none; }
+.bm-new-piece-input:focus { border-color: var(--flame); }
+.bm-new-piece-hint { font-size: 10.5px; color: var(--soft); line-height: 1.5; margin-top: 7px; padding: 0 2px; }
+
 .brief-modal-bd { position: fixed; inset: 0; z-index: 80; background: rgba(26,57,72,0.32); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); display: none; align-items: center; justify-content: center; padding: 24px; }
 .brief-modal-bd.show { display: flex; animation: fadeIn 180ms var(--eo) both; }
 .brief-modal { width: min(580px,100%); max-height: 88vh; display: flex; flex-direction: column; background: var(--glass-b); backdrop-filter: blur(30px) saturate(2); -webkit-backdrop-filter: blur(30px) saturate(2); border: 1px solid var(--glass-b); box-shadow: 0 24px 64px rgba(26,57,72,0.28); border-radius: 20px; padding: 22px 24px 18px; position: relative; animation: pop 220ms var(--eo) both; }
@@ -1205,6 +1221,17 @@ buildSpotlightPanel();
           <button class="bm-chip" data-val="deep">Deep Dive</button>
         </div>
       </div>
+      <div class="bm-section">
+        <button class="bm-new-piece-toggle" id="bmNewPieceToggle">
+          <span class="bnpt-dot">✎</span>
+          <span class="bnpt-label">I'm working on a new piece related to these keywords</span>
+        </button>
+        <div class="bm-new-piece-field" id="bmNewPieceField" style="display:none;">
+          <div class="bm-label" style="margin-top:0;">What is your new piece about?</div>
+          <input class="bm-new-piece-input" id="bmNewPieceTopic" placeholder="e.g. How Trump's return affects JCPOA negotiations in 2025" autocomplete="off">
+          <div class="bm-new-piece-hint">Copilot will scan the archive and the web specifically for this piece — surfacing relevant precedents, story angles, expert sources, and gaps that no one has covered yet.</div>
+        </div>
+      </div>
     </div>
     <div class="bm-footer">
       <button class="bm-cancel" id="bmCancel">Cancel</button>
@@ -1430,6 +1457,18 @@ function pdOpenBriefModal(collId) {
     });
   });
   document.getElementById('bmQuestion').value = '';
+  // reset new piece toggle
+  const tog = document.getElementById('bmNewPieceToggle');
+  const fld = document.getElementById('bmNewPieceField');
+  const inp = document.getElementById('bmNewPieceTopic');
+  tog.classList.remove('on');
+  fld.style.display = 'none';
+  inp.value = '';
+  tog.onclick = () => {
+    const on = tog.classList.toggle('on');
+    fld.style.display = on ? 'block' : 'none';
+    if (on) setTimeout(() => inp.focus(), 120);
+  };
   briefModalBd.classList.add('show');
   setTimeout(() => document.getElementById('bmQuestion').focus(), 300);
 }
@@ -1445,14 +1484,17 @@ document.getElementById('bmSubmit').addEventListener('click', () => {
   const lens = document.querySelector('#bmLens .bm-chip.sel')?.dataset.val || 'investigative';
   const format = document.querySelector('#bmFormat .bm-chip.sel')?.dataset.val || 'full';
   const depth = document.querySelector('#bmDepth .bm-chip.sel')?.dataset.val || 'standard';
+  const newPiece = document.getElementById('bmNewPieceToggle').classList.contains('on')
+    ? (document.getElementById('bmNewPieceTopic').value.trim() || '')
+    : '';
   const c = pdById(briefCollId); if (!c) return;
-  const text = pdBuildPrompt(c, q, lens, format, depth);
+  const text = pdBuildPrompt(c, q, lens, format, depth, newPiece);
   pdCloseBriefModal();
-  pdShowPrompt(text, q, c, {lens, format, depth});
+  pdShowPrompt(text, q, c, {lens, format, depth, newPiece});
 });
 
 /* ---- Prompt Engine ---- */
-function pdBuildPrompt(c, question, lens, format, depth) {
+function pdBuildPrompt(c, question, lens, format, depth, newPiece) {
   const total = c.keywords.reduce((s,k)=>s+(k.agg?.total||0),0);
   const allMin = c.keywords.map(k=>k.agg?.dateMin).filter(Boolean).sort();
   const allMax = c.keywords.map(k=>k.agg?.dateMax).filter(Boolean).sort();
@@ -1608,7 +1650,45 @@ ${depths[depth]||depths.standard}
 - Write for a journalism audience: precise, non-speculative, actionable.
 
 ## SOURCE CONTEXT
-Radio Farda is a Western-funded Persian-language broadcaster covering Iran. Its editorial lens is distinct from state media (IRIB, Tasnim, Fars) and from Persian-language diaspora outlets. Coverage volume and framing reflect that position. Factor this into any gap analysis.`;
+Radio Farda is a Western-funded Persian-language broadcaster covering Iran. Its editorial lens is distinct from state media (IRIB, Tasnim, Fars) and from Persian-language diaspora outlets. Coverage volume and framing reflect that position. Factor this into any gap analysis.${newPiece ? `
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+## ✏️ NEW PIECE IN PROGRESS
+The journalist is currently working on a new piece:
+
+"${newPiece}"
+
+This piece is directly related to the keywords and archive above. After completing all other sections, add a dedicated final section:
+
+─── RESEARCH PACK FOR YOUR NEW PIECE ───────────────
+
+A. MOST RELEVANT ARCHIVE ARTICLES
+   From the article URLs listed above, identify the 5–8 articles most directly useful for this specific piece. For each, state: URL / why it matters for this piece / what angle it supports.
+
+B. KEY FACTS & FINDINGS FROM THE ARCHIVE
+   Specific facts, dates, entity relationships, and patterns from the Radio Farda metadata that directly support, contradict, or add depth to this piece. Be concrete — cite article titles and dates where possible.
+
+C. WEB INTELLIGENCE FOR THIS PIECE
+   Run these additional searches specifically for the new piece:
+   - "${newPiece}"
+   - "${newPiece}" Iran
+   - "${c.keywords.map(k=>k.term).join(' ')} ${newPiece.split(' ').slice(0,4).join(' ')}"
+   Report the 5 most relevant recent sources found. Note what they cover and what they miss.
+
+D. STORY ARCHITECTURE
+   Suggest a concrete structure for this piece:
+   - Proposed lede (one paragraph)
+   - 4–5 key sections with working titles
+   - Recommended experts or institutions to interview
+   - Data points to source or verify
+   - Documents worth requesting (FOIA, official statements)
+
+E. UNCOVERED ANGLES
+   Based on the archive + web research: what specific aspect of "${newPiece}" has not been meaningfully covered yet? This is the original contribution the journalist can make.
+
+F. CONNECTIONS TO EXISTING KEYWORDS
+   Explain directly how ${c.keywords.map(k=>`"${k.term}"`).join(', ')} connect to this new piece. Which of those connections is most editorially powerful?` : ''}`;
+
 }
 
 /* ---- Prompt Panel ---- */
@@ -1636,14 +1716,14 @@ document.getElementById('ppCopy').addEventListener('click', () => {
 document.getElementById('ppCopilot').addEventListener('click', () => {
   if (!currentPrompt) return;
   navigator.clipboard.writeText(currentPrompt.text).catch(()=>{});
-  window.open('https://copilot.microsoft.com', '_blank', 'noopener');
+  window.open('https://m365.cloud.microsoft/chat/', '_blank', 'noopener');
   pdToast('Copilot opened — paste your prompt');
 });
 document.getElementById('ppSave').addEventListener('click', () => {
   if (!currentPrompt) return;
   const c = pdById(currentPrompt.collId); if (!c) return;
   const cfg = currentPrompt.config || {};
-  c.prompts.push({ text: currentPrompt.text, question: currentPrompt.question, lens: cfg.lens||'investigative', format: cfg.format||'full', depth: cfg.depth||'standard', createdAt: Date.now() });
+  c.prompts.push({ text: currentPrompt.text, question: currentPrompt.question, lens: cfg.lens||'investigative', format: cfg.format||'full', depth: cfg.depth||'standard', newPiece: cfg.newPiece||'', createdAt: Date.now() });
   c.updatedAt = Date.now(); pdSave();
   pdToast('Prompt saved to collection');
   document.getElementById('ppSave').textContent = '✓ Saved';
