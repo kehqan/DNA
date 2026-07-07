@@ -2093,6 +2093,8 @@ pdLoad();
 <script>
 /* ==================== Future Signals (Live Trends) ==================== */
 let TRENDS_DATA = null;
+let CUSTOM_TREND_RESULT = null;
+let CUSTOM_TREND_KEYWORD = '';
 window.trendsPanelOpen = false;
 
 function trendsBadgeClass(pct) {
@@ -2166,6 +2168,80 @@ function timeAgo(dateStr) {
   return `${Math.round(diffH / 24)}d ago`;
 }
 
+async function searchCustomTrend(rawKeyword) {
+  const keyword = (rawKeyword || '').trim();
+  if (!keyword) return;
+  CUSTOM_TREND_KEYWORD = keyword;
+  const searchBtn = document.getElementById('trendsSearchBtn');
+  if (searchBtn) { searchBtn.disabled = true; searchBtn.textContent = '…'; }
+  try {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/galaxy-trends`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'apikey': SUPABASE_ANON_KEY,
+      },
+      body: JSON.stringify({ keyword }),
+    });
+    const data = await res.json();
+    if (!res.ok || data.error) throw new Error(data.error || `request failed (${res.status})`);
+    CUSTOM_TREND_RESULT = data.result;
+  } catch (err) {
+    CUSTOM_TREND_RESULT = { keyword_display: keyword, error: err.message };
+  } finally {
+    if (searchBtn) { searchBtn.disabled = false; searchBtn.textContent = 'Search'; }
+    renderTrendsPanel();
+  }
+}
+
+function clearCustomTrend() {
+  CUSTOM_TREND_RESULT = null;
+  CUSTOM_TREND_KEYWORD = '';
+  renderTrendsPanel();
+}
+
+function renderCustomTrendCard(result) {
+  if (result.error) {
+    return `<div class="trend-custom-card"><button class="trend-custom-close" id="trendsCustomClose">✕</button><div class="trend-custom-label">Search result</div><div class="trend-kw">${escapeHtml(result.keyword_display || '')}</div><div class="trends-empty" style="padding:10px 0;">Couldn't fetch live data (${escapeHtml(result.error)}).</div></div>`;
+  }
+  const pct = result.combined_score || 0;
+  const badgeClass = trendsBadgeClass(pct);
+  const vol24 = result.news_volume_24h ?? 0;
+  const volPrev = result.news_volume_prev_24h ?? 0;
+  const series = result.wiki_series && result.wiki_series.length ? result.wiki_series.map(d => d.views) : null;
+  const spark = series ? sparklineSvg(series) : '';
+
+  let headlinesHtml = '';
+  if (result.headlines && result.headlines.length) {
+    headlinesHtml = `<div class="trend-section-title">Live headlines right now</div>` +
+      result.headlines.slice(0, 4).map(h => `<div class="trend-global-row">${escapeHtml(h.source || '')} · <span class="trend-win-date">${timeAgo(h.pubDate)}</span><br><a href="${escapeHtml(h.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml((h.title || '').slice(0, 80))}</a></div>`).join('');
+  } else {
+    headlinesHtml = `<div class="trends-empty" style="padding:8px 0; text-align:left;">No recent global coverage found for this exact phrase — try a shorter or broader keyword.</div>`;
+  }
+
+  const archiveMatches = searchArticles(result.keyword_display || '')
+    .slice().sort((a, b) => (b.date || '').localeCompare(a.date || '')).slice(0, 3);
+  let winHtml = '';
+  if (archiveMatches.length) {
+    winHtml = `<div class="trend-section-title">Your archive's coverage</div>` +
+      archiveMatches.map(a => `<div class="trend-win-row" data-url="${escapeHtml(a.url)}">${escapeHtml(titleOf(a))} <span class="trend-win-date">· ${escapeHtml(a.date || '')}</span></div>`).join('');
+  }
+
+  return `
+    <div class="trend-custom-card">
+      <button class="trend-custom-close" id="trendsCustomClose">✕</button>
+      <div class="trend-custom-label">Search result</div>
+      <div class="trend-card-top">
+        <div><div class="trend-kw">${escapeHtml(result.keyword_display || '')}</div><div class="trend-cat">${vol24} articles today vs ${volPrev} yesterday</div></div>
+        <span class="trend-pct ${badgeClass}">${trendsBadgeLabel(pct)}</span>
+      </div>
+      ${spark}
+      ${headlinesHtml}
+      ${winHtml}
+    </div>`;
+}
+
 function renderTrendsPanel() {
   const panel = document.getElementById('trendsPanel');
   if (!panel) return;
@@ -2192,6 +2268,7 @@ function renderTrendsPanel() {
   if (CUSTOM_TREND_RESULT) body.innerHTML = renderCustomTrendCard(CUSTOM_TREND_RESULT);
   if (!TRENDS_DATA || !TRENDS_DATA.length) {
     body.innerHTML += '<div class="trends-empty">No trend data yet.</div>';
+    wireTrendsBodyListeners(body);
     return;
   }
 
@@ -2244,9 +2321,15 @@ function renderTrendsPanel() {
 
   body.innerHTML = (CUSTOM_TREND_RESULT ? renderCustomTrendCard(CUSTOM_TREND_RESULT) : '') + rows + (latestUpdate ? `<div class="trends-updated">Live data as of ${timeAgo(latestUpdate.toISOString())} · refreshes automatically every 45 min</div>` : '');
 
+  wireTrendsBodyListeners(body);
+}
+
+function wireTrendsBodyListeners(body) {
   body.querySelectorAll('.trend-win-row').forEach(el => {
     el.addEventListener('click', () => window.open(el.getAttribute('data-url'), '_blank', 'noopener'));
   });
+  const closeBtn = document.getElementById('trendsCustomClose');
+  if (closeBtn) closeBtn.addEventListener('click', clearCustomTrend);
 }
 
 let trendsPollTimer = null;
