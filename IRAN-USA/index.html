@@ -2147,6 +2147,17 @@ async function loadTrends(forceRefresh) {
   }
 }
 
+function timeAgo(dateStr) {
+  const t = new Date(dateStr).getTime();
+  if (isNaN(t)) return '';
+  const diffMin = Math.max(0, Math.round((Date.now() - t) / 60000));
+  if (diffMin < 1) return 'just now';
+  if (diffMin < 60) return `${diffMin}m ago`;
+  const diffH = Math.round(diffMin / 60);
+  if (diffH < 24) return `${diffH}h ago`;
+  return `${Math.round(diffH / 24)}d ago`;
+}
+
 function renderTrendsPanel() {
   const panel = document.getElementById('trendsPanel');
   if (!panel) return;
@@ -2155,7 +2166,7 @@ function renderTrendsPanel() {
       <span class="trends-head-title">⚡ Future Signals</span>
       <button class="trends-refresh-btn" id="trendsRefreshBtn">Refresh</button>
     </div>
-    <div class="trends-sub">Live global news volume (GDELT) + public interest (Wikipedia) for Iran–US topics, matched against this archive's own coverage.</div>
+    <div class="trends-sub">Live Google News volume (last 24h vs. prior 24h) + Wikipedia public interest for Iran–US topics, matched against this archive's own coverage.</div>
     <div class="trends-body" id="trendsBody"></div>
   `;
   document.getElementById('trendsRefreshBtn').addEventListener('click', () => loadTrends(true));
@@ -2174,14 +2185,21 @@ function renderTrendsPanel() {
     const pct = t.combined_score || 0;
     const badgeClass = trendsBadgeClass(pct);
     const isHot = pct > 15;
-    const series = (t.gdelt_series && t.gdelt_series.length ? t.gdelt_series.map(d => d.value) : null)
-      || (t.wiki_series && t.wiki_series.length ? t.wiki_series.map(d => d.views) : null);
+    const series = t.wiki_series && t.wiki_series.length ? t.wiki_series.map(d => d.views) : null;
     const spark = series ? sparklineSvg(series) : '';
+    const vol24 = t.news_volume_24h ?? 0;
+    const volPrev = t.news_volume_prev_24h ?? 0;
 
     const catArticles = t.category ? articlesForCategory(t.category) : [];
     const winning = catArticles.slice(0, 3);
     const mostRecentGap = daysSince((catArticles[0] || {}).date);
     const showGap = pct > 5 && mostRecentGap > 90;
+
+    let headlinesHtml = '';
+    if (t.headlines && t.headlines.length) {
+      headlinesHtml = `<div class="trend-section-title">Live headlines right now</div>` +
+        t.headlines.slice(0, 3).map(h => `<div class="trend-global-row">${escapeHtml(h.source || '')} · <span class="trend-win-date">${timeAgo(h.pubDate)}</span><br><a href="${escapeHtml(h.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml((h.title || '').slice(0, 80))}</a></div>`).join('');
+    }
 
     let winHtml = '';
     if (winning.length) {
@@ -2189,22 +2207,16 @@ function renderTrendsPanel() {
         winning.map(a => `<div class="trend-win-row" data-url="${escapeHtml(a.url)}">${escapeHtml(titleOf(a))} <span class="trend-win-date">· ${escapeHtml(a.date || '')}</span></div>`).join('');
     }
 
-    let globalHtml = '';
-    if (t.gdelt_top_articles && t.gdelt_top_articles.length) {
-      globalHtml = `<div class="trend-section-title">What global media is covering now</div>` +
-        t.gdelt_top_articles.slice(0, 3).map(a => `<div class="trend-global-row">${escapeHtml(a.domain || '')} — <a href="${escapeHtml(a.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml((a.title || '').slice(0, 70))}</a></div>`).join('');
-    }
-
     rows += `
       <div class="trend-card ${isHot ? 'trend-hot' : ''}">
         <div class="trend-card-top">
-          <div><div class="trend-kw">${escapeHtml(t.keyword)}</div><div class="trend-cat">${escapeHtml(t.category || '')}</div></div>
+          <div><div class="trend-kw">${escapeHtml(t.keyword)}</div><div class="trend-cat">${escapeHtml(t.category || '')} · ${vol24} articles today vs ${volPrev} yesterday</div></div>
           <span class="trend-pct ${badgeClass}">${trendsBadgeLabel(pct)}</span>
         </div>
         ${spark}
         ${showGap ? '<div class="trend-gap-badge">⚠ trending, no recent archive coverage</div>' : ''}
+        ${headlinesHtml}
         ${winHtml}
-        ${globalHtml}
       </div>`;
     if (t.updated_at) {
       const u = new Date(t.updated_at);
@@ -2212,13 +2224,14 @@ function renderTrendsPanel() {
     }
   });
 
-  body.innerHTML = rows + (latestUpdate ? `<div class="trends-updated">Updated ${latestUpdate.toLocaleString()}</div>` : '');
+  body.innerHTML = rows + (latestUpdate ? `<div class="trends-updated">Live data as of ${timeAgo(latestUpdate.toISOString())} · refreshes automatically every 45 min</div>` : '');
 
   body.querySelectorAll('.trend-win-row').forEach(el => {
     el.addEventListener('click', () => window.open(el.getAttribute('data-url'), '_blank', 'noopener'));
   });
 }
 
+let trendsPollTimer = null;
 function trendsTogglePanel(force) {
   window.trendsPanelOpen = force != null ? !!force : !window.trendsPanelOpen;
   document.getElementById('trendsPanel').classList.toggle('show', window.trendsPanelOpen);
@@ -2228,8 +2241,14 @@ function trendsTogglePanel(force) {
   if (window.trendsPanelOpen) {
     if (sw) sw.style.display = 'none';
     if (!TRENDS_DATA) loadTrends(false); else renderTrendsPanel();
+    if (trendsPollTimer) clearInterval(trendsPollTimer);
+    // Quietly re-check every 3 min while the panel is open — the backend
+    // only actually refetches upstream data every 45 min, but this catches
+    // that refresh and updates the view without the user lifting a finger.
+    trendsPollTimer = setInterval(() => loadTrends(false), 3 * 60 * 1000);
   } else {
     if (sw && document.getElementById('tabTopics').classList.contains('on')) sw.style.display = 'block';
+    if (trendsPollTimer) { clearInterval(trendsPollTimer); trendsPollTimer = null; }
   }
 }
 document.getElementById('tabTrends').addEventListener('click', () => trendsTogglePanel());
