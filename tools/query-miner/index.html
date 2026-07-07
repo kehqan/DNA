@@ -1,0 +1,513 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Query Miner — Content Gap Finder | PilotDesk</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&family=Noto+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ivory:   #F8F7F6;
+  --teal:    #1A3948;
+  --teal2:   #24506A;
+  --flame:   #FF5400;
+  --honey:   #FFC047;
+  --border:  rgba(26,57,72,0.09);
+  --muted:   rgba(26,57,72,0.52);
+  --soft:    rgba(26,57,72,0.36);
+  --glass:   rgba(255,255,255,0.72);
+  --glass-b: rgba(255,255,255,0.85);
+  --gs: 0 8px 32px rgba(26,57,72,0.10), 0 1.5px 4px rgba(26,57,72,0.06);
+  --gi: inset 0 1px 0 rgba(255,255,255,0.92), inset 0 -1px 0 rgba(26,57,72,0.03);
+  --eo: cubic-bezier(0.25,0.46,0.45,0.94);
+  --serif: 'Lora', Georgia, serif;
+  --sans:  'Noto Sans', system-ui, sans-serif;
+  --inkC: 26,57,72;
+}
+[data-theme="dark"] {
+  --ivory:   #12181B;
+  --teal:    #E7EDEE;
+  --teal2:   #8FC9DD;
+  --border:  rgba(255,255,255,0.10);
+  --muted:   rgba(231,237,238,0.55);
+  --soft:    rgba(231,237,238,0.38);
+  --glass:   rgba(18,24,27,0.68);
+  --glass-b: rgba(255,255,255,0.10);
+  --gs: 0 8px 32px rgba(0,0,0,0.45), 0 1.5px 4px rgba(0,0,0,0.30);
+  --gi: inset 0 1px 0 rgba(255,255,255,0.06), inset 0 -1px 0 rgba(0,0,0,0.30);
+  --inkC: 255,255,255;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; font-family: var(--sans); color: var(--teal); -webkit-font-smoothing: antialiased; background: var(--ivory); transition: background 200ms ease; }
+body::before { content: ''; position: fixed; inset: 0; z-index: -1;
+  background:
+    radial-gradient(ellipse 900px 600px at 15% -5%, rgba(255,84,0,0.06), transparent 60%),
+    radial-gradient(ellipse 900px 700px at 90% 10%, rgba(26,57,72,0.05), transparent 60%); }
+a { color: var(--teal2); }
+
+/* ---- Header ---- */
+.dash-header { position: sticky; top: 0; z-index: 40; display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 28px; background: var(--glass); backdrop-filter: blur(20px) saturate(1.8); -webkit-backdrop-filter: blur(20px) saturate(1.8);
+  border-bottom: 1px solid var(--border); }
+.dash-brand { display: flex; align-items: center; gap: 12px; }
+.dash-brand-icon { font-size: 22px; }
+.dash-title { font-family: var(--serif); font-size: 17px; font-weight: 600; color: var(--teal); }
+.dash-sub { font-size: 11px; color: var(--soft); margin-top: 1px; }
+.dash-nav-actions { display: flex; align-items: center; gap: 10px; }
+.dash-btn { font-family: var(--sans); font-size: 12px; font-weight: 600; color: var(--teal); background: rgba(var(--inkC),0.06);
+  border: 1px solid var(--border); border-radius: 100px; padding: 8px 15px; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+.dash-btn:hover { background: rgba(var(--inkC),0.1); }
+.dash-btn.primary { background: var(--flame); color: #fff; border-color: transparent; }
+.dash-btn.primary:hover { background: #e64a00; }
+
+/* ---- Layout ---- */
+.dash-main { max-width: 1180px; margin: 0 auto; padding: 28px 24px 100px; }
+.dash-section { margin-bottom: 36px; }
+.dash-section-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 14px; flex-wrap: wrap; gap: 8px; }
+.dash-section-title { font-family: var(--serif); font-size: 19px; font-weight: 600; color: var(--teal); display: flex; align-items: center; gap: 8px; }
+.dash-section-desc { font-size: 12px; color: var(--soft); margin-top: 3px; max-width: 620px; }
+
+/* ---- Panels ---- */
+.panel { background: var(--glass); backdrop-filter: blur(20px) saturate(1.8); -webkit-backdrop-filter: blur(20px) saturate(1.8);
+  border: 1px solid var(--glass-b); box-shadow: var(--gs), var(--gi); border-radius: 18px; padding: 22px; }
+
+/* ---- GSC paste ---- */
+.paste-area { width: 100%; min-height: 130px; font-family: 'SF Mono', Menlo, monospace; font-size: 12px; color: var(--teal);
+  background: rgba(var(--inkC),0.04); border: 1px solid var(--border); border-radius: 12px; padding: 14px; outline: none; resize: vertical; }
+.paste-area:focus { border-color: var(--flame); }
+.paste-actions { display: flex; align-items: center; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+.paste-hint { font-size: 11px; color: var(--soft); }
+.gsc-status { display: flex; align-items: center; gap: 10px; margin-top: 14px; padding: 10px 14px; border-radius: 12px;
+  background: rgba(26,122,61,0.08); border: 1px solid rgba(26,122,61,0.22); font-size: 12px; color: #1a7a3d; display: none; }
+.gsc-status.show { display: flex; }
+.gsc-status .clear-gsc { margin-left: auto; font-size: 11px; font-weight: 600; color: var(--muted); background: none; border: none; cursor: pointer; text-decoration: underline; }
+.gsc-error { display: none; margin-top: 12px; padding: 10px 14px; border-radius: 12px; background: rgba(154,59,59,0.08); border: 1px solid rgba(154,59,59,0.22); font-size: 12px; color: #9a3b3b; }
+.gsc-error.show { display: block; }
+
+/* ---- Search ---- */
+.search-form { display: flex; gap: 8px; }
+.search-input { flex: 1; font-family: var(--sans); font-size: 14px; color: var(--teal); background: rgba(var(--inkC),0.04);
+  border: 1px solid var(--border); border-radius: 100px; padding: 12px 18px; outline: none; }
+.search-input:focus { border-color: var(--flame); }
+.search-btn { font-size: 13px; font-weight: 700; color: #fff; background: var(--flame); border: none; border-radius: 100px; padding: 12px 22px; cursor: pointer; white-space: nowrap; }
+.search-btn:disabled { opacity: 0.5; }
+.search-tip { font-size: 11px; color: var(--soft); margin-top: 8px; }
+
+/* ---- Results split ---- */
+.result-split { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 18px; align-items: start; }
+@media (max-width: 880px) { .result-split { grid-template-columns: 1fr; } }
+.rcol-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--soft); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+.rcol-card { background: var(--glass); backdrop-filter: blur(20px) saturate(1.8); -webkit-backdrop-filter: blur(20px) saturate(1.8);
+  border: 1px solid var(--glass-b); box-shadow: var(--gs), var(--gi); border-radius: 16px; padding: 16px; min-height: 90px; }
+
+.gsc-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 12.5px; }
+.gsc-row:last-child { border-bottom: none; }
+.gsc-row .q { color: var(--teal); font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; }
+.gsc-row .m { display: flex; gap: 12px; flex-shrink: 0; font-size: 11px; color: var(--muted); }
+.gsc-row .m b { color: var(--teal2); }
+
+.headline-row { padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 12px; }
+.headline-row:last-child { border-bottom: none; }
+.headline-row a { color: var(--teal2); text-decoration: none; font-weight: 500; line-height: 1.4; display: block; }
+.headline-row a:hover { text-decoration: underline; }
+.headline-src { font-size: 10.5px; color: var(--soft); margin-top: 2px; }
+
+.gap-banner { display: none; align-items: center; gap: 10px; margin-top: 14px; padding: 12px 16px; border-radius: 12px;
+  background: rgba(255,84,0,0.07); border: 1px solid rgba(255,84,0,0.25); font-size: 12.5px; color: var(--teal); }
+.gap-banner.show { display: flex; }
+.gap-banner b { color: var(--flame); }
+
+.dash-loading, .dash-empty { text-align: center; padding: 24px; color: var(--soft); font-size: 12.5px; }
+
+.history-strip { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.history-chip { font-size: 11.5px; font-weight: 600; color: var(--teal2); background: rgba(var(--inkC),0.05);
+  border: 1px solid var(--border); border-radius: 100px; padding: 6px 13px; cursor: pointer; }
+.history-chip:hover { background: rgba(var(--inkC),0.1); }
+
+.dash-toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(12px); z-index: 99;
+  background: var(--teal); color: #fff; font-size: 12.5px; font-weight: 500; padding: 9px 20px; border-radius: 100px;
+  box-shadow: 0 4px 18px rgba(26,57,72,0.3); opacity: 0; pointer-events: none; transition: opacity 220ms, transform 220ms; white-space: nowrap; }
+.dash-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+@media (max-width: 640px) {
+  .dash-header { flex-wrap: wrap; gap: 10px; padding: 14px 16px; }
+  .dash-main { padding: 20px 14px 100px; }
+  .search-form { flex-direction: column; }
+}
+</style>
+</head>
+<body>
+
+<div class="dash-header">
+  <div class="dash-brand">
+    <span class="dash-brand-icon">🎯</span>
+    <div>
+      <div class="dash-title">Query Miner</div>
+      <div class="dash-sub">Your Search Console data vs. what's winning across the open web</div>
+    </div>
+  </div>
+  <div class="dash-nav-actions">
+    <button class="dash-btn" id="themeToggle">🌙 Dark</button>
+    <a class="dash-btn" href="/tools/index.html">← Tool Library</a>
+  </div>
+</div>
+
+<div class="dash-main">
+
+  <div class="dash-section">
+    <div class="dash-section-head">
+      <div>
+        <div class="dash-section-title">📋 1. Paste your Search Console export</div>
+        <div class="dash-section-desc">Search Console → Performance → export → CSV. Paste the raw file contents below (headers included). Nothing leaves your browser — this is parsed locally, not uploaded anywhere.</div>
+      </div>
+    </div>
+    <div class="panel">
+      <textarea class="paste-area" id="gscPaste" placeholder="Top queries	Clicks	Impressions	CTR	Position
+iran nuclear talks	142	3800	3.7%	8.2
+..."></textarea>
+      <div class="paste-actions">
+        <button class="search-btn" id="gscParseBtn">Parse export</button>
+        <span class="paste-hint">Accepts comma or tab-separated. Column order doesn't matter as long as headers match "Query/Top queries", "Clicks", "Impressions", "CTR", "Position".</span>
+      </div>
+      <div class="gsc-status" id="gscStatus">
+        <span id="gscStatusText"></span>
+        <button class="clear-gsc" id="gscClearBtn">clear</button>
+      </div>
+      <div class="gsc-error" id="gscError"></div>
+    </div>
+  </div>
+
+  <div class="dash-section">
+    <div class="dash-section-head">
+      <div>
+        <div class="dash-section-title">🔎 2. Mine a keyword</div>
+        <div class="dash-section-desc">See your GSC performance for matching queries side-by-side with what's winning across the open web right now for the same keyword — via Google News, Bing News, and GDELT.</div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="search-form">
+        <input type="text" class="search-input" id="qmInput" placeholder="e.g. 'Iran sanctions', 'Araghchi', or any topic…" autocomplete="off">
+        <button class="search-btn" id="qmSearchBtn">Mine it</button>
+      </div>
+      <div class="search-tip">Tip: try the broad topic, not the exact headline — GSC queries are usually shorter and more generic than article titles.</div>
+      <div class="history-strip" id="historyStrip"></div>
+    </div>
+
+    <div class="gap-banner" id="gapBanner"></div>
+
+    <div class="result-split" id="resultSplit" style="display:none;">
+      <div>
+        <div class="rcol-title">📊 Your Search Console — matching queries</div>
+        <div class="rcol-card" id="gscResultCard"><div class="dash-empty">Paste a GSC export above to see your own performance here.</div></div>
+      </div>
+      <div>
+        <div class="rcol-title">🌐 Winning across the open web — right now</div>
+        <div class="rcol-card" id="webResultCard"><div class="dash-loading">Searching live sources…</div></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="dash-toast" id="dashToast"></div>
+
+<script>
+/* ==================== Query Miner ==================== */
+const SUPABASE_URL = 'https://yiewnykbchfadipznpet.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlpZXdueWtiY2hmYWRpcHpucGV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxNzM3NTUsImV4cCI6MjA5NDc0OTc1NX0.utnlpToZGH7hno0QTXlrtWvzKDgP28Gv3Je7BBIRwmM';
+
+let GSC_DATA = null; // [{query, clicks, impressions, ctr, position}]
+let QM_HISTORY = [];
+
+/* ---- Theme ---- */
+function applyTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  document.getElementById('themeToggle').textContent = t === 'dark' ? '☀️ Light' : '🌙 Dark';
+  try { localStorage.setItem('fs_theme', t); } catch (e) {}
+}
+(function initTheme() {
+  let t = 'light';
+  try { t = localStorage.getItem('fs_theme') || 'light'; } catch (e) {}
+  applyTheme(t);
+})();
+document.getElementById('themeToggle').addEventListener('click', () => {
+  const cur = document.documentElement.getAttribute('data-theme');
+  applyTheme(cur === 'dark' ? 'light' : 'dark');
+});
+
+/* ---- Toast ---- */
+function dashToast(msg) {
+  const el = document.getElementById('dashToast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(dashToast._t);
+  dashToast._t = setTimeout(() => el.classList.remove('show'), 2600);
+}
+
+/* ---- Helpers ---- */
+function escapeHtml(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+function timeAgo(dateStr) {
+  const t = new Date(dateStr).getTime();
+  if (isNaN(t)) return '';
+  const diffMin = Math.max(0, Math.round((Date.now() - t) / 60000));
+  if (diffMin < 1) return 'just now';
+  if (diffMin < 60) return `${diffMin}m ago`;
+  const diffH = Math.round(diffMin / 60);
+  if (diffH < 24) return `${diffH}h ago`;
+  return `${Math.round(diffH / 24)}d ago`;
+}
+function fmtNum(n) {
+  if (n == null || isNaN(n)) return '—';
+  return Number(n).toLocaleString();
+}
+
+/* ---- GSC CSV/TSV parsing (client-side, nothing uploaded) ---- */
+// Handles comma or tab separated, quoted fields with embedded commas/quotes.
+function splitDelimited(text) {
+  const firstLine = text.split(/\r?\n/, 1)[0] || '';
+  const delim = firstLine.includes('\t') ? '\t' : ',';
+  const rows = [];
+  let row = [], field = '', inQuotes = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (inQuotes) {
+      if (c === '"') {
+        if (text[i + 1] === '"') { field += '"'; i++; }
+        else inQuotes = false;
+      } else field += c;
+    } else {
+      if (c === '"') inQuotes = true;
+      else if (c === delim) { row.push(field); field = ''; }
+      else if (c === '\n' || c === '\r') {
+        if (c === '\r' && text[i + 1] === '\n') i++;
+        row.push(field); field = '';
+        if (row.some(f => f.trim() !== '')) rows.push(row);
+        row = [];
+      } else field += c;
+    }
+  }
+  if (field !== '' || row.length) { row.push(field); if (row.some(f => f.trim() !== '')) rows.push(row); }
+  return rows;
+}
+
+function normalizeHeader(h) {
+  return h.trim().toLowerCase().replace(/[^a-z]/g, '');
+}
+
+function parseGscExport(text) {
+  const rows = splitDelimited(text.trim());
+  if (rows.length < 2) throw new Error('Could not find a header row and at least one data row.');
+  const header = rows[0].map(normalizeHeader);
+
+  const findCol = (...names) => {
+    for (const n of names) {
+      const idx = header.indexOf(n);
+      if (idx !== -1) return idx;
+    }
+    return -1;
+  };
+  const qIdx = findCol('topqueries', 'query', 'queries');
+  const clicksIdx = findCol('clicks');
+  const imprIdx = findCol('impressions');
+  const ctrIdx = findCol('ctr');
+  const posIdx = findCol('position', 'avgposition', 'averageposition');
+
+  if (qIdx === -1) throw new Error('Could not find a "Query" / "Top queries" column. Make sure you exported the Queries table from Performance.');
+
+  const out = [];
+  for (let i = 1; i < rows.length; i++) {
+    const r = rows[i];
+    const query = (r[qIdx] || '').trim();
+    if (!query) continue;
+    const ctrRaw = ctrIdx !== -1 ? (r[ctrIdx] || '').replace('%', '').trim() : '';
+    out.push({
+      query,
+      clicks: clicksIdx !== -1 ? Number((r[clicksIdx] || '0').replace(/,/g, '')) || 0 : null,
+      impressions: imprIdx !== -1 ? Number((r[imprIdx] || '0').replace(/,/g, '')) || 0 : null,
+      ctr: ctrRaw ? Number(ctrRaw) : null,
+      position: posIdx !== -1 ? Number(r[posIdx]) || null : null,
+    });
+  }
+  if (!out.length) throw new Error('Parsed the file but found zero valid query rows.');
+  return out;
+}
+
+document.getElementById('gscParseBtn').addEventListener('click', () => {
+  const text = document.getElementById('gscPaste').value;
+  const errEl = document.getElementById('gscError');
+  errEl.classList.remove('show');
+  if (!text.trim()) { errEl.textContent = 'Paste your Search Console export first.'; errEl.classList.add('show'); return; }
+  try {
+    GSC_DATA = parseGscExport(text);
+    const statusEl = document.getElementById('gscStatus');
+    document.getElementById('gscStatusText').textContent =
+      `Loaded ${GSC_DATA.length.toLocaleString()} queries from your export.`;
+    statusEl.classList.add('show');
+    dashToast(`Parsed ${GSC_DATA.length} queries`);
+    if (document.getElementById('resultSplit').style.display !== 'none') {
+      renderGscMatches(document.getElementById('qmInput').value);
+    }
+  } catch (e) {
+    errEl.textContent = e.message;
+    errEl.classList.add('show');
+  }
+});
+document.getElementById('gscClearBtn').addEventListener('click', () => {
+  GSC_DATA = null;
+  document.getElementById('gscPaste').value = '';
+  document.getElementById('gscStatus').classList.remove('show');
+  const card = document.getElementById('gscResultCard');
+  if (card) card.innerHTML = '<div class="dash-empty">Paste a GSC export above to see your own performance here.</div>';
+  dashToast('Cleared GSC data');
+});
+
+/* ---- GSC matching ---- */
+function matchGscQueries(keyword) {
+  if (!GSC_DATA) return null;
+  const terms = keyword.toLowerCase().split(/\s+/).filter(Boolean);
+  return GSC_DATA
+    .filter(r => {
+      const q = r.query.toLowerCase();
+      return terms.every(t => q.includes(t));
+    })
+    .sort((a, b) => (b.impressions || 0) - (a.impressions || 0))
+    .slice(0, 12);
+}
+
+function renderGscMatches(keyword) {
+  const card = document.getElementById('gscResultCard');
+  if (!GSC_DATA) {
+    card.innerHTML = '<div class="dash-empty">Paste a GSC export above to see your own performance here.</div>';
+    return { matches: [], totalImpressions: 0 };
+  }
+  const matches = matchGscQueries(keyword);
+  if (!matches.length) {
+    card.innerHTML = `<div class="dash-empty">No queries in your export match "${escapeHtml(keyword)}" — you may not be ranking for this at all.</div>`;
+    return { matches: [], totalImpressions: 0 };
+  }
+  const totalImpressions = matches.reduce((s, r) => s + (r.impressions || 0), 0);
+  const totalClicks = matches.reduce((s, r) => s + (r.clicks || 0), 0);
+  card.innerHTML = matches.map(r => `
+    <div class="gsc-row">
+      <span class="q" title="${escapeHtml(r.query)}">${escapeHtml(r.query)}</span>
+      <span class="m">
+        <span><b>${fmtNum(r.clicks)}</b> clicks</span>
+        <span><b>${fmtNum(r.impressions)}</b> impr.</span>
+        <span>pos <b>${r.position != null ? r.position.toFixed(1) : '—'}</b></span>
+      </span>
+    </div>`).join('');
+  return { matches, totalImpressions, totalClicks };
+}
+
+/* ---- Web-wide winning content (galaxy-trends edge function, keyword mode) ---- */
+async function apiCall(body) {
+  const res = await fetch(`${SUPABASE_URL}/functions/v1/galaxy-trends`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+      'apikey': SUPABASE_ANON_KEY,
+    },
+    body: JSON.stringify(body),
+  });
+  const data = await res.json();
+  if (!res.ok || data.error) throw new Error(data.error || `request failed (${res.status})`);
+  return data;
+}
+
+function renderWebResult(result) {
+  const card = document.getElementById('webResultCard');
+  const headlines = (result && result.headlines) || [];
+  if (!headlines.length) {
+    card.innerHTML = '<div class="dash-empty">No recent coverage found for this exact phrase across Google News, Bing News, or GDELT.</div>';
+    return;
+  }
+  const vol24 = result.news_volume_24h ?? headlines.length;
+  card.innerHTML =
+    `<div style="font-size:11px;color:var(--soft);margin-bottom:8px;">${fmtNum(vol24)} articles in the last 24h</div>` +
+    headlines.slice(0, 10).map(h => `
+      <div class="headline-row">
+        <a href="${escapeHtml(h.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml((h.title || '').slice(0, 110))}</a>
+        <div class="headline-src">${escapeHtml(h.source || 'unknown source')} · ${timeAgo(h.pubDate)}</div>
+      </div>`).join('');
+}
+
+function renderGapBanner(gscInfo, webResult) {
+  const banner = document.getElementById('gapBanner');
+  const vol24 = (webResult && webResult.news_volume_24h) || (webResult && webResult.headlines ? webResult.headlines.length : 0);
+  const hasGscTraffic = gscInfo && gscInfo.matches && gscInfo.matches.length > 0;
+  const strongWebCoverage = vol24 >= 8;
+
+  if (!GSC_DATA) { banner.classList.remove('show'); return; }
+
+  if (strongWebCoverage && !hasGscTraffic) {
+    banner.innerHTML = `<span>⚠️</span> <span><b>Gap:</b> this topic has ${vol24} articles circulating right now across the web, and you have zero matching queries in your Search Console export. You're not ranking for it at all.</span>`;
+    banner.classList.add('show');
+  } else if (strongWebCoverage && hasGscTraffic) {
+    const worstPos = Math.max(...gscInfo.matches.map(m => m.position || 0));
+    if (worstPos > 15 || gscInfo.matches.every(m => (m.impressions || 0) < 50)) {
+      banner.innerHTML = `<span>📈</span> <span><b>Opportunity:</b> heavy web coverage right now, but your matching queries are weak (low impressions or low ranking). Room to grow here.</span>`;
+      banner.classList.add('show');
+    } else {
+      banner.classList.remove('show');
+    }
+  } else {
+    banner.classList.remove('show');
+  }
+}
+
+/* ---- Search history chips ---- */
+function loadHistory() {
+  try { QM_HISTORY = JSON.parse(localStorage.getItem('qm_history') || '[]'); } catch (e) { QM_HISTORY = []; }
+  renderHistory();
+}
+function pushHistory(kw) {
+  QM_HISTORY = [kw, ...QM_HISTORY.filter(h => h.toLowerCase() !== kw.toLowerCase())].slice(0, 8);
+  try { localStorage.setItem('qm_history', JSON.stringify(QM_HISTORY)); } catch (e) {}
+  renderHistory();
+}
+function renderHistory() {
+  const strip = document.getElementById('historyStrip');
+  strip.innerHTML = QM_HISTORY.map(h => `<button class="history-chip" data-kw="${escapeHtml(h)}">${escapeHtml(h)}</button>`).join('');
+  strip.querySelectorAll('.history-chip').forEach(el => {
+    el.addEventListener('click', () => {
+      document.getElementById('qmInput').value = el.getAttribute('data-kw');
+      mineKeyword(el.getAttribute('data-kw'));
+    });
+  });
+}
+
+/* ---- Main mine action ---- */
+async function mineKeyword(rawKeyword) {
+  const kw = (rawKeyword || '').trim();
+  if (!kw) return;
+  const btn = document.getElementById('qmSearchBtn');
+  document.getElementById('resultSplit').style.display = 'grid';
+  document.getElementById('webResultCard').innerHTML = '<div class="dash-loading">Searching live sources…</div>';
+  document.getElementById('gapBanner').classList.remove('show');
+  btn.disabled = true; btn.textContent = '…';
+
+  const gscInfo = renderGscMatches(kw);
+
+  try {
+    const data = await apiCall({ keyword: kw });
+    const result = data.result || {};
+    renderWebResult(result);
+    renderGapBanner(gscInfo, result);
+    pushHistory(kw);
+  } catch (err) {
+    document.getElementById('webResultCard').innerHTML = `<div class="dash-empty">Couldn't fetch live data (${escapeHtml(err.message)}).</div>`;
+  } finally {
+    btn.disabled = false; btn.textContent = 'Mine it';
+  }
+}
+document.getElementById('qmSearchBtn').addEventListener('click', () => mineKeyword(document.getElementById('qmInput').value));
+document.getElementById('qmInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') mineKeyword(e.target.value); });
+
+/* ---- Init ---- */
+loadHistory();
+</script>
+</body>
+</html>
