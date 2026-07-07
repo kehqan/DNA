@@ -258,6 +258,14 @@ html, body { margin: 0; height: 100%; overflow: hidden; font-family: var(--sans)
 .trends-refresh-btn { font-size: 11px; font-weight: 600; color: var(--teal2); background: rgba(var(--inkC),0.08); border: none; border-radius: 100px; padding: 5px 11px; cursor: pointer; font-family: var(--sans); }
 .trends-refresh-btn:disabled { opacity: 0.5; cursor: default; }
 .trends-sub { font-size: 10.5px; color: var(--soft); line-height: 1.5; padding: 2px 14px 10px; border-bottom: 1px solid var(--border); }
+.trends-search-wrap { display: flex; gap: 6px; padding: 10px 14px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+.trends-search-input { flex: 1; font-family: var(--sans); font-size: 12.5px; color: var(--teal); background: rgba(var(--inkC),0.04); border: 1px solid var(--border); border-radius: 100px; padding: 8px 13px; outline: none; }
+.trends-search-input:focus { border-color: var(--flame); }
+.trends-search-btn { font-size: 11.5px; font-weight: 700; color: #fff; background: var(--flame); border: none; border-radius: 100px; padding: 8px 14px; cursor: pointer; font-family: var(--sans); flex-shrink: 0; }
+.trends-search-btn:disabled { opacity: 0.5; cursor: default; }
+.trend-custom-card { border: 1.5px solid var(--flame); border-radius: 12px; padding: 10px 12px; margin: 0 8px 10px; background: rgba(255,84,0,0.05); position: relative; }
+.trend-custom-close { position: absolute; top: 8px; right: 8px; width: 20px; height: 20px; border-radius: 50%; background: rgba(var(--inkC),0.08); border: none; cursor: pointer; color: var(--muted); font-size: 11px; line-height: 1; }
+.trend-custom-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--flame); margin-bottom: 4px; }
 .trends-body { overflow-y: auto; flex: 1; padding: 8px; min-height: 0; }
 .trend-card { border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; margin-bottom: 8px; background: rgba(var(--inkC),0.02); }
 .trend-card.trend-hot { border-color: rgba(255,84,0,0.35); background: rgba(255,84,0,0.045); }
@@ -2167,13 +2175,23 @@ function renderTrendsPanel() {
       <button class="trends-refresh-btn" id="trendsRefreshBtn">Refresh</button>
     </div>
     <div class="trends-sub">Live Google News volume (last 24h vs. prior 24h) + Wikipedia public interest for Iran–US topics, matched against this archive's own coverage.</div>
+    <div class="trends-search-wrap">
+      <input type="text" class="trends-search-input" id="trendsSearchInput" placeholder="Search any keyword — e.g. 'Iran oil', 'Araghchi'…" autocomplete="off">
+      <button class="trends-search-btn" id="trendsSearchBtn">Search</button>
+    </div>
     <div class="trends-body" id="trendsBody"></div>
   `;
   document.getElementById('trendsRefreshBtn').addEventListener('click', () => loadTrends(true));
+  const searchInput = document.getElementById('trendsSearchInput');
+  const searchBtn = document.getElementById('trendsSearchBtn');
+  searchBtn.addEventListener('click', () => searchCustomTrend(searchInput.value));
+  searchInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') searchCustomTrend(searchInput.value); });
+  if (CUSTOM_TREND_KEYWORD) searchInput.value = CUSTOM_TREND_KEYWORD;
 
   const body = document.getElementById('trendsBody');
+  if (CUSTOM_TREND_RESULT) body.innerHTML = renderCustomTrendCard(CUSTOM_TREND_RESULT);
   if (!TRENDS_DATA || !TRENDS_DATA.length) {
-    body.innerHTML = '<div class="trends-empty">No trend data yet.</div>';
+    body.innerHTML += '<div class="trends-empty">No trend data yet.</div>';
     return;
   }
 
@@ -2224,7 +2242,7 @@ function renderTrendsPanel() {
     }
   });
 
-  body.innerHTML = rows + (latestUpdate ? `<div class="trends-updated">Live data as of ${timeAgo(latestUpdate.toISOString())} · refreshes automatically every 45 min</div>` : '');
+  body.innerHTML = (CUSTOM_TREND_RESULT ? renderCustomTrendCard(CUSTOM_TREND_RESULT) : '') + rows + (latestUpdate ? `<div class="trends-updated">Live data as of ${timeAgo(latestUpdate.toISOString())} · refreshes automatically every 45 min</div>` : '');
 
   body.querySelectorAll('.trend-win-row').forEach(el => {
     el.addEventListener('click', () => window.open(el.getAttribute('data-url'), '_blank', 'noopener'));
