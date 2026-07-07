@@ -287,6 +287,12 @@ html, body { margin: 0; height: 100%; overflow: hidden; font-family: var(--sans)
 .trend-global-row a:hover { text-decoration: underline; }
 .trends-empty, .trends-loading { padding: 22px 16px; text-align: center; font-size: 12px; color: var(--soft); line-height: 1.7; }
 .trends-updated { font-size: 9.5px; color: var(--soft); text-align: center; padding: 8px 0 2px; }
+.gtrends-btn { display: inline-flex; align-items: center; gap: 5px; font-size: 10.5px; font-weight: 600; color: var(--teal2); background: rgba(var(--inkC),0.06); border: none; border-radius: 100px; padding: 4px 11px; cursor: pointer; margin-top: 8px; font-family: var(--sans); }
+.gtrends-btn:hover { background: rgba(var(--inkC),0.1); }
+.gtrends-container { margin-top: 8px; min-height: 0; border-radius: 8px; overflow: hidden; }
+.gtrends-container:empty { display: none; }
+.gtrends-loading, .gtrends-fallback { font-size: 10.5px; color: var(--soft); padding: 10px 2px; text-align: left; }
+.gtrends-fallback a { color: var(--teal2); }
 /* New piece toggle */
 .bm-new-piece-toggle {
   width: 100%; display: flex; align-items: center; gap: 10px; padding: 11px 14px;
@@ -2239,6 +2245,8 @@ function renderCustomTrendCard(result) {
       ${spark}
       ${headlinesHtml}
       ${winHtml}
+      <button class="gtrends-btn" data-gtid="gtrends-custom-search" data-kw="${escapeHtml(result.keyword_display || '')}">📈 Google Trends chart</button>
+      <div class="gtrends-container" id="gtrends-custom-search"></div>
     </div>`;
 }
 
@@ -2302,6 +2310,8 @@ function renderTrendsPanel() {
         winning.map(a => `<div class="trend-win-row" data-url="${escapeHtml(a.url)}">${escapeHtml(titleOf(a))} <span class="trend-win-date">· ${escapeHtml(a.date || '')}</span></div>`).join('');
     }
 
+    const gtId = 'gtrends-' + t.keyword.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+
     rows += `
       <div class="trend-card ${isHot ? 'trend-hot' : ''}">
         <div class="trend-card-top">
@@ -2312,6 +2322,8 @@ function renderTrendsPanel() {
         ${showGap ? '<div class="trend-gap-badge">⚠ trending, no recent archive coverage</div>' : ''}
         ${headlinesHtml}
         ${winHtml}
+        <button class="gtrends-btn" data-gtid="${gtId}" data-kw="${escapeHtml(t.keyword)}">📈 Google Trends chart</button>
+        <div class="gtrends-container" id="${gtId}"></div>
       </div>`;
     if (t.updated_at) {
       const u = new Date(t.updated_at);
@@ -2330,6 +2342,9 @@ function wireTrendsBodyListeners(body) {
   });
   const closeBtn = document.getElementById('trendsCustomClose');
   if (closeBtn) closeBtn.addEventListener('click', clearCustomTrend);
+  body.querySelectorAll('.gtrends-btn').forEach(el => {
+    el.addEventListener('click', () => toggleGoogleTrendsWidget(el.getAttribute('data-gtid'), el.getAttribute('data-kw')));
+  });
 }
 
 let trendsPollTimer = null;
@@ -2353,6 +2368,60 @@ function trendsTogglePanel(force) {
   }
 }
 document.getElementById('tabTrends').addEventListener('click', () => trendsTogglePanel());
+
+/* ---- Google Trends embed widget (Google's own official embed feature — not scraping) ---- */
+let gTrendsLoaderPromise = null;
+function loadGoogleTrendsScript() {
+  if (gTrendsLoaderPromise) return gTrendsLoaderPromise;
+  gTrendsLoaderPromise = new Promise((resolve, reject) => {
+    if (window.trends && window.trends.embed) return resolve();
+    const s = document.createElement('script');
+    s.src = 'https://ssl.gstatic.com/trends_nrtr/2213_RC01/embed_loader.js';
+    s.onload = () => resolve();
+    s.onerror = () => reject(new Error('script failed to load'));
+    document.head.appendChild(s);
+    setTimeout(() => reject(new Error('timeout')), 6000);
+  });
+  return gTrendsLoaderPromise;
+}
+
+function gtrendsFallbackHtml(keyword) {
+  return `<div class="gtrends-fallback">Couldn't load the inline chart. <a href="https://trends.google.com/trends/explore?q=${encodeURIComponent(keyword)}" target="_blank" rel="noopener noreferrer">View on Google Trends ↗</a></div>`;
+}
+
+function toggleGoogleTrendsWidget(containerId, keyword) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  if (container.dataset.loaded === '1') {
+    container.innerHTML = '';
+    container.dataset.loaded = '0';
+    return;
+  }
+  container.dataset.loaded = '1';
+  container.innerHTML = '<div class="gtrends-loading">Loading Google Trends…</div>';
+  loadGoogleTrendsScript().then(() => {
+    container.innerHTML = '';
+    try {
+      window.trends.embed.renderExploreWidgetTo(container, 'TIMESERIES', {
+        comparisonItem: [{ keyword: keyword, geo: '', time: 'today 3-m' }],
+        category: 0,
+        property: '',
+      }, {
+        exploreQuery: `q=${encodeURIComponent(keyword)}&date=today 3-m`,
+        guestPath: 'https://trends.google.com:443/trends/embed/',
+      });
+    } catch (e) {
+      container.innerHTML = gtrendsFallbackHtml(keyword);
+    }
+    setTimeout(() => {
+      if (container.dataset.loaded === '1' && !container.querySelector('iframe') && !container.querySelector('svg') && !container.querySelector('.gtrends-fallback')) {
+        container.innerHTML = gtrendsFallbackHtml(keyword);
+      }
+    }, 4000);
+  }).catch(() => {
+    container.innerHTML = gtrendsFallbackHtml(keyword);
+  });
+}
 </script>
 </body>
 </html>
