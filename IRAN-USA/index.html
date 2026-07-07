@@ -293,6 +293,21 @@ html, body { margin: 0; height: 100%; overflow: hidden; font-family: var(--sans)
 .gtrends-container:empty { display: none; }
 .gtrends-loading, .gtrends-fallback { font-size: 10.5px; color: var(--soft); padding: 10px 2px; text-align: left; }
 .gtrends-fallback a { color: var(--teal2); }
+/* ===== Copilot floating launcher (pinned popup, available everywhere) ===== */
+.copilot-fab { position: fixed; bottom: 84px; right: 18px; z-index: 60; width: 54px; height: 54px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--flame), var(--honey)); border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; font-size: 24px; color: #fff;
+  box-shadow: 0 6px 20px rgba(255,84,0,0.35), 0 2px 8px rgba(0,0,0,0.15);
+  transition: transform 180ms var(--eo), box-shadow 180ms var(--eo); }
+.copilot-fab:hover { transform: scale(1.08); box-shadow: 0 8px 26px rgba(255,84,0,0.45), 0 2px 8px rgba(0,0,0,0.2); }
+.copilot-fab:active { transform: scale(0.96); }
+.copilot-fab-label { position: fixed; bottom: 98px; right: 82px; z-index: 60; background: var(--glass); backdrop-filter: blur(20px) saturate(1.8); -webkit-backdrop-filter: blur(20px) saturate(1.8);
+  border: 1px solid var(--glass-b); box-shadow: var(--gs), var(--gi); border-radius: 100px; padding: 7px 14px;
+  font-size: 11px; font-weight: 600; color: var(--teal); white-space: nowrap; opacity: 0; pointer-events: none;
+  transform: translateX(6px); transition: opacity 160ms var(--eo), transform 160ms var(--eo); }
+.copilot-fab:hover ~ .copilot-fab-label, .copilot-fab-label.show { opacity: 1; transform: translateX(0); }
+.copilot-ask-btn { color: #fff !important; background: var(--flame) !important; }
+.copilot-ask-btn:hover { background: #e64a00 !important; }
 /* New piece toggle */
 .bm-new-piece-toggle {
   width: 100%; display: flex; align-items: center; gap: 10px; padding: 11px 14px;
@@ -497,6 +512,8 @@ html, body { margin: 0; height: 100%; overflow: hidden; font-family: var(--sans)
 <div class="legend" id="legend"></div>
 
 <div class="hint" id="hint">Drag to pan, scroll to zoom, click a star</div>
+<span class="copilot-fab-label" id="copilotFabLabel">Ask Copilot</span>
+<button class="copilot-fab" id="copilotFab" title="Open Copilot">🤖</button>
 
 <div class="journey" id="journey" style="display:none;">
   <button class="j-step" id="jStep1" title="Type any topic into the search bar — every match lights up in the archive."><span class="j-dot">1</span>Search a keyword</button>
@@ -1999,9 +2016,13 @@ document.getElementById('ppCopy').addEventListener('click', () => {
 });
 document.getElementById('ppCopilot').addEventListener('click', () => {
   if (!currentPrompt) return;
-  navigator.clipboard.writeText(currentPrompt.text).catch(()=>{});
-  window.open('https://m365.cloud.microsoft/chat/', '_blank', 'noopener');
-  pdToast('Copilot opened — paste your prompt');
+  if (typeof openCopilotPopup === 'function') {
+    openCopilotPopup(currentPrompt.text);
+  } else {
+    navigator.clipboard.writeText(currentPrompt.text).catch(()=>{});
+    window.open('https://m365.cloud.microsoft/chat/', '_blank', 'noopener');
+    pdToast('Copilot opened — paste your prompt');
+  }
 });
 document.getElementById('ppSave').addEventListener('click', () => {
   if (!currentPrompt) return;
@@ -2245,7 +2266,10 @@ function renderCustomTrendCard(result) {
       ${spark}
       ${headlinesHtml}
       ${winHtml}
-      <button class="gtrends-btn" data-gtid="gtrends-custom-search" data-kw="${escapeHtml(result.keyword_display || '')}">📈 Google Trends chart</button>
+      <div style="display:flex; gap:6px; margin-top:8px;">
+        <button class="gtrends-btn" data-gtid="gtrends-custom-search" data-kw="${escapeHtml(result.keyword_display || '')}" style="margin-top:0;">📈 Trends chart</button>
+        <button class="gtrends-btn copilot-ask-btn" data-kw="${escapeHtml(result.keyword_display || '')}" style="margin-top:0;">🤖 Ask Copilot</button>
+      </div>
       <div class="gtrends-container" id="gtrends-custom-search"></div>
     </div>`;
 }
@@ -2322,7 +2346,10 @@ function renderTrendsPanel() {
         ${showGap ? '<div class="trend-gap-badge">⚠ trending, no recent archive coverage</div>' : ''}
         ${headlinesHtml}
         ${winHtml}
-        <button class="gtrends-btn" data-gtid="${gtId}" data-kw="${escapeHtml(t.keyword)}">📈 Google Trends chart</button>
+        <div style="display:flex; gap:6px; margin-top:8px;">
+          <button class="gtrends-btn" data-gtid="${gtId}" data-kw="${escapeHtml(t.keyword)}" style="margin-top:0;">📈 Trends chart</button>
+          <button class="gtrends-btn copilot-ask-btn" data-kw="${escapeHtml(t.keyword)}" style="margin-top:0;">🤖 Ask Copilot</button>
+        </div>
         <div class="gtrends-container" id="${gtId}"></div>
       </div>`;
     if (t.updated_at) {
@@ -2342,9 +2369,72 @@ function wireTrendsBodyListeners(body) {
   });
   const closeBtn = document.getElementById('trendsCustomClose');
   if (closeBtn) closeBtn.addEventListener('click', clearCustomTrend);
-  body.querySelectorAll('.gtrends-btn').forEach(el => {
+  body.querySelectorAll('.gtrends-btn:not(.copilot-ask-btn)').forEach(el => {
     el.addEventListener('click', () => toggleGoogleTrendsWidget(el.getAttribute('data-gtid'), el.getAttribute('data-kw')));
   });
+  body.querySelectorAll('.copilot-ask-btn').forEach(el => {
+    el.addEventListener('click', () => askCopilotAboutTrend(el.getAttribute('data-kw')));
+  });
+}
+
+/* ==================== Pinned Copilot popup (available everywhere) ==================== */
+let copilotWindowRef = null;
+function openCopilotPopup(promptText) {
+  if (promptText) {
+    navigator.clipboard.writeText(promptText).catch(() => {});
+  }
+  if (copilotWindowRef && !copilotWindowRef.closed) {
+    copilotWindowRef.focus();
+  } else {
+    const w = 460, h = 760;
+    const left = Math.max(0, (window.screenX || 0) + (window.outerWidth || 1200) - w - 24);
+    const top = Math.max(0, (window.screenY || 0) + 60);
+    copilotWindowRef = window.open(
+      'https://m365.cloud.microsoft/chat/',
+      'pilotdesk_copilot',
+      `width=${w},height=${h},left=${left},top=${top},noopener,noreferrer`
+    );
+    if (copilotWindowRef) copilotWindowRef.focus();
+  }
+  if (typeof pdToast === 'function') {
+    pdToast(promptText ? 'Prompt copied — paste it into Copilot' : 'Copilot opened');
+  }
+}
+
+document.getElementById('copilotFab').addEventListener('click', () => openCopilotPopup());
+
+function findTrendByKeyword(kw) {
+  if (CUSTOM_TREND_RESULT && CUSTOM_TREND_RESULT.keyword_display === kw) return CUSTOM_TREND_RESULT;
+  return (TRENDS_DATA || []).find(t => t.keyword === kw) || null;
+}
+
+function buildQuickTrendPrompt(t) {
+  const kw = t.keyword || t.keyword_display || '';
+  const pct = t.combined_score ?? t.news_trend_pct ?? 0;
+  const vol24 = t.news_volume_24h ?? 0;
+  const volPrev = t.news_volume_prev_24h ?? 0;
+  const headlineLines = (t.headlines || []).slice(0, 5)
+    .map(h => `- ${h.title} (${h.source || 'unknown source'}, ${timeAgo(h.pubDate)})`).join('\n');
+  const catArticles = t.category ? articlesForCategory(t.category).slice(0, 3) : [];
+  const archiveLines = catArticles.map(a => `- ${titleOf(a)} (${a.date || ''})`).join('\n');
+  return `I'm a journalist at Radio Farda (RFE/RL) researching "${kw}" for potential coverage.
+
+Live signal right now: ${vol24} articles in the last 24h vs ${volPrev} the day before (${pct > 0 ? '+' : ''}${pct}% change in global coverage volume).
+
+Recent headlines from global media:
+${headlineLines || '(no recent headlines found for this exact phrase)'}
+
+${archiveLines ? `Our own archive's most recent related coverage:\n${archiveLines}\n` : ''}
+Please help me:
+1. Summarize what's driving this story right now
+2. Identify the most newsworthy angle for a Persian-language international broadcaster's audience
+3. Suggest 3 follow-up angles or questions that global media hasn't covered yet`;
+}
+
+function askCopilotAboutTrend(kw) {
+  const t = findTrendByKeyword(kw);
+  if (!t) return;
+  openCopilotPopup(buildQuickTrendPrompt(t));
 }
 
 let trendsPollTimer = null;
