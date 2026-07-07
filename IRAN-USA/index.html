@@ -808,8 +808,12 @@ function showArticleCard(t, sx, sy) {
     <div class="cp-desc" style="${descStyle()}">${escapeHtml(descOf(t))}</div>
     <div class="cp-meta">${escapeHtml(t.date || '')}</div>
     <div class="cp-tags">${tags}</div>
-    <a class="cp-link" href="${t.url}" target="_blank" rel="noopener noreferrer">Open article →</a>
+    <div style="display:flex; gap:8px; margin-top:4px;">
+      <button class="cp-link" id="cpReadFull" style="border:none; cursor:pointer; flex:1; justify-content:center;">Read full article</button>
+      <a class="cp-link" href="${t.url}" target="_blank" rel="noopener noreferrer" style="flex:1; justify-content:center;">Original ↗</a>
+    </div>
   `;
+  document.getElementById('cpReadFull').addEventListener('click', () => openReaderModal(t));
   positionCard(sx, sy);
 }
 
@@ -859,12 +863,53 @@ const modalPager = document.getElementById('modalPager');
 const modalBrief = document.getElementById('modalBrief');
 const modalCopyBtn = document.getElementById('modalCopyBtn');
 
+// --- backend: lazy full-article fetch, translate, cache ---
+const SUPABASE_URL = 'https://yiewnykbchfadipznpet.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlpZXdueWtiY2hmYWRpcHpucGV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxNzM3NTUsImV4cCI6MjA5NDc0OTc1NX0.utnlpToZGH7hno0QTXlrtWvzKDgP28Gv3Je7BBIRwmM';
+
+async function fetchFullArticleText(url, langCode) {
+  const res = await fetch(`${SUPABASE_URL}/functions/v1/galaxy-article-text`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+      'apikey': SUPABASE_ANON_KEY,
+    },
+    body: JSON.stringify({ url, lang: langCode }),
+  });
+  const data = await res.json();
+  if (!res.ok || data.error) throw new Error(data.error || `request failed (${res.status})`);
+  return data.text;
+}
+
+function openReaderModal(t) {
+  modalContext = null;
+  currentEntity = null;
+  document.getElementById('modalTitle').textContent = titleOf(t);
+  document.getElementById('modalSub').textContent = t.date || '';
+  modalList.style.display = 'none'; modalPager.style.display = 'none';
+  modalCopyBtn.style.display = 'none';
+  modalBrief.style.display = 'block';
+  modalBrief.style.direction = (lang === 'fa') ? 'rtl' : 'ltr';
+  modalBrief.style.textAlign = (lang === 'fa') ? 'right' : 'left';
+  modalBrief.style.fontFamily = (lang === 'fa') ? 'var(--fa)' : 'var(--sans)';
+  modalBrief.textContent = 'Loading full article…';
+  modalBackdrop.classList.add('show');
+  const langCode = (lang === 'fa') ? 'fa' : 'en';
+  fetchFullArticleText(t.url, langCode).then(text => {
+    modalBrief.textContent = text;
+  }).catch(err => {
+    modalBrief.textContent = `Couldn't load the full article (${err.message}). You can still read it at the original link below.`;
+  });
+}
+
 function openModal(title, articles) {
   modalArticles = articles;
   modalPage = 1;
   document.getElementById('modalTitle').textContent = title;
   document.getElementById('modalSub').textContent = `${modalArticles.length.toLocaleString()} articles`;
   modalBrief.style.display = 'none'; modalCopyBtn.style.display = 'none';
+  modalBrief.style.direction = ''; modalBrief.style.textAlign = ''; modalBrief.style.fontFamily = '';
   modalList.style.display = ''; modalPager.style.display = '';
   renderModalPage();
   modalBackdrop.classList.add('show');
@@ -890,6 +935,7 @@ function openBriefModal_search(query, results) {
   document.getElementById('modalTitle').textContent = `Brief: "${query}"`;
   document.getElementById('modalSub').textContent = `${results.length.toLocaleString()} articles`;
   modalList.style.display = 'none'; modalPager.style.display = 'none';
+  modalBrief.style.direction = ''; modalBrief.style.textAlign = ''; modalBrief.style.fontFamily = '';
   const text = buildBriefText(query, results);
   modalBrief.textContent = text;
   modalBrief.style.display = 'block';
