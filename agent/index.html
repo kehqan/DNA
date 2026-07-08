@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Briefs Desk | DNA</title>
-<link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&family=Noto+Sans:wght@400;500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&family=Noto+Sans:wght@400;500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600&family=Vazirmatn:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root {
   --ivory:   #F8F7F6;
@@ -38,6 +38,25 @@ a { color: var(--teal2); }
 ::selection { background: rgba(255,84,0,0.18); }
 input, select, textarea, button { font-family: inherit; }
 :focus-visible { outline: 2px solid var(--flame); outline-offset: 2px; }
+
+/* ============ RTL / Persian mode ============ */
+html[dir="rtl"] body { direction: rtl; text-align: right; }
+html[dir="rtl"] .lib-search { padding: 10px 16px 10px 38px; background-position: left 14px center; }
+html[dir="rtl"] .lib-count { margin-left: 0; margin-right: auto; }
+html[dir="rtl"] .compose-left { border-right: none; border-left: 1px solid var(--border2); }
+html[dir="rtl"] .compose-right { }
+html[dir="rtl"] .blk-copilot { right: auto; left: 12px; }
+html[dir="rtl"] .brief-card::before { left: auto; right: 0; }
+html[dir="rtl"] .mat-grip, html[dir="rtl"] .cmp-index-chip .lbl { margin-left: 0; }
+html[dir="rtl"] .blk-mat, html[dir="rtl"] .blk-text { border-left: none; border-right: 3px solid var(--honey); }
+html[dir="rtl"] .blk-text { border-right-color: var(--teal2); }
+html[dir="rtl"] .anno-mark { }
+html[dir="rtl"] .blk-note { border-left: none; border-right: 2px solid var(--honey); }
+
+.lang-switch { display: flex; align-items: center; background: rgba(var(--inkC),0.05); border: 1px solid var(--border); border-radius: 100px; padding: 3px; gap: 2px; flex-shrink: 0; }
+.lang-opt { font-size: 11px; font-weight: 700; color: var(--soft); background: transparent; border: none; border-radius: 100px; padding: 6px 12px; cursor: pointer; transition: all 160ms var(--eo); }
+.lang-opt.active { background: var(--teal); color: #fff; }
+.lang-opt:hover:not(.active) { color: var(--teal2); }
 
 /* ============ Header + pipeline ============ */
 .hdr { position: sticky; top: 0; z-index: 60; display: flex; align-items: center; justify-content: space-between; gap: 20px;
@@ -515,7 +534,7 @@ mark.anno.pulse { animation: markPulse 1200ms var(--eo); }
   background: var(--paper); color: var(--teal2); font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center;
   transition: all 140ms; box-shadow: var(--gs); }
 .blk-copilot:hover { background: var(--teal); color: #fff; border-color: transparent; }
-.cmp-foot { position: sticky; bottom: 0; margin: 18px -30px -80px; padding: 12px 30px; background: var(--glass-b); backdrop-filter: blur(14px); border-top: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
+.cmp-foot { display: flex; align-items: center; justify-content: flex-end; gap: 12px; margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border); }
 .cmp-wordcount { font-size: 11.5px; color: var(--soft); font-variant-numeric: tabular-nums; }
 .cmp-savestate { font-size: 11px; color: var(--soft); margin-left: auto; }
 .cmp-savestate.saving { color: var(--flame); }
@@ -527,21 +546,25 @@ mark.anno.pulse { animation: markPulse 1200ms var(--eo); }
   <div class="hdr-brand" id="brandHome">
     <span class="hdr-icon">🧬</span>
     <div>
-      <div class="hdr-title">Briefs Desk</div>
-      <div class="hdr-sub">DNA · from raw research to a reporter-ready brief</div>
+      <div class="hdr-title" id="tBrandTitle">Briefs Desk</div>
+      <div class="hdr-sub" id="tBrandSub">DNA · from raw research to a reporter-ready brief</div>
     </div>
   </div>
   <div class="pipeline" id="pipeline">
-    <div class="pipe-step" data-step="library"><span class="pipe-dot"></span><div><div>Library</div><div class="pipe-role">Newsroom</div></div></div>
+    <div class="pipe-step" data-step="library"><span class="pipe-dot"></span><div><div id="tNavLibrary">Library</div><div class="pipe-role" id="tNavLibraryRole">Newsroom</div></div></div>
     <span class="pipe-arrow">→</span>
-    <div class="pipe-step" data-step="paste"><span class="pipe-dot"></span><div><div>Intake</div><div class="pipe-role">Research</div></div></div>
+    <div class="pipe-step" data-step="paste"><span class="pipe-dot"></span><div><div id="tNavIntake">Intake</div><div class="pipe-role" id="tNavIntakeRole">Research</div></div></div>
     <span class="pipe-arrow">→</span>
-    <div class="pipe-step" data-step="review"><span class="pipe-dot"></span><div><div>Desk</div><div class="pipe-role">Editor</div></div></div>
+    <div class="pipe-step" data-step="review"><span class="pipe-dot"></span><div><div id="tNavDesk">Desk</div><div class="pipe-role" id="tNavDeskRole">Editor</div></div></div>
     <span class="pipe-arrow">→</span>
-    <div class="pipe-step" data-step="detail"><span class="pipe-dot"></span><div><div>Brief</div><div class="pipe-role">Reporter</div></div></div>
+    <div class="pipe-step" data-step="detail"><span class="pipe-dot"></span><div><div id="tNavBrief">Brief</div><div class="pipe-role" id="tNavBriefRole">Reporter</div></div></div>
   </div>
   <div class="hdr-actions">
-    <button class="btn primary" id="navPaste">＋ New brief</button>
+    <div class="lang-switch" id="langSwitch">
+      <button class="lang-opt active" data-lang="en" type="button">EN</button>
+      <button class="lang-opt" data-lang="fa" type="button">فا</button>
+    </div>
+    <button class="btn primary" id="navPaste"><span id="tNewBrief">＋ New brief</span></button>
   </div>
 </div>
 
@@ -550,9 +573,9 @@ mark.anno.pulse { animation: markPulse 1200ms var(--eo); }
   <!-- LIBRARY -->
   <div class="view" id="viewLibrary">
     <div class="lib-head">
-      <div class="eyebrow">Newsroom library <span class="role-tag">· shared knowledge base</span></div>
-      <h1 class="lib-title">Every research answer, curated into a brief</h1>
-      <p class="lib-tagline">Reporters run the research. Editors promote what matters, attach the sources, and rank the angles. What lands here is desk-ready.</p>
+      <div class="eyebrow"><span id="tLibEyebrow">Newsroom library</span> <span class="role-tag" id="tLibEyebrowRole">· shared knowledge base</span></div>
+      <h1 class="lib-title" id="tLibTitle">Every research answer, curated into a brief</h1>
+      <p class="lib-tagline" id="tLibTagline">Reporters run the research. Editors promote what matters, attach the sources, and rank the angles. What lands here is desk-ready.</p>
       <div class="lib-controls">
         <input type="text" class="lib-search" id="librarySearch" placeholder="Search topics…">
         <div id="llmFilters" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
@@ -722,6 +745,124 @@ const CATEGORY_META = {
 };
 const CATEGORY_ORDER = ['angle', 'source', 'person', 'keyword'];
 const KIND_ICON = { timeline: '🕘', entities: '👥', table: '▦', actions: '✔', summary: '❖', sources: '🔗', text: '' };
+
+/* ==================== i18n: EN / FA ==================== */
+let LANG = 'en';
+const I18N = {
+  en: {
+    brand_title: 'Briefs Desk', brand_sub: 'DNA · from raw research to a reporter-ready brief',
+    nav_library: 'Library', nav_library_role: 'Newsroom', nav_intake: 'Intake', nav_intake_role: 'Research',
+    nav_desk: 'Desk', nav_desk_role: 'Editor', nav_brief: 'Brief', nav_brief_role: 'Reporter',
+    new_brief: '＋ New brief',
+    lib_eyebrow: 'Newsroom library', lib_eyebrow_role: '· shared knowledge base',
+    lib_title: 'Every research answer, curated into a brief',
+    lib_tagline: 'Reporters run the research. Editors promote what matters, attach the sources, and rank the angles. What lands here is desk-ready.',
+    lib_search_ph: 'Search topics…', filter_all: 'All',
+    status_curated: '✦ curated', status_raw: 'raw intake', views_suffix: 'views',
+    lib_err_title: "Couldn't reach the library", retry: 'Retry',
+    lib_empty_title: 'No briefs yet', lib_empty_sub: 'Take any AI research answer and turn it into a desk-ready brief the whole newsroom can use.',
+    detail_eyebrow: 'Newsroom brief', detail_eyebrow_role: '· reporter-ready',
+    write_piece: '✍ Write your piece', continue_piece: '✍ Continue your piece', edit_brief: '✎ Edit brief',
+    copy_brief_md: '⧉ Copy brief as Markdown', send_copilot: '🤖 Send to Copilot', print: '🖨 Print',
+    editors_verdict: "Editor's verdict", full_brief: 'Full brief', extra_resources: '🔗 Extra resources', sources_label: '📎 Sources',
+    anno_box_title: '🖍 Editor annotations',
+    compose_hint: 'Open a section, drag material into your piece →', back_to_brief: '← Back to brief',
+    materials_in_use: 'Materials in use', your_piece: 'Your piece', your_piece_role: '· write freely, backed by the brief',
+    headline_ph: 'Headline', standfirst_ph: 'Standfirst / dek — the one-sentence promise of the story',
+    add_paragraph: '＋ Paragraph', final_look: 'Final look', final_look_role: '· updates live as you write',
+    final_empty: 'Your finished piece — headline, standfirst, and body, in order — will take shape here as you write. Material context stays out; only your own words appear.',
+    copy_text: '⧉ Copy text', export_doc: '⬇ Export .doc', export_pdf: '⬇ Export .pdf',
+    draft_saved: 'Draft saved', saving: 'Saving…', save_failed: 'Save failed',
+    cmp_empty_title: 'This is your piece — write it freely',
+    cmp_empty_sub: "Material on the left is optional backup. Drag a piece in when you want a source, a quote, or an editor's note to build on — or just start typing your own paragraph.",
+    start_paragraph: '＋ Start a paragraph',
+    write_passage_ph: 'Write this passage in your own words…', write_paragraph_ph: 'Write a paragraph…',
+    promoted_material: 'Promoted material', editor_annotations: 'Editor annotations', from_brief: 'From the brief',
+    material_added: 'Material added to your piece', copied_paste: 'Copied — paste into Copilot', copilot_opened: 'Copilot opened',
+    exported_doc: 'Exported as .doc', exported_pdf: 'Opening print dialog — choose "Save as PDF"',
+    write_first: 'Write something first', allow_popups: 'Allow pop-ups to export as PDF', copy_failed: 'Copy failed',
+    copied_md: 'Piece copied as Markdown',
+    k_angle: 'Angle', k_source: 'Source', k_person: 'Person', k_keyword: 'Keyword', k_data: 'Data', k_excerpt: 'Excerpt', k_section: 'Section', k_note: 'Editor note', k_paragraph: '¶ Paragraph',
+    q_angle: 'How does this angle shape your story — and what is the strongest version of it?',
+    q_source: 'What does this source establish, and how will you attribute it?',
+    q_person: "What is this person's role or stake — and will you seek comment?",
+    q_keyword: 'How will you work this term into the piece naturally?',
+    q_table: 'What does this data point mean for your reader?',
+    q_section: 'What is the essential point here, in your own words?',
+    q_annotation: "What does this editor's note ask you to address?",
+    q_default: 'How will you use this in your piece?',
+  },
+  fa: {
+    brand_title: 'میز بریف', brand_sub: 'DNA · از پژوهش خام تا بریفی آماده گزارشگر',
+    nav_library: 'کتابخانه', nav_library_role: 'تحریریه', nav_intake: 'دریافت', nav_intake_role: 'پژوهش',
+    nav_desk: 'میز خبر', nav_desk_role: 'دبیر', nav_brief: 'بریف', nav_brief_role: 'گزارشگر',
+    new_brief: '＋ بریف تازه',
+    lib_eyebrow: 'کتابخانه تحریریه', lib_eyebrow_role: '· پایگاه دانش مشترک',
+    lib_title: 'هر پاسخ پژوهشی، تبدیل‌شده به یک بریف',
+    lib_tagline: 'خبرنگاران پژوهش را انجام می‌دهند. دبیران آنچه مهم است را برجسته می‌کنند، منابع را پیوست می‌کنند و زاویه‌ها را رتبه‌بندی می‌کنند. آنچه اینجاست، آماده میز خبر است.',
+    lib_search_ph: 'جست‌وجوی موضوع…', filter_all: 'همه',
+    status_curated: '✦ برگزیده', status_raw: 'دریافت خام', views_suffix: 'بازدید',
+    lib_err_title: 'اتصال به کتابخانه ممکن نشد', retry: 'تلاش دوباره',
+    lib_empty_title: 'هنوز بریفی ثبت نشده', lib_empty_sub: 'هر پاسخ پژوهشی هوش مصنوعی را بردارید و آن را به بریفی آماده برای کل تحریریه تبدیل کنید.',
+    detail_eyebrow: 'بریف تحریریه', detail_eyebrow_role: '· آماده گزارشگر',
+    write_piece: '✍ نگارش متن', continue_piece: '✍ ادامه نگارش متن', edit_brief: '✎ ویرایش بریف',
+    copy_brief_md: '⧉ کپی بریف به‌صورت مارک‌داون', send_copilot: '🤖 ارسال به کوپایلوت', print: '🖨 چاپ',
+    editors_verdict: 'رأی دبیر', full_brief: 'بریف کامل', extra_resources: '🔗 منابع تکمیلی', sources_label: '📎 منابع',
+    anno_box_title: '🖍 یادداشت‌های دبیر',
+    compose_hint: 'یک بخش را باز کنید و منابع را به متن خود بکشید ←', back_to_brief: '→ بازگشت به بریف',
+    materials_in_use: 'منابع استفاده‌شده', your_piece: 'متن شما', your_piece_role: '· آزادانه بنویسید، با تکیه بر بریف',
+    headline_ph: 'تیتر', standfirst_ph: 'لید — وعده یک‌جمله‌ای داستان',
+    add_paragraph: '＋ پاراگراف', final_look: 'نمای نهایی', final_look_role: '· هم‌زمان با نگارش به‌روزرسانی می‌شود',
+    final_empty: 'متن نهایی شما — تیتر، لید و بدنه، به‌ترتیب — همین‌جا شکل می‌گیرد. زمینه منابع نمایش داده نمی‌شود؛ فقط نوشته خودتان دیده می‌شود.',
+    copy_text: '⧉ کپی متن', export_doc: '⬇ خروجی .doc', export_pdf: '⬇ خروجی .pdf',
+    draft_saved: 'پیش‌نویس ذخیره شد', saving: 'در حال ذخیره…', save_failed: 'ذخیره ناموفق بود',
+    cmp_empty_title: 'این متن شماست — آزادانه بنویسید',
+    cmp_empty_sub: 'منابع سمت چپ، پشتیبان اختیاری‌اند. هر زمان به یک منبع، نقل‌قول یا یادداشت دبیر نیاز داشتید آن را بکشید — یا همین حالا پاراگراف خودتان را بنویسید.',
+    start_paragraph: '＋ شروع یک پاراگراف',
+    write_passage_ph: 'این بخش را با کلام خودتان بنویسید…', write_paragraph_ph: 'یک پاراگراف بنویسید…',
+    promoted_material: 'منابع برگزیده', editor_annotations: 'یادداشت‌های دبیر', from_brief: 'از دل بریف',
+    material_added: 'منبع به متن شما افزوده شد', copied_paste: 'کپی شد — در کوپایلوت جای‌گذاری کنید', copilot_opened: 'کوپایلوت باز شد',
+    exported_doc: 'خروجی .doc ذخیره شد', exported_pdf: 'پنجره چاپ باز شد — گزینه «ذخیره به‌صورت PDF» را انتخاب کنید',
+    write_first: 'ابتدا چیزی بنویسید', allow_popups: 'برای خروجی PDF، پنجره‌های بازشو را مجاز کنید', copy_failed: 'کپی ناموفق بود',
+    copied_md: 'متن به‌صورت مارک‌داون کپی شد',
+    k_angle: 'زاویه', k_source: 'منبع', k_person: 'فرد', k_keyword: 'کلیدواژه', k_data: 'داده', k_excerpt: 'گزیده', k_section: 'بخش', k_note: 'یادداشت دبیر', k_paragraph: '¶ پاراگراف',
+    q_angle: 'این زاویه چگونه داستان شما را شکل می‌دهد — و قوی‌ترین برداشت از آن چیست؟',
+    q_source: 'این منبع چه چیزی را اثبات می‌کند و چگونه به آن استناد می‌دهید؟',
+    q_person: 'نقش یا سهم این فرد چیست — آیا برای اظهارنظر با او تماس می‌گیرید؟',
+    q_keyword: 'چگونه این عبارت را طبیعی در متن به کار می‌برید؟',
+    q_table: 'این داده برای خواننده شما چه معنایی دارد؟',
+    q_section: 'نکته اصلی اینجا، با کلام خودتان، چیست؟',
+    q_annotation: 'این یادداشت دبیر از شما چه می‌خواهد؟',
+    q_default: 'چگونه از این در متن خود استفاده می‌کنید؟',
+  },
+};
+function t(k) { return (I18N[LANG] && I18N[LANG][k]) || I18N.en[k] || k; }
+function applyLang() {
+  document.documentElement.setAttribute('dir', LANG === 'fa' ? 'rtl' : 'ltr');
+  document.documentElement.setAttribute('lang', LANG === 'fa' ? 'fa' : 'en');
+  document.documentElement.style.setProperty('--serif', LANG === 'fa' ? "'Vazirmatn', sans-serif" : "'Lora', Georgia, serif");
+  document.documentElement.style.setProperty('--sans', LANG === 'fa' ? "'Vazirmatn', sans-serif" : "'Noto Sans', system-ui, sans-serif");
+  document.querySelectorAll('#langSwitch .lang-opt').forEach(b => b.classList.toggle('active', b.getAttribute('data-lang') === LANG));
+  const set = (id, key) => { const el = document.getElementById(id); if (el) el.textContent = t(key); };
+  set('tBrandTitle','brand_title'); set('tBrandSub','brand_sub');
+  set('tNavLibrary','nav_library'); set('tNavLibraryRole','nav_library_role');
+  set('tNavIntake','nav_intake'); set('tNavIntakeRole','nav_intake_role');
+  set('tNavDesk','nav_desk'); set('tNavDeskRole','nav_desk_role');
+  set('tNavBrief','nav_brief'); set('tNavBriefRole','nav_brief_role');
+  set('tNewBrief','new_brief'); set('tLibEyebrow','lib_eyebrow'); set('tLibEyebrowRole','lib_eyebrow_role');
+  set('tLibTitle','lib_title'); set('tLibTagline','lib_tagline');
+  const srch = document.getElementById('librarySearch'); if (srch) srch.placeholder = t('lib_search_ph');
+  if (document.getElementById('viewLibrary') && document.getElementById('viewLibrary').classList.contains('show')) loadLibrary();
+  if (document.getElementById('viewDetail') && document.getElementById('viewDetail').classList.contains('show')) {
+    if (composeBriefId && document.querySelector('.compose-wrap')) { const rr = LIBRARY_CACHE.find(r => r.id === composeBriefId) || detailRow; if (rr) enterCompose(rr); }
+    else if (detailRow) openDetail(detailRow);
+  }
+}
+document.getElementById('langSwitch').addEventListener('click', e => {
+  const b = e.target.closest('.lang-opt'); if (!b) return;
+  const nl = b.getAttribute('data-lang'); if (nl === LANG) return;
+  LANG = nl; applyLang();
+});
 
 /* ---------- helpers ---------- */
 function escapeHtml(s) {
@@ -1452,13 +1593,13 @@ async function loadLibrary() {
     LIBRARY_CACHE = await sbSelect('dna_agent_briefs', 'select=*&order=created_at.desc&limit=100');
     renderLlmFilters(); applyLibraryFilter();
   } catch (err) {
-    grid.innerHTML = `<div class="lib-empty"><div class="lib-empty-icon">⚠️</div><h3>Couldn't reach the library</h3><p>${escapeHtml(err.message)}. Check the connection and try again.</p><button class="btn" onclick="loadLibrary()">Retry</button></div>`;
+    grid.innerHTML = `<div class="lib-empty"><div class="lib-empty-icon">⚠️</div><h3>${t('lib_err_title')}</h3><p>${escapeHtml(err.message)}.</p><button class="btn" onclick="loadLibrary()">${t('retry')}</button></div>`;
   }
 }
 function renderLlmFilters() {
   const llms = Array.from(new Set(LIBRARY_CACHE.map(r => r.source_llm).filter(Boolean)));
   document.getElementById('llmFilters').innerHTML =
-    [`<button class="filter-chip${activeLlm==='all'?' active':''}" data-llm="all">All</button>`]
+    [`<button class="filter-chip${activeLlm==='all'?' active':''}" data-llm="all">${t('filter_all')}</button>`]
     .concat(llms.map(l => `<button class="filter-chip${activeLlm===l?' active':''}" data-llm="${escapeHtml(l)}">${escapeHtml(l)}</button>`)).join('');
   document.getElementById('llmFilters').querySelectorAll('.filter-chip').forEach(c => c.addEventListener('click', () => {
     activeLlm = c.getAttribute('data-llm'); renderLlmFilters(); applyLibraryFilter();
@@ -1473,9 +1614,9 @@ function applyLibraryFilter() {
 }
 function renderLibrary(rows) {
   const grid = document.getElementById('briefGrid');
-  document.getElementById('libCount').textContent = `${rows.length} brief${rows.length===1?'':'s'}`;
+  document.getElementById('libCount').textContent = LANG==='fa' ? `${rows.length} بریف` : `${rows.length} brief${rows.length===1?'':'s'}`;
   if (!rows.length) {
-    grid.innerHTML = `<div class="lib-empty"><div class="lib-empty-icon">🧬</div><h3>No briefs yet</h3><p>Take any AI research answer and turn it into a desk-ready brief the whole newsroom can use.</p><button class="btn primary" onclick="document.getElementById('navPaste').click()">＋ New brief</button></div>`;
+    grid.innerHTML = `<div class="lib-empty"><div class="lib-empty-icon">🧬</div><h3>${t('lib_empty_title')}</h3><p>${t('lib_empty_sub')}</p><button class="btn primary" onclick="document.getElementById('navPaste').click()">${t('new_brief')}</button></div>`;
     return;
   }
   grid.innerHTML = rows.map(r => {
@@ -1486,13 +1627,13 @@ function renderLibrary(rows) {
       <div class="brief-card" data-id="${r.id}" data-status="${status}">
         <button class="card-del" data-del="${r.id}" title="Delete brief">✕</button>
         <div class="brief-card-top">
-          <span class="status-chip ${status}">${status === 'curated' ? '✦ curated' : 'raw intake'}</span>
+          <span class="status-chip ${status}">${status === 'curated' ? t('status_curated') : t('status_raw')}</span>
           ${r.source_llm ? `<span class="llm-chip">${escapeHtml(r.source_llm)}</span>` : ''}
         </div>
         <div class="brief-card-topic">${escapeHtml(r.topic)}</div>
         <div class="brief-card-snippet">${escapeHtml(briefSnippet(r))}</div>
         <div class="brief-card-meta">
-          <span>${r.editor_name ? escapeHtml(r.editor_name) : 'Unattributed'}</span>
+          <span>${r.editor_name ? escapeHtml(r.editor_name) : (LANG==='fa'?'بدون‌نام':'Unattributed')}</span>
           <span class="meta-dot">·</span>
           <span>${relTime(r.created_at)}</span>
         </div>
@@ -1504,7 +1645,7 @@ function renderLibrary(rows) {
       </div>`;
     } catch (e) {
       return `<div class="brief-card" data-id="${escapeHtml(String(r && r.id))}" data-status="raw">
-        <div class="brief-card-top"><span class="status-chip raw">raw intake</span></div>
+        <div class="brief-card-top"><span class="status-chip raw">${t('status_raw')}</span></div>
         <div class="brief-card-topic">${escapeHtml((r && r.topic) || 'Untitled brief')}</div>
         <div class="brief-card-snippet">Open to view — this brief uses an older stored format.</div>
       </div>`;
@@ -1610,7 +1751,7 @@ async function openDetail(row) {
 
   const resourcesHtml = links.length ? `
     <div class="ledger" style="background:var(--glass)">
-      <div class="ledger-title">🔗 Extra resources</div>
+      <div class="ledger-title">${t('extra_resources')}</div>
       ${links.map(l => `<div class="ledger-item"><span class="ledger-n" style="background:var(--flame)">+</span>
         <div class="ledger-body"><div class="ledger-label"><a href="${escapeHtml(l.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(l.label)}</a> <span class="link-item-tag">${escapeHtml(l.tag)}</span></div>
         <div class="ledger-url"><img src="https://www.google.com/s2/favicons?domain=${encodeURIComponent(domainOf(l.url))}&sz=64" onerror="this.style.display='none'">${escapeHtml(l.url)}</div>
@@ -1638,24 +1779,24 @@ async function openDetail(row) {
       </div>
       <div>
         <div class="showcase-hero">
-          <div class="eyebrow">Newsroom brief <span class="role-tag">· reporter-ready</span></div>
+          <div class="eyebrow">${t('detail_eyebrow')} <span class="role-tag">${t('detail_eyebrow_role')}</span></div>
           <div class="showcase-topic">${escapeHtml(row.topic)}</div>
           <div class="showcase-meta">
             <span>👤 ${row.editor_name ? escapeHtml(row.editor_name) : 'Unattributed'}</span><span class="meta-dot">·</span>
             <span>🤖 ${row.source_llm ? escapeHtml(row.source_llm) : 'Unknown'}</span><span class="meta-dot">·</span>
-            <span>👁️ ${(row.view_count || 0) + 1} views</span>
+            <span>👁️ ${(row.view_count || 0) + 1} ${t('views_suffix')}</span>
           </div>
           <div class="brief-actions">
-            <button class="btn sm primary" id="writePieceBtn">✍ Write your piece</button>
-            <button class="btn sm" id="editBriefBtn">✎ Edit brief</button>
-            <button class="btn sm" id="copyBriefBtn">⧉ Copy brief as Markdown</button>
-            <button class="btn sm" id="copilotFromBrief">🤖 Send to Copilot</button>
-            <button class="btn sm ghost" id="printBrief">🖨 Print</button>
+            <button class="btn sm primary" id="writePieceBtn">${t('write_piece')}</button>
+            <button class="btn sm" id="editBriefBtn">${t('edit_brief')}</button>
+            <button class="btn sm" id="copyBriefBtn">${t('copy_brief_md')}</button>
+            <button class="btn sm" id="copilotFromBrief">${t('send_copilot')}</button>
+            <button class="btn sm ghost" id="printBrief">${t('print')}</button>
           </div>
         </div>
-        ${verdictBoxes ? `<div class="eyebrow" style="margin-bottom:2px">Editor's verdict</div><div class="verdict-grid">${verdictBoxes}</div>` : ''}
+        ${verdictBoxes ? `<div class="eyebrow" style="margin-bottom:2px">${t('editors_verdict')}</div><div class="verdict-grid">${verdictBoxes}</div>` : ''}
         <div id="annoBox"></div>
-        <div class="eyebrow" style="margin:22px 0 10px">Full brief</div>
+        <div class="eyebrow" style="margin:22px 0 10px">${t('full_brief')}</div>
         <div id="showcaseSections">${sectionsHtml}</div>
         ${resourcesHtml}
         <div id="sourceLedger"></div>
@@ -1669,7 +1810,7 @@ async function openDetail(row) {
   // Sources ledger (after tables hydrated so table sources are numbered)
   const ledger = document.getElementById('sourceLedger');
   if (CITE && CITE.list.length) {
-    ledger.innerHTML = `<div class="ledger"><div class="ledger-title">📎 Sources <span class="node-badge">${CITE.list.length}</span></div>
+    ledger.innerHTML = `<div class="ledger"><div class="ledger-title">${t('sources_label')} <span class="node-badge">${CITE.list.length}</span></div>
       ${CITE.list.map(e => `<div class="ledger-item"><span class="ledger-n">${e.n}</span>
         <div class="ledger-body"><div class="ledger-label"><a href="${escapeHtml(e.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(e.label)}</a></div>
         <div class="ledger-url"><img src="https://www.google.com/s2/favicons?domain=${encodeURIComponent(domainOf(e.url))}&sz=64" onerror="this.style.display='none'">${escapeHtml(e.url)}</div></div></div>`).join('')}
@@ -1679,7 +1820,7 @@ async function openDetail(row) {
   document.getElementById('backToLibrary').addEventListener('click', () => { showView('library'); loadLibrary(); });
   document.getElementById('editBriefBtn').addEventListener('click', () => openEditor(row));
   const wp = document.getElementById('writePieceBtn');
-  if (pieceFromTree(row.parsed_sections)) wp.textContent = '✍ Continue your piece';
+  if (pieceFromTree(row.parsed_sections)) wp.textContent = t('continue_piece');
   wp.addEventListener('click', () => enterCompose(row));
   document.getElementById('copyBriefBtn').addEventListener('click', () => copyBriefMarkdown(row, promoted, links));
   document.getElementById('copilotFromBrief').addEventListener('click', () => openCopilotPopup(briefToMarkdown(row, promoted, links)));
@@ -1789,7 +1930,7 @@ function wireMarkClicks() {
 function renderAnnoBox() {
   const box = document.getElementById(annoMode === 'desk' ? 'deskAnnoBox' : 'annoBox'); if (!box) return;
   if (!currentAnnotations.length) { box.innerHTML = ''; return; }
-  box.innerHTML = `<div class="anno-box"><div class="anno-box-title">🖍 Editor annotations <span class="anno-box-count">${currentAnnotations.length}</span></div>
+  box.innerHTML = `<div class="anno-box"><div class="anno-box-title">${t('anno_box_title')} <span class="anno-box-count">${currentAnnotations.length}</span></div>
     ${currentAnnotations.map(a => `<div class="anno-item" data-jump="${a.id}">
       <div class="anno-mark"></div>
       <div class="anno-body"><div class="anno-quote">${escapeHtml(a.quote)}</div>
@@ -1922,23 +2063,16 @@ function persistAnnotations() {
 
 /* ==================== Composer: Write your piece ==================== */
 let composePiece = null, composeBriefId = null, COMPOSE_MATERIALS = {}, matSeq = 0, blkSeq = 0, composeSaveTimer = null;
-const KIND_LABEL = {
-  angle: { i: '★', l: 'Angle' }, source: { i: '🔗', l: 'Source' }, person: { i: '👤', l: 'Person' },
-  keyword: { i: '🏷️', l: 'Keyword' }, table: { i: '▦', l: 'Data' }, text: { i: '¶', l: 'Excerpt' }, section: { i: '❖', l: 'Section' },
-  annotation: { i: '🖍', l: 'Editor note' },
-};
+function KIND_LABEL_OF(kind) {
+  const map = { angle: 'k_angle', source: 'k_source', person: 'k_person', keyword: 'k_keyword', table: 'k_data', text: 'k_excerpt', section: 'k_section', annotation: 'k_note' };
+  const icons = { angle: '★', source: '🔗', person: '👤', keyword: '🏷️', table: '▦', text: '¶', section: '❖', annotation: '🖍' };
+  return { i: icons[kind] || icons.text, l: t(map[kind] || 'k_excerpt') };
+}
+const KIND_LABEL = new Proxy({}, { get: (_, kind) => KIND_LABEL_OF(kind) });
 function pieceFromTree(tree) { const n = (Array.isArray(tree) ? tree : []).find(x => x && x._editor === 'piece'); return n && n.piece ? n.piece : null; }
 function materialQuestion(kind) {
-  switch (kind) {
-    case 'angle':   return 'How does this angle shape your story — and what is the strongest version of it?';
-    case 'source':  return 'What does this source establish, and how will you attribute it?';
-    case 'person':  return "What is this person's role or stake — and will you seek comment?";
-    case 'keyword': return 'How will you work this term into the piece naturally?';
-    case 'table':   return 'What does this data point mean for your reader?';
-    case 'section': return 'What is the essential point here, in your own words?';
-    case 'annotation': return "What does this editor's note ask you to address?";
-    default:        return 'How will you use this in your piece?';
-  }
+  const map = { angle: 'q_angle', source: 'q_source', person: 'q_person', keyword: 'q_keyword', table: 'q_table', section: 'q_section', annotation: 'q_annotation' };
+  return t(map[kind] || 'q_default');
 }
 function regMat(m) { const id = 'm' + (matSeq++); COMPOSE_MATERIALS[id] = m; return id; }
 
@@ -1954,32 +2088,32 @@ function enterCompose(row) {
     <div class="compose-wrap">
       <div class="compose-col compose-left">
         <div class="compose-bar">
-          <div><div class="ml-topic">${escapeHtml(row.topic)}</div><div class="ml-hint">Open a section, drag material into your piece →</div></div>
-          <button class="btn ghost sm" id="composeBack">← Back to brief</button>
+          <div><div class="ml-topic">${escapeHtml(row.topic)}</div><div class="ml-hint">${t('compose_hint')}</div></div>
+          <button class="btn ghost sm" id="composeBack">${t('back_to_brief')}</button>
         </div>
         <div id="materialLibrary">${composeMaterialsHtml(row)}</div>
       </div>
       <div class="compose-col compose-right">
-        <div class="eyebrow" style="margin-bottom:12px">Your piece <span class="role-tag">· write freely, backed by the brief</span></div>
-        <input class="cmp-headline" id="cmpHeadline" placeholder="Headline" value="${escapeHtml(composePiece.headline || '')}">
-        <input class="cmp-standfirst" id="cmpStandfirst" placeholder="Standfirst / dek — the one-sentence promise of the story" value="${escapeHtml(composePiece.standfirst || '')}">
-        <div class="cmp-index-wrap"><div class="cmp-index-label">Materials in use</div><div class="cmp-index" id="cmpIndex"></div></div>
+        <div class="eyebrow" style="margin-bottom:12px">${t('your_piece')} <span class="role-tag">${t('your_piece_role')}</span></div>
+        <input class="cmp-headline" id="cmpHeadline" placeholder="${t('headline_ph')}" value="${escapeHtml(composePiece.headline || '')}">
+        <input class="cmp-standfirst" id="cmpStandfirst" placeholder="${t('standfirst_ph')}" value="${escapeHtml(composePiece.standfirst || '')}">
+        <div class="cmp-index-wrap"><div class="cmp-index-label">${t('materials_in_use')}</div><div class="cmp-index" id="cmpIndex"></div></div>
         <div class="cmp-body" id="cmpBody"></div>
         <div class="cmp-add">
-          <button class="btn sm" id="cmpAddPara">＋ Paragraph</button>
+          <button class="btn sm" id="cmpAddPara">${t('add_paragraph')}</button>
         </div>
         <div class="final-wrap">
-          <div class="eyebrow" style="margin:26px 0 10px">Final look <span class="role-tag">· updates live as you write</span></div>
+          <div class="eyebrow" style="margin:26px 0 10px">${t('final_look')} <span class="role-tag">${t('final_look_role')}</span></div>
           <div class="final-preview" id="cmpFinal"></div>
           <div class="final-actions">
-            <button class="btn sm" id="cmpCopy">⧉ Copy text</button>
-            <button class="btn sm" id="cmpExportDoc">⬇ Export .doc</button>
-            <button class="btn sm" id="cmpExportPdf">⬇ Export .pdf</button>
+            <button class="btn sm" id="cmpCopy">${t('copy_text')}</button>
+            <button class="btn sm" id="cmpExportDoc">${t('export_doc')}</button>
+            <button class="btn sm" id="cmpExportPdf">${t('export_pdf')}</button>
           </div>
         </div>
         <div class="cmp-foot">
           <span class="cmp-wordcount" id="cmpWords">0 words</span>
-          <span class="cmp-savestate" id="cmpSave">Draft saved</span>
+          <span class="cmp-savestate" id="cmpSave">${t('draft_saved')}</span>
         </div>
       </div>
     </div>`;
@@ -2016,7 +2150,7 @@ function composeMaterialsHtml(row) {
       });
       body += accSub(meta.icon || '📌', meta.label, items.length, rows);
     });
-    html += accWrap('★', 'Promoted material', promoted.length, body, true);
+    html += accWrap('★', t('promoted_material'), promoted.length, body, true);
   }
 
   if (annotations.length) {
@@ -2025,7 +2159,7 @@ function composeMaterialsHtml(row) {
       const mid = regMat({ kind: 'annotation', text: a.quote, note: a.comment || '', audio: a.audio || null });
       rows += matRow(mid, '🖍', a.quote, a.comment);
     });
-    html += accWrap('🖍', 'Editor annotations', annotations.length, rows, true);
+    html += accWrap('🖍', t('editor_annotations'), annotations.length, rows, true);
   }
 
   let briefBody = '', briefCount = 0;
@@ -2039,7 +2173,7 @@ function composeMaterialsHtml(row) {
     if (n.children) walk(n.children);
   });
   walk(sections);
-  if (briefBody) html += accWrap('📄', 'From the brief', briefCount, briefBody, false);
+  if (briefBody) html += accWrap('📄', t('from_brief'), briefCount, briefBody, false);
 
   if (!html) html = `<div class="ml-acc-empty">No material to drag in yet — promote items or leave annotations from the brief view first.</div>`;
   return html;
@@ -2084,7 +2218,7 @@ function addMaterialBlock(mat) {
   renderComposerBody(); scheduleComposeSave();
   const blk = document.querySelector(`.blk[data-id="${id}"]`);
   if (blk) { blk.scrollIntoView({ behavior: 'smooth', block: 'center' }); const ta = blk.querySelector('.blk-answer'); if (ta) setTimeout(() => ta.focus(), 300); }
-  dashToast('Material added to your piece');
+  dashToast(t('material_added'));
 }
 
 function renderComposerBody() {
@@ -2092,9 +2226,9 @@ function renderComposerBody() {
   if (!composePiece.blocks.length) {
     body.innerHTML = `<div class="cmp-empty">
       <div class="cmp-empty-icon">✍</div>
-      <div class="cmp-empty-title">This is your piece — write it freely</div>
-      <div class="cmp-empty-sub">Material on the left is optional backup. Drag a piece in when you want a source, a quote, or an editor's note to build on — or just start typing your own paragraph.</div>
-      <button class="btn sm primary" id="cmpAddParaEmpty">＋ Start a paragraph</button>
+      <div class="cmp-empty-title">${t('cmp_empty_title')}</div>
+      <div class="cmp-empty-sub">${t('cmp_empty_sub')}</div>
+      <button class="btn sm primary" id="cmpAddParaEmpty">${t('start_paragraph')}</button>
     </div>`;
     const addBtn = document.getElementById('cmpAddParaEmpty');
     if (addBtn) addBtn.addEventListener('click', addParagraphBlock);
@@ -2113,13 +2247,13 @@ function renderComposerBody() {
           ${b.audio ? `<audio class="anno-audio" controls preload="none" src="${b.audio}"></audio>` : ''}
           <div class="blk-q">${escapeHtml(b.question)}</div>
         </div>
-        <textarea class="blk-answer" data-id="${b.id}" placeholder="Write this passage in your own words…">${escapeHtml(b.answer || '')}</textarea>
+        <textarea class="blk-answer" data-id="${b.id}" placeholder="${t('write_passage_ph')}">${escapeHtml(b.answer || '')}</textarea>
         <button class="blk-copilot" data-bcopilot="${b.id}" title="Ask Copilot about this material in context">🤖</button>
       </div>` : `
       <div class="blk blk-text" data-id="${b.id}">
-        <div class="blk-head"><span class="kind-chip">¶ Paragraph</span>
+        <div class="blk-head"><span class="kind-chip">${t('k_paragraph')}</span>
           <div class="blk-tools"><button class="mini-icon-btn" data-bmove="up" data-id="${b.id}">↑</button><button class="mini-icon-btn" data-bmove="down" data-id="${b.id}">↓</button><button class="mini-icon-btn danger" data-brem="${b.id}">✕</button></div></div>
-        <textarea class="blk-answer" data-id="${b.id}" placeholder="Write a paragraph…">${escapeHtml(b.answer || '')}</textarea>
+        <textarea class="blk-answer" data-id="${b.id}" placeholder="${t('write_paragraph_ph')}">${escapeHtml(b.answer || '')}</textarea>
       </div>`).join('');
     body.querySelectorAll('.blk-answer').forEach(ta => ta.addEventListener('input', () => {
       const b = composePiece.blocks.find(x => x.id === ta.getAttribute('data-id')); if (b) { b.answer = ta.value; scheduleComposeSave(); updateWordCount(); renderComposerIndex(); renderFinalPreview(); }
@@ -2148,7 +2282,7 @@ function renderComposerBody() {
 function renderFinalPreview() {
   const el = document.getElementById('cmpFinal'); if (!el) return;
   const hasContent = (composePiece.headline || '').trim() || (composePiece.standfirst || '').trim() || composePiece.blocks.some(b => (b.answer || '').trim());
-  if (!hasContent) { el.innerHTML = `<div class="final-empty">Your finished piece — headline, standfirst, and body, in order — will take shape here as you write. Material context stays out; only your own words appear.</div>`; return; }
+  if (!hasContent) { el.innerHTML = `<div class="final-empty">${t('final_empty')}</div>`; return; }
   let html = `<div class="final-doc">`;
   html += `<h1 class="final-headline">${escapeHtml(composePiece.headline || 'Untitled')}</h1>`;
   if ((composePiece.standfirst || '').trim()) html += `<p class="final-standfirst">${escapeHtml(composePiece.standfirst)}</p>`;
@@ -2159,11 +2293,22 @@ function renderFinalPreview() {
   html += `</div>`;
   el.innerHTML = html;
 }
+function briefSnapshot(rowRef) {
+  if (!rowRef) return '';
+  const nodes = visibleNodes(rowRef.parsed_sections);
+  let found = '';
+  const walkSnap = (arr) => { for (const n of arr) { if (found) return; if (n.heading && /snapshot|summary/i.test(n.heading) && n.paragraph) { found = n.paragraph; return; } if (n.children) walkSnap(n.children); } };
+  walkSnap(nodes);
+  if (!found) { const walk2 = (arr) => { for (const n of arr) { if (found) return; if (n.paragraph) { found = n.paragraph; return; } if (n.children) walk2(n.children); } }; walk2(nodes); }
+  return (found || '').slice(0, 600);
+}
 function buildMaterialCopilotPrompt(b) {
   const rowRef = LIBRARY_CACHE.find(r => r.id === composeBriefId) || detailRow;
   const topic = rowRef ? rowRef.topic : 'this story';
+  const snapshot = briefSnapshot(rowRef);
   const kind = (KIND_LABEL[b.kind] || KIND_LABEL.text).l;
   let p = `I'm a Radio Farda journalist writing a piece on: "${topic}".\n\n`;
+  if (snapshot) p += `Brief snapshot (so you have the full story context, not just this fragment): ${snapshot}\n\n`;
   if ((composePiece.headline || '').trim()) p += `Working headline: ${composePiece.headline}\n`;
   if ((composePiece.standfirst || '').trim()) p += `Standfirst: ${composePiece.standfirst}\n`;
   p += `\nI'm considering using this ${kind} from the brief:\n"${b.text}"\n`;
@@ -2175,7 +2320,7 @@ function buildMaterialCopilotPrompt(b) {
 function exportPieceDoc() {
   renderFinalPreview();
   const bodyHtml = document.getElementById('cmpFinal').querySelector('.final-doc');
-  if (!bodyHtml) { dashToast('Write something first'); return; }
+  if (!bodyHtml) { dashToast(t('write_first')); return; }
   const title = escapeHtml(composePiece.headline || 'Untitled');
   const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${title}</title>
     <style>body{font-family:Georgia,'Times New Roman',serif;line-height:1.6;color:#1A3948;max-width:680px;margin:40px auto;}
@@ -2185,22 +2330,22 @@ function exportPieceDoc() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a'); a.href = url; a.download = `${(composePiece.headline || 'piece').replace(/[^\w\-]+/g, '_').slice(0, 60) || 'piece'}.doc`;
   document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
-  dashToast('Exported as .doc');
+  dashToast(t('exported_doc'));
 }
 function exportPiecePdf() {
   renderFinalPreview();
   const bodyHtml = document.getElementById('cmpFinal').querySelector('.final-doc');
-  if (!bodyHtml) { dashToast('Write something first'); return; }
+  if (!bodyHtml) { dashToast(t('write_first')); return; }
   const title = escapeHtml(composePiece.headline || 'Untitled');
   const w = window.open('', '_blank');
-  if (!w) { dashToast('Allow pop-ups to export as PDF'); return; }
+  if (!w) { dashToast(t('allow_popups')); return; }
   w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${title}</title>
     <style>body{font-family:Georgia,'Times New Roman',serif;line-height:1.6;color:#1A3948;max-width:680px;margin:40px auto;padding:0 20px;}
     h1{font-size:26px;margin-bottom:6px;} .final-standfirst{font-style:italic;color:#555;margin-bottom:20px;} p{margin:0 0 14px;}</style>
     </head><body>${bodyHtml.outerHTML}</body></html>`);
   w.document.close();
   setTimeout(() => { try { w.focus(); w.print(); } catch (e) {} }, 400);
-  dashToast('Opening print dialog — choose "Save as PDF"');
+  dashToast(t('exported_pdf'));
 }
 function addParagraphBlock() {
   composePiece.blocks.push({ id: 'b' + (blkSeq++), type: 'text', answer: '' });
@@ -2231,10 +2376,10 @@ function compilePiece() {
   composePiece.blocks.forEach(b => { const a = (b.answer || '').trim(); if (a) out += a + '\n\n'; });
   return out.trim();
 }
-function copyPiece() { navigator.clipboard.writeText(compilePiece()).then(() => dashToast('Piece copied as Markdown')).catch(() => dashToast('Copy failed')); }
+function copyPiece() { navigator.clipboard.writeText(compilePiece()).then(() => dashToast(t('copied_md'))).catch(() => dashToast(t('copy_failed'))); }
 
 function scheduleComposeSave() {
-  const s = document.getElementById('cmpSave'); if (s) { s.textContent = 'Saving…'; s.classList.add('saving'); }
+  const s = document.getElementById('cmpSave'); if (s) { s.textContent = t('saving'); s.classList.add('saving'); }
   clearTimeout(composeSaveTimer); composeSaveTimer = setTimeout(flushComposeSave, 900);
 }
 function flushComposeSave() {
@@ -2248,8 +2393,8 @@ function flushComposeSave() {
   rowRef.parsed_sections = ps;
   if (detailRow && detailRow.id === composeBriefId) detailRow.parsed_sections = ps;
   sbUpdate('dna_agent_briefs', composeBriefId, { parsed_sections: ps })
-    .then(() => { const s = document.getElementById('cmpSave'); if (s) { s.textContent = 'Draft saved'; s.classList.remove('saving'); } })
-    .catch(err => { const s = document.getElementById('cmpSave'); if (s) { s.textContent = 'Save failed'; s.classList.remove('saving'); } dashToast('Draft save failed: ' + err.message); });
+    .then(() => { const s = document.getElementById('cmpSave'); if (s) { s.textContent = t('draft_saved'); s.classList.remove('saving'); } })
+    .catch(err => { const s = document.getElementById('cmpSave'); if (s) { s.textContent = t('save_failed'); s.classList.remove('saving'); } dashToast(t('save_failed') + ': ' + err.message); });
 }
 
 /* ---------- Markdown export ---------- */
@@ -2291,7 +2436,7 @@ function openCopilotPopup(promptText) {
     copilotWindowRef = window.open('https://m365.cloud.microsoft/chat/', 'pilotdesk_copilot', `width=${w},height=${h},left=${left},top=${top},noopener,noreferrer`);
     if (copilotWindowRef) copilotWindowRef.focus();
   }
-  dashToast(promptText ? 'Copied — paste into Copilot' : 'Copilot opened');
+  dashToast(promptText ? t('copied_paste') : t('copilot_opened'));
 }
 document.getElementById('copilotFab').addEventListener('click', () => openCopilotPopup());
 
@@ -2323,6 +2468,7 @@ Tensions in the Strait of Hormuz sharply escalated on July 7 after two commercia
 
 /* ---------- boot ---------- */
 document.getElementById('reviewTitle').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); e.target.blur(); } });
+applyLang();
 showView('library');
 loadLibrary();
 </script>
