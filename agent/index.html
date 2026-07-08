@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Agent Briefs Desk | DNA</title>
+<title>Briefs Desk | DNA</title>
 <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&family=Noto+Sans:wght@400;500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -405,6 +405,10 @@ mark.anno.pulse { animation: markPulse 1200ms var(--eo); }
 .anno-del:hover { background: var(--flame); color: #fff; }
 .anno-pop { width: 280px; }
 .anno-pop .pop-note { min-height: 70px; }
+.voice-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.rec-time { font-size: 11px; color: var(--soft); font-variant-numeric: tabular-nums; }
+.voice-preview { width: 100%; height: 34px; margin-bottom: 10px; }
+.anno-audio { height: 32px; margin-top: 8px; max-width: 100%; }
 </style>
 </head>
 <body>
@@ -413,14 +417,14 @@ mark.anno.pulse { animation: markPulse 1200ms var(--eo); }
   <div class="hdr-brand" id="brandHome">
     <span class="hdr-icon">🧬</span>
     <div>
-      <div class="hdr-title">Agent Briefs Desk</div>
-      <div class="hdr-sub">DNA · the operating table between agent, editor & reporter</div>
+      <div class="hdr-title">Briefs Desk</div>
+      <div class="hdr-sub">DNA · from raw research to a reporter-ready brief</div>
     </div>
   </div>
   <div class="pipeline" id="pipeline">
     <div class="pipe-step" data-step="library"><span class="pipe-dot"></span><div><div>Library</div><div class="pipe-role">Newsroom</div></div></div>
     <span class="pipe-arrow">→</span>
-    <div class="pipe-step" data-step="paste"><span class="pipe-dot"></span><div><div>Intake</div><div class="pipe-role">Agent</div></div></div>
+    <div class="pipe-step" data-step="paste"><span class="pipe-dot"></span><div><div>Intake</div><div class="pipe-role">Research</div></div></div>
     <span class="pipe-arrow">→</span>
     <div class="pipe-step" data-step="review"><span class="pipe-dot"></span><div><div>Desk</div><div class="pipe-role">Editor</div></div></div>
     <span class="pipe-arrow">→</span>
@@ -437,7 +441,7 @@ mark.anno.pulse { animation: markPulse 1200ms var(--eo); }
   <div class="view" id="viewLibrary">
     <div class="lib-head">
       <div class="eyebrow">Newsroom library <span class="role-tag">· shared knowledge base</span></div>
-      <h1 class="lib-title">Every agent answer, curated into a brief</h1>
+      <h1 class="lib-title">Every research answer, curated into a brief</h1>
       <p class="lib-tagline">Reporters run the research. Editors promote what matters, attach the sources, and rank the angles. What lands here is desk-ready.</p>
       <div class="lib-controls">
         <input type="text" class="lib-search" id="librarySearch" placeholder="Search topics…">
@@ -450,11 +454,11 @@ mark.anno.pulse { animation: markPulse 1200ms var(--eo); }
 
   <!-- INTAKE -->
   <div class="view" id="viewPaste">
-    <div class="eyebrow" style="margin-bottom:14px;">Intake <span class="role-tag">· agent → desk</span></div>
+    <div class="eyebrow" style="margin-bottom:14px;">Intake <span class="role-tag">· research → desk</span></div>
     <div class="intake-wrap">
       <div class="panel">
-        <div class="panel-title">Drop the agent answer in</div>
-        <div class="panel-desc">Paste a full /agentmode response from any model. DNA detects headings, tables, lists and links, and hands you a structured draft to curate.</div>
+        <div class="panel-title">Drop the research in</div>
+        <div class="panel-desc">Paste a full research answer from any AI model. DNA detects headings, tables, lists and links, and hands you a structured draft to curate.</div>
         <div class="field">
           <label>Topic / headline</label>
           <input type="text" id="pasteTopic" placeholder="e.g. Strait of Hormuz escalation — July 7–8">
@@ -472,7 +476,7 @@ mark.anno.pulse { animation: markPulse 1200ms var(--eo); }
           </div>
         </div>
         <div class="field" style="margin-bottom:8px;">
-          <label>Agent answer</label>
+          <label>Research answer</label>
           <textarea class="paste-textarea" id="pasteText" placeholder="Paste the full response here — markdown headings, tables, bullet lists and URLs are all detected automatically."></textarea>
         </div>
         <div class="paste-foot">
@@ -513,7 +517,10 @@ mark.anno.pulse { animation: markPulse 1200ms var(--eo); }
           <div class="spine-nav" id="deskSpineNav"></div>
         </div>
       </div>
-      <div id="reviewSections"></div>
+      <div>
+        <div id="deskAnnoBox"></div>
+        <div id="reviewSections"></div>
+      </div>
       <div class="editor-panel">
         <div class="desk-meter">
           <div class="desk-meter-title">Brief readiness</div>
@@ -593,7 +600,7 @@ mark.anno.pulse { animation: markPulse 1200ms var(--eo); }
 <div class="dash-toast" id="dashToast"></div>
 
 <script>
-/* ==================== Agent Briefs Desk ==================== */
+/* ==================== Briefs Desk ==================== */
 const SUPABASE_URL = 'https://yiewnykbchfadipznpet.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlpZXdueWtiY2hmYWRpcHpucGV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxNzM3NTUsImV4cCI6MjA5NDc0OTc1NX0.utnlpToZGH7hno0QTXlrtWvzKDgP28Gv3Je7BBIRwmM';
 
@@ -778,6 +785,8 @@ function visibleNodes(tree) { return (Array.isArray(tree) ? tree : []).filter(n 
 
 /* ==================== State ==================== */
 let currentTree = [], currentPromoted = [], currentLinks = [], currentBriefId = null, promoIdSeq = 0, editingId = null, detailRow = null, currentAnnotations = [];
+let annoContainerId = 'showcaseSections', annoMode = 'detail';
+function annotationsFromTree(tree) { const n = (Array.isArray(tree) ? tree : []).find(x => x && x._editor === 'annotations'); return n && Array.isArray(n.annotations) ? n.annotations.slice() : []; }
 let TABLES = {}, tableSeq = 0;
 function registerTable(tbl) { const id = 'tbl' + (tableSeq++); TABLES[id] = tbl; return id; }
 
@@ -826,7 +835,7 @@ document.getElementById('parseBtn').addEventListener('click', () => {
   const topic = document.getElementById('pasteTopic').value.trim();
   const text = document.getElementById('pasteText').value.trim();
   if (!topic) return dashToast('Add a topic first');
-  if (!text) return dashToast('Paste the agent answer first');
+  if (!text) return dashToast('Paste the research answer first');
   const p = document.getElementById('parseProgress');
   p.classList.add('active'); p.textContent = `Reading ${text.split('\n').length} lines…`;
   setTimeout(() => {
@@ -834,7 +843,7 @@ document.getElementById('parseBtn').addEventListener('click', () => {
     const st = collectStats(currentTree);
     p.textContent = `Found ${st.sections} sections · ${st.items} points · ${st.sources} sources`;
     setTimeout(() => {
-      currentPromoted = []; currentLinks = []; currentBriefId = null; editingId = null; resetSearchIntel(); updateSaveMode();
+      currentPromoted = []; currentLinks = []; currentBriefId = null; editingId = null; currentAnnotations = []; resetSearchIntel(); updateSaveMode();
       p.classList.remove('active'); p.textContent = '';
       document.getElementById('reviewTitle').textContent = topic;
       renderReview(); showView('review');
@@ -895,6 +904,7 @@ function hydrateTables(root) {
 /* ==================== Desk (review) rendering ==================== */
 function renderReview() {
   citeStop(); // desk chips show domain only, no numbers
+  annoMode = 'desk'; annoContainerId = 'reviewSections';
   TABLES = {}; tableSeq = 0;
   const wrap = document.getElementById('reviewSections');
   const vis = visibleNodes(currentTree);
@@ -903,6 +913,7 @@ function renderReview() {
   wireTreeListeners(wrap);
   renderStatStrip(); renderPromoBoxes(); renderLinksList(); renderPeopleList(); renderSearchIntel(); renderMeter();
   buildSpine('deskSpineNav', vis, 'dsec-', 'reviewSections');
+  restoreAnnotations(); wireAnnotationSelection(); renderAnnoBox();
 }
 function renderStatStrip() {
   const s = collectStats(visibleNodes(currentTree));
@@ -1279,6 +1290,7 @@ function openEditor(row) {
   currentLinks = Array.isArray(row.manual_links) ? clone(row.manual_links) : [];
   promoIdSeq = 1 + currentPromoted.reduce((m, p) => { const n = parseInt(String(p.id).replace(/\D/g, ''), 10) || 0; return Math.max(m, n); }, 0);
   loadSearchIntelFromTree();
+  currentAnnotations = annotationsFromTree(currentTree);
   document.getElementById('reviewTitle').textContent = row.topic || '';
   document.getElementById('pasteEditor').value = row.editor_name || '';
   document.getElementById('pasteSourceLlm').value = row.source_llm || 'Other';
@@ -1352,7 +1364,7 @@ function renderLibrary(rows) {
   const grid = document.getElementById('briefGrid');
   document.getElementById('libCount').textContent = `${rows.length} brief${rows.length===1?'':'s'}`;
   if (!rows.length) {
-    grid.innerHTML = `<div class="lib-empty"><div class="lib-empty-icon">🧬</div><h3>No briefs yet</h3><p>Take any agent-mode answer and turn it into a desk-ready brief the whole newsroom can use.</p><button class="btn primary" onclick="document.getElementById('navPaste').click()">＋ New brief</button></div>`;
+    grid.innerHTML = `<div class="lib-empty"><div class="lib-empty-icon">🧬</div><h3>No briefs yet</h3><p>Take any AI research answer and turn it into a desk-ready brief the whole newsroom can use.</p><button class="btn primary" onclick="document.getElementById('navPaste').click()">＋ New brief</button></div>`;
     return;
   }
   grid.innerHTML = rows.map(r => {
@@ -1463,7 +1475,7 @@ function detailNodeHtml(node, path) {
 }
 
 async function openDetail(row) {
-  currentBriefId = row.id; detailRow = row;
+  currentBriefId = row.id; detailRow = row; annoMode = 'detail'; annoContainerId = 'showcaseSections';
   citeStart(); TABLES = {}; tableSeq = 0;
   const el = document.getElementById('viewDetail');
   const allSections = Array.isArray(row.parsed_sections) ? row.parsed_sections : [];
@@ -1581,26 +1593,43 @@ async function openDetail(row) {
 }
 
 /* ==================== Annotations: highlight + comment ==================== */
+function annoSkipped(node, root) {
+  let el = node.parentElement;
+  while (el && el !== root) { if (el.classList && el.classList.contains('promote-trigger')) return true; el = el.parentElement; }
+  return false;
+}
+function cleanOffsetOf(root, container, offset) {
+  if (container.nodeType !== 3) { const pre = document.createRange(); pre.selectNodeContents(root); try { pre.setEnd(container, offset); } catch (e) {} return pre.toString().length; }
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
+  let len = 0, node;
+  while ((node = walker.nextNode())) {
+    if (node === container) { if (!annoSkipped(node, root)) len += offset; return len; }
+    if (!annoSkipped(node, root)) len += node.nodeValue.length;
+  }
+  return len;
+}
+function cleanTextLength(root) { const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null); let l = 0, n; while ((n = w.nextNode())) { if (!annoSkipped(n, root)) l += n.nodeValue.length; } return l; }
 function getSelectionInfo() {
   const sel = window.getSelection();
   if (!sel || sel.isCollapsed || sel.rangeCount === 0) return null;
   const range = sel.getRangeAt(0);
-  const cont = document.getElementById('showcaseSections');
+  const cont = document.getElementById(annoContainerId);
   if (!cont || !cont.contains(range.commonAncestorContainer)) return null;
   if (range.toString().trim().length < 2) return null;
   let el = range.startContainer; el = el.nodeType === 3 ? el.parentElement : el;
   const sectionEl = el && el.closest('[id^="dsec-"]'); if (!sectionEl) return null;
-  const pre = document.createRange(); pre.selectNodeContents(sectionEl);
-  try { pre.setEnd(range.startContainer, range.startOffset); } catch (e) { return null; }
-  const start = pre.toString().length, end = start + range.toString().length;
-  return { range, sectionEl, sectionId: sectionEl.id, start, end, quote: range.toString() };
+  const start = cleanOffsetOf(sectionEl, range.startContainer, range.startOffset);
+  const end = cleanOffsetOf(sectionEl, range.endContainer, range.endOffset);
+  if (end <= start) return null;
+  return { range, sectionEl, sectionId: sectionEl.id, start, end, quote: range.toString().replace(/\s*★\s*promote\s*/g, '').replace(/★/g, '').trim() };
 }
 function charRangeToDomRange(root, start, end) {
-  const total = root.textContent.length;
+  const total = cleanTextLength(root);
   start = Math.max(0, Math.min(start, total)); end = Math.max(start, Math.min(end, total));
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
   const range = document.createRange(); let idx = 0, node, started = false;
   while ((node = walker.nextNode())) {
+    if (annoSkipped(node, root)) continue;
     const len = node.nodeValue.length;
     if (!started && start <= idx + len) { range.setStart(node, start - idx); started = true; }
     if (started && end <= idx + len) { range.setEnd(node, end - idx); return range; }
@@ -1612,7 +1641,7 @@ function wrapRange(range, id, hasComment) {
   const scope = range.commonAncestorContainer.nodeType === 3 ? range.commonAncestorContainer.parentNode : range.commonAncestorContainer;
   const iter = document.createNodeIterator(scope, NodeFilter.SHOW_TEXT, null);
   const nodes = []; let n;
-  while ((n = iter.nextNode())) { if (range.intersectsNode(n)) nodes.push(n); }
+  while ((n = iter.nextNode())) { if (range.intersectsNode(n) && !annoSkipped(n, document.getElementById(annoContainerId) || scope)) nodes.push(n); }
   nodes.forEach(node => {
     if (node.parentElement && node.parentElement.tagName === 'MARK') return;
     const r = document.createRange(); r.selectNodeContents(node);
@@ -1632,7 +1661,7 @@ function restoreAnnotations() {
   currentAnnotations.forEach(a => {
     const sec = document.getElementById(a.sectionId); if (!sec) return;
     const range = charRangeToDomRange(sec, a.start, a.end); if (!range) return;
-    wrapRange(range, a.id, !!(a.comment && a.comment.trim()));
+    wrapRange(range, a.id, !!((a.comment && a.comment.trim()) || a.audio));
   });
   wireMarkClicks();
 }
@@ -1643,15 +1672,16 @@ function wireMarkClicks() {
   });
 }
 function renderAnnoBox() {
-  const box = document.getElementById('annoBox'); if (!box) return;
+  const box = document.getElementById(annoMode === 'desk' ? 'deskAnnoBox' : 'annoBox'); if (!box) return;
   if (!currentAnnotations.length) { box.innerHTML = ''; return; }
   box.innerHTML = `<div class="anno-box"><div class="anno-box-title">🖍 Editor annotations <span class="anno-box-count">${currentAnnotations.length}</span></div>
     ${currentAnnotations.map(a => `<div class="anno-item" data-jump="${a.id}">
       <div class="anno-mark"></div>
       <div class="anno-body"><div class="anno-quote">${escapeHtml(a.quote)}</div>
-        ${a.comment && a.comment.trim() ? `<div class="anno-comment">${linkify(a.comment)}</div>` : ''}</div>
+        ${a.comment && a.comment.trim() ? `<div class="anno-comment">${linkify(a.comment)}</div>` : ''}
+        ${a.audio ? `<audio class="anno-audio" controls preload="none" src="${a.audio}"></audio>` : ''}</div>
       <button class="anno-del" data-adel="${a.id}" title="Remove">✕</button></div>`).join('')}</div>`;
-  box.querySelectorAll('[data-jump]').forEach(el => el.addEventListener('click', e => { if (e.target.closest('[data-adel]')) return; jumpToAnno(el.getAttribute('data-jump')); }));
+  box.querySelectorAll('[data-jump]').forEach(el => el.addEventListener('click', e => { if (e.target.closest('[data-adel]') || e.target.closest('.anno-audio')) return; jumpToAnno(el.getAttribute('data-jump')); }));
   box.querySelectorAll('[data-adel]').forEach(el => el.addEventListener('click', e => {
     e.stopPropagation(); const id = el.getAttribute('data-adel');
     unwrapAnno(id); currentAnnotations = currentAnnotations.filter(x => x.id !== id);
@@ -1665,7 +1695,7 @@ function jumpToAnno(id) {
   document.querySelectorAll(`mark.anno[data-anno-id="${id}"]`).forEach(m => { m.classList.add('active', 'pulse'); setTimeout(() => m.classList.remove('pulse'), 1200); });
 }
 function wireAnnotationSelection() {
-  const cont = document.getElementById('showcaseSections'); if (!cont || cont._annoWired) return; cont._annoWired = true;
+  const cont = document.getElementById(annoContainerId); if (!cont || cont._annoWired) return; cont._annoWired = true;
   cont.addEventListener('mouseup', () => setTimeout(showSelToolbar, 10));
 }
 function showSelToolbar() {
@@ -1692,37 +1722,84 @@ document.getElementById('selToolbar').addEventListener('mousedown', e => e.preve
 document.getElementById('selToolbar').querySelectorAll('[data-sel]').forEach(b => b.addEventListener('click', () => createAnnotation(b.getAttribute('data-sel') === 'comment')));
 window.addEventListener('scroll', () => { if (document.getElementById('selToolbar').classList.contains('show')) hideSelToolbar(); });
 
-let annoPopId = null;
+let annoPopId = null, annoRec = null, annoRecChunks = [], annoRecTimer = null;
 function openAnnoComment(id, anchorEl) {
   const ann = currentAnnotations.find(x => x.id === id); if (!ann) return;
   annoPopId = id;
+  let pendingAudio = ann.audio || null;
   const pop = document.getElementById('annoPop');
   pop.innerHTML = `<div class="pop-quote">${escapeHtml(ann.quote)}</div>
     <div class="pop-label">Note — optional, links allowed</div>
     <textarea class="pop-note" placeholder="Add a comment. Paste a URL to link it.">${escapeHtml(ann.comment || '')}</textarea>
+    <div class="pop-label">Voice note</div>
+    <div class="voice-row">
+      <button class="btn ghost sm" data-a="rec">● Record</button>
+      <span class="rec-time" data-a="time"></span>
+      <button class="mini-icon-btn danger" data-a="delvoice" style="${pendingAudio ? '' : 'display:none'}">remove</button>
+    </div>
+    <audio class="voice-preview" controls preload="none" style="${pendingAudio ? '' : 'display:none'}" ${pendingAudio ? `src="${pendingAudio}"` : ''}></audio>
     <div class="pop-actions"><button class="btn ghost sm" data-a="remove">Remove</button><button class="btn primary sm" data-a="save">Save note</button></div>`;
   pop.classList.add('show');
   const r = (anchorEl || document.body).getBoundingClientRect();
-  pop.style.left = Math.min(r.left + window.scrollX, window.innerWidth - 296) + 'px';
+  pop.style.left = Math.min(r.left + window.scrollX, window.innerWidth - 300) + 'px';
   pop.style.top = (r.bottom + window.scrollY + 6) + 'px';
   const ta = pop.querySelector('.pop-note'); ta.focus();
+  const recBtn = pop.querySelector('[data-a="rec"]'), timeEl = pop.querySelector('[data-a="time"]');
+  const preview = pop.querySelector('.voice-preview'), delVoice = pop.querySelector('[data-a="delvoice"]');
+
+  function stopRec() {
+    if (annoRec && annoRec.state !== 'inactive') annoRec.stop();
+    clearInterval(annoRecTimer); annoRecTimer = null;
+  }
+  recBtn.addEventListener('click', async () => {
+    if (annoRec && annoRec.state === 'recording') { stopRec(); return; }
+    if (!navigator.mediaDevices || !window.MediaRecorder) return dashToast('Recording not supported in this browser');
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      annoRecChunks = []; annoRec = new MediaRecorder(stream);
+      annoRec.ondataavailable = e => { if (e.data.size) annoRecChunks.push(e.data); };
+      annoRec.onstop = () => {
+        stream.getTracks().forEach(t => t.stop());
+        const blob = new Blob(annoRecChunks, { type: annoRec.mimeType || 'audio/webm' });
+        const reader = new FileReader();
+        reader.onload = () => { pendingAudio = String(reader.result); preview.src = pendingAudio; preview.style.display = ''; delVoice.style.display = ''; };
+        reader.readAsDataURL(blob);
+        recBtn.textContent = '● Record'; recBtn.classList.remove('primary');
+      };
+      annoRec.start();
+      recBtn.textContent = '■ Stop'; recBtn.classList.add('primary');
+      let sec = 0; timeEl.textContent = '0:00';
+      annoRecTimer = setInterval(() => { sec++; timeEl.textContent = `${Math.floor(sec/60)}:${String(sec%60).padStart(2,'0')}`; if (sec >= 120) stopRec(); }, 1000);
+    } catch (e) { dashToast('Microphone blocked — allow access to record'); }
+  });
+  delVoice.addEventListener('click', () => { pendingAudio = null; preview.style.display = 'none'; preview.removeAttribute('src'); delVoice.style.display = 'none'; timeEl.textContent = ''; });
+
   pop.querySelector('[data-a="save"]').addEventListener('click', () => {
-    ann.comment = ta.value.trim();
-    document.querySelectorAll(`mark.anno[data-anno-id="${id}"]`).forEach(m => m.classList.toggle('has-comment', !!ann.comment));
+    stopRec();
+    ann.comment = ta.value.trim(); ann.audio = pendingAudio || null;
+    const has = !!(ann.comment || ann.audio);
+    document.querySelectorAll(`mark.anno[data-anno-id="${id}"]`).forEach(m => m.classList.toggle('has-comment', has));
     renderAnnoBox(); persistAnnotations(); closeAnnoPop(); dashToast('Note saved');
   });
   pop.querySelector('[data-a="remove"]').addEventListener('click', () => {
-    unwrapAnno(id); currentAnnotations = currentAnnotations.filter(x => x.id !== id);
+    stopRec(); unwrapAnno(id); currentAnnotations = currentAnnotations.filter(x => x.id !== id);
     renderAnnoBox(); persistAnnotations(); closeAnnoPop(); dashToast('Annotation removed');
   });
   setTimeout(() => document.addEventListener('mousedown', annoOutside), 0);
 }
-function annoOutside(e) { const pop = document.getElementById('annoPop'); if (!pop.contains(e.target) && !(e.target.tagName === 'MARK')) closeAnnoPop(); }
+function annoOutside(e) { const pop = document.getElementById('annoPop'); if (!pop.contains(e.target) && !(e.target.tagName === 'MARK')) { if (annoRec && annoRec.state === 'recording') annoRec.stop(); clearInterval(annoRecTimer); closeAnnoPop(); } }
 function closeAnnoPop() { document.getElementById('annoPop').classList.remove('show'); document.removeEventListener('mousedown', annoOutside); annoPopId = null; }
+function annoNode() { return { _editor: 'annotations', heading: '', level: 0, type: 'text', children: [], items: [], table: null, paragraph: '', annotations: currentAnnotations }; }
 function persistAnnotations() {
+  if (annoMode === 'desk') {
+    // keep the hidden annotations node in the editing tree; saved when the editor clicks Update/Publish
+    currentTree = (currentTree || []).filter(n => !(n && n._editor === 'annotations'));
+    if (currentAnnotations.length) currentTree.push(annoNode());
+    return;
+  }
   if (!detailRow) return;
   let ps = Array.isArray(detailRow.parsed_sections) ? detailRow.parsed_sections.filter(n => !(n && n._editor === 'annotations')) : [];
-  if (currentAnnotations.length) ps = ps.concat([{ _editor: 'annotations', heading: '', level: 0, type: 'text', children: [], items: [], table: null, paragraph: '', annotations: currentAnnotations }]);
+  if (currentAnnotations.length) ps = ps.concat([annoNode()]);
   detailRow.parsed_sections = ps;
   const cached = LIBRARY_CACHE.find(r => r.id === detailRow.id); if (cached) cached.parsed_sections = ps;
   sbUpdate('dna_agent_briefs', detailRow.id, { parsed_sections: ps }).catch(err => dashToast('Save failed: ' + err.message));
