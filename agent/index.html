@@ -84,59 +84,100 @@ a { color: var(--teal2); }
 .paste-hint { font-size: 11.5px; color: var(--soft); margin-top: 6px; }
 
 /* ---- Review view ---- */
-.review-layout { display: grid; grid-template-columns: 1fr 320px; gap: 20px; align-items: start; }
+.review-layout { display: grid; grid-template-columns: 1fr 340px; gap: 20px; align-items: start; }
 @media (max-width: 900px) { .review-layout { grid-template-columns: 1fr; } }
-.section-card { background: var(--glass); backdrop-filter: blur(20px) saturate(1.8); -webkit-backdrop-filter: blur(20px) saturate(1.8);
-  border: 1px solid var(--glass-b); box-shadow: var(--gs), var(--gi); border-radius: 14px; padding: 16px 18px; margin-bottom: 12px; }
-.section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; cursor: pointer; }
-.section-title { font-size: 13px; font-weight: 700; color: var(--teal); display: flex; align-items: center; gap: 6px; }
-.section-type-badge { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--teal2);
-  background: rgba(36,80,106,0.08); padding: 2px 8px; border-radius: 100px; }
-.section-body { font-size: 13px; line-height: 1.7; color: var(--muted); }
-.section-body.collapsed { display: none; }
-.section-body ul { margin: 6px 0; padding-left: 20px; }
-.section-body li { margin-bottom: 4px; position: relative; padding-right: 26px; }
-.promote-btn { position: absolute; right: 0; top: 0; font-size: 10px; background: rgba(var(--inkC),0.06); border: none; border-radius: 6px;
-  padding: 2px 6px; cursor: pointer; color: var(--soft); }
-.promote-btn:hover { background: var(--flame); color: #fff; }
-.mtable { width: 100%; border-collapse: collapse; font-size: 12px; margin: 8px 0; }
-.mtable th { text-align: left; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.03em; color: var(--soft); padding: 6px 8px; border-bottom: 1px solid var(--border); }
-.mtable td { padding: 7px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
-.entity-chip { display: inline-block; font-size: 11.5px; background: rgba(36,80,106,0.08); color: var(--teal2); padding: 3px 10px; border-radius: 100px; margin: 2px 4px 2px 0; }
-.timeline-item { display: flex; gap: 10px; padding: 6px 0; border-left: 2px solid var(--border); padding-left: 14px; margin-left: 4px; position: relative; }
-.timeline-item::before { content: ''; position: absolute; left: -5px; top: 10px; width: 8px; height: 8px; border-radius: 50%; background: var(--flame); }
+.stat-strip { display: flex; gap: 18px; margin-bottom: 16px; flex-wrap: wrap; }
+.stat-pill { background: var(--glass); border: 1px solid var(--glass-b); border-radius: 100px; padding: 8px 16px; font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+.stat-pill b { font-family: var(--serif); font-size: 15px; color: var(--flame); }
 
-/* ---- Priority / editor layer (flame, always visible) ---- */
-.editor-panel { position: sticky; top: 90px; }
-.editor-box { background: rgba(255,84,0,0.05); border: 1.5px solid rgba(255,84,0,0.3); border-radius: 16px; padding: 16px; margin-bottom: 14px; }
-.editor-box-title { font-size: 12px; font-weight: 800; color: var(--flame); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
-.priority-item { background: #fff; border: 1px solid rgba(255,84,0,0.2); border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; font-size: 12.5px; }
-.priority-item-text { color: var(--teal); font-weight: 600; }
-.priority-item-note { font-size: 11px; color: var(--muted); margin-top: 4px; }
-.priority-item-actions { display: flex; gap: 4px; margin-top: 6px; }
+/* ---- Tree-style hierarchical sections ---- */
+.tree-node { position: relative; margin-bottom: 4px; }
+.tree-node[data-lvl="1"] { margin-top: 22px; }
+.tree-node[data-lvl="1"]:first-child { margin-top: 0; }
+.tree-children { margin-left: 20px; border-left: 2px solid var(--border); padding-left: 16px; margin-top: 6px; }
+.node-head { display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 10px 14px; border-radius: 12px;
+  background: var(--glass); backdrop-filter: blur(20px) saturate(1.8); -webkit-backdrop-filter: blur(20px) saturate(1.8);
+  border: 1px solid var(--glass-b); box-shadow: var(--gs), var(--gi); transition: background 140ms; }
+.tree-node[data-lvl="1"] > .node-head { box-shadow: var(--gs), var(--gi); }
+.tree-node[data-lvl="2"] > .node-head, .tree-node[data-lvl="3"] > .node-head, .tree-node[data-lvl="4"] > .node-head { box-shadow: none; border-color: var(--border); background: rgba(var(--inkC),0.02); }
+.node-head:hover { background: rgba(var(--inkC),0.05); }
+.chevron { font-size: 10px; color: var(--soft); transition: transform 200ms var(--eo); flex-shrink: 0; }
+.chevron.open { transform: rotate(90deg); }
+.node-title { font-weight: 700; color: var(--teal); flex: 1; }
+.tree-node[data-lvl="1"] .node-title { font-family: var(--serif); font-size: 16px; }
+.tree-node[data-lvl="2"] .node-title { font-size: 13.5px; }
+.tree-node[data-lvl="3"] .node-title, .tree-node[data-lvl="4"] .node-title { font-size: 12.5px; color: var(--teal2); }
+.node-body { max-height: 3000px; overflow: hidden; transition: max-height 260ms var(--eo), opacity 200ms; padding: 10px 14px 4px; font-size: 13px; line-height: 1.7; color: var(--muted); }
+.node-body.collapsed { max-height: 0; padding-top: 0; padding-bottom: 0; opacity: 0; }
+.node-body ul { margin: 6px 0; padding-left: 18px; }
+.node-body li { margin-bottom: 5px; position: relative; padding-right: 28px; }
+.node-body li:hover .promote-trigger { opacity: 1; }
+.promote-trigger { position: absolute; right: 0; top: -1px; opacity: 0; transition: opacity 140ms; font-size: 10.5px; background: rgba(var(--inkC),0.07);
+  border: none; border-radius: 6px; padding: 2px 7px; cursor: pointer; color: var(--soft); }
+.promote-trigger:hover { background: var(--flame); color: #fff; }
+.citation-link { color: var(--teal2); text-decoration: none; border-bottom: 1px dotted rgba(36,80,106,0.4); font-size: 11.5px; }
+.citation-link:hover { border-bottom-style: solid; }
+
+/* ---- Promote category menu (popover) ---- */
+.promote-menu { position: absolute; z-index: 50; background: #fff; border: 1px solid var(--border); border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(26,57,72,0.2); padding: 6px; display: none; min-width: 150px; }
+.promote-menu.show { display: block; }
+.promote-menu-item { font-size: 12px; padding: 7px 10px; border-radius: 7px; cursor: pointer; display: flex; align-items: center; gap: 7px; color: var(--teal); }
+.promote-menu-item:hover { background: rgba(255,84,0,0.08); }
+
+/* ---- Multi-category promotion boxes (editor layer) ---- */
+.editor-panel { position: sticky; top: 90px; max-height: calc(100vh - 110px); overflow-y: auto; }
+.promo-box { background: rgba(255,84,0,0.05); border: 1.5px solid rgba(255,84,0,0.28); border-radius: 16px; padding: 14px 16px; margin-bottom: 12px; animation: boxIn 260ms var(--eo); }
+@keyframes boxIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+.promo-box-title { font-size: 11.5px; font-weight: 800; color: var(--flame); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+.promo-box-count { background: var(--flame); color: #fff; border-radius: 100px; font-size: 10px; padding: 1px 7px; }
+.promo-item { background: #fff; border: 1px solid rgba(255,84,0,0.18); border-radius: 10px; padding: 9px 11px; margin-bottom: 7px; font-size: 12.5px; animation: itemIn 200ms var(--eo); }
+@keyframes itemIn { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
+.promo-item-text { color: var(--teal); font-weight: 600; }
+.promo-item-text a { color: var(--teal2); }
+.promo-item-note { font-size: 11px; color: var(--muted); margin-top: 4px; }
+.promo-item-actions { display: flex; gap: 4px; margin-top: 6px; }
 .mini-icon-btn { font-size: 10px; background: rgba(var(--inkC),0.06); border: none; border-radius: 6px; padding: 3px 7px; cursor: pointer; color: var(--soft); }
-.priority-empty { font-size: 11.5px; color: var(--soft); font-style: italic; }
+.mini-icon-btn:hover { background: rgba(var(--inkC),0.12); }
+.add-custom-cat { font-size: 11px; color: var(--teal2); background: none; border: 1px dashed var(--border); border-radius: 8px; padding: 7px; width: 100%; cursor: pointer; margin-top: 4px; }
 .link-item { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 9px 11px; margin-bottom: 6px; font-size: 12px; }
 .link-item a { font-weight: 600; }
 .link-item-tag { font-size: 9px; text-transform: uppercase; color: var(--soft); }
 .add-link-form { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
 .add-link-form input, .add-link-form select { font-size: 11.5px; padding: 7px 10px; border: 1px solid var(--border); border-radius: 8px; background: rgba(var(--inkC),0.03); }
 .small-btn { font-size: 11px; font-weight: 700; color: #fff; background: var(--flame); border: none; border-radius: 100px; padding: 7px 14px; cursor: pointer; }
+.resources-box { background: var(--glass); border: 1px solid var(--glass-b); border-radius: 16px; padding: 14px 16px; margin-bottom: 12px; }
+.resources-box .promo-box-title { color: var(--teal2); }
+
+/* ---- Parsing "live" feedback ---- */
+.parse-progress { font-size: 12px; color: var(--soft); margin-top: 10px; min-height: 18px; }
+.parse-progress.active::after { content: '●'; animation: blink 1s infinite; margin-left: 4px; color: var(--flame); }
+@keyframes blink { 0%,100% { opacity: 0.2; } 50% { opacity: 1; } }
 
 /* ---- Detail/showcase view ---- */
 .showcase-hero { margin-bottom: 24px; }
 .showcase-topic { font-family: var(--serif); font-size: 30px; font-weight: 600; color: var(--teal); line-height: 1.25; }
 .showcase-meta { font-size: 12px; color: var(--soft); margin-top: 8px; display: flex; gap: 14px; flex-wrap: wrap; }
 .priority-verdict { background: linear-gradient(135deg, rgba(255,84,0,0.08), rgba(255,192,71,0.06)); border: 1.5px solid rgba(255,84,0,0.3);
-  border-radius: 18px; padding: 20px 22px; margin: 20px 0; }
-.priority-verdict-title { font-size: 12px; font-weight: 800; color: var(--flame); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px; }
-.priority-verdict-item { display: flex; gap: 10px; padding: 10px 0; border-bottom: 1px solid rgba(255,84,0,0.15); }
+  border-radius: 18px; padding: 18px 20px; margin-bottom: 14px; }
+.priority-verdict-title { font-size: 11.5px; font-weight: 800; color: var(--flame); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+.priority-verdict-item { display: flex; gap: 10px; padding: 9px 0; border-bottom: 1px solid rgba(255,84,0,0.15); }
 .priority-verdict-item:last-child { border-bottom: none; }
-.priority-verdict-rank { font-family: var(--serif); font-size: 18px; font-weight: 700; color: var(--flame); flex-shrink: 0; width: 28px; }
-.priority-verdict-text { font-weight: 600; color: var(--teal); font-size: 14px; }
-.priority-verdict-note { font-size: 12px; color: var(--muted); margin-top: 3px; }
-.showcase-toc { display: flex; gap: 8px; flex-wrap: wrap; margin: 18px 0; }
-.toc-chip { font-size: 11.5px; font-weight: 600; color: var(--teal2); background: rgba(var(--inkC),0.06); padding: 6px 13px; border-radius: 100px; cursor: pointer; text-decoration: none; }
+.priority-verdict-rank { font-family: var(--serif); font-size: 17px; font-weight: 700; color: var(--flame); flex-shrink: 0; width: 24px; }
+.priority-verdict-text { font-weight: 600; color: var(--teal); font-size: 13.5px; }
+.priority-verdict-text a { color: var(--teal2); }
+.priority-verdict-note { font-size: 11.5px; color: var(--muted); margin-top: 3px; }
+.verdict-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; margin: 20px 0; }
+.showcase-toc { display: flex; gap: 8px; flex-wrap: wrap; margin: 18px 0; position: sticky; top: 74px; z-index: 20;
+  background: var(--ivory); padding: 10px 0; }
+.toc-chip { font-size: 11.5px; font-weight: 600; color: var(--teal2); background: rgba(var(--inkC),0.06); padding: 6px 13px; border-radius: 100px; cursor: pointer; text-decoration: none; transition: background 160ms, color 160ms; }
+.toc-chip.active { background: var(--flame); color: #fff; }
+.mtable { width: 100%; border-collapse: collapse; font-size: 12px; margin: 8px 0; }
+.mtable th { text-align: left; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.03em; color: var(--soft); padding: 6px 8px; border-bottom: 1px solid var(--border); }
+.mtable td { padding: 7px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+.entity-chip { display: inline-block; font-size: 11.5px; background: rgba(36,80,106,0.08); color: var(--teal2); padding: 3px 10px; border-radius: 100px; margin: 2px 4px 2px 0; }
+.timeline-item { display: flex; gap: 10px; padding: 6px 0; border-left: 2px solid var(--border); padding-left: 14px; margin-left: 4px; position: relative; }
+.timeline-item::before { content: ''; position: absolute; left: -5px; top: 10px; width: 8px; height: 8px; border-radius: 50%; background: var(--flame); }
 .resources-panel { background: var(--glass); border: 1px solid var(--glass-b); box-shadow: var(--gs), var(--gi); border-radius: 14px; padding: 16px 18px; margin: 20px 0; }
 
 .dash-toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(12px); z-index: 99;
@@ -205,6 +246,7 @@ a { color: var(--teal2); }
         <div class="paste-hint">Works with output from any LLM — ChatGPT, Copilot, Claude, Gemini. Headings, markdown tables, bullet lists, and URLs are detected automatically.</div>
       </div>
       <button class="btn primary" id="parseBtn">Parse &amp; Review →</button>
+      <div class="parse-progress" id="parseProgress"></div>
     </div>
   </div>
 
@@ -214,16 +256,13 @@ a { color: var(--teal2); }
       <div class="lib-title" id="reviewTitle">Review brief</div>
       <button class="btn primary" id="saveBriefBtn">💾 Save to Library</button>
     </div>
+    <div class="stat-strip" id="statStrip"></div>
     <div class="review-layout">
       <div id="reviewSections"></div>
       <div class="editor-panel">
-        <div class="editor-box">
-          <div class="editor-box-title">★ Priority Angles</div>
-          <div id="priorityList"></div>
-          <div class="priority-empty" id="priorityEmpty">Click "★ promote" on any point in the brief to add it here.</div>
-        </div>
-        <div class="editor-box">
-          <div class="editor-box-title">🔗 Additional Resources</div>
+        <div id="promoBoxesContainer"></div>
+        <div class="resources-box">
+          <div class="promo-box-title">🔗 Additional Resources</div>
           <div id="linksList"></div>
           <div class="add-link-form">
             <input type="text" id="newLinkLabel" placeholder="Label">
@@ -250,12 +289,40 @@ a { color: var(--teal2); }
 const SUPABASE_URL = 'https://yiewnykbchfadipznpet.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlpZXdueWtiY2hmYWRpcHpucGV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxNzM3NTUsImV4cCI6MjA5NDc0OTc1NX0.utnlpToZGH7hno0QTXlrtWvzKDgP28Gv3Je7BBIRwmM';
 
+const CATEGORY_META = {
+  angle:   { label: 'Priority Angles', icon: '★' },
+  source:  { label: 'Key Sources', icon: '🔗' },
+  person:  { label: 'People to Watch', icon: '👤' },
+  keyword: { label: 'Keywords', icon: '🏷️' },
+};
+const CATEGORY_ORDER = ['angle', 'source', 'person', 'keyword'];
+
 function escapeHtml(s) {
   return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 function linkify(text) {
-  const urlRe = /(https?:\/\/[^\s<>"')]+)/g;
-  return escapeHtml(text).replace(urlRe, url => `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`);
+  if (text == null) return '';
+  const mdLinkRe = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
+  const placeholders = [];
+  let work = String(text).replace(mdLinkRe, (m, label, url) => {
+    placeholders.push({ label, url });
+    return `\u0000${placeholders.length - 1}\u0000`;
+  });
+  work = escapeHtml(work);
+  const bareUrlRe = /(https?:\/\/[^\s<>"')]+)/g;
+  work = work.replace(bareUrlRe, url => `<a href="${url}" target="_blank" rel="noopener noreferrer" class="citation-link">${url}</a>`);
+  work = work.replace(/\u0000(\d+)\u0000/g, (m, i) => {
+    const p = placeholders[+i];
+    return `<a href="${escapeHtml(p.url)}" target="_blank" rel="noopener noreferrer" class="citation-link">${escapeHtml(p.label)}</a>`;
+  });
+  return work;
+}
+function extractLinks(text) {
+  const out = [];
+  const mdLinkRe = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
+  let m;
+  while ((m = mdLinkRe.exec(text))) out.push({ label: m[1], url: m[2] });
+  return out;
 }
 function dashToast(msg) {
   const el = document.getElementById('dashToast');
@@ -265,7 +332,6 @@ function dashToast(msg) {
   dashToast._t = setTimeout(() => el.classList.remove('show'), 2400);
 }
 
-/* ---- Supabase REST helpers ---- */
 async function sbSelect(table, query) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${query}`, {
     headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` },
@@ -276,10 +342,7 @@ async function sbSelect(table, query) {
 async function sbInsert(table, row) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
     method: 'POST',
-    headers: {
-      'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-      'Content-Type': 'application/json', 'Prefer': 'return=representation',
-    },
+    headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
     body: JSON.stringify(row),
   });
   if (!res.ok) throw new Error(`insert failed (${res.status})`);
@@ -288,117 +351,118 @@ async function sbInsert(table, row) {
 async function sbUpdate(table, id, patch) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, {
     method: 'PATCH',
-    headers: {
-      'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-      'Content-Type': 'application/json', 'Prefer': 'return=representation',
-    },
+    headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
     body: JSON.stringify(patch),
   });
   if (!res.ok) throw new Error(`update failed (${res.status})`);
   return res.json();
 }
 
-/* ==================== PARSER ==================== */
-function isHeadingLine(line) {
+/* ==================== HIERARCHICAL PARSER ==================== */
+function matchHeading(line) {
   const t = line.trim();
-  if (!t) return false;
-  if (/^#{1,4}\s+/.test(t)) return true; // markdown heading
-  if (/^\*\*[^*]{2,80}\*\*:?$/.test(t)) return true; // **Bold Heading**
-  if (/^[A-Z][A-Z0-9 &/'\-:]{3,70}$/.test(t) && !/^https?:\/\//.test(t)) return true; // ALL CAPS line
-  if (/^[A-Z][A-Za-z0-9 &/'\-]{3,60}:$/.test(t) && t.length < 60) return true; // "Label:" short line
-  return false;
-}
-function cleanHeading(line) {
-  return line.trim().replace(/^#{1,4}\s+/, '').replace(/^\*\*|\*\*$/g, '').replace(/:$/, '').trim();
+  if (!t) return null;
+  const atx = t.match(/^(#{1,4})\s+(.+)$/);
+  if (atx) return { level: atx[1].length, text: atx[2].replace(/\*+/g, '').trim() };
+  if (/^\*\*[^*]{2,80}\*\*:?$/.test(t)) return { level: null, text: t.replace(/^\*\*|\*\*:?$/g, '').trim() };
+  if (/^[A-Z][A-Z0-9 &/'\-:]{3,70}$/.test(t) && !/^https?:\/\//.test(t)) return { level: null, text: t.replace(/:$/, '').trim() };
+  if (/^[A-Z][A-Za-z0-9 &/'\-]{3,60}:$/.test(t) && t.length < 60) return { level: null, text: t.replace(/:$/, '').trim() };
+  return null;
 }
 function classifyHeading(h) {
   const l = h.toLowerCase();
   if (/timeline/.test(l)) return 'timeline';
-  if (/entit|stakeholder/.test(l)) return 'entities';
-  if (/matrix|coverage/.test(l)) return 'table';
+  if (/entit|stakeholder|people|who/.test(l)) return 'entities';
+  if (/matrix|coverage|table/.test(l)) return 'table';
   if (/recommend|action/.test(l)) return 'actions';
   if (/summary|assessment|snapshot/.test(l)) return 'summary';
   if (/source|landscape/.test(l)) return 'sources';
   return 'text';
 }
 function parseMarkdownTable(lines) {
-  // lines is an array of consecutive '|'-containing lines
   const rows = lines.map(l => l.trim().replace(/^\||\|$/g, '').split('|').map(c => c.trim()));
   if (rows.length < 2) return null;
-  // second row is typically a separator like ---|---
   const isSep = rows[1].every(c => /^:?-{2,}:?$/.test(c));
   const headers = rows[0];
   const body = isSep ? rows.slice(2) : rows.slice(1);
   return { headers, rows: body };
 }
+function makeNode(heading, level) {
+  return { heading, level, type: heading ? classifyHeading(heading) : 'root', children: [], raw: [], items: [], table: null, paragraph: '' };
+}
+function processNode(node) {
+  const raw = node.raw;
+  const tableLineIdx = raw.map((l, i) => (l.includes('|') && l.trim().length > 2 ? i : -1)).filter(i => i >= 0);
+  if (tableLineIdx.length >= 2) {
+    let bestStart = -1, bestLen = 0, curStart = -1, curLen = 0, prevIdx = -2;
+    for (const idx of tableLineIdx) {
+      if (idx === prevIdx + 1) { curLen++; } else { curStart = idx; curLen = 1; }
+      if (curLen > bestLen) { bestLen = curLen; bestStart = curStart; }
+      prevIdx = idx;
+    }
+    if (bestLen >= 2) {
+      const tbl = parseMarkdownTable(raw.slice(bestStart, bestStart + bestLen));
+      if (tbl) {
+        node.table = tbl;
+        node.raw = [...raw.slice(0, bestStart), ...raw.slice(bestStart + bestLen)];
+      }
+    }
+  }
+  const remaining = [];
+  for (const l of node.raw) {
+    const t = l.trim();
+    if (/^(\*{3,}|-{3,}|_{3,})$/.test(t)) continue;
+    const m = t.match(/^(?:[-*•]|\d+[.)])\s+(.*)$/);
+    if (m && m[1].trim()) node.items.push(m[1].trim());
+    else if (t) remaining.push(t);
+  }
+  node.paragraph = remaining.join(' ').trim();
+  delete node.raw;
+  for (const child of node.children) processNode(child);
+}
 function parseAgentText(raw) {
   const lines = raw.replace(/\r\n/g, '\n').split('\n');
-  const sections = [];
-  let current = null;
-
-  function pushCurrent() {
-    if (current) sections.push(current);
+  const root = makeNode(null, 0);
+  const stack = [root];
+  for (const line of lines) {
+    const h = matchHeading(line);
+    if (h) {
+      const parent = stack[stack.length - 1];
+      const level = h.level != null ? h.level : parent.level + 1;
+      while (stack.length > 1 && stack[stack.length - 1].level >= level) stack.pop();
+      const node = makeNode(h.text, level);
+      stack[stack.length - 1].children.push(node);
+      stack.push(node);
+    } else {
+      stack[stack.length - 1].raw.push(line);
+    }
   }
+  processNode(root);
+  return root.children;
+}
 
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-    if (isHeadingLine(line)) {
-      pushCurrent();
-      const heading = cleanHeading(line);
-      current = { heading, type: classifyHeading(heading), raw: [], items: [], table: null };
-      continue;
+function collectStats(nodes) {
+  let sections = 0, sources = 0, items = 0;
+  function walk(list) {
+    for (const n of list) {
+      sections++;
+      items += n.items.length;
+      for (const it of n.items) sources += extractLinks(it).length;
+      sources += extractLinks(n.paragraph).length;
+      walk(n.children);
     }
-    if (!current) {
-      current = { heading: 'Overview', type: 'summary', raw: [], items: [], table: null };
-    }
-    current.raw.push(line);
   }
-  pushCurrent();
-
-  // second pass: within each section, detect tables and bullet lists
-  for (const sec of sections) {
-    const raw = sec.raw;
-    // detect a contiguous table block
-    const tableLineIdx = raw.map((l, i) => (l.includes('|') && l.trim().length > 2 ? i : -1)).filter(i => i >= 0);
-    if (tableLineIdx.length >= 2) {
-      // find the longest contiguous run
-      let bestStart = -1, bestLen = 0, curStart = -1, curLen = 0, prevIdx = -2;
-      for (const idx of tableLineIdx) {
-        if (idx === prevIdx + 1) { curLen++; } else { curStart = idx; curLen = 1; }
-        if (curLen > bestLen) { bestLen = curLen; bestStart = curStart; }
-        prevIdx = idx;
-      }
-      if (bestLen >= 2) {
-        const tbl = parseMarkdownTable(raw.slice(bestStart, bestStart + bestLen));
-        if (tbl) {
-          sec.table = tbl;
-          sec.raw = [...raw.slice(0, bestStart), ...raw.slice(bestStart + bestLen)];
-        }
-      }
-    }
-    // detect bullet items from remaining raw lines
-    const remaining = [];
-    for (const l of sec.raw) {
-      const t = l.trim();
-      const m = t.match(/^(?:[-*•]|\d+[.)])\s+(.*)$/);
-      if (m && m[1].trim()) {
-        sec.items.push(m[1].trim());
-      } else if (t) {
-        remaining.push(t);
-      }
-    }
-    sec.paragraph = remaining.join(' ').trim();
-  }
-  return sections.filter(s => s.raw.length || s.items.length || s.table || s.paragraph);
+  walk(nodes);
+  return { sections, sources, items };
 }
 
 /* ==================== State ==================== */
-let currentSections = [];
-let currentPriorities = [];
+let currentTree = [];
+let currentPromoted = [];
 let currentLinks = [];
 let currentBriefId = null;
+let promoIdSeq = 0;
 
-/* ==================== View switching ==================== */
 function showView(name) {
   document.querySelectorAll('.view').forEach(v => v.classList.remove('show'));
   document.getElementById('view' + name.charAt(0).toUpperCase() + name.slice(1)).classList.add('show');
@@ -410,106 +474,194 @@ document.getElementById('navPaste').addEventListener('click', () => {
   document.getElementById('pasteTopic').value = '';
   document.getElementById('pasteEditor').value = '';
   document.getElementById('pasteText').value = '';
+  document.getElementById('parseProgress').textContent = '';
   showView('paste');
 });
 
-/* ==================== Parse & Review ==================== */
 document.getElementById('parseBtn').addEventListener('click', () => {
   const topic = document.getElementById('pasteTopic').value.trim();
   const text = document.getElementById('pasteText').value.trim();
   if (!topic) { dashToast('Add a topic first'); return; }
   if (!text) { dashToast('Paste the LLM answer first'); return; }
-  currentSections = parseAgentText(text);
-  currentPriorities = [];
-  currentLinks = [];
-  currentBriefId = null;
-  document.getElementById('reviewTitle').textContent = topic;
-  renderReview();
-  showView('review');
+
+  const progress = document.getElementById('parseProgress');
+  progress.classList.add('active');
+  progress.textContent = `Reading ${text.split('\n').length} lines…`;
+
+  setTimeout(() => {
+    currentTree = parseAgentText(text);
+    const stats = collectStats(currentTree);
+    progress.textContent = `Detected ${stats.sections} sections, ${stats.items} points, ${stats.sources} linked sources…`;
+    setTimeout(() => {
+      currentPromoted = [];
+      currentLinks = [];
+      currentBriefId = null;
+      progress.classList.remove('active');
+      progress.textContent = '';
+      document.getElementById('reviewTitle').textContent = topic;
+      renderReview();
+      showView('review');
+    }, 350);
+  }, 250);
 });
+
+function renderStatStrip() {
+  const stats = collectStats(currentTree);
+  document.getElementById('statStrip').innerHTML = `
+    <span class="stat-pill"><b>${stats.sections}</b> sections</span>
+    <span class="stat-pill"><b>${stats.items}</b> points</span>
+    <span class="stat-pill"><b>${stats.sources}</b> linked sources</span>
+    <span class="stat-pill"><b>${currentPromoted.length}</b> promoted</span>
+  `;
+}
 
 function renderReview() {
   const wrap = document.getElementById('reviewSections');
-  wrap.innerHTML = currentSections.map((sec, si) => sectionCardHtml(sec, si)).join('');
-  wireSectionListeners(wrap);
-  renderPriorityList();
+  wrap.innerHTML = currentTree.map(node => nodeHtml(node)).join('');
+  wireTreeListeners(wrap);
+  renderStatStrip();
+  renderPromoBoxes();
   renderLinksList();
 }
 
-function sectionCardHtml(sec, si) {
+function nodeBodyInnerHtml(node) {
   let body = '';
-  if (sec.paragraph) body += `<p>${linkify(sec.paragraph)}</p>`;
-  if (sec.items.length) {
-    body += `<ul>` + sec.items.map((it, ii) =>
-      `<li>${linkify(it)}<button class="promote-btn" data-si="${si}" data-ii="${ii}">★ promote</button></li>`
-    ).join('') + `</ul>`;
+  if (node.paragraph) body += `<p>${linkify(node.paragraph)}</p>`;
+  if (node.items.length) {
+    body += '<ul>' + node.items.map(it =>
+      `<li>${linkify(it)}<button class="promote-trigger" data-text="${escapeHtml(it)}">★ promote</button></li>`
+    ).join('') + '</ul>';
   }
-  if (sec.table) {
-    body += `<table class="mtable"><thead><tr>` + sec.table.headers.map(h => `<th>${escapeHtml(h)}</th>`).join('') + `</tr></thead><tbody>` +
-      sec.table.rows.map(r => `<tr>` + r.map(c => `<td>${linkify(c)}</td>`).join('') + `</tr>`).join('') + `</tbody></table>`;
+  if (node.table) {
+    body += `<table class="mtable"><thead><tr>${node.table.headers.map(h => `<th>${escapeHtml(h)}</th>`).join('')}</tr></thead><tbody>` +
+      node.table.rows.map(r => `<tr>${r.map(c => `<td>${linkify(c)}</td>`).join('')}</tr>`).join('') + `</tbody></table>`;
   }
-  if (!body) body = '<p style="color:var(--soft);">(no content detected)</p>';
+  return body;
+}
+function nodeHtml(node) {
+  const hasOwnContent = !!(node.paragraph || node.items.length || node.table);
+  const childrenHtml = node.children.length ? `<div class="tree-children">${node.children.map(c => nodeHtml(c)).join('')}</div>` : '';
+  const bodyInner = nodeBodyInnerHtml(node);
   return `
-    <div class="section-card">
-      <div class="section-head" data-toggle="${si}">
-        <span class="section-title">${escapeHtml(sec.heading)} <span class="section-type-badge">${sec.type}</span></span>
-        <span>▾</span>
+    <div class="tree-node" data-lvl="${node.level}">
+      <div class="node-head" data-toggle="1">
+        <span class="chevron open">▸</span>
+        <span class="node-title">${escapeHtml(node.heading)}</span>
       </div>
-      <div class="section-body" id="secbody-${si}">${body}</div>
+      ${hasOwnContent ? `<div class="node-body">${bodyInner}</div>` : ''}
+      ${childrenHtml}
     </div>`;
 }
 
-function wireSectionListeners(wrap) {
-  wrap.querySelectorAll('[data-toggle]').forEach(el => {
-    el.addEventListener('click', () => {
-      const id = el.getAttribute('data-toggle');
-      document.getElementById('secbody-' + id).classList.toggle('collapsed');
+function wireTreeListeners(wrap) {
+  wrap.querySelectorAll('[data-toggle]').forEach(headEl => {
+    const node = headEl.parentElement;
+    const chevron = headEl.querySelector('.chevron');
+    const body = node.querySelector(':scope > .node-body');
+    headEl.addEventListener('click', () => {
+      chevron.classList.toggle('open');
+      if (body) body.classList.toggle('collapsed');
+      const children = node.querySelector(':scope > .tree-children');
+      if (children) children.style.display = children.style.display === 'none' ? '' : 'none';
     });
   });
-  wrap.querySelectorAll('.promote-btn').forEach(el => {
-    el.addEventListener('click', (e) => {
+  wrap.querySelectorAll('.promote-trigger').forEach(btn => {
+    btn.addEventListener('click', (e) => {
       e.stopPropagation();
-      const si = +el.getAttribute('data-si'), ii = +el.getAttribute('data-ii');
-      const text = currentSections[si].items[ii];
-      promoteToPriority(text);
+      openPromoteMenu(btn, btn.getAttribute('data-text'));
     });
   });
 }
 
-function promoteToPriority(text) {
-  if (currentPriorities.some(p => p.text === text)) { dashToast('Already in priority list'); return; }
-  currentPriorities.push({ text, note: '', highlighted: true });
-  renderPriorityList();
-  dashToast('Added to priority angles');
+let activePromoteMenu = null;
+function openPromoteMenu(anchorEl, text) {
+  closePromoteMenu();
+  const menu = document.createElement('div');
+  menu.className = 'promote-menu show';
+  menu.innerHTML = CATEGORY_ORDER.map(cat =>
+    `<div class="promote-menu-item" data-cat="${cat}">${CATEGORY_META[cat].icon} ${CATEGORY_META[cat].label.replace(/s$/, '')}</div>`
+  ).join('') + `<div class="promote-menu-item" data-cat="__custom">✏️ Custom category…</div>`;
+  document.body.appendChild(menu);
+  const r = anchorEl.getBoundingClientRect();
+  menu.style.position = 'absolute';
+  menu.style.left = Math.min(r.left + window.scrollX, window.innerWidth - 170) + 'px';
+  menu.style.top = (r.bottom + window.scrollY + 4) + 'px';
+  activePromoteMenu = menu;
+  menu.querySelectorAll('[data-cat]').forEach(item => {
+    item.addEventListener('click', () => {
+      let cat = item.getAttribute('data-cat');
+      if (cat === '__custom') {
+        const c = prompt('Custom category name:');
+        if (!c) { closePromoteMenu(); return; }
+        cat = c.trim().toLowerCase();
+      }
+      promoteItem(text, cat);
+      closePromoteMenu();
+    });
+  });
+  setTimeout(() => document.addEventListener('click', closePromoteMenuOnce), 0);
+}
+function closePromoteMenuOnce() { closePromoteMenu(); }
+function closePromoteMenu() {
+  if (activePromoteMenu) { activePromoteMenu.remove(); activePromoteMenu = null; }
+  document.removeEventListener('click', closePromoteMenuOnce);
 }
 
-function renderPriorityList() {
-  const wrap = document.getElementById('priorityList');
-  const empty = document.getElementById('priorityEmpty');
-  empty.style.display = currentPriorities.length ? 'none' : 'block';
-  wrap.innerHTML = currentPriorities.map((p, i) => `
-    <div class="priority-item">
-      <div class="priority-item-text">${i + 1}. ${escapeHtml(p.text)}</div>
-      ${p.note ? `<div class="priority-item-note">${escapeHtml(p.note)}</div>` : ''}
-      <div class="priority-item-actions">
-        <button class="mini-icon-btn" data-act="up" data-i="${i}">↑</button>
-        <button class="mini-icon-btn" data-act="down" data-i="${i}">↓</button>
-        <button class="mini-icon-btn" data-act="note" data-i="${i}">✎ note</button>
-        <button class="mini-icon-btn" data-act="remove" data-i="${i}">✕</button>
-      </div>
-    </div>`).join('');
-  wrap.querySelectorAll('[data-act]').forEach(el => {
+function promoteItem(text, category) {
+  const links = extractLinks(text);
+  const url = links.length ? links[0].url : null;
+  currentPromoted.push({ id: 'p' + (promoIdSeq++), text, url, category, note: '' });
+  renderPromoBoxes();
+  renderStatStrip();
+  dashToast(`Added to ${CATEGORY_META[category] ? CATEGORY_META[category].label : category}`);
+}
+
+function renderPromoBoxes() {
+  const container = document.getElementById('promoBoxesContainer');
+  const cats = Array.from(new Set([...CATEGORY_ORDER, ...currentPromoted.map(p => p.category)]));
+  container.innerHTML = cats.map(cat => {
+    const items = currentPromoted.filter(p => p.category === cat);
+    if (!items.length) return '';
+    const meta = CATEGORY_META[cat] || { label: cat.charAt(0).toUpperCase() + cat.slice(1), icon: '📌' };
+    return `
+      <div class="promo-box" data-cat="${cat}">
+        <div class="promo-box-title">${meta.icon} ${meta.label} <span class="promo-box-count">${items.length}</span></div>
+        ${items.map(p => `
+          <div class="promo-item" data-id="${p.id}">
+            <div class="promo-item-text">${p.url ? `<a href="${escapeHtml(p.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(p.text)}</a>` : escapeHtml(p.text)}</div>
+            ${p.note ? `<div class="promo-item-note">${escapeHtml(p.note)}</div>` : ''}
+            <div class="promo-item-actions">
+              <button class="mini-icon-btn" data-act="up" data-id="${p.id}">↑</button>
+              <button class="mini-icon-btn" data-act="down" data-id="${p.id}">↓</button>
+              <button class="mini-icon-btn" data-act="note" data-id="${p.id}">✎ note</button>
+              <button class="mini-icon-btn" data-act="remove" data-id="${p.id}">✕</button>
+            </div>
+          </div>`).join('')}
+      </div>`;
+  }).join('');
+  container.querySelectorAll('[data-act]').forEach(el => {
     el.addEventListener('click', () => {
-      const i = +el.getAttribute('data-i');
+      const id = el.getAttribute('data-id');
       const act = el.getAttribute('data-act');
-      if (act === 'up' && i > 0) { [currentPriorities[i - 1], currentPriorities[i]] = [currentPriorities[i], currentPriorities[i - 1]]; }
-      if (act === 'down' && i < currentPriorities.length - 1) { [currentPriorities[i + 1], currentPriorities[i]] = [currentPriorities[i], currentPriorities[i + 1]]; }
-      if (act === 'remove') { currentPriorities.splice(i, 1); }
+      const idx = currentPromoted.findIndex(p => p.id === id);
+      if (idx < 0) return;
+      if (act === 'remove') currentPromoted.splice(idx, 1);
       if (act === 'note') {
-        const n = prompt('Editor note for this angle:', currentPriorities[i].note || '');
-        if (n !== null) currentPriorities[i].note = n;
+        const n = prompt('Editor note:', currentPromoted[idx].note || '');
+        if (n !== null) currentPromoted[idx].note = n;
       }
-      renderPriorityList();
+      if (act === 'up' || act === 'down') {
+        const cat = currentPromoted[idx].category;
+        const sameCategoryIdxs = currentPromoted.map((p, i) => p.category === cat ? i : -1).filter(i => i >= 0);
+        const pos = sameCategoryIdxs.indexOf(idx);
+        const swapWith = act === 'up' ? pos - 1 : pos + 1;
+        if (swapWith >= 0 && swapWith < sameCategoryIdxs.length) {
+          const j = sameCategoryIdxs[swapWith];
+          [currentPromoted[idx], currentPromoted[j]] = [currentPromoted[j], currentPromoted[idx]];
+        }
+      }
+      renderPromoBoxes();
+      renderStatStrip();
     });
   });
 }
@@ -520,14 +672,11 @@ function renderLinksList() {
     <div class="link-item">
       <div><a href="${escapeHtml(l.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(l.label)}</a></div>
       <div class="link-item-tag">${l.tag}</div>
-      ${l.note ? `<div class="priority-item-note">${escapeHtml(l.note)}</div>` : ''}
+      ${l.note ? `<div class="promo-item-note">${escapeHtml(l.note)}</div>` : ''}
       <button class="mini-icon-btn" data-remove="${i}">✕ remove</button>
     </div>`).join('');
   wrap.querySelectorAll('[data-remove]').forEach(el => {
-    el.addEventListener('click', () => {
-      currentLinks.splice(+el.getAttribute('data-remove'), 1);
-      renderLinksList();
-    });
+    el.addEventListener('click', () => { currentLinks.splice(+el.getAttribute('data-remove'), 1); renderLinksList(); });
   });
 }
 document.getElementById('addLinkBtn').addEventListener('click', () => {
@@ -543,7 +692,6 @@ document.getElementById('addLinkBtn').addEventListener('click', () => {
   renderLinksList();
 });
 
-/* ==================== Save ==================== */
 document.getElementById('saveBriefBtn').addEventListener('click', async () => {
   const topic = document.getElementById('reviewTitle').textContent;
   const btn = document.getElementById('saveBriefBtn');
@@ -554,8 +702,9 @@ document.getElementById('saveBriefBtn').addEventListener('click', async () => {
       editor_name: document.getElementById('pasteEditor').value.trim() || null,
       source_llm: document.getElementById('pasteSourceLlm').value,
       raw_text: document.getElementById('pasteText').value,
-      parsed_sections: currentSections,
-      priority_angles: currentPriorities,
+      parsed_sections: currentTree,
+      promoted_items: currentPromoted,
+      priority_angles: [],
       manual_links: currentLinks,
     };
     const saved = await sbInsert('dna_agent_briefs', row);
@@ -569,7 +718,6 @@ document.getElementById('saveBriefBtn').addEventListener('click', async () => {
   }
 });
 
-/* ==================== Library ==================== */
 let LIBRARY_CACHE = [];
 async function loadLibrary() {
   const grid = document.getElementById('briefGrid');
@@ -582,13 +730,19 @@ async function loadLibrary() {
     grid.innerHTML = `<div class="lib-empty">Couldn't load library (${escapeHtml(err.message)})</div>`;
   }
 }
+function briefPromotedItems(row) {
+  if (row.promoted_items && row.promoted_items.length) return row.promoted_items;
+  return (row.priority_angles || []).map((p, i) => ({ id: 'legacy' + i, text: p.text, url: null, category: 'angle', note: p.note || '' }));
+}
 function renderLibrary(rows) {
   const grid = document.getElementById('briefGrid');
   if (!rows.length) {
     grid.innerHTML = `<div class="lib-empty"><div class="lib-empty-icon">🧬</div>No briefs yet. Click "＋ New Brief" to add the first one.</div>`;
     return;
   }
-  grid.innerHTML = rows.map(r => `
+  grid.innerHTML = rows.map(r => {
+    const promoted = briefPromotedItems(r);
+    return `
     <div class="brief-card" data-id="${r.id}">
       <div class="brief-card-topic">${escapeHtml(r.topic)}</div>
       <div class="brief-card-meta">
@@ -596,8 +750,9 @@ function renderLibrary(rows) {
         <span>${r.source_llm ? escapeHtml(r.source_llm) : ''}</span>
         <span>${new Date(r.created_at).toLocaleDateString()}</span>
       </div>
-      ${(r.priority_angles || []).length ? `<div class="brief-card-priorities"><b>${r.priority_angles.length}</b> priority angle${r.priority_angles.length > 1 ? 's' : ''} · <b>${(r.manual_links || []).length}</b> resources</div>` : ''}
-    </div>`).join('');
+      ${promoted.length ? `<div class="brief-card-priorities"><b>${promoted.length}</b> promoted item${promoted.length > 1 ? 's' : ''} · <b>${(r.manual_links || []).length}</b> resources</div>` : ''}
+    </div>`;
+  }).join('');
   grid.querySelectorAll('.brief-card').forEach(el => {
     el.addEventListener('click', () => {
       const row = LIBRARY_CACHE.find(r => r.id === el.getAttribute('data-id'));
@@ -611,51 +766,66 @@ document.getElementById('librarySearch').addEventListener('input', (e) => {
   renderLibrary(filtered);
 });
 
-/* ==================== Detail / Showcase ==================== */
+function detailNodeHtml(node, path) {
+  const hasOwnContent = !!(node.paragraph || (node.items && node.items.length) || node.table);
+  let body = '';
+  if (node.paragraph) body += `<p>${linkify(node.paragraph)}</p>`;
+  if (node.type === 'timeline' && node.items && node.items.length) {
+    body += node.items.map(it => `<div class="timeline-item">${linkify(it)}</div>`).join('');
+  } else if (node.type === 'entities' && node.items && node.items.length) {
+    body += node.items.map(it => `<span class="entity-chip">${linkify(it)}</span>`).join('');
+  } else if (node.items && node.items.length) {
+    body += `<ul>` + node.items.map(it => `<li>${linkify(it)}</li>`).join('') + `</ul>`;
+  }
+  if (node.table) {
+    body += `<table class="mtable"><thead><tr>${node.table.headers.map(h => `<th>${escapeHtml(h)}</th>`).join('')}</tr></thead><tbody>` +
+      node.table.rows.map(r => `<tr>${r.map(c => `<td>${linkify(c)}</td>`).join('')}</tr>`).join('') + `</tbody></table>`;
+  }
+  const childrenHtml = (node.children || []).map((c, i) => detailNodeHtml(c, path + '-' + i)).join('');
+  return `
+    <div class="tree-node" data-lvl="${node.level}" id="dsec-${path}">
+      <div class="node-head" data-toggle="1"><span class="chevron open">▸</span><span class="node-title">${escapeHtml(node.heading)}</span></div>
+      ${hasOwnContent ? `<div class="node-body">${body}</div>` : ''}
+      ${childrenHtml ? `<div class="tree-children">${childrenHtml}</div>` : ''}
+    </div>`;
+}
+
 async function openDetail(row) {
   currentBriefId = row.id;
   const el = document.getElementById('viewDetail');
   const sections = row.parsed_sections || [];
-  const priorities = row.priority_angles || [];
+  const promoted = briefPromotedItems(row);
   const links = row.manual_links || [];
 
-  const tocHtml = sections.map((s, i) => `<a class="toc-chip" href="#dsec-${i}">${escapeHtml(s.heading)}</a>`).join('');
+  const tocHtml = sections.map((s, i) => `<a class="toc-chip" href="#dsec-${i}" data-idx="${i}">${escapeHtml(s.heading)}</a>`).join('');
 
-  const priorityHtml = priorities.length ? `
-    <div class="priority-verdict">
-      <div class="priority-verdict-title">★ Editor's Priority Angles</div>
-      ${priorities.map((p, i) => `
-        <div class="priority-verdict-item">
-          <div class="priority-verdict-rank">${i + 1}</div>
-          <div>
-            <div class="priority-verdict-text">${linkify(p.text)}</div>
-            ${p.note ? `<div class="priority-verdict-note">${escapeHtml(p.note)}</div>` : ''}
-          </div>
-        </div>`).join('')}
-    </div>` : '';
+  const verdictBoxes = CATEGORY_ORDER.concat(Array.from(new Set(promoted.map(p => p.category))).filter(c => !CATEGORY_ORDER.includes(c)))
+    .map(cat => {
+      const items = promoted.filter(p => p.category === cat);
+      if (!items.length) return '';
+      const meta = CATEGORY_META[cat] || { label: cat.charAt(0).toUpperCase() + cat.slice(1), icon: '📌' };
+      return `
+        <div class="priority-verdict">
+          <div class="priority-verdict-title">${meta.icon} ${meta.label}</div>
+          ${items.map((p, i) => `
+            <div class="priority-verdict-item">
+              <div class="priority-verdict-rank">${i + 1}</div>
+              <div>
+                <div class="priority-verdict-text">${p.url ? `<a href="${escapeHtml(p.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(p.text)}</a>` : escapeHtml(p.text)}</div>
+                ${p.note ? `<div class="priority-verdict-note">${escapeHtml(p.note)}</div>` : ''}
+              </div>
+            </div>`).join('')}
+        </div>`;
+    }).join('');
 
   const resourcesHtml = links.length ? `
-    <div class="resources-panel">
-      <div class="editor-box-title" style="color:var(--teal2);">🔗 Additional Resources</div>
-      ${links.map(l => `<div class="link-item"><a href="${escapeHtml(l.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(l.label)}</a> <span class="link-item-tag">${l.tag}</span>${l.note ? `<div class="priority-item-note">${escapeHtml(l.note)}</div>` : ''}</div>`).join('')}
+    <div class="resources-box">
+      <div class="promo-box-title" style="color:var(--teal2);">🔗 Additional Resources</div>
+      ${links.map(l => `<div class="link-item"><a href="${escapeHtml(l.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(l.label)}</a> <span class="link-item-tag">${l.tag}</span>${l.note ? `<div class="promo-item-note">${escapeHtml(l.note)}</div>` : ''}</div>`).join('')}
     </div>` : '';
 
-  const sectionsHtml = sections.map((sec, si) => {
-    let body = '';
-    if (sec.paragraph) body += `<p>${linkify(sec.paragraph)}</p>`;
-    if (sec.type === 'timeline' && sec.items.length) {
-      body += sec.items.map(it => `<div class="timeline-item">${linkify(it)}</div>`).join('');
-    } else if (sec.type === 'entities' && sec.items.length) {
-      body += sec.items.map(it => `<span class="entity-chip">${escapeHtml(it)}</span>`).join('');
-    } else if (sec.items.length) {
-      body += `<ul>` + sec.items.map(it => `<li>${linkify(it)}</li>`).join('') + `</ul>`;
-    }
-    if (sec.table) {
-      body += `<table class="mtable"><thead><tr>` + sec.table.headers.map(h => `<th>${escapeHtml(h)}</th>`).join('') + `</tr></thead><tbody>` +
-        sec.table.rows.map(r => `<tr>` + r.map(c => `<td>${linkify(c)}</td>`).join('') + `</tr>`).join('') + `</tbody></table>`;
-    }
-    return `<div class="section-card" id="dsec-${si}"><div class="section-title" style="margin-bottom:8px;">${escapeHtml(sec.heading)} <span class="section-type-badge">${sec.type}</span></div><div class="section-body">${body || '<p style="color:var(--soft);">(no content)</p>'}</div></div>`;
-  }).join('');
+  const sectionsHtml = sections.map((sec, i) => detailNodeHtml(sec, String(i))).join('');
+  const stats = collectStats(sections);
 
   el.innerHTML = `
     <button class="btn ghost" id="backToLibrary">← Back to Library</button>
@@ -665,21 +835,49 @@ async function openDetail(row) {
         <span>👤 ${row.editor_name ? escapeHtml(row.editor_name) : 'Unattributed'}</span>
         <span>🤖 ${row.source_llm ? escapeHtml(row.source_llm) : 'Unknown source'}</span>
         <span>📅 ${new Date(row.created_at).toLocaleString()}</span>
+        <span>👁️ ${(row.view_count || 0) + 1} views</span>
+      </div>
+      <div class="stat-strip" style="margin-top:12px;">
+        <span class="stat-pill"><b>${stats.sections}</b> sections</span>
+        <span class="stat-pill"><b>${stats.sources}</b> sources</span>
+        <span class="stat-pill"><b>${promoted.length}</b> promoted</span>
       </div>
     </div>
-    ${priorityHtml}
-    <div class="showcase-toc">${tocHtml}</div>
-    ${sectionsHtml}
+    ${verdictBoxes ? `<div class="verdict-grid">${verdictBoxes}</div>` : ''}
+    <div class="showcase-toc" id="showcaseToc">${tocHtml}</div>
+    <div id="showcaseSections">${sectionsHtml}</div>
     ${resourcesHtml}
   `;
   document.getElementById('backToLibrary').addEventListener('click', () => { showView('library'); loadLibrary(); });
-  showView('detail');
 
-  // fire-and-forget view count increment
+  el.querySelectorAll('[data-toggle]').forEach(headEl => {
+    const node = headEl.parentElement;
+    const chevron = headEl.querySelector('.chevron');
+    const body = node.querySelector(':scope > .node-body');
+    headEl.addEventListener('click', () => {
+      chevron.classList.toggle('open');
+      if (body) body.classList.toggle('collapsed');
+      const children = node.querySelector(':scope > .tree-children');
+      if (children) children.style.display = children.style.display === 'none' ? '' : 'none';
+    });
+  });
+
+  const tocChips = Array.from(el.querySelectorAll('#showcaseToc .toc-chip'));
+  const sectionEls = tocChips.map(c => document.getElementById(c.getAttribute('href').slice(1)));
+  function updateSpy() {
+    let activeIdx = 0;
+    for (let i = 0; i < sectionEls.length; i++) {
+      if (sectionEls[i] && sectionEls[i].getBoundingClientRect().top < 160) activeIdx = i;
+    }
+    tocChips.forEach((c, i) => c.classList.toggle('active', i === activeIdx));
+  }
+  window.addEventListener('scroll', updateSpy);
+  updateSpy();
+
+  showView('detail');
   sbUpdate('dna_agent_briefs', row.id, { view_count: (row.view_count || 0) + 1 }).catch(() => {});
 }
 
-/* ==================== Pinned Copilot popup (shared pattern) ==================== */
 let copilotWindowRef = null;
 function openCopilotPopup(promptText) {
   if (promptText) navigator.clipboard.writeText(promptText).catch(() => {});
@@ -696,7 +894,6 @@ function openCopilotPopup(promptText) {
 }
 document.getElementById('copilotFab').addEventListener('click', () => openCopilotPopup());
 
-/* ==================== Init ==================== */
 showView('library');
 loadLibrary();
 
