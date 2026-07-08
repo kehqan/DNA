@@ -654,13 +654,19 @@ function parseAgentText(raw) {
 }
 function collectStats(nodes) {
   let sections = 0, sources = 0, items = 0; const urls = new Set();
-  (function walk(list){ for (const n of list) {
-    sections++; items += n.items.length;
-    for (const it of n.items) extractLinks(it).forEach(l => urls.add(l.url));
-    extractLinks(n.paragraph).forEach(l => urls.add(l.url));
-    if (n.table && Array.isArray(n.table.rows)) n.table.rows.forEach(r => (r||[]).forEach(c => extractLinks(c).forEach(l => urls.add(l.url))));
-    walk(n.children);
-  }})(nodes);
+  (function walk(list){
+    if (!Array.isArray(list)) return;
+    for (const n of list) {
+      if (!n || typeof n !== 'object') continue;
+      sections++;
+      const its = Array.isArray(n.items) ? n.items : [];
+      items += its.length;
+      for (const it of its) extractLinks(it).forEach(l => urls.add(l.url));
+      if (n.paragraph) extractLinks(n.paragraph).forEach(l => urls.add(l.url));
+      if (n.table && Array.isArray(n.table.rows)) n.table.rows.forEach(r => (r||[]).forEach(c => extractLinks(c).forEach(l => urls.add(l.url))));
+      walk(n.children);
+    }
+  })(nodes);
   return { sections, sources: urls.size, items };
 }
 
@@ -1018,13 +1024,14 @@ document.getElementById('saveBriefBtn').addEventListener('click', async () => {
 /* ==================== Library ==================== */
 let LIBRARY_CACHE = [], activeLlm = 'all';
 function briefPromotedItems(row) {
-  if (row.promoted_items && row.promoted_items.length) return row.promoted_items;
-  return (row.priority_angles || []).map((p, i) => ({ id: 'legacy'+i, text: p.text, url: null, category: 'angle', note: p.note || '' }));
+  if (Array.isArray(row.promoted_items) && row.promoted_items.length) return row.promoted_items;
+  const pa = Array.isArray(row.priority_angles) ? row.priority_angles : [];
+  return pa.map((p, i) => ({ id: 'legacy'+i, text: p.text, url: null, category: 'angle', note: p.note || '' }));
 }
 function briefStatus(row) { return (briefPromotedItems(row).length || (row.manual_links||[]).length) ? 'curated' : 'raw'; }
 function briefSnippet(row) {
-  const secs = row.parsed_sections || [];
-  for (const s of secs) { if (s.paragraph) return s.paragraph; if (s.items && s.items.length) return s.items[0]; }
+  const secs = Array.isArray(row.parsed_sections) ? row.parsed_sections : [];
+  for (const s of secs) { if (s && s.paragraph) return s.paragraph; if (s && Array.isArray(s.items) && s.items.length) return s.items[0]; }
   return (row.raw_text || '').slice(0, 160);
 }
 async function loadLibrary() {
@@ -1061,7 +1068,9 @@ function renderLibrary(rows) {
     return;
   }
   grid.innerHTML = rows.map(r => {
+    try {
     const promoted = briefPromotedItems(r), status = briefStatus(r), sources = collectStats(r.parsed_sections || []).sources;
+    const linkCount = Array.isArray(r.manual_links) ? r.manual_links.length : 0;
     return `
       <div class="brief-card" data-id="${r.id}" data-status="${status}">
         <div class="brief-card-top">
@@ -1077,10 +1086,17 @@ function renderLibrary(rows) {
         </div>
         <div class="brief-card-foot">
           <span class="count-pill">★ <b>${promoted.length}</b> promoted</span>
-          <span class="count-pill">🔗 <b>${sources + (r.manual_links||[]).length}</b> sources</span>
+          <span class="count-pill">🔗 <b>${sources + linkCount}</b> sources</span>
           <span class="count-pill">👁️ <b>${r.view_count || 0}</b></span>
         </div>
       </div>`;
+    } catch (e) {
+      return `<div class="brief-card" data-id="${escapeHtml(String(r && r.id))}" data-status="raw">
+        <div class="brief-card-top"><span class="status-chip raw">raw intake</span></div>
+        <div class="brief-card-topic">${escapeHtml((r && r.topic) || 'Untitled brief')}</div>
+        <div class="brief-card-snippet">Open to view — this brief uses an older stored format.</div>
+      </div>`;
+    }
   }).join('');
   grid.querySelectorAll('.brief-card').forEach(el => el.addEventListener('click', () => {
     const row = LIBRARY_CACHE.find(r => r.id === el.getAttribute('data-id')); if (row) openDetail(row);
@@ -1141,7 +1157,7 @@ async function openDetail(row) {
   currentBriefId = row.id;
   citeStart(); TABLES = {}; tableSeq = 0;
   const el = document.getElementById('viewDetail');
-  const sections = row.parsed_sections || [], promoted = briefPromotedItems(row), links = row.manual_links || [];
+  const sections = Array.isArray(row.parsed_sections) ? row.parsed_sections : [], promoted = briefPromotedItems(row), links = Array.isArray(row.manual_links) ? row.manual_links : [];
   const status = briefStatus(row), stats = collectStats(sections);
 
   const verdictBoxes = CATEGORY_ORDER.concat(Array.from(new Set(promoted.map(p => p.category))).filter(c => !CATEGORY_ORDER.includes(c)))
