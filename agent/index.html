@@ -355,6 +355,56 @@ input, select, textarea, button { font-family: inherit; }
 .dash-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
 @media (prefers-reduced-motion: reduce) { * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
+
+/* Search intelligence editable grid */
+.sc-sub { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--soft); margin-bottom: 6px; }
+.sc-grid { width: 100%; border-collapse: collapse; font-size: 11.5px; }
+.sc-grid th { text-align: left; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; color: var(--soft); padding: 3px 4px; }
+.sc-grid td { padding: 2px; }
+.sc-grid input { width: 100%; font-size: 11.5px; color: var(--teal); background: var(--paper); border: 1px solid var(--border2); border-radius: 6px; padding: 5px 7px; outline: none; }
+.sc-grid input:focus { border-color: var(--flame); }
+.sc-grid td:first-child { width: 46%; }
+.sc-grid td:last-child { width: 22px; text-align: center; }
+.sc-tools { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 7px; }
+.sc-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+
+/* Library card delete */
+.card-del { position: absolute; top: 12px; right: 12px; z-index: 3; width: 26px; height: 26px; border-radius: 8px; border: 1px solid var(--border2);
+  background: var(--paper); color: var(--soft); cursor: pointer; font-size: 12px; display: none; align-items: center; justify-content: center; padding: 0; }
+.brief-card:hover .card-del { display: inline-flex; }
+.card-del:hover { background: var(--flame); color: #fff; border-color: transparent; }
+.card-del.confirm { display: inline-flex; width: auto; padding: 0 8px; background: var(--flame); color: #fff; border-color: transparent; font-size: 10px; font-weight: 700; }
+
+/* Annotations — highlights + comments */
+mark.anno { background: linear-gradient(rgba(255,192,71,0.42), rgba(255,192,71,0.42)); border-radius: 3px; padding: 0 1px; cursor: pointer; box-shadow: inset 0 -1px 0 rgba(255,84,0,0.4); transition: background 140ms; }
+mark.anno:hover { background: rgba(255,192,71,0.62); }
+mark.anno.has-comment { box-shadow: inset 0 -2px 0 var(--flame); }
+mark.anno.active { background: rgba(255,84,0,0.35); }
+.jump-pulse > .node-head { animation: pulseHead 1200ms var(--eo); }
+@keyframes pulseHead { 0% { box-shadow: 0 0 0 3px rgba(255,84,0,0.5); } 100% { box-shadow: var(--gs), var(--gi); } }
+mark.anno.pulse { animation: markPulse 1200ms var(--eo); }
+@keyframes markPulse { 0% { background: rgba(255,84,0,0.6); } 100% { background: rgba(255,192,71,0.42); } }
+
+.sel-toolbar { position: absolute; z-index: 85; display: none; gap: 4px; background: var(--teal); border-radius: 100px; padding: 4px; box-shadow: 0 8px 24px rgba(26,57,72,0.32); }
+.sel-toolbar.show { display: flex; }
+.sel-toolbar button { font-size: 11.5px; font-weight: 600; color: #fff; background: transparent; border: none; border-radius: 100px; padding: 6px 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; }
+.sel-toolbar button:hover { background: rgba(255,255,255,0.16); }
+
+.anno-box { background: rgba(255,192,71,0.09); border: 1.5px solid rgba(255,192,71,0.5); border-radius: 18px; padding: 16px 18px; margin: 22px 0; }
+.anno-box-title { font-size: 11px; font-weight: 800; color: #b26a00; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px; display: flex; align-items: center; gap: 7px; }
+.anno-box-count { background: var(--honey); color: var(--teal); border-radius: 100px; font-size: 10px; padding: 1px 8px; margin-left: auto; }
+.anno-item { display: flex; gap: 11px; padding: 10px 0; border-bottom: 1px solid rgba(255,192,71,0.28); cursor: pointer; }
+.anno-item:last-child { border-bottom: none; }
+.anno-item:hover .anno-quote { color: var(--teal); }
+.anno-mark { width: 4px; border-radius: 4px; background: var(--honey); flex-shrink: 0; }
+.anno-body { min-width: 0; flex: 1; }
+.anno-quote { font-size: 13px; font-weight: 600; color: var(--teal2); line-height: 1.45; font-style: italic; }
+.anno-quote::before { content: '“'; } .anno-quote::after { content: '”'; }
+.anno-comment { font-size: 12px; color: var(--muted); margin-top: 5px; line-height: 1.55; }
+.anno-del { font-size: 10px; background: rgba(var(--inkC),0.06); border: none; border-radius: 6px; padding: 3px 8px; cursor: pointer; color: var(--soft); align-self: flex-start; }
+.anno-del:hover { background: var(--flame); color: #fff; }
+.anno-pop { width: 280px; }
+.anno-pop .pop-note { min-height: 70px; }
 </style>
 </head>
 <body>
@@ -497,16 +547,31 @@ input, select, textarea, button { font-family: inherit; }
 
         <div class="resources-box" style="margin-top:12px;">
           <div class="promo-box-title" style="color:var(--teal2);">🔎 Search intelligence</div>
-          <div class="meter-hint" style="margin-bottom:10px;">Paste Search Console rows and Trends terms — they become a sortable table inside the brief.</div>
-          <div class="add-link-form">
-            <label class="sc-lbl">Search Console — one per line: <b>keyword, clicks, impressions, position</b></label>
-            <textarea id="scKeywords" class="pop-note" style="min-height:74px;" placeholder="iran israel war, 12000, 340000, 3.2&#10;strait of hormuz, 5400, 120000, 6.1"></textarea>
-            <label class="sc-lbl">Winning articles — one per line: <b>Title | URL</b></label>
-            <textarea id="scArticles" class="pop-note" style="min-height:56px;" placeholder="Live updates: Iran–Israel | https://example.com/live"></textarea>
-            <label class="sc-lbl">Google Trends — comma separated</label>
-            <input type="text" id="scTrends" placeholder="strait of hormuz, khamenei, oil price">
-            <button class="small-btn" id="addSearchBtn">+ Add search intelligence</button>
+          <div class="meter-hint" style="margin-bottom:10px;">Fill the table, paste rows, or upload a Search Console CSV. New data accumulates — nothing is replaced.</div>
+
+          <div class="sc-sub">Search Console keywords</div>
+          <div id="scKwTable"></div>
+          <div class="sc-tools">
+            <button class="mini-icon-btn" id="scAddRow">＋ Row</button>
+            <button class="mini-icon-btn" id="scPaste">⧉ Paste rows</button>
+            <label class="mini-icon-btn" for="scFile" style="cursor:pointer;">⭱ Upload CSV</label>
+            <input type="file" id="scFile" accept=".csv,.tsv,.txt" hidden>
+            <button class="mini-icon-btn danger" id="scClearKw">Clear</button>
           </div>
+
+          <div class="sc-sub" style="margin-top:14px;">Winning articles</div>
+          <div id="scArtList"></div>
+          <div class="add-link-form" style="margin-top:6px;">
+            <input type="text" id="scArtTitle" placeholder="Article title">
+            <input type="text" id="scArtUrl" placeholder="https://…">
+            <button class="mini-icon-btn" id="scAddArt" style="align-self:flex-start;">＋ Add article</button>
+          </div>
+
+          <div class="sc-sub" style="margin-top:14px;">Google Trends terms</div>
+          <div id="scTrendChips" class="sc-chips"></div>
+          <input type="text" id="scTrendInput" placeholder="Type a term, press Enter" style="font-size:11.5px;padding:8px 10px;border:1px solid var(--border2);border-radius:8px;background:var(--paper);outline:none;width:100%;margin-top:6px;">
+
+          <button class="small-btn" id="scApply" style="margin-top:12px;">Add to brief</button>
           <div id="searchIntelStatus" class="meter-hint" style="margin-top:8px;"></div>
         </div>
       </div>
@@ -520,6 +585,11 @@ input, select, textarea, button { font-family: inherit; }
 
 <button class="copilot-fab" id="copilotFab" title="Open Copilot">🤖</button>
 <div class="pop" id="promotePop"></div>
+<div class="pop anno-pop" id="annoPop"></div>
+<div class="sel-toolbar" id="selToolbar">
+  <button data-sel="highlight">🖍 Highlight</button>
+  <button data-sel="comment">💬 Comment</button>
+</div>
 <div class="dash-toast" id="dashToast"></div>
 
 <script>
@@ -620,6 +690,11 @@ async function sbUpdate(table, id, patch) {
     body: JSON.stringify(patch) });
   if (!res.ok) throw new Error(`update failed (${res.status})`); return res.json();
 }
+async function sbDelete(table, id) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, { method: 'DELETE',
+    headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` } });
+  if (!res.ok) throw new Error(`delete failed (${res.status})`); return true;
+}
 
 /* ==================== PARSER (preserved) ==================== */
 function matchHeading(line) {
@@ -699,9 +774,10 @@ function collectStats(nodes) {
   })(nodes);
   return { sections, sources: urls.size, items };
 }
+function visibleNodes(tree) { return (Array.isArray(tree) ? tree : []).filter(n => n && n._editor !== 'annotations'); }
 
 /* ==================== State ==================== */
-let currentTree = [], currentPromoted = [], currentLinks = [], currentBriefId = null, promoIdSeq = 0, editingId = null;
+let currentTree = [], currentPromoted = [], currentLinks = [], currentBriefId = null, promoIdSeq = 0, editingId = null, detailRow = null, currentAnnotations = [];
 let TABLES = {}, tableSeq = 0;
 function registerTable(tbl) { const id = 'tbl' + (tableSeq++); TABLES[id] = tbl; return id; }
 
@@ -723,13 +799,14 @@ document.getElementById('pipeline').addEventListener('click', (e) => {
   else dashToast(s === 'review' ? 'Parse an answer first' : s === 'detail' ? 'Open a brief first' : '');
 });
 function clearDeskInputs() {
-  ['newPersonName','newPersonRole','newPersonUrl','newPersonNote','scKeywords','scArticles','scTrends'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  ['newPersonName','newPersonRole','newPersonUrl','newPersonNote','scArtTitle','scArtUrl','scTrendInput'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   const st = document.getElementById('searchIntelStatus'); if (st) st.textContent = '';
+  renderSearchIntel();
 }
 function openIntake() {
   ['pasteTopic','pasteEditor','pasteText'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('parseProgress').textContent = '';
-  editingId = null; updateSaveMode(); clearDeskInputs();
+  editingId = null; updateSaveMode(); resetSearchIntel(); clearDeskInputs();
   updateCharCount(); showView('paste');
 }
 document.getElementById('navPaste').addEventListener('click', openIntake);
@@ -757,7 +834,7 @@ document.getElementById('parseBtn').addEventListener('click', () => {
     const st = collectStats(currentTree);
     p.textContent = `Found ${st.sections} sections · ${st.items} points · ${st.sources} sources`;
     setTimeout(() => {
-      currentPromoted = []; currentLinks = []; currentBriefId = null; editingId = null; updateSaveMode();
+      currentPromoted = []; currentLinks = []; currentBriefId = null; editingId = null; resetSearchIntel(); updateSaveMode();
       p.classList.remove('active'); p.textContent = '';
       document.getElementById('reviewTitle').textContent = topic;
       renderReview(); showView('review');
@@ -820,14 +897,15 @@ function renderReview() {
   citeStop(); // desk chips show domain only, no numbers
   TABLES = {}; tableSeq = 0;
   const wrap = document.getElementById('reviewSections');
-  wrap.innerHTML = currentTree.map((n, i) => nodeHtml(n, String(i))).join('');
+  const vis = visibleNodes(currentTree);
+  wrap.innerHTML = vis.map((n, i) => nodeHtml(n, String(i))).join('');
   hydrateTables(wrap);
   wireTreeListeners(wrap);
-  renderStatStrip(); renderPromoBoxes(); renderLinksList(); renderPeopleList(); renderMeter();
-  buildSpine('deskSpineNav', currentTree, '#dsec-', 'reviewSections');
+  renderStatStrip(); renderPromoBoxes(); renderLinksList(); renderPeopleList(); renderSearchIntel(); renderMeter();
+  buildSpine('deskSpineNav', vis, 'dsec-', 'reviewSections');
 }
 function renderStatStrip() {
-  const s = collectStats(currentTree);
+  const s = collectStats(visibleNodes(currentTree));
   document.getElementById('statStrip').innerHTML = `
     <span class="stat-pill"><b>${s.sections}</b> sections</span>
     <span class="stat-pill"><b>${s.items}</b> points</span>
@@ -1067,44 +1145,124 @@ document.getElementById('addPersonBtn').addEventListener('click', () => {
   dashToast('Added to People to Watch');
 });
 
-/* ---------- Search intelligence (editor node injected into the tree) ---------- */
-function addSearchIntel() {
-  const kwRaw = document.getElementById('scKeywords').value.trim();
-  const artRaw = document.getElementById('scArticles').value.trim();
-  const trendsRaw = document.getElementById('scTrends').value.trim();
-  if (!kwRaw && !artRaw && !trendsRaw) return dashToast('Enter some search data first');
+/* ---------- Search intelligence (cumulative, editable) ---------- */
+let searchIntel = { keywords: [], articles: [], trends: [] };
+const SC_HEADERS = ['Keyword', 'Clicks', 'Impressions', 'Avg. position'];
 
-  const children = [];
-  if (kwRaw) {
-    const rows = kwRaw.split('\n').map(l => l.trim()).filter(Boolean).map(l => {
-      const parts = l.split(/\t|,(?![^(]*\))/).map(c => c.trim());
-      return [parts[0] || '', parts[1] || '', parts[2] || '', parts[3] || ''];
-    });
-    children.push({ heading: 'Top keywords — Search Console', level: 2, type: 'table',
-      table: { headers: ['Keyword', 'Clicks', 'Impressions', 'Avg. position'], rows },
-      children: [], items: [], paragraph: '' });
-  }
-  if (artRaw) {
-    const items = artRaw.split('\n').map(l => l.trim()).filter(Boolean).map(l => {
-      const m = l.split('|').map(s => s.trim());
-      if (m.length >= 2 && /^https?:\/\//.test(m[1])) return `[${m[0]}](${m[1]})`;
-      return l;
-    });
-    children.push({ heading: 'Winning articles', level: 2, type: 'text', items, children: [], table: null, paragraph: '' });
-  }
-  if (trendsRaw) {
-    const items = trendsRaw.split(',').map(s => s.trim()).filter(Boolean);
-    children.push({ heading: 'Google Trends — rising terms', level: 2, type: 'entities', items, children: [], table: null, paragraph: '' });
-  }
-
-  const node = { heading: 'Search intelligence (editor)', level: 1, type: 'summary', _editor: 'search', children, items: [], table: null, paragraph: '' };
-  currentTree = currentTree.filter(n => n._editor !== 'search');
-  currentTree.push(node);
-  renderReview();
-  document.getElementById('searchIntelStatus').textContent = `Added: ${children.map(c => c.heading.split(' —')[0].replace(' (editor)','')).join(' · ')}`;
-  dashToast('Search intelligence added to the brief');
+function resetSearchIntel() { searchIntel = { keywords: [], articles: [], trends: [] }; }
+function loadSearchIntelFromTree() {
+  resetSearchIntel();
+  const node = (currentTree || []).find(n => n._editor === 'search');
+  if (!node) return;
+  (node.children || []).forEach(c => {
+    if (c.type === 'table' && c.table && Array.isArray(c.table.rows)) searchIntel.keywords = c.table.rows.map(r => [r[0]||'', r[1]||'', r[2]||'', r[3]||'']);
+    else if (c.type === 'entities') searchIntel.trends = (c.items || []).slice();
+    else if (Array.isArray(c.items)) {
+      searchIntel.articles = c.items.map(it => {
+        const m = String(it).match(/^\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)$/);
+        return m ? { title: m[1], url: m[2] } : { title: it, url: '' };
+      });
+    }
+  });
 }
-document.getElementById('addSearchBtn').addEventListener('click', addSearchIntel);
+function syncSearchNode() {
+  currentTree = (currentTree || []).filter(n => n._editor !== 'search');
+  const kw = searchIntel.keywords.filter(r => r.some(c => String(c).trim()));
+  const arts = searchIntel.articles.filter(a => a.title || a.url);
+  const trends = searchIntel.trends.filter(Boolean);
+  if (!kw.length && !arts.length && !trends.length) return;
+  const children = [];
+  if (kw.length) children.push({ heading: 'Top keywords — Search Console', level: 2, type: 'table', table: { headers: SC_HEADERS, rows: kw }, children: [], items: [], paragraph: '' });
+  if (arts.length) children.push({ heading: 'Winning articles', level: 2, type: 'text', items: arts.map(a => a.url ? `[${a.title || a.url}](${a.url})` : a.title), children: [], table: null, paragraph: '' });
+  if (trends.length) children.push({ heading: 'Google Trends — rising terms', level: 2, type: 'entities', items: trends, children: [], table: null, paragraph: '' });
+  currentTree.push({ heading: 'Search intelligence (editor)', level: 1, type: 'summary', _editor: 'search', children, items: [], table: null, paragraph: '' });
+}
+
+function renderScKwTable() {
+  const wrap = document.getElementById('scKwTable'); if (!wrap) return;
+  const rows = searchIntel.keywords;
+  wrap.innerHTML = `<table class="sc-grid"><thead><tr>${SC_HEADERS.map(h => `<th>${h}</th>`).join('')}<th></th></tr></thead><tbody>${
+    rows.length ? rows.map((r, i) => `<tr>${r.map((c, j) => `<td><input data-r="${i}" data-c="${j}" value="${escapeHtml(c)}" ${j ? 'inputmode="decimal"' : ''}></td>`).join('')}<td><button class="mini-icon-btn danger" data-scdel="${i}">✕</button></td></tr>`).join('')
+    : `<tr><td colspan="5" class="itable-empty" style="padding:10px">No keywords yet — add a row, paste, or upload a CSV.</td></tr>`
+  }</tbody></table>`;
+  wrap.querySelectorAll('input[data-r]').forEach(inp => inp.addEventListener('input', () => {
+    searchIntel.keywords[+inp.getAttribute('data-r')][+inp.getAttribute('data-c')] = inp.value;
+  }));
+  wrap.querySelectorAll('[data-scdel]').forEach(b => b.addEventListener('click', () => { searchIntel.keywords.splice(+b.getAttribute('data-scdel'), 1); renderScKwTable(); }));
+}
+function renderScArticles() {
+  const wrap = document.getElementById('scArtList'); if (!wrap) return;
+  wrap.innerHTML = searchIntel.articles.length ? searchIntel.articles.map((a, i) => `
+    <div class="link-item"><div class="link-item-top">
+      <span style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(a.title || a.url)}</span>
+      <button class="mini-icon-btn danger" data-artdel="${i}">✕</button></div>
+      ${a.url ? `<div class="ledger-url" style="margin-top:3px">${escapeHtml(domainOf(a.url))}</div>` : ''}
+    </div>`).join('') : '';
+  wrap.querySelectorAll('[data-artdel]').forEach(b => b.addEventListener('click', () => { searchIntel.articles.splice(+b.getAttribute('data-artdel'), 1); renderScArticles(); }));
+}
+function renderScTrends() {
+  const wrap = document.getElementById('scTrendChips'); if (!wrap) return;
+  wrap.innerHTML = searchIntel.trends.map((t, i) => `<span class="entity-chip" style="cursor:default">${escapeHtml(t)} <b data-trenddel="${i}" style="cursor:pointer;color:var(--flame)">×</b></span>`).join('');
+  wrap.querySelectorAll('[data-trenddel]').forEach(b => b.addEventListener('click', () => { searchIntel.trends.splice(+b.getAttribute('data-trenddel'), 1); renderScTrends(); }));
+}
+function renderSearchIntel() { renderScKwTable(); renderScArticles(); renderScTrends(); }
+
+function parseKeywordRows(text) {
+  const lines = text.replace(/\r/g, '').split('\n').map(l => l.trimEnd()).filter(l => l.trim());
+  if (!lines.length) return [];
+  const delim = lines[0].includes('\t') ? '\t' : ',';
+  let header = null, map = null;
+  const firstCells = lines[0].split(delim).map(c => c.trim().toLowerCase());
+  if (firstCells.some(c => /query|keyword|clicks|impressions|position|ctr/.test(c))) {
+    header = firstCells;
+    const find = (...names) => header.findIndex(h => names.some(n => h.includes(n)));
+    map = { kw: Math.max(0, find('query', 'keyword')), clicks: find('click'), impr: find('impression'), pos: find('position') };
+  }
+  const out = [];
+  lines.slice(header ? 1 : 0).forEach(l => {
+    const cells = l.split(delim).map(c => c.trim().replace(/^"|"$/g, ''));
+    if (map) out.push([cells[map.kw] || '', map.clicks >= 0 ? cells[map.clicks] || '' : '', map.impr >= 0 ? cells[map.impr] || '' : '', map.pos >= 0 ? cells[map.pos] || '' : '']);
+    else out.push([cells[0] || '', cells[1] || '', cells[2] || '', cells[3] || '']);
+  });
+  return out.filter(r => r[0]);
+}
+
+document.getElementById('scAddRow').addEventListener('click', () => { searchIntel.keywords.push(['', '', '', '']); renderScKwTable(); });
+document.getElementById('scClearKw').addEventListener('click', () => { searchIntel.keywords = []; renderScKwTable(); });
+document.getElementById('scPaste').addEventListener('click', async () => {
+  try {
+    const text = await navigator.clipboard.readText();
+    const rows = parseKeywordRows(text);
+    if (!rows.length) return dashToast('No rows found on the clipboard');
+    searchIntel.keywords.push(...rows); renderScKwTable(); dashToast(`Pasted ${rows.length} rows`);
+  } catch (e) { dashToast('Clipboard blocked — paste into a row instead'); }
+});
+document.getElementById('scFile').addEventListener('change', e => {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => { const rows = parseKeywordRows(String(reader.result)); if (!rows.length) return dashToast('No rows found in file'); searchIntel.keywords.push(...rows); renderScKwTable(); dashToast(`Imported ${rows.length} rows from ${file.name}`); };
+  reader.readAsText(file); e.target.value = '';
+});
+document.getElementById('scAddArt').addEventListener('click', () => {
+  const title = document.getElementById('scArtTitle').value.trim(), url = document.getElementById('scArtUrl').value.trim();
+  if (!title && !url) return dashToast('Add a title or URL');
+  searchIntel.articles.push({ title, url }); document.getElementById('scArtTitle').value = ''; document.getElementById('scArtUrl').value = ''; renderScArticles();
+});
+document.getElementById('scTrendInput').addEventListener('keydown', e => {
+  if (e.key !== 'Enter') return; e.preventDefault();
+  const v = e.target.value.trim(); if (!v) return;
+  v.split(',').map(s => s.trim()).filter(Boolean).forEach(t => { if (!searchIntel.trends.includes(t)) searchIntel.trends.push(t); });
+  e.target.value = ''; renderScTrends();
+});
+document.getElementById('scApply').addEventListener('click', () => {
+  syncSearchNode(); renderReview();
+  const parts = [];
+  if (searchIntel.keywords.some(r => r[0])) parts.push(`${searchIntel.keywords.filter(r=>r[0]).length} keywords`);
+  if (searchIntel.articles.length) parts.push(`${searchIntel.articles.length} articles`);
+  if (searchIntel.trends.length) parts.push(`${searchIntel.trends.length} trends`);
+  document.getElementById('searchIntelStatus').textContent = parts.length ? 'In brief: ' + parts.join(' · ') : 'Nothing added yet';
+  dashToast('Search intelligence added to the brief');
+});
 
 /* ---------- Save ---------- */
 function updateSaveMode() {
@@ -1120,6 +1278,7 @@ function openEditor(row) {
     : briefPromotedItems(row).map(p => ({ ...p }));
   currentLinks = Array.isArray(row.manual_links) ? clone(row.manual_links) : [];
   promoIdSeq = 1 + currentPromoted.reduce((m, p) => { const n = parseInt(String(p.id).replace(/\D/g, ''), 10) || 0; return Math.max(m, n); }, 0);
+  loadSearchIntelFromTree();
   document.getElementById('reviewTitle').textContent = row.topic || '';
   document.getElementById('pasteEditor').value = row.editor_name || '';
   document.getElementById('pasteSourceLlm').value = row.source_llm || 'Other';
@@ -1128,6 +1287,7 @@ function openEditor(row) {
 }
 document.getElementById('saveBriefBtn').addEventListener('click', async () => {
   const topic = document.getElementById('reviewTitle').textContent.trim() || 'Untitled brief';
+  syncSearchNode();
   const btn = document.getElementById('saveBriefBtn'); btn.disabled = true; btn.textContent = editingId ? 'Updating…' : 'Publishing…';
   const payload = {
     topic,
@@ -1197,10 +1357,11 @@ function renderLibrary(rows) {
   }
   grid.innerHTML = rows.map(r => {
     try {
-    const promoted = briefPromotedItems(r), status = briefStatus(r), sources = collectStats(r.parsed_sections || []).sources;
+    const promoted = briefPromotedItems(r), status = briefStatus(r), sources = collectStats(visibleNodes(r.parsed_sections)).sources;
     const linkCount = Array.isArray(r.manual_links) ? r.manual_links.length : 0;
     return `
       <div class="brief-card" data-id="${r.id}" data-status="${status}">
+        <button class="card-del" data-del="${r.id}" title="Delete brief">✕</button>
         <div class="brief-card-top">
           <span class="status-chip ${status}">${status === 'curated' ? '✦ curated' : 'raw intake'}</span>
           ${r.source_llm ? `<span class="llm-chip">${escapeHtml(r.source_llm)}</span>` : ''}
@@ -1226,8 +1387,24 @@ function renderLibrary(rows) {
       </div>`;
     }
   }).join('');
-  grid.querySelectorAll('.brief-card').forEach(el => el.addEventListener('click', () => {
+  grid.querySelectorAll('.brief-card').forEach(el => el.addEventListener('click', (e) => {
+    if (e.target.closest('.card-del')) return;
     const row = LIBRARY_CACHE.find(r => r.id === el.getAttribute('data-id')); if (row) openDetail(row);
+  }));
+  grid.querySelectorAll('.card-del').forEach(btn => btn.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    const id = btn.getAttribute('data-del');
+    if (!btn.classList.contains('confirm')) {
+      btn.classList.add('confirm'); btn.textContent = 'Delete?';
+      btn._t = setTimeout(() => { btn.classList.remove('confirm'); btn.textContent = '✕'; }, 3000);
+      return;
+    }
+    clearTimeout(btn._t); btn.textContent = '…';
+    try {
+      await sbDelete('dna_agent_briefs', id);
+      LIBRARY_CACHE = LIBRARY_CACHE.filter(r => r.id !== id);
+      renderLlmFilters(); applyLibraryFilter(); dashToast('Brief deleted');
+    } catch (err) { btn.classList.remove('confirm'); btn.textContent = '✕'; dashToast('Delete failed: ' + err.message); }
   }));
 }
 document.getElementById('librarySearch').addEventListener('input', applyLibraryFilter);
@@ -1246,7 +1423,11 @@ function buildSpine(navId, sections, idPrefix, scrollContainerId) {
   links.forEach(a => a.addEventListener('click', ev => {
     ev.preventDefault();
     const t = document.getElementById(a.getAttribute('data-id'));
-    if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (!t) return;
+    const body = t.querySelector(':scope > .node-body');
+    if (body && body.classList.contains('collapsed')) { const head = t.querySelector(':scope > .node-head'); if (head) head.click(); }
+    t.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    t.classList.remove('jump-pulse'); void t.offsetWidth; t.classList.add('jump-pulse');
   }));
   const fill = document.getElementById(navId + 'Fill');
   const spy = () => {
@@ -1282,10 +1463,13 @@ function detailNodeHtml(node, path) {
 }
 
 async function openDetail(row) {
-  currentBriefId = row.id;
+  currentBriefId = row.id; detailRow = row;
   citeStart(); TABLES = {}; tableSeq = 0;
   const el = document.getElementById('viewDetail');
-  const sections = Array.isArray(row.parsed_sections) ? row.parsed_sections : [], promoted = briefPromotedItems(row), links = Array.isArray(row.manual_links) ? row.manual_links : [];
+  const allSections = Array.isArray(row.parsed_sections) ? row.parsed_sections : [];
+  const sections = visibleNodes(allSections), promoted = briefPromotedItems(row), links = Array.isArray(row.manual_links) ? row.manual_links : [];
+  const annNode = allSections.find(n => n && n._editor === 'annotations');
+  currentAnnotations = annNode && Array.isArray(annNode.annotations) ? annNode.annotations.slice() : [];
   const status = briefStatus(row), stats = collectStats(sections);
 
   const verdictBoxes = CATEGORY_ORDER.concat(Array.from(new Set(promoted.map(p => p.category))).filter(c => !CATEGORY_ORDER.includes(c)))
@@ -1346,6 +1530,7 @@ async function openDetail(row) {
           </div>
         </div>
         ${verdictBoxes ? `<div class="eyebrow" style="margin-bottom:2px">Editor's verdict</div><div class="verdict-grid">${verdictBoxes}</div>` : ''}
+        <div id="annoBox"></div>
         <div class="eyebrow" style="margin:22px 0 10px">Full brief</div>
         <div id="showcaseSections">${sectionsHtml}</div>
         ${resourcesHtml}
@@ -1373,7 +1558,12 @@ async function openDetail(row) {
   document.getElementById('copilotFromBrief').addEventListener('click', () => openCopilotPopup(briefToMarkdown(row, promoted, links)));
   document.getElementById('printBrief').addEventListener('click', () => window.print());
 
-  buildSpine('briefSpineNav', sections, '#dsec-', 'showcaseSections');
+  buildSpine('briefSpineNav', sections, 'dsec-', 'showcaseSections');
+
+  // annotations: restore highlights, render the top box, enable new selections
+  restoreAnnotations();
+  renderAnnoBox();
+  wireAnnotationSelection();
 
   // reading progress in summary card
   const progFill = document.getElementById('briefProgFill'), pctEl = document.getElementById('briefPct');
@@ -1388,6 +1578,154 @@ async function openDetail(row) {
   citeStop();
   showView('detail');
   sbUpdate('dna_agent_briefs', row.id, { view_count: (row.view_count || 0) + 1 }).catch(() => {});
+}
+
+/* ==================== Annotations: highlight + comment ==================== */
+function getSelectionInfo() {
+  const sel = window.getSelection();
+  if (!sel || sel.isCollapsed || sel.rangeCount === 0) return null;
+  const range = sel.getRangeAt(0);
+  const cont = document.getElementById('showcaseSections');
+  if (!cont || !cont.contains(range.commonAncestorContainer)) return null;
+  if (range.toString().trim().length < 2) return null;
+  let el = range.startContainer; el = el.nodeType === 3 ? el.parentElement : el;
+  const sectionEl = el && el.closest('[id^="dsec-"]'); if (!sectionEl) return null;
+  const pre = document.createRange(); pre.selectNodeContents(sectionEl);
+  try { pre.setEnd(range.startContainer, range.startOffset); } catch (e) { return null; }
+  const start = pre.toString().length, end = start + range.toString().length;
+  return { range, sectionEl, sectionId: sectionEl.id, start, end, quote: range.toString() };
+}
+function charRangeToDomRange(root, start, end) {
+  const total = root.textContent.length;
+  start = Math.max(0, Math.min(start, total)); end = Math.max(start, Math.min(end, total));
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
+  const range = document.createRange(); let idx = 0, node, started = false;
+  while ((node = walker.nextNode())) {
+    const len = node.nodeValue.length;
+    if (!started && start <= idx + len) { range.setStart(node, start - idx); started = true; }
+    if (started && end <= idx + len) { range.setEnd(node, end - idx); return range; }
+    idx += len;
+  }
+  return started ? range : null;
+}
+function wrapRange(range, id, hasComment) {
+  const scope = range.commonAncestorContainer.nodeType === 3 ? range.commonAncestorContainer.parentNode : range.commonAncestorContainer;
+  const iter = document.createNodeIterator(scope, NodeFilter.SHOW_TEXT, null);
+  const nodes = []; let n;
+  while ((n = iter.nextNode())) { if (range.intersectsNode(n)) nodes.push(n); }
+  nodes.forEach(node => {
+    if (node.parentElement && node.parentElement.tagName === 'MARK') return;
+    const r = document.createRange(); r.selectNodeContents(node);
+    if (node === range.startContainer) r.setStart(node, range.startOffset);
+    if (node === range.endContainer) r.setEnd(node, range.endOffset);
+    if (r.toString().length === 0) { r.detach && r.detach(); return; }
+    const mark = document.createElement('mark'); mark.className = 'anno' + (hasComment ? ' has-comment' : ''); mark.dataset.annoId = id;
+    try { r.surroundContents(mark); } catch (e) {}
+  });
+}
+function unwrapAnno(id) {
+  document.querySelectorAll(`mark.anno[data-anno-id="${id}"]`).forEach(m => {
+    const parent = m.parentNode; while (m.firstChild) parent.insertBefore(m.firstChild, m); parent.removeChild(m); parent.normalize();
+  });
+}
+function restoreAnnotations() {
+  currentAnnotations.forEach(a => {
+    const sec = document.getElementById(a.sectionId); if (!sec) return;
+    const range = charRangeToDomRange(sec, a.start, a.end); if (!range) return;
+    wrapRange(range, a.id, !!(a.comment && a.comment.trim()));
+  });
+  wireMarkClicks();
+}
+function wireMarkClicks() {
+  document.querySelectorAll('mark.anno').forEach(m => {
+    if (m._wired) return; m._wired = true;
+    m.addEventListener('click', e => { e.stopPropagation(); openAnnoComment(m.dataset.annoId, m); });
+  });
+}
+function renderAnnoBox() {
+  const box = document.getElementById('annoBox'); if (!box) return;
+  if (!currentAnnotations.length) { box.innerHTML = ''; return; }
+  box.innerHTML = `<div class="anno-box"><div class="anno-box-title">🖍 Editor annotations <span class="anno-box-count">${currentAnnotations.length}</span></div>
+    ${currentAnnotations.map(a => `<div class="anno-item" data-jump="${a.id}">
+      <div class="anno-mark"></div>
+      <div class="anno-body"><div class="anno-quote">${escapeHtml(a.quote)}</div>
+        ${a.comment && a.comment.trim() ? `<div class="anno-comment">${linkify(a.comment)}</div>` : ''}</div>
+      <button class="anno-del" data-adel="${a.id}" title="Remove">✕</button></div>`).join('')}</div>`;
+  box.querySelectorAll('[data-jump]').forEach(el => el.addEventListener('click', e => { if (e.target.closest('[data-adel]')) return; jumpToAnno(el.getAttribute('data-jump')); }));
+  box.querySelectorAll('[data-adel]').forEach(el => el.addEventListener('click', e => {
+    e.stopPropagation(); const id = el.getAttribute('data-adel');
+    unwrapAnno(id); currentAnnotations = currentAnnotations.filter(x => x.id !== id);
+    renderAnnoBox(); persistAnnotations(); dashToast('Annotation removed');
+  }));
+}
+function jumpToAnno(id) {
+  const mk = document.querySelector(`mark.anno[data-anno-id="${id}"]`); if (!mk) return;
+  mk.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  document.querySelectorAll('mark.anno.active').forEach(m => m.classList.remove('active'));
+  document.querySelectorAll(`mark.anno[data-anno-id="${id}"]`).forEach(m => { m.classList.add('active', 'pulse'); setTimeout(() => m.classList.remove('pulse'), 1200); });
+}
+function wireAnnotationSelection() {
+  const cont = document.getElementById('showcaseSections'); if (!cont || cont._annoWired) return; cont._annoWired = true;
+  cont.addEventListener('mouseup', () => setTimeout(showSelToolbar, 10));
+}
+function showSelToolbar() {
+  const info = getSelectionInfo(); const bar = document.getElementById('selToolbar');
+  if (!info) { bar.classList.remove('show'); return; }
+  const rect = info.range.getBoundingClientRect();
+  bar.style.left = Math.max(8, rect.left + window.scrollX + rect.width / 2 - 78) + 'px';
+  bar.style.top = (rect.top + window.scrollY - 46) + 'px';
+  bar.classList.add('show');
+}
+function hideSelToolbar() { document.getElementById('selToolbar').classList.remove('show'); }
+function createAnnotation(withComment) {
+  const info = getSelectionInfo(); if (!info) { hideSelToolbar(); return; }
+  const id = 'a' + Date.now().toString(36) + Math.floor(Math.random() * 1000);
+  currentAnnotations.push({ id, sectionId: info.sectionId, start: info.start, end: info.end, quote: info.quote.trim(), comment: '' });
+  const sec = document.getElementById(info.sectionId);
+  const range = charRangeToDomRange(sec, info.start, info.end);
+  if (range) wrapRange(range, id, false);
+  window.getSelection().removeAllRanges(); hideSelToolbar(); wireMarkClicks(); renderAnnoBox(); persistAnnotations();
+  if (withComment) { const mk = document.querySelector(`mark.anno[data-anno-id="${id}"]`); openAnnoComment(id, mk); }
+  else dashToast('Highlighted');
+}
+document.getElementById('selToolbar').addEventListener('mousedown', e => e.preventDefault());
+document.getElementById('selToolbar').querySelectorAll('[data-sel]').forEach(b => b.addEventListener('click', () => createAnnotation(b.getAttribute('data-sel') === 'comment')));
+window.addEventListener('scroll', () => { if (document.getElementById('selToolbar').classList.contains('show')) hideSelToolbar(); });
+
+let annoPopId = null;
+function openAnnoComment(id, anchorEl) {
+  const ann = currentAnnotations.find(x => x.id === id); if (!ann) return;
+  annoPopId = id;
+  const pop = document.getElementById('annoPop');
+  pop.innerHTML = `<div class="pop-quote">${escapeHtml(ann.quote)}</div>
+    <div class="pop-label">Note — optional, links allowed</div>
+    <textarea class="pop-note" placeholder="Add a comment. Paste a URL to link it.">${escapeHtml(ann.comment || '')}</textarea>
+    <div class="pop-actions"><button class="btn ghost sm" data-a="remove">Remove</button><button class="btn primary sm" data-a="save">Save note</button></div>`;
+  pop.classList.add('show');
+  const r = (anchorEl || document.body).getBoundingClientRect();
+  pop.style.left = Math.min(r.left + window.scrollX, window.innerWidth - 296) + 'px';
+  pop.style.top = (r.bottom + window.scrollY + 6) + 'px';
+  const ta = pop.querySelector('.pop-note'); ta.focus();
+  pop.querySelector('[data-a="save"]').addEventListener('click', () => {
+    ann.comment = ta.value.trim();
+    document.querySelectorAll(`mark.anno[data-anno-id="${id}"]`).forEach(m => m.classList.toggle('has-comment', !!ann.comment));
+    renderAnnoBox(); persistAnnotations(); closeAnnoPop(); dashToast('Note saved');
+  });
+  pop.querySelector('[data-a="remove"]').addEventListener('click', () => {
+    unwrapAnno(id); currentAnnotations = currentAnnotations.filter(x => x.id !== id);
+    renderAnnoBox(); persistAnnotations(); closeAnnoPop(); dashToast('Annotation removed');
+  });
+  setTimeout(() => document.addEventListener('mousedown', annoOutside), 0);
+}
+function annoOutside(e) { const pop = document.getElementById('annoPop'); if (!pop.contains(e.target) && !(e.target.tagName === 'MARK')) closeAnnoPop(); }
+function closeAnnoPop() { document.getElementById('annoPop').classList.remove('show'); document.removeEventListener('mousedown', annoOutside); annoPopId = null; }
+function persistAnnotations() {
+  if (!detailRow) return;
+  let ps = Array.isArray(detailRow.parsed_sections) ? detailRow.parsed_sections.filter(n => !(n && n._editor === 'annotations')) : [];
+  if (currentAnnotations.length) ps = ps.concat([{ _editor: 'annotations', heading: '', level: 0, type: 'text', children: [], items: [], table: null, paragraph: '', annotations: currentAnnotations }]);
+  detailRow.parsed_sections = ps;
+  const cached = LIBRARY_CACHE.find(r => r.id === detailRow.id); if (cached) cached.parsed_sections = ps;
+  sbUpdate('dna_agent_briefs', detailRow.id, { parsed_sections: ps }).catch(err => dashToast('Save failed: ' + err.message));
 }
 
 /* ---------- Markdown export ---------- */
