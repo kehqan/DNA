@@ -658,7 +658,7 @@ function collectStats(nodes) {
     sections++; items += n.items.length;
     for (const it of n.items) extractLinks(it).forEach(l => urls.add(l.url));
     extractLinks(n.paragraph).forEach(l => urls.add(l.url));
-    if (n.table) n.table.rows.forEach(r => r.forEach(c => extractLinks(c).forEach(l => urls.add(l.url))));
+    if (n.table && Array.isArray(n.table.rows)) n.table.rows.forEach(r => (r||[]).forEach(c => extractLinks(c).forEach(l => urls.add(l.url))));
     walk(n.children);
   }})(nodes);
   return { sections, sources: urls.size, items };
@@ -727,7 +727,7 @@ document.getElementById('parseBtn').addEventListener('click', () => {
 /* ==================== Interactive table hydration ==================== */
 function hydrateTables(root) {
   root.querySelectorAll('.itable-mount').forEach(mount => {
-    const tbl = TABLES[mount.getAttribute('data-tid')]; if (!tbl) return;
+    const tbl = TABLES[mount.getAttribute('data-tid')]; if (!tbl || !Array.isArray(tbl.headers) || !Array.isArray(tbl.rows)) { mount.remove(); return; }
     const many = tbl.rows.length > 5;
     const wrap = document.createElement('div'); wrap.className = 'itable-wrap';
     wrap.innerHTML = `
