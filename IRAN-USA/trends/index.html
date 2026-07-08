@@ -144,6 +144,36 @@ a { color: var(--teal2); }
 /* ---- Loading / empty states ---- */
 .dash-loading, .dash-empty { text-align: center; padding: 30px; color: var(--soft); font-size: 13px; }
 
+/* ---- Iran connectivity signal ---- */
+.signal-card { display: flex; align-items: center; gap: 14px; padding: 14px 18px; border-radius: 14px;
+  background: var(--glass); backdrop-filter: blur(20px) saturate(1.8); -webkit-backdrop-filter: blur(20px) saturate(1.8);
+  border: 1px solid var(--glass-b); box-shadow: var(--gs), var(--gi); }
+.signal-card.warn { border-color: rgba(255,84,0,0.4); background: rgba(255,84,0,0.05); }
+.signal-dot { width: 12px; height: 12px; border-radius: 50%; background: #1a7a3d; flex-shrink: 0; }
+.signal-dot.warn { background: var(--flame); animation: pulse 1.6s infinite; }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+.signal-body { flex: 1; }
+.signal-title { font-size: 13px; font-weight: 700; color: var(--teal); }
+.signal-detail { font-size: 11.5px; color: var(--muted); margin-top: 2px; }
+
+/* ---- Prediction markets ---- */
+.pm-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 11.5px;
+  padding: 6px 0; border-top: 1px solid var(--border); }
+.pm-title { color: var(--muted); flex: 1; }
+.pm-title a { color: inherit; text-decoration: none; }
+.pm-title a:hover { text-decoration: underline; }
+.pm-prob { font-weight: 800; font-size: 12px; padding: 2px 9px; border-radius: 100px; white-space: nowrap; }
+.pm-prob.high { color: #1a7a3d; background: rgba(26,122,61,0.12); }
+.pm-prob.low { color: #9a3b3b; background: rgba(154,59,59,0.1); }
+.pm-prob.mid { color: var(--soft); background: rgba(var(--inkC),0.06); }
+
+/* ---- Site-restrict search option ---- */
+.search-options { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+.search-site-input { font-family: var(--sans); font-size: 12px; color: var(--teal); background: rgba(var(--inkC),0.04);
+  border: 1px solid var(--border); border-radius: 100px; padding: 7px 13px; outline: none; width: 220px; }
+.search-site-input:focus { border-color: var(--flame); }
+.search-options-label { font-size: 11px; color: var(--soft); white-space: nowrap; }
+
 /* ---- Copilot FAB (shared pattern) ---- */
 .copilot-fab { position: fixed; bottom: 28px; right: 24px; z-index: 60; width: 56px; height: 56px; border-radius: 50%;
   background: linear-gradient(135deg, var(--flame), var(--honey)); border: none; cursor: pointer;
@@ -187,6 +217,16 @@ a { color: var(--teal2); }
   <div class="dash-section">
     <div class="dash-section-head">
       <div>
+        <div class="dash-section-title">🌐 Iran connectivity</div>
+        <div class="dash-section-desc">Live internet connectivity signal (IODA / Georgia Tech) — sharp drops can indicate shutdowns or crackdowns.</div>
+      </div>
+    </div>
+    <div id="signalArea"><div class="dash-loading">Checking connectivity…</div></div>
+  </div>
+
+  <div class="dash-section">
+    <div class="dash-section-head">
+      <div>
         <div class="dash-section-title">🔥 Live Alerts</div>
         <div class="dash-section-desc">Keywords spiking right now against your watched beat.</div>
       </div>
@@ -207,9 +247,14 @@ a { color: var(--teal2); }
         <input type="text" class="search-input" id="dashSearchInput" placeholder="e.g. 'Iran oil', 'Araghchi', or any breaking topic…" autocomplete="off">
         <button class="search-btn" id="dashSearchBtn">Search</button>
       </div>
+      <div class="search-options">
+        <span class="search-options-label">Restrict to a website (optional):</span>
+        <input type="text" class="search-site-input" id="dashSiteInput" placeholder="e.g. nytimes.com, reuters.com…" autocomplete="off">
+      </div>
       <div class="search-result-area" id="dashSearchResult"></div>
     </div>
   </div>
+
 
   <div class="dash-section">
     <div class="dash-section-head">
@@ -406,6 +451,34 @@ async function dismissAlert(id) {
 }
 document.getElementById('alertsRefreshBtn').addEventListener('click', loadAlerts);
 
+/* ---- Iran connectivity signal (IODA) ---- */
+async function loadSignal() {
+  const area = document.getElementById('signalArea');
+  try {
+    const data = await apiCall({ mode: 'signals' });
+    renderSignal(data.signal);
+  } catch (err) {
+    area.innerHTML = `<div class="dash-empty">Couldn't load connectivity signal (${escapeHtml(err.message)}).</div>`;
+  }
+}
+function renderSignal(sig) {
+  const area = document.getElementById('signalArea');
+  if (!sig || !sig.data) {
+    area.innerHTML = `<div class="dash-empty">No connectivity data available right now.</div>`;
+    return;
+  }
+  const d = sig.data;
+  const warn = !!d.possibleOutage;
+  area.innerHTML = `
+    <div class="signal-card ${warn ? 'warn' : ''}">
+      <span class="signal-dot ${warn ? 'warn' : ''}"></span>
+      <div class="signal-body">
+        <div class="signal-title">${warn ? '⚠ Possible connectivity disruption detected' : 'Connectivity normal'}</div>
+        <div class="signal-detail">Current signal ${d.latestAvg} vs. 7-day baseline ${d.baselineAvg} (${d.dropPct > 0 ? '+' : ''}${d.dropPct}%) · checked ${timeAgo(d.checkedAt)}</div>
+      </div>
+    </div>`;
+}
+
 /* ---- Curated trend grid ---- */
 async function loadTrends(forceRefresh) {
   const grid = document.getElementById('trendGrid');
@@ -454,6 +527,16 @@ function renderTrendCard(t, opts) {
       winning.map(a => `<span class="tcard-win" data-url="${escapeHtml(a.u)}">${escapeHtml(a.t)} <span class="tcard-date">· ${escapeHtml(a.d || '')}</span></span>`).join('');
   }
 
+  let marketsHtml = '';
+  if (t.prediction_markets && t.prediction_markets.length) {
+    marketsHtml = `<div class="tcard-section-title">Prediction markets (Polymarket)</div>` +
+      t.prediction_markets.map(m => {
+        const p = m.probability;
+        const cls = p == null ? 'mid' : (p >= 60 ? 'high' : (p <= 25 ? 'low' : 'mid'));
+        return `<div class="pm-row"><span class="pm-title"><a href="${escapeHtml(m.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(m.title)}</a></span><span class="pm-prob ${cls}">${p != null ? p + '%' : '—'}</span></div>`;
+      }).join('');
+  }
+
   const kw = t.keyword || t.keyword_display || '';
   const gtId = 'gt-' + kw.toLowerCase().replace(/[^a-z0-9]+/g, '-') + (opts.idSuffix || '');
 
@@ -467,6 +550,7 @@ function renderTrendCard(t, opts) {
       ${showGap ? '<div class="tcard-gap">⚠ trending, no recent archive coverage</div>' : ''}
       ${headlinesHtml}
       ${winHtml}
+      ${marketsHtml}
       <div class="tcard-actions">
         <button class="mini-btn gt-btn" data-gtid="${gtId}" data-kw="${escapeHtml(kw)}">📈 Trends chart</button>
         <button class="mini-btn copilot ask-btn" data-kw="${escapeHtml(kw)}">🤖 Ask Copilot</button>
@@ -503,12 +587,13 @@ function renderTrendGrid() {
 async function searchKeyword(rawKeyword) {
   const kw = (rawKeyword || '').trim();
   if (!kw) return;
+  const site = (document.getElementById('dashSiteInput').value || '').trim();
   const btn = document.getElementById('dashSearchBtn');
   const area = document.getElementById('dashSearchResult');
   btn.disabled = true; btn.textContent = '…';
   area.innerHTML = '<div class="dash-loading">Searching live sources…</div>';
   try {
-    const data = await apiCall({ keyword: kw });
+    const data = await apiCall(site ? { keyword: kw, site } : { keyword: kw });
     SEARCH_RESULT = data.result;
     area.innerHTML = renderTrendCard(SEARCH_RESULT, { freeSearch: true, idSuffix: '-search' });
     wireCardListeners(area);
@@ -520,6 +605,7 @@ async function searchKeyword(rawKeyword) {
 }
 document.getElementById('dashSearchBtn').addEventListener('click', () => searchKeyword(document.getElementById('dashSearchInput').value));
 document.getElementById('dashSearchInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') searchKeyword(e.target.value); });
+document.getElementById('dashSiteInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') searchKeyword(document.getElementById('dashSearchInput').value); });
 
 /* ---- Google Trends embed widget (Google's own official embed feature) ---- */
 let gTrendsLoaderPromise = null;
@@ -688,8 +774,10 @@ document.getElementById('fpOpenCopilotBtn').addEventListener('click', () => {
 /* ---- Init ---- */
 loadAlerts();
 loadTrends(false);
+loadSignal();
 setInterval(loadAlerts, 3 * 60 * 1000);
 setInterval(() => loadTrends(false), 5 * 60 * 1000);
+setInterval(loadSignal, 10 * 60 * 1000);
 
 </script>
 </body>
