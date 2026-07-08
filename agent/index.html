@@ -501,6 +501,20 @@ mark.anno.pulse { animation: markPulse 1200ms var(--eo); }
 .blk.collapsed .blk-answer { min-height: 110px; }
 .blk.collapsed { background: var(--paper); }
 .cmp-add { display: flex; gap: 8px; margin-top: 4px; }
+.final-wrap { margin-top: 8px; }
+.final-preview { background: var(--ivory); border: 1px solid var(--border2); border-radius: 14px; padding: 24px 26px; min-height: 90px; }
+.final-empty { font-size: 12.5px; color: var(--soft); text-align: center; padding: 18px; }
+.final-doc { font-family: var(--serif); color: var(--teal); }
+.final-headline { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; margin: 0 0 8px; line-height: 1.32; }
+.final-standfirst { font-size: 14px; font-style: italic; color: var(--muted); margin: 0 0 16px; line-height: 1.55; }
+.final-doc p { font-size: 14.5px; line-height: 1.75; margin: 0 0 14px; font-family: var(--sans); color: var(--teal); }
+.final-doc p:last-child { margin-bottom: 0; }
+.final-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+.blk-mat { position: relative; padding-bottom: 46px; }
+.blk-copilot { position: absolute; right: 12px; bottom: 10px; width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--border2);
+  background: var(--paper); color: var(--teal2); font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: all 140ms; box-shadow: var(--gs); }
+.blk-copilot:hover { background: var(--teal); color: #fff; border-color: transparent; }
 .cmp-foot { position: sticky; bottom: 0; margin: 18px -30px -80px; padding: 12px 30px; background: var(--glass-b); backdrop-filter: blur(14px); border-top: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
 .cmp-wordcount { font-size: 11.5px; color: var(--soft); font-variant-numeric: tabular-nums; }
 .cmp-savestate { font-size: 11px; color: var(--soft); margin-left: auto; }
@@ -1954,19 +1968,29 @@ function enterCompose(row) {
         <div class="cmp-add">
           <button class="btn sm" id="cmpAddPara">＋ Paragraph</button>
         </div>
+        <div class="final-wrap">
+          <div class="eyebrow" style="margin:26px 0 10px">Final look <span class="role-tag">· updates live as you write</span></div>
+          <div class="final-preview" id="cmpFinal"></div>
+          <div class="final-actions">
+            <button class="btn sm" id="cmpCopy">⧉ Copy text</button>
+            <button class="btn sm" id="cmpExportDoc">⬇ Export .doc</button>
+            <button class="btn sm" id="cmpExportPdf">⬇ Export .pdf</button>
+          </div>
+        </div>
         <div class="cmp-foot">
           <span class="cmp-wordcount" id="cmpWords">0 words</span>
-          <button class="btn sm" id="cmpCopy">⧉ Copy piece</button>
           <span class="cmp-savestate" id="cmpSave">Draft saved</span>
         </div>
       </div>
     </div>`;
 
   document.getElementById('composeBack').addEventListener('click', () => { flushComposeSave(); document.querySelector('.main').classList.remove('compose-mode'); openDetail(row); });
-  document.getElementById('cmpHeadline').addEventListener('input', e => { composePiece.headline = e.target.value; scheduleComposeSave(); updateWordCount(); });
-  document.getElementById('cmpStandfirst').addEventListener('input', e => { composePiece.standfirst = e.target.value; scheduleComposeSave(); updateWordCount(); });
+  document.getElementById('cmpHeadline').addEventListener('input', e => { composePiece.headline = e.target.value; scheduleComposeSave(); updateWordCount(); renderFinalPreview(); });
+  document.getElementById('cmpStandfirst').addEventListener('input', e => { composePiece.standfirst = e.target.value; scheduleComposeSave(); updateWordCount(); renderFinalPreview(); });
   document.getElementById('cmpAddPara').addEventListener('click', addParagraphBlock);
   document.getElementById('cmpCopy').addEventListener('click', copyPiece);
+  document.getElementById('cmpExportDoc').addEventListener('click', exportPieceDoc);
+  document.getElementById('cmpExportPdf').addEventListener('click', exportPiecePdf);
   wireMaterialDrag();
   wireComposerDrop();
   renderComposerBody();
@@ -2090,6 +2114,7 @@ function renderComposerBody() {
           <div class="blk-q">${escapeHtml(b.question)}</div>
         </div>
         <textarea class="blk-answer" data-id="${b.id}" placeholder="Write this passage in your own words…">${escapeHtml(b.answer || '')}</textarea>
+        <button class="blk-copilot" data-bcopilot="${b.id}" title="Ask Copilot about this material in context">🤖</button>
       </div>` : `
       <div class="blk blk-text" data-id="${b.id}">
         <div class="blk-head"><span class="kind-chip">¶ Paragraph</span>
@@ -2097,8 +2122,12 @@ function renderComposerBody() {
         <textarea class="blk-answer" data-id="${b.id}" placeholder="Write a paragraph…">${escapeHtml(b.answer || '')}</textarea>
       </div>`).join('');
     body.querySelectorAll('.blk-answer').forEach(ta => ta.addEventListener('input', () => {
-      const b = composePiece.blocks.find(x => x.id === ta.getAttribute('data-id')); if (b) { b.answer = ta.value; scheduleComposeSave(); updateWordCount(); renderComposerIndex(); }
+      const b = composePiece.blocks.find(x => x.id === ta.getAttribute('data-id')); if (b) { b.answer = ta.value; scheduleComposeSave(); updateWordCount(); renderComposerIndex(); renderFinalPreview(); }
       const blk = ta.closest('.blk.blk-mat'); if (blk) blk.classList.toggle('collapsed', ta.value.trim().length > 0);
+    }));
+    body.querySelectorAll('[data-bcopilot]').forEach(btn => btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const b = composePiece.blocks.find(x => x.id === btn.getAttribute('data-bcopilot')); if (b) openCopilotPopup(buildMaterialCopilotPrompt(b));
     }));
     body.querySelectorAll('[data-btoggle]').forEach(t => t.addEventListener('click', e => {
       if (e.target.closest('[data-bmove],[data-brem]')) return;
@@ -2114,7 +2143,64 @@ function renderComposerBody() {
       renderComposerBody(); scheduleComposeSave();
     }));
   }
-  renderComposerIndex(); updateWordCount();
+  renderComposerIndex(); updateWordCount(); renderFinalPreview();
+}
+function renderFinalPreview() {
+  const el = document.getElementById('cmpFinal'); if (!el) return;
+  const hasContent = (composePiece.headline || '').trim() || (composePiece.standfirst || '').trim() || composePiece.blocks.some(b => (b.answer || '').trim());
+  if (!hasContent) { el.innerHTML = `<div class="final-empty">Your finished piece — headline, standfirst, and body, in order — will take shape here as you write. Material context stays out; only your own words appear.</div>`; return; }
+  let html = `<div class="final-doc">`;
+  html += `<h1 class="final-headline">${escapeHtml(composePiece.headline || 'Untitled')}</h1>`;
+  if ((composePiece.standfirst || '').trim()) html += `<p class="final-standfirst">${escapeHtml(composePiece.standfirst)}</p>`;
+  composePiece.blocks.forEach(b => {
+    const a = (b.answer || '').trim(); if (!a) return;
+    html += a.split(/\n{2,}/).map(seg => `<p>${escapeHtml(seg).replace(/\n/g, '<br>')}</p>`).join('');
+  });
+  html += `</div>`;
+  el.innerHTML = html;
+}
+function buildMaterialCopilotPrompt(b) {
+  const rowRef = LIBRARY_CACHE.find(r => r.id === composeBriefId) || detailRow;
+  const topic = rowRef ? rowRef.topic : 'this story';
+  const kind = (KIND_LABEL[b.kind] || KIND_LABEL.text).l;
+  let p = `I'm a Radio Farda journalist writing a piece on: "${topic}".\n\n`;
+  if ((composePiece.headline || '').trim()) p += `Working headline: ${composePiece.headline}\n`;
+  if ((composePiece.standfirst || '').trim()) p += `Standfirst: ${composePiece.standfirst}\n`;
+  p += `\nI'm considering using this ${kind} from the brief:\n"${b.text}"\n`;
+  if (b.note && b.note.trim()) p += `Editor's note attached to it: "${b.note}"\n`;
+  p += `\nHere is what I've written so far in my piece using it:\n"${(b.answer || '').trim() || '(nothing written yet — I have not decided how to use it)'}"\n`;
+  p += `\nGiven the full context of this story: 1) verify the accuracy and currency of this material, 2) tell me whether my use of it is correct and well-framed, 3) flag anything I might be missing or should double-check, 4) suggest a sharper way to phrase this passage if useful.`;
+  return p;
+}
+function exportPieceDoc() {
+  renderFinalPreview();
+  const bodyHtml = document.getElementById('cmpFinal').querySelector('.final-doc');
+  if (!bodyHtml) { dashToast('Write something first'); return; }
+  const title = escapeHtml(composePiece.headline || 'Untitled');
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${title}</title>
+    <style>body{font-family:Georgia,'Times New Roman',serif;line-height:1.6;color:#1A3948;max-width:680px;margin:40px auto;}
+    h1{font-size:26px;margin-bottom:6px;} .final-standfirst{font-style:italic;color:#555;margin-bottom:20px;} p{margin:0 0 14px;}</style>
+    </head><body>${bodyHtml.outerHTML}</body></html>`;
+  const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = `${(composePiece.headline || 'piece').replace(/[^\w\-]+/g, '_').slice(0, 60) || 'piece'}.doc`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+  dashToast('Exported as .doc');
+}
+function exportPiecePdf() {
+  renderFinalPreview();
+  const bodyHtml = document.getElementById('cmpFinal').querySelector('.final-doc');
+  if (!bodyHtml) { dashToast('Write something first'); return; }
+  const title = escapeHtml(composePiece.headline || 'Untitled');
+  const w = window.open('', '_blank');
+  if (!w) { dashToast('Allow pop-ups to export as PDF'); return; }
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${title}</title>
+    <style>body{font-family:Georgia,'Times New Roman',serif;line-height:1.6;color:#1A3948;max-width:680px;margin:40px auto;padding:0 20px;}
+    h1{font-size:26px;margin-bottom:6px;} .final-standfirst{font-style:italic;color:#555;margin-bottom:20px;} p{margin:0 0 14px;}</style>
+    </head><body>${bodyHtml.outerHTML}</body></html>`);
+  w.document.close();
+  setTimeout(() => { try { w.focus(); w.print(); } catch (e) {} }, 400);
+  dashToast('Opening print dialog — choose "Save as PDF"');
 }
 function addParagraphBlock() {
   composePiece.blocks.push({ id: 'b' + (blkSeq++), type: 'text', answer: '' });
