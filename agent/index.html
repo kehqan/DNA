@@ -3,18 +3,22 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Agent Briefs Library | DNA</title>
-<link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&family=Noto+Sans:wght@400;500;600&family=Noto+Naskh+Arabic:wght@400;500;600&display=swap" rel="stylesheet">
+<title>Agent Briefs Desk | DNA</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&family=Noto+Sans:wght@400;500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root {
   --ivory:   #F8F7F6;
+  --paper:   #FEFDFC;
   --teal:    #1A3948;
   --teal2:   #24506A;
   --flame:   #FF5400;
+  --flame-d: #e64a00;
   --honey:   #FFC047;
   --border:  rgba(26,57,72,0.09);
+  --border2: rgba(26,57,72,0.16);
   --muted:   rgba(26,57,72,0.52);
   --soft:    rgba(26,57,72,0.36);
+  --faint:   rgba(26,57,72,0.20);
   --glass:   rgba(255,255,255,0.72);
   --glass-b: rgba(255,255,255,0.85);
   --gs: 0 8px 32px rgba(26,57,72,0.10), 0 1.5px 4px rgba(26,57,72,0.06);
@@ -31,165 +35,323 @@ body::before { content: ''; position: fixed; inset: 0; z-index: -1;
     radial-gradient(ellipse 900px 600px at 15% -5%, rgba(255,84,0,0.06), transparent 60%),
     radial-gradient(ellipse 900px 700px at 90% 10%, rgba(26,57,72,0.05), transparent 60%); }
 a { color: var(--teal2); }
+::selection { background: rgba(255,84,0,0.18); }
+input, select, textarea, button { font-family: inherit; }
+:focus-visible { outline: 2px solid var(--flame); outline-offset: 2px; }
 
-/* ---- Header ---- */
-.hdr { position: sticky; top: 0; z-index: 40; display: flex; align-items: center; justify-content: space-between;
-  padding: 16px 28px; background: var(--glass); backdrop-filter: blur(20px) saturate(1.8); -webkit-backdrop-filter: blur(20px) saturate(1.8);
+/* ============ Header + pipeline ============ */
+.hdr { position: sticky; top: 0; z-index: 60; display: flex; align-items: center; justify-content: space-between; gap: 20px;
+  padding: 12px 26px; background: var(--glass); backdrop-filter: blur(20px) saturate(1.8); -webkit-backdrop-filter: blur(20px) saturate(1.8);
   border-bottom: 1px solid var(--border); }
-.hdr-brand { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+.hdr-brand { display: flex; align-items: center; gap: 12px; cursor: pointer; flex-shrink: 0; }
 .hdr-icon { font-size: 22px; }
-.hdr-title { font-family: var(--serif); font-size: 17px; font-weight: 600; color: var(--teal); }
-.hdr-sub { font-size: 11px; color: var(--soft); margin-top: 1px; }
-.hdr-actions { display: flex; align-items: center; gap: 10px; }
+.hdr-title { font-family: var(--serif); font-size: 16px; font-weight: 700; color: var(--teal); letter-spacing: -0.01em; }
+.hdr-sub { font-size: 10.5px; color: var(--soft); margin-top: 1px; }
+.hdr-actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+
+/* Pipeline stepper — the LLM → Editor → Journalist triangle */
+.pipeline { display: flex; align-items: center; gap: 4px; background: rgba(var(--inkC),0.04); border: 1px solid var(--border);
+  border-radius: 100px; padding: 4px; }
+.pipe-step { display: flex; align-items: center; gap: 7px; padding: 6px 13px; border-radius: 100px; cursor: pointer;
+  font-size: 12px; font-weight: 600; color: var(--soft); transition: all 180ms var(--eo); white-space: nowrap; border: 1px solid transparent; }
+.pipe-step:hover { color: var(--teal2); background: rgba(var(--inkC),0.05); }
+.pipe-step .pipe-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--faint); transition: all 180ms var(--eo); }
+.pipe-step .pipe-role { font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; opacity: 0.7; }
+.pipe-step.active { color: var(--teal); background: var(--paper); border-color: var(--glass-b); box-shadow: var(--gs); }
+.pipe-step.active .pipe-dot { background: var(--flame); box-shadow: 0 0 0 3px rgba(255,84,0,0.15); }
+.pipe-arrow { color: var(--faint); font-size: 12px; }
+@media (max-width: 1080px) { .pipe-role { display: none; } .hdr-sub { display: none; } }
+@media (max-width: 720px) { .pipeline { display: none; } }
+
 .btn { font-family: var(--sans); font-size: 12.5px; font-weight: 600; color: var(--teal); background: rgba(var(--inkC),0.06);
-  border: 1px solid var(--border); border-radius: 100px; padding: 9px 17px; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+  border: 1px solid var(--border); border-radius: 100px; padding: 9px 17px; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: background 140ms, transform 140ms; }
 .btn:hover { background: rgba(var(--inkC),0.1); }
+.btn:active { transform: scale(0.97); }
 .btn.primary { background: var(--flame); color: #fff; border-color: transparent; }
-.btn.primary:hover { background: #e64a00; }
-.btn.ghost { background: transparent; border-color: var(--border); }
+.btn.primary:hover { background: var(--flame-d); }
+.btn.ghost { background: transparent; border-color: var(--border2); }
+.btn.sm { padding: 6px 12px; font-size: 11.5px; }
+.btn:disabled { opacity: 0.55; cursor: default; }
 
-/* ---- Layout ---- */
-.main { max-width: 1180px; margin: 0 auto; padding: 28px 24px 100px; }
-.view { display: none; }
+/* ============ Layout ============ */
+.main { max-width: 1240px; margin: 0 auto; padding: 26px 24px 120px; }
+.view { display: none; animation: viewIn 320ms var(--eo); }
 .view.show { display: block; }
+@keyframes viewIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 
-/* ---- Library grid ---- */
-.lib-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; flex-wrap: wrap; gap: 12px; }
-.lib-title { font-family: var(--serif); font-size: 24px; font-weight: 600; }
-.lib-search { font-family: var(--sans); font-size: 13px; color: var(--teal); background: rgba(var(--inkC),0.04);
-  border: 1px solid var(--border); border-radius: 100px; padding: 9px 16px; outline: none; width: 260px; }
+.eyebrow { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--flame); display: flex; align-items: center; gap: 7px; }
+.eyebrow .role-tag { color: var(--soft); }
+
+/* ============ Library ============ */
+.lib-head { margin-bottom: 20px; }
+.lib-title { font-family: var(--serif); font-size: 28px; font-weight: 700; letter-spacing: -0.02em; margin: 6px 0 3px; }
+.lib-tagline { font-size: 13px; color: var(--muted); max-width: 620px; line-height: 1.6; }
+.lib-controls { display: flex; align-items: center; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
+.lib-search { font-family: var(--sans); font-size: 13px; color: var(--teal); background: var(--paper);
+  border: 1px solid var(--border2); border-radius: 100px; padding: 10px 16px 10px 38px; outline: none; width: 300px; max-width: 100%;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15' height='15' viewBox='0 0 24 24' fill='none' stroke='%2324506A' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cline x1='21' y1='21' x2='16.5' y2='16.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: 14px center; }
 .lib-search:focus { border-color: var(--flame); }
-.brief-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
-.brief-card { background: var(--glass); backdrop-filter: blur(20px) saturate(1.8); -webkit-backdrop-filter: blur(20px) saturate(1.8);
-  border: 1px solid var(--glass-b); box-shadow: var(--gs), var(--gi); border-radius: 16px; padding: 18px; cursor: pointer;
-  transition: transform 160ms var(--eo); }
-.brief-card:hover { transform: translateY(-2px); }
-.brief-card-topic { font-family: var(--serif); font-size: 16px; font-weight: 600; color: var(--teal); margin-bottom: 6px; }
-.brief-card-meta { font-size: 11px; color: var(--soft); display: flex; gap: 10px; flex-wrap: wrap; }
-.brief-card-priorities { margin-top: 10px; font-size: 12px; color: var(--muted); }
-.brief-card-priorities b { color: var(--flame); }
-.lib-empty { text-align: center; padding: 60px 20px; color: var(--soft); }
-.lib-empty-icon { font-size: 40px; margin-bottom: 10px; }
+.filter-chip { font-size: 11.5px; font-weight: 600; color: var(--muted); background: var(--paper); border: 1px solid var(--border2);
+  border-radius: 100px; padding: 8px 14px; cursor: pointer; transition: all 140ms; }
+.filter-chip:hover { border-color: var(--faint); color: var(--teal); }
+.filter-chip.active { background: var(--teal); color: #fff; border-color: transparent; }
+.lib-count { font-size: 11.5px; color: var(--soft); margin-left: auto; }
 
-/* ---- Paste view ---- */
-.paste-panel { background: var(--glass); backdrop-filter: blur(20px) saturate(1.8); -webkit-backdrop-filter: blur(20px) saturate(1.8);
-  border: 1px solid var(--glass-b); box-shadow: var(--gs), var(--gi); border-radius: 18px; padding: 24px; }
-.field { margin-bottom: 16px; }
-.field label { font-size: 12px; font-weight: 700; color: var(--teal); margin-bottom: 6px; display: block; }
-.field input, .field select { width: 100%; font-family: var(--sans); font-size: 13.5px; color: var(--teal); background: rgba(var(--inkC),0.04);
-  border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; outline: none; }
-.field input:focus, .field select:focus, .field textarea:focus { border-color: var(--flame); }
-.paste-textarea { width: 100%; min-height: 320px; font-family: 'SF Mono', Menlo, monospace; font-size: 12px; line-height: 1.6;
-  color: var(--teal); background: rgba(var(--inkC),0.03); border: 1px solid var(--border); border-radius: 12px; padding: 16px; outline: none; resize: vertical; }
-.paste-hint { font-size: 11.5px; color: var(--soft); margin-top: 6px; }
+.brief-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; margin-top: 20px; }
+.brief-card { position: relative; background: var(--glass); backdrop-filter: blur(20px) saturate(1.8); -webkit-backdrop-filter: blur(20px) saturate(1.8);
+  border: 1px solid var(--glass-b); box-shadow: var(--gs), var(--gi); border-radius: 16px; padding: 18px 18px 16px; cursor: pointer;
+  transition: transform 180ms var(--eo), box-shadow 180ms var(--eo); overflow: hidden; }
+.brief-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--faint); transition: background 180ms; }
+.brief-card[data-status="curated"]::before { background: linear-gradient(var(--flame), var(--honey)); }
+.brief-card:hover { transform: translateY(-3px); box-shadow: 0 14px 42px rgba(26,57,72,0.14), var(--gi); }
+.brief-card-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 9px; }
+.brief-card-topic { font-family: var(--serif); font-size: 16.5px; font-weight: 600; color: var(--teal); line-height: 1.35; margin-bottom: 8px; }
+.brief-card-snippet { font-size: 12px; color: var(--muted); line-height: 1.55; margin-bottom: 12px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.brief-card-meta { font-size: 11px; color: var(--soft); display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 10px; }
+.brief-card-foot { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; padding-top: 11px; border-top: 1px solid var(--border); }
+.count-pill { font-size: 10.5px; font-weight: 600; color: var(--teal2); background: rgba(var(--inkC),0.05); border-radius: 100px; padding: 3px 9px; display: inline-flex; align-items: center; gap: 4px; }
+.count-pill b { color: var(--flame); }
 
-/* ---- Review view ---- */
-.review-layout { display: grid; grid-template-columns: 1fr 340px; gap: 20px; align-items: start; }
-@media (max-width: 900px) { .review-layout { grid-template-columns: 1fr; } }
-.stat-strip { display: flex; gap: 18px; margin-bottom: 16px; flex-wrap: wrap; }
-.stat-pill { background: var(--glass); border: 1px solid var(--glass-b); border-radius: 100px; padding: 8px 16px; font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
-.stat-pill b { font-family: var(--serif); font-size: 15px; color: var(--flame); }
+.status-chip { font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; padding: 3px 9px; border-radius: 100px; white-space: nowrap; }
+.status-chip.raw { background: rgba(var(--inkC),0.07); color: var(--muted); }
+.status-chip.curated { background: rgba(255,84,0,0.12); color: var(--flame); }
+.llm-chip { font-size: 10px; font-weight: 600; color: var(--teal2); background: rgba(36,80,106,0.08); border-radius: 100px; padding: 3px 9px; }
 
-/* ---- Tree-style hierarchical sections ---- */
-.tree-node { position: relative; margin-bottom: 4px; }
-.tree-node[data-lvl="1"] { margin-top: 22px; }
+.lib-empty { grid-column: 1/-1; text-align: center; padding: 72px 20px; color: var(--soft); }
+.lib-empty-icon { font-size: 44px; margin-bottom: 12px; }
+.lib-empty h3 { font-family: var(--serif); font-size: 19px; color: var(--teal); margin: 0 0 6px; font-weight: 600; }
+.lib-empty p { font-size: 13px; max-width: 360px; margin: 0 auto 18px; line-height: 1.6; }
+
+/* Skeleton loaders */
+.skel-card { border-radius: 16px; height: 168px; background: linear-gradient(100deg, rgba(var(--inkC),0.04) 30%, rgba(var(--inkC),0.08) 50%, rgba(var(--inkC),0.04) 70%);
+  background-size: 200% 100%; animation: shimmer 1.4s infinite; border: 1px solid var(--border); }
+@keyframes shimmer { to { background-position: -200% 0; } }
+
+/* ============ Intake (paste) view ============ */
+.intake-wrap { display: grid; grid-template-columns: 1.4fr 1fr; gap: 22px; align-items: start; }
+@media (max-width: 900px) { .intake-wrap { grid-template-columns: 1fr; } }
+.panel { background: var(--glass); backdrop-filter: blur(20px) saturate(1.8); -webkit-backdrop-filter: blur(20px) saturate(1.8);
+  border: 1px solid var(--glass-b); box-shadow: var(--gs), var(--gi); border-radius: 18px; padding: 22px; }
+.panel-title { font-family: var(--serif); font-size: 18px; font-weight: 600; margin: 4px 0 4px; }
+.panel-desc { font-size: 12.5px; color: var(--muted); line-height: 1.6; margin-bottom: 18px; }
+.field { margin-bottom: 15px; }
+.field label { font-size: 11.5px; font-weight: 700; color: var(--teal); margin-bottom: 6px; display: block; }
+.field input, .field select { width: 100%; font-size: 13.5px; color: var(--teal); background: var(--paper);
+  border: 1px solid var(--border2); border-radius: 10px; padding: 10px 14px; outline: none; transition: border-color 140ms; }
+.field input:focus, .field select:focus, .paste-textarea:focus { border-color: var(--flame); }
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.paste-textarea { width: 100%; min-height: 340px; font-family: 'SF Mono', ui-monospace, Menlo, monospace; font-size: 12px; line-height: 1.65;
+  color: var(--teal); background: var(--paper); border: 1px solid var(--border2); border-radius: 12px; padding: 16px; outline: none; resize: vertical; }
+.paste-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; }
+.paste-hint { font-size: 11px; color: var(--soft); }
+.char-count { font-size: 11px; color: var(--soft); font-variant-numeric: tabular-nums; }
+.intake-guide { font-size: 12.5px; color: var(--muted); line-height: 1.7; }
+.intake-guide li { margin-bottom: 8px; }
+.intake-guide b { color: var(--teal); }
+.parse-progress { font-size: 12px; color: var(--soft); margin-top: 12px; min-height: 18px; }
+.parse-progress.active::after { content: '●'; animation: blink 1s infinite; margin-left: 4px; color: var(--flame); }
+@keyframes blink { 0%,100% { opacity: 0.2; } 50% { opacity: 1; } }
+.sample-link { font-size: 11.5px; color: var(--teal2); background: none; border: none; cursor: pointer; text-decoration: underline; padding: 0; }
+
+/* ============ Shared: source chips & citations ============ */
+.src-chip { display: inline-flex; align-items: center; gap: 5px; max-width: 260px; vertical-align: baseline;
+  font-size: 11.5px; font-weight: 600; color: var(--teal2); background: rgba(36,80,106,0.07); border: 1px solid rgba(36,80,106,0.14);
+  border-radius: 100px; padding: 2px 10px 2px 6px; text-decoration: none; margin: 0 2px; transition: background 140ms, border-color 140ms; line-height: 1.4; }
+.src-chip:hover { background: rgba(36,80,106,0.13); border-color: rgba(36,80,106,0.3); }
+.src-chip .src-n { font-size: 9px; font-weight: 800; color: #fff; background: var(--teal2); border-radius: 100px; min-width: 15px; height: 15px;
+  display: inline-flex; align-items: center; justify-content: center; padding: 0 4px; flex-shrink: 0; }
+.src-chip .src-fav { width: 13px; height: 13px; border-radius: 3px; flex-shrink: 0; }
+.src-chip .src-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.src-chip .src-dom { color: var(--soft); font-weight: 500; font-size: 10px; flex-shrink: 0; }
+
+/* Sources ledger */
+.ledger { background: var(--paper); border: 1px solid var(--border2); border-radius: 16px; padding: 18px 20px; margin-top: 26px; }
+.ledger-title { font-family: var(--serif); font-size: 15px; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+.ledger-item { display: flex; gap: 11px; padding: 9px 0; border-bottom: 1px solid var(--border); align-items: flex-start; }
+.ledger-item:last-child { border-bottom: none; }
+.ledger-n { font-size: 11px; font-weight: 800; color: #fff; background: var(--teal2); border-radius: 100px; min-width: 20px; height: 20px;
+  display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+.ledger-body { min-width: 0; }
+.ledger-label { font-size: 13px; font-weight: 600; color: var(--teal); }
+.ledger-url { font-size: 11px; color: var(--soft); display: flex; align-items: center; gap: 5px; margin-top: 1px; word-break: break-all; }
+.ledger-url img { width: 12px; height: 12px; border-radius: 3px; }
+
+/* ============ Interactive tables ============ */
+.itable-wrap { margin: 12px 0; border: 1px solid var(--border2); border-radius: 12px; overflow: hidden; background: var(--paper); }
+.itable-bar { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-bottom: 1px solid var(--border); background: rgba(var(--inkC),0.02); }
+.itable-filter { flex: 1; font-size: 12px; color: var(--teal); background: var(--paper); border: 1px solid var(--border2); border-radius: 8px; padding: 6px 11px; outline: none; max-width: 240px; }
+.itable-filter:focus { border-color: var(--flame); }
+.itable-meta { font-size: 10.5px; color: var(--soft); font-variant-numeric: tabular-nums; margin-left: auto; }
+.itable-scroll { overflow-x: auto; }
+.itable { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.itable th { position: sticky; top: 0; text-align: left; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em;
+  color: var(--teal2); padding: 9px 12px; background: rgba(var(--inkC),0.035); border-bottom: 1px solid var(--border2); cursor: pointer; white-space: nowrap; user-select: none; }
+.itable th:hover { background: rgba(var(--inkC),0.06); }
+.itable th .sort-ind { color: var(--faint); margin-left: 5px; font-size: 9px; }
+.itable th.sorted .sort-ind { color: var(--flame); }
+.itable td { padding: 9px 12px; border-bottom: 1px solid var(--border); vertical-align: top; color: var(--teal); line-height: 1.55; }
+.itable tbody tr { transition: background 120ms; }
+.itable tbody tr:hover { background: rgba(255,84,0,0.035); }
+.itable tbody tr:last-child td { border-bottom: none; }
+.itable .row-hidden { display: none; }
+.itable-empty { padding: 18px 12px; font-size: 12px; color: var(--soft); text-align: center; }
+
+/* ============ Desk (review) view ============ */
+.desk-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; }
+.desk-title { font-family: var(--serif); font-size: 22px; font-weight: 600; letter-spacing: -0.01em; line-height: 1.3; }
+.stat-strip { display: flex; gap: 10px; margin: 14px 0 18px; flex-wrap: wrap; }
+.stat-pill { background: var(--glass); border: 1px solid var(--glass-b); border-radius: 100px; padding: 7px 15px; font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+.stat-pill b { font-family: var(--serif); font-size: 15px; color: var(--flame); font-weight: 600; }
+
+.desk-layout { display: grid; grid-template-columns: 190px 1fr 330px; gap: 20px; align-items: start; }
+@media (max-width: 1140px) { .desk-layout { grid-template-columns: 1fr 320px; } .desk-spine { display: none; } }
+@media (max-width: 860px) { .desk-layout { grid-template-columns: 1fr; } .editor-panel { position: static !important; max-height: none !important; } }
+
+/* Spine (outline rail) — shared by desk + brief */
+.spine { position: sticky; top: 86px; max-height: calc(100vh - 106px); overflow-y: auto; padding-right: 4px; }
+.spine::-webkit-scrollbar { width: 6px; } .spine::-webkit-scrollbar-thumb { background: var(--faint); border-radius: 6px; }
+.spine-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--soft); margin-bottom: 10px; padding-left: 12px; }
+.spine-nav { position: relative; border-left: 2px solid var(--border); }
+.spine-fill { position: absolute; left: -2px; top: 0; width: 2px; background: linear-gradient(var(--flame), var(--honey)); transition: height 120ms linear, top 120ms linear; }
+.spine-link { display: block; font-size: 12px; color: var(--muted); padding: 5px 12px; cursor: pointer; text-decoration: none; line-height: 1.4;
+  border-left: 2px solid transparent; margin-left: -2px; transition: color 140ms, border-color 140ms; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.spine-link:hover { color: var(--teal); }
+.spine-link.sub { padding-left: 24px; font-size: 11px; color: var(--soft); }
+.spine-link.active { color: var(--flame); font-weight: 600; border-left-color: var(--flame); }
+
+.brief-summary { background: var(--glass); border: 1px solid var(--glass-b); box-shadow: var(--gs), var(--gi); border-radius: 14px; padding: 14px; margin-bottom: 16px; }
+.bs-row { display: flex; align-items: center; gap: 7px; font-size: 11.5px; color: var(--muted); margin-bottom: 7px; }
+.bs-row:last-child { margin-bottom: 0; }
+.bs-row .bs-ico { width: 15px; text-align: center; opacity: 0.7; }
+.bs-progress { height: 5px; background: rgba(var(--inkC),0.08); border-radius: 100px; overflow: hidden; margin: 10px 0 12px; }
+.bs-progress-fill { height: 100%; background: linear-gradient(90deg, var(--flame), var(--honey)); border-radius: 100px; transition: width 200ms var(--eo); }
+.bs-pct { font-size: 10.5px; color: var(--soft); }
+
+/* Tree sections */
+.tree-node { position: relative; margin-bottom: 4px; scroll-margin-top: 84px; }
+.tree-node[data-lvl="1"] { margin-top: 20px; }
 .tree-node[data-lvl="1"]:first-child { margin-top: 0; }
-.tree-children { margin-left: 20px; border-left: 2px solid var(--border); padding-left: 16px; margin-top: 6px; }
-.node-head { display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 10px 14px; border-radius: 12px;
+.tree-children { margin-left: 18px; border-left: 2px solid var(--border); padding-left: 16px; margin-top: 6px; }
+.node-head { display: flex; align-items: center; gap: 9px; cursor: pointer; padding: 11px 14px; border-radius: 12px;
   background: var(--glass); backdrop-filter: blur(20px) saturate(1.8); -webkit-backdrop-filter: blur(20px) saturate(1.8);
   border: 1px solid var(--glass-b); box-shadow: var(--gs), var(--gi); transition: background 140ms; }
-.tree-node[data-lvl="1"] > .node-head { box-shadow: var(--gs), var(--gi); }
-.tree-node[data-lvl="2"] > .node-head, .tree-node[data-lvl="3"] > .node-head, .tree-node[data-lvl="4"] > .node-head { box-shadow: none; border-color: var(--border); background: rgba(var(--inkC),0.02); }
+.tree-node[data-lvl="2"] > .node-head, .tree-node[data-lvl="3"] > .node-head, .tree-node[data-lvl="4"] > .node-head { box-shadow: none; border-color: var(--border); background: rgba(var(--inkC),0.025); }
 .node-head:hover { background: rgba(var(--inkC),0.05); }
 .chevron { font-size: 10px; color: var(--soft); transition: transform 200ms var(--eo); flex-shrink: 0; }
 .chevron.open { transform: rotate(90deg); }
-.node-title { font-weight: 700; color: var(--teal); flex: 1; }
+.node-kind { font-size: 12px; flex-shrink: 0; opacity: 0.8; }
+.node-title { font-weight: 700; color: var(--teal); flex: 1; min-width: 0; }
 .tree-node[data-lvl="1"] .node-title { font-family: var(--serif); font-size: 16px; }
 .tree-node[data-lvl="2"] .node-title { font-size: 13.5px; }
 .tree-node[data-lvl="3"] .node-title, .tree-node[data-lvl="4"] .node-title { font-size: 12.5px; color: var(--teal2); }
-.node-body { max-height: 3000px; overflow: hidden; transition: max-height 260ms var(--eo), opacity 200ms; padding: 10px 14px 4px; font-size: 13px; line-height: 1.7; color: var(--muted); }
+.node-badge { font-size: 9.5px; font-weight: 700; color: var(--soft); background: rgba(var(--inkC),0.06); border-radius: 100px; padding: 2px 8px; flex-shrink: 0; }
+.node-body { max-height: 4000px; overflow: hidden; transition: max-height 280ms var(--eo), opacity 200ms; padding: 10px 14px 4px; font-size: 13px; line-height: 1.75; color: var(--muted); }
 .node-body.collapsed { max-height: 0; padding-top: 0; padding-bottom: 0; opacity: 0; }
-.node-body ul { margin: 6px 0; padding-left: 18px; }
-.node-body li { margin-bottom: 5px; position: relative; padding-right: 28px; }
+.node-body p { margin: 0 0 10px; }
+.node-body ul { margin: 6px 0; padding-left: 20px; list-style: none; }
+.node-body li { margin-bottom: 7px; position: relative; padding-left: 4px; padding-right: 30px; }
+.node-body li::before { content: '›'; position: absolute; left: -14px; color: var(--flame); font-weight: 700; }
 .node-body li:hover .promote-trigger { opacity: 1; }
-.promote-trigger { position: absolute; right: 0; top: -1px; opacity: 0; transition: opacity 140ms; font-size: 10.5px; background: rgba(var(--inkC),0.07);
-  border: none; border-radius: 6px; padding: 2px 7px; cursor: pointer; color: var(--soft); }
+.promote-trigger { position: absolute; right: 0; top: 0; opacity: 0; transition: opacity 140ms; font-size: 10px; font-weight: 600; background: rgba(var(--inkC),0.07);
+  border: none; border-radius: 6px; padding: 3px 8px; cursor: pointer; color: var(--soft); }
 .promote-trigger:hover { background: var(--flame); color: #fff; }
-.citation-link { color: var(--teal2); text-decoration: none; border-bottom: 1px dotted rgba(36,80,106,0.4); font-size: 11.5px; }
-.citation-link:hover { border-bottom-style: solid; }
+.promote-trigger.promoted { background: rgba(255,84,0,0.15); color: var(--flame); opacity: 1; }
 
-/* ---- Promote category menu (popover) ---- */
-.promote-menu { position: absolute; z-index: 50; background: #fff; border: 1px solid var(--border); border-radius: 10px;
-  box-shadow: 0 10px 30px rgba(26,57,72,0.2); padding: 6px; display: none; min-width: 150px; }
-.promote-menu.show { display: block; }
-.promote-menu-item { font-size: 12px; padding: 7px 10px; border-radius: 7px; cursor: pointer; display: flex; align-items: center; gap: 7px; color: var(--teal); }
-.promote-menu-item:hover { background: rgba(255,84,0,0.08); }
+.entity-chip { display: inline-block; font-size: 11.5px; background: rgba(36,80,106,0.08); color: var(--teal2); padding: 4px 11px; border-radius: 100px; margin: 3px 4px 3px 0; font-weight: 600; }
+.timeline-item { display: flex; gap: 10px; padding: 7px 0; border-left: 2px solid var(--border); padding-left: 16px; margin-left: 4px; position: relative; }
+.timeline-item::before { content: ''; position: absolute; left: -5px; top: 12px; width: 8px; height: 8px; border-radius: 50%; background: var(--flame); }
 
-/* ---- Multi-category promotion boxes (editor layer) ---- */
-.editor-panel { position: sticky; top: 90px; max-height: calc(100vh - 110px); overflow-y: auto; }
-.promo-box { background: rgba(255,84,0,0.05); border: 1.5px solid rgba(255,84,0,0.28); border-radius: 16px; padding: 14px 16px; margin-bottom: 12px; animation: boxIn 260ms var(--eo); }
+/* Promote popover (replaces native prompt) */
+.pop { position: absolute; z-index: 80; width: 260px; background: var(--paper); border: 1px solid var(--border2); border-radius: 14px;
+  box-shadow: 0 16px 44px rgba(26,57,72,0.24); padding: 14px; display: none; animation: popIn 160ms var(--eo); }
+.pop.show { display: block; }
+@keyframes popIn { from { opacity: 0; transform: translateY(-6px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+.pop-quote { font-size: 11.5px; color: var(--muted); line-height: 1.5; background: rgba(var(--inkC),0.04); border-radius: 8px; padding: 8px 10px; margin-bottom: 12px;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.pop-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--soft); margin-bottom: 7px; }
+.pop-cats { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.pop-cat { font-size: 11.5px; font-weight: 600; color: var(--teal2); background: rgba(var(--inkC),0.05); border: 1px solid var(--border); border-radius: 100px;
+  padding: 6px 12px; cursor: pointer; transition: all 130ms; display: inline-flex; align-items: center; gap: 5px; }
+.pop-cat:hover { border-color: var(--faint); }
+.pop-cat.sel { background: var(--flame); color: #fff; border-color: transparent; }
+.pop-note { width: 100%; font-size: 12px; color: var(--teal); background: var(--paper); border: 1px solid var(--border2); border-radius: 8px; padding: 8px 10px; outline: none; resize: vertical; min-height: 44px; margin-bottom: 10px; }
+.pop-note:focus { border-color: var(--flame); }
+.pop-actions { display: flex; gap: 8px; }
+.pop-actions .btn { flex: 1; justify-content: center; }
+
+/* Editor desk (right rail) */
+.editor-panel { position: sticky; top: 86px; max-height: calc(100vh - 106px); overflow-y: auto; padding-right: 2px; }
+.editor-panel::-webkit-scrollbar { width: 6px; } .editor-panel::-webkit-scrollbar-thumb { background: var(--faint); border-radius: 6px; }
+.desk-meter { background: var(--glass); border: 1px solid var(--glass-b); box-shadow: var(--gs), var(--gi); border-radius: 14px; padding: 14px 16px; margin-bottom: 14px; }
+.desk-meter-title { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--soft); margin-bottom: 10px; }
+.meter-track { height: 6px; background: rgba(var(--inkC),0.08); border-radius: 100px; overflow: hidden; margin-bottom: 8px; }
+.meter-fill { height: 100%; background: linear-gradient(90deg, var(--flame), var(--honey)); border-radius: 100px; transition: width 260ms var(--eo); }
+.meter-hint { font-size: 11px; color: var(--muted); line-height: 1.5; }
+
+.promo-box { background: rgba(255,84,0,0.05); border: 1.5px solid rgba(255,84,0,0.26); border-radius: 16px; padding: 13px 15px; margin-bottom: 12px; animation: boxIn 260ms var(--eo); }
 @keyframes boxIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
-.promo-box-title { font-size: 11.5px; font-weight: 800; color: var(--flame); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
-.promo-box-count { background: var(--flame); color: #fff; border-radius: 100px; font-size: 10px; padding: 1px 7px; }
-.promo-item { background: #fff; border: 1px solid rgba(255,84,0,0.18); border-radius: 10px; padding: 9px 11px; margin-bottom: 7px; font-size: 12.5px; animation: itemIn 200ms var(--eo); }
+.promo-box-title { font-size: 11px; font-weight: 800; color: var(--flame); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+.promo-box-count { background: var(--flame); color: #fff; border-radius: 100px; font-size: 10px; padding: 1px 7px; margin-left: auto; }
+.promo-item { background: var(--paper); border: 1px solid rgba(255,84,0,0.18); border-radius: 10px; padding: 9px 11px; margin-bottom: 7px; font-size: 12.5px; animation: itemIn 200ms var(--eo); cursor: grab; }
+.promo-item.dragging { opacity: 0.4; }
+.promo-item.drag-over { border-color: var(--flame); box-shadow: 0 0 0 2px rgba(255,84,0,0.2); }
 @keyframes itemIn { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
-.promo-item-text { color: var(--teal); font-weight: 600; }
-.promo-item-text a { color: var(--teal2); }
-.promo-item-note { font-size: 11px; color: var(--muted); margin-top: 4px; }
-.promo-item-actions { display: flex; gap: 4px; margin-top: 6px; }
-.mini-icon-btn { font-size: 10px; background: rgba(var(--inkC),0.06); border: none; border-radius: 6px; padding: 3px 7px; cursor: pointer; color: var(--soft); }
-.mini-icon-btn:hover { background: rgba(var(--inkC),0.12); }
-.add-custom-cat { font-size: 11px; color: var(--teal2); background: none; border: 1px dashed var(--border); border-radius: 8px; padding: 7px; width: 100%; cursor: pointer; margin-top: 4px; }
-.link-item { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 9px 11px; margin-bottom: 6px; font-size: 12px; }
-.link-item a { font-weight: 600; }
-.link-item-tag { font-size: 9px; text-transform: uppercase; color: var(--soft); }
-.add-link-form { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
-.add-link-form input, .add-link-form select { font-size: 11.5px; padding: 7px 10px; border: 1px solid var(--border); border-radius: 8px; background: rgba(var(--inkC),0.03); }
-.small-btn { font-size: 11px; font-weight: 700; color: #fff; background: var(--flame); border: none; border-radius: 100px; padding: 7px 14px; cursor: pointer; }
-.resources-box { background: var(--glass); border: 1px solid var(--glass-b); border-radius: 16px; padding: 14px 16px; margin-bottom: 12px; }
+.promo-item-head { display: flex; align-items: flex-start; gap: 7px; }
+.promo-item-rank { font-family: var(--serif); font-size: 13px; font-weight: 700; color: var(--flame); flex-shrink: 0; line-height: 1.5; }
+.promo-item-text { color: var(--teal); font-weight: 600; flex: 1; min-width: 0; }
+.promo-item-note { font-size: 11px; color: var(--muted); margin-top: 5px; padding-left: 18px; }
+.promo-item-note.editing { padding-left: 0; }
+.promo-note-input { width: 100%; font-size: 11.5px; color: var(--teal); background: var(--ivory); border: 1px solid var(--border2); border-radius: 7px; padding: 6px 9px; outline: none; margin-top: 6px; }
+.promo-item-actions { display: flex; gap: 4px; margin-top: 7px; padding-left: 18px; }
+.mini-icon-btn { font-size: 10px; background: rgba(var(--inkC),0.06); border: none; border-radius: 6px; padding: 3px 8px; cursor: pointer; color: var(--soft); transition: background 130ms; }
+.mini-icon-btn:hover { background: rgba(var(--inkC),0.13); color: var(--teal); }
+.mini-icon-btn.danger:hover { background: var(--flame); color: #fff; }
+.promo-empty { font-size: 11.5px; color: var(--soft); text-align: center; padding: 18px 10px; line-height: 1.5; }
+
+.resources-box { background: var(--glass); border: 1px solid var(--glass-b); border-radius: 16px; padding: 13px 15px; }
 .resources-box .promo-box-title { color: var(--teal2); }
+.link-item { background: var(--paper); border: 1px solid var(--border); border-radius: 10px; padding: 9px 11px; margin-bottom: 6px; font-size: 12px; }
+.link-item-top { display: flex; align-items: center; gap: 6px; }
+.link-item-tag { font-size: 8.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--soft); background: rgba(var(--inkC),0.06); border-radius: 100px; padding: 2px 7px; margin-left: auto; }
+.add-link-form { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+.add-link-form input, .add-link-form select { font-size: 11.5px; padding: 8px 10px; border: 1px solid var(--border2); border-radius: 8px; background: var(--paper); outline: none; }
+.add-link-form input:focus { border-color: var(--flame); }
+.small-btn { font-size: 11px; font-weight: 700; color: #fff; background: var(--flame); border: none; border-radius: 100px; padding: 8px 14px; cursor: pointer; }
+.small-btn:hover { background: var(--flame-d); }
 
-/* ---- Parsing "live" feedback ---- */
-.parse-progress { font-size: 12px; color: var(--soft); margin-top: 10px; min-height: 18px; }
-.parse-progress.active::after { content: '●'; animation: blink 1s infinite; margin-left: 4px; color: var(--flame); }
-@keyframes blink { 0%,100% { opacity: 0.2; } 50% { opacity: 1; } }
+/* ============ Brief (detail) view ============ */
+.brief-layout { display: grid; grid-template-columns: 230px 1fr; gap: 28px; align-items: start; }
+@media (max-width: 940px) { .brief-layout { grid-template-columns: 1fr; } .brief-spine { display: none; } }
+.showcase-hero { margin-bottom: 22px; }
+.showcase-topic { font-family: var(--serif); font-size: 30px; font-weight: 700; color: var(--teal); line-height: 1.22; letter-spacing: -0.02em; margin: 8px 0 12px; }
+.showcase-meta { font-size: 12px; color: var(--soft); display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.meta-dot { color: var(--faint); }
 
-/* ---- Detail/showcase view ---- */
-.showcase-hero { margin-bottom: 24px; }
-.showcase-topic { font-family: var(--serif); font-size: 30px; font-weight: 600; color: var(--teal); line-height: 1.25; }
-.showcase-meta { font-size: 12px; color: var(--soft); margin-top: 8px; display: flex; gap: 14px; flex-wrap: wrap; }
-.priority-verdict { background: linear-gradient(135deg, rgba(255,84,0,0.08), rgba(255,192,71,0.06)); border: 1.5px solid rgba(255,84,0,0.3);
-  border-radius: 18px; padding: 18px 20px; margin-bottom: 14px; }
-.priority-verdict-title { font-size: 11.5px; font-weight: 800; color: var(--flame); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
-.priority-verdict-item { display: flex; gap: 10px; padding: 9px 0; border-bottom: 1px solid rgba(255,84,0,0.15); }
+.verdict-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; margin: 22px 0; }
+.priority-verdict { background: linear-gradient(135deg, rgba(255,84,0,0.07), rgba(255,192,71,0.05)); border: 1.5px solid rgba(255,84,0,0.28);
+  border-radius: 18px; padding: 17px 19px; }
+.priority-verdict-title { font-size: 11px; font-weight: 800; color: var(--flame); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 11px; display: flex; align-items: center; gap: 6px; }
+.priority-verdict-item { display: flex; gap: 11px; padding: 10px 0; border-bottom: 1px solid rgba(255,84,0,0.13); }
 .priority-verdict-item:last-child { border-bottom: none; }
-.priority-verdict-rank { font-family: var(--serif); font-size: 17px; font-weight: 700; color: var(--flame); flex-shrink: 0; width: 24px; }
-.priority-verdict-text { font-weight: 600; color: var(--teal); font-size: 13.5px; }
-.priority-verdict-text a { color: var(--teal2); }
-.priority-verdict-note { font-size: 11.5px; color: var(--muted); margin-top: 3px; }
-.verdict-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; margin: 20px 0; }
-.showcase-toc { display: flex; gap: 8px; flex-wrap: wrap; margin: 18px 0; position: sticky; top: 74px; z-index: 20;
-  background: var(--ivory); padding: 10px 0; }
-.toc-chip { font-size: 11.5px; font-weight: 600; color: var(--teal2); background: rgba(var(--inkC),0.06); padding: 6px 13px; border-radius: 100px; cursor: pointer; text-decoration: none; transition: background 160ms, color 160ms; }
-.toc-chip.active { background: var(--flame); color: #fff; }
-.mtable { width: 100%; border-collapse: collapse; font-size: 12px; margin: 8px 0; }
-.mtable th { text-align: left; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.03em; color: var(--soft); padding: 6px 8px; border-bottom: 1px solid var(--border); }
-.mtable td { padding: 7px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
-.entity-chip { display: inline-block; font-size: 11.5px; background: rgba(36,80,106,0.08); color: var(--teal2); padding: 3px 10px; border-radius: 100px; margin: 2px 4px 2px 0; }
-.timeline-item { display: flex; gap: 10px; padding: 6px 0; border-left: 2px solid var(--border); padding-left: 14px; margin-left: 4px; position: relative; }
-.timeline-item::before { content: ''; position: absolute; left: -5px; top: 10px; width: 8px; height: 8px; border-radius: 50%; background: var(--flame); }
-.resources-panel { background: var(--glass); border: 1px solid var(--glass-b); box-shadow: var(--gs), var(--gi); border-radius: 14px; padding: 16px 18px; margin: 20px 0; }
+.priority-verdict-rank { font-family: var(--serif); font-size: 18px; font-weight: 700; color: var(--flame); flex-shrink: 0; width: 22px; line-height: 1.3; }
+.priority-verdict-text { font-weight: 600; color: var(--teal); font-size: 13.5px; line-height: 1.5; }
+.priority-verdict-note { font-size: 11.5px; color: var(--muted); margin-top: 4px; }
+
+.brief-actions { display: flex; gap: 8px; flex-wrap: wrap; margin: 18px 0 4px; }
+
+.copilot-fab { position: fixed; bottom: 26px; right: 22px; z-index: 70; width: 54px; height: 54px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--flame), var(--honey)); border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; font-size: 24px; color: #fff;
+  box-shadow: 0 6px 20px rgba(255,84,0,0.35), 0 2px 8px rgba(0,0,0,0.15); transition: transform 160ms var(--eo); }
+.copilot-fab:hover { transform: scale(1.08) rotate(6deg); }
 
 .dash-toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(12px); z-index: 99;
-  background: var(--teal); color: #fff; font-size: 12.5px; font-weight: 500; padding: 9px 20px; border-radius: 100px;
+  background: var(--teal); color: #fff; font-size: 12.5px; font-weight: 500; padding: 10px 20px; border-radius: 100px;
   box-shadow: 0 4px 18px rgba(26,57,72,0.3); opacity: 0; pointer-events: none; transition: opacity 220ms, transform 220ms; white-space: nowrap; }
 .dash-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-.copilot-fab { position: fixed; bottom: 28px; right: 24px; z-index: 60; width: 56px; height: 56px; border-radius: 50%;
-  background: linear-gradient(135deg, var(--flame), var(--honey)); border: none; cursor: pointer;
-  display: flex; align-items: center; justify-content: center; font-size: 25px; color: #fff;
-  box-shadow: 0 6px 20px rgba(255,84,0,0.35), 0 2px 8px rgba(0,0,0,0.15); }
-.copilot-fab:hover { transform: scale(1.08); }
+@media (prefers-reduced-motion: reduce) { * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
 </style>
 </head>
 <body>
@@ -198,74 +360,119 @@ a { color: var(--teal2); }
   <div class="hdr-brand" id="brandHome">
     <span class="hdr-icon">🧬</span>
     <div>
-      <div class="hdr-title">Agent Briefs Library</div>
-      <div class="hdr-sub">DNA — turn any LLM /agentmode answer into a shareable newsroom brief</div>
+      <div class="hdr-title">Agent Briefs Desk</div>
+      <div class="hdr-sub">DNA · the operating table between agent, editor & reporter</div>
     </div>
   </div>
+  <div class="pipeline" id="pipeline">
+    <div class="pipe-step" data-step="library"><span class="pipe-dot"></span><div><div>Library</div><div class="pipe-role">Newsroom</div></div></div>
+    <span class="pipe-arrow">→</span>
+    <div class="pipe-step" data-step="paste"><span class="pipe-dot"></span><div><div>Intake</div><div class="pipe-role">Agent</div></div></div>
+    <span class="pipe-arrow">→</span>
+    <div class="pipe-step" data-step="review"><span class="pipe-dot"></span><div><div>Desk</div><div class="pipe-role">Editor</div></div></div>
+    <span class="pipe-arrow">→</span>
+    <div class="pipe-step" data-step="detail"><span class="pipe-dot"></span><div><div>Brief</div><div class="pipe-role">Reporter</div></div></div>
+  </div>
   <div class="hdr-actions">
-    <button class="btn" id="navLibrary">📚 Library</button>
-    <button class="btn primary" id="navPaste">＋ New Brief</button>
+    <button class="btn primary" id="navPaste">＋ New brief</button>
   </div>
 </div>
 
 <div class="main">
 
-  <!-- LIBRARY VIEW -->
+  <!-- LIBRARY -->
   <div class="view" id="viewLibrary">
     <div class="lib-head">
-      <div class="lib-title">Knowledge Library</div>
-      <input type="text" class="lib-search" id="librarySearch" placeholder="Search topics…">
+      <div class="eyebrow">Newsroom library <span class="role-tag">· shared knowledge base</span></div>
+      <h1 class="lib-title">Every agent answer, curated into a brief</h1>
+      <p class="lib-tagline">Reporters run the research. Editors promote what matters, attach the sources, and rank the angles. What lands here is desk-ready.</p>
+      <div class="lib-controls">
+        <input type="text" class="lib-search" id="librarySearch" placeholder="Search topics…">
+        <div id="llmFilters" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
+        <span class="lib-count" id="libCount"></span>
+      </div>
     </div>
-    <div class="brief-grid" id="briefGrid"><div class="lib-empty">Loading…</div></div>
+    <div class="brief-grid" id="briefGrid"></div>
   </div>
 
-  <!-- PASTE VIEW -->
+  <!-- INTAKE -->
   <div class="view" id="viewPaste">
-    <div class="paste-panel">
-      <div class="field">
-        <label>Topic / headline for this brief</label>
-        <input type="text" id="pasteTopic" placeholder="e.g. Strait of Hormuz escalation — July 7-8">
+    <div class="eyebrow" style="margin-bottom:14px;">Intake <span class="role-tag">· agent → desk</span></div>
+    <div class="intake-wrap">
+      <div class="panel">
+        <div class="panel-title">Drop the agent answer in</div>
+        <div class="panel-desc">Paste a full /agentmode response from any model. DNA detects headings, tables, lists and links, and hands you a structured draft to curate.</div>
+        <div class="field">
+          <label>Topic / headline</label>
+          <input type="text" id="pasteTopic" placeholder="e.g. Strait of Hormuz escalation — July 7–8">
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Editor</label>
+            <input type="text" id="pasteEditor" placeholder="Your name">
+          </div>
+          <div class="field">
+            <label>Source model</label>
+            <select id="pasteSourceLlm">
+              <option>ChatGPT</option><option>Copilot</option><option>Claude</option><option>Gemini</option><option>Perplexity</option><option>Other</option>
+            </select>
+          </div>
+        </div>
+        <div class="field" style="margin-bottom:8px;">
+          <label>Agent answer</label>
+          <textarea class="paste-textarea" id="pasteText" placeholder="Paste the full response here — markdown headings, tables, bullet lists and URLs are all detected automatically."></textarea>
+        </div>
+        <div class="paste-foot">
+          <span class="paste-hint"><button class="sample-link" id="loadSample">Load a sample answer</button> to see how it parses</span>
+          <span class="char-count" id="charCount">0 lines · 0 chars</span>
+        </div>
+        <div style="margin-top:16px;display:flex;gap:10px;align-items:center;">
+          <button class="btn primary" id="parseBtn">Parse & open desk →</button>
+        </div>
+        <div class="parse-progress" id="parseProgress"></div>
       </div>
-      <div class="field">
-        <label>Editor name (optional)</label>
-        <input type="text" id="pasteEditor" placeholder="Your name">
+      <div class="panel">
+        <div class="panel-title">How the desk works</div>
+        <ul class="intake-guide" style="padding-left:18px;margin-top:14px;">
+          <li><b>Intake</b> turns a wall of model text into a clean, collapsible outline — nothing is lost, everything is navigable.</li>
+          <li>On the <b>Desk</b>, you promote the lines that matter into <b>Angles</b>, <b>Sources</b>, <b>People</b> and <b>Keywords</b>, add a note, and rank them by dragging.</li>
+          <li>Long URLs collapse into <b>source chips</b> with the outlet's domain; tables become <b>sortable and filterable</b>.</li>
+          <li>The finished <b>Brief</b> gives a reporter the verdict up top, a scroll spine down the side, and a numbered source ledger at the foot.</li>
+        </ul>
       </div>
-      <div class="field">
-        <label>Source LLM</label>
-        <select id="pasteSourceLlm">
-          <option>ChatGPT</option>
-          <option>Copilot</option>
-          <option>Claude</option>
-          <option>Gemini</option>
-          <option>Other</option>
-        </select>
-      </div>
-      <div class="field">
-        <label>Paste the /agentmode answer</label>
-        <textarea class="paste-textarea" id="pasteText" placeholder="Paste the full LLM response here — any format is fine, this will auto-detect headings, tables, lists, and links."></textarea>
-        <div class="paste-hint">Works with output from any LLM — ChatGPT, Copilot, Claude, Gemini. Headings, markdown tables, bullet lists, and URLs are detected automatically.</div>
-      </div>
-      <button class="btn primary" id="parseBtn">Parse &amp; Review →</button>
-      <div class="parse-progress" id="parseProgress"></div>
     </div>
   </div>
 
-  <!-- REVIEW VIEW -->
+  <!-- DESK (review) -->
   <div class="view" id="viewReview">
-    <div class="lib-head">
-      <div class="lib-title" id="reviewTitle">Review brief</div>
-      <button class="btn primary" id="saveBriefBtn">💾 Save to Library</button>
+    <div class="desk-head">
+      <div>
+        <div class="eyebrow">Editor's desk <span class="role-tag">· curate & promote</span></div>
+        <div class="desk-title" id="reviewTitle">Review brief</div>
+      </div>
+      <button class="btn primary" id="saveBriefBtn">Publish to library</button>
     </div>
     <div class="stat-strip" id="statStrip"></div>
-    <div class="review-layout">
+    <div class="desk-layout">
+      <div class="desk-spine">
+        <div class="spine">
+          <div class="spine-label">Outline</div>
+          <div class="spine-nav" id="deskSpineNav"></div>
+        </div>
+      </div>
       <div id="reviewSections"></div>
       <div class="editor-panel">
+        <div class="desk-meter">
+          <div class="desk-meter-title">Brief readiness</div>
+          <div class="meter-track"><div class="meter-fill" id="meterFill" style="width:0%"></div></div>
+          <div class="meter-hint" id="meterHint">Promote a few angles and sources to make this desk-ready.</div>
+        </div>
         <div id="promoBoxesContainer"></div>
         <div class="resources-box">
-          <div class="promo-box-title">🔗 Additional Resources</div>
+          <div class="promo-box-title">🔗 Extra resources</div>
           <div id="linksList"></div>
           <div class="add-link-form">
-            <input type="text" id="newLinkLabel" placeholder="Label">
+            <input type="text" id="newLinkLabel" placeholder="Label (e.g. Radio Farda dossier)">
             <input type="text" id="newLinkUrl" placeholder="https://…">
             <select id="newLinkTag"><option value="internal">Internal</option><option value="external">External</option></select>
             <input type="text" id="newLinkNote" placeholder="Note (optional)">
@@ -276,92 +483,117 @@ a { color: var(--teal2); }
     </div>
   </div>
 
-  <!-- DETAIL / SHOWCASE VIEW -->
+  <!-- BRIEF (detail) -->
   <div class="view" id="viewDetail"></div>
 
 </div>
 
 <button class="copilot-fab" id="copilotFab" title="Open Copilot">🤖</button>
+<div class="pop" id="promotePop"></div>
 <div class="dash-toast" id="dashToast"></div>
 
 <script>
-/* ==================== Agent Briefs Library ==================== */
+/* ==================== Agent Briefs Desk ==================== */
 const SUPABASE_URL = 'https://yiewnykbchfadipznpet.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlpZXdueWtiY2hmYWRpcHpucGV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxNzM3NTUsImV4cCI6MjA5NDc0OTc1NX0.utnlpToZGH7hno0QTXlrtWvzKDgP28Gv3Je7BBIRwmM';
 
 const CATEGORY_META = {
   angle:   { label: 'Priority Angles', icon: '★' },
-  source:  { label: 'Key Sources', icon: '🔗' },
-  person:  { label: 'People to Watch', icon: '👤' },
-  keyword: { label: 'Keywords', icon: '🏷️' },
+  source:  { label: 'Key Sources',     icon: '🔗' },
+  person:  { label: 'People to Watch',  icon: '👤' },
+  keyword: { label: 'Keywords',         icon: '🏷️' },
 };
 const CATEGORY_ORDER = ['angle', 'source', 'person', 'keyword'];
+const KIND_ICON = { timeline: '🕘', entities: '👥', table: '▦', actions: '✔', summary: '❖', sources: '🔗', text: '' };
 
+/* ---------- helpers ---------- */
 function escapeHtml(s) {
-  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+}
+function domainOf(url) {
+  try { return new URL(url).hostname.replace(/^www\./, ''); }
+  catch { return String(url).replace(/^https?:\/\/(www\.)?/, '').split(/[\/?#]/)[0]; }
+}
+function relTime(iso) {
+  const d = new Date(iso), now = Date.now(), s = Math.round((now - d.getTime()) / 1000);
+  if (isNaN(s)) return '';
+  if (s < 60) return 'just now';
+  if (s < 3600) return Math.floor(s/60) + 'm ago';
+  if (s < 86400) return Math.floor(s/3600) + 'h ago';
+  if (s < 604800) return Math.floor(s/86400) + 'd ago';
+  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}
+function dashToast(msg) {
+  const el = document.getElementById('dashToast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(dashToast._t); dashToast._t = setTimeout(() => el.classList.remove('show'), 2400);
+}
+
+/* ---------- citation collector (render-scoped) ---------- */
+let CITE = null;
+function citeStart() { CITE = { list: [], map: new Map() }; }
+function citeStop() { CITE = null; }
+function citeRef(url, label) {
+  if (!CITE) return { n: null };
+  if (!CITE.map.has(url)) {
+    const e = { n: CITE.list.length + 1, url, label: label || domainOf(url) };
+    CITE.map.set(url, e); CITE.list.push(e);
+  } else if (label && CITE.map.get(url).label === domainOf(url)) {
+    CITE.map.get(url).label = label; // upgrade to a real label if we later find one
+  }
+  return CITE.map.get(url);
+}
+function sourceChip(url, label) {
+  const dom = domainOf(url);
+  const ref = citeRef(url, label);
+  const num = ref.n ? `<span class="src-n">${ref.n}</span>` : '';
+  const fav = `<img class="src-fav" src="https://www.google.com/s2/favicons?domain=${encodeURIComponent(dom)}&sz=64" onerror="this.style.display='none'" alt="">`;
+  const hasLabel = label && label.replace(/\s+/g,' ').trim().toLowerCase() !== dom.toLowerCase();
+  const main = hasLabel
+    ? `<span class="src-label">${escapeHtml(label)}</span><span class="src-dom">${escapeHtml(dom)}</span>`
+    : `<span class="src-label">${escapeHtml(dom)}</span>`;
+  return `<a class="src-chip" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" title="${escapeHtml(url)}">${num}${fav}${main}</a>`;
 }
 function linkify(text) {
   if (text == null) return '';
   const mdLinkRe = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
-  const placeholders = [];
-  let work = String(text).replace(mdLinkRe, (m, label, url) => {
-    placeholders.push({ label, url });
-    return `\u0000${placeholders.length - 1}\u0000`;
-  });
+  const holders = [];
+  let work = String(text).replace(mdLinkRe, (m, label, url) => { holders.push(sourceChip(url, label)); return `\u0000${holders.length-1}\u0000`; });
   work = escapeHtml(work);
-  const bareUrlRe = /(https?:\/\/[^\s<>"')]+)/g;
-  work = work.replace(bareUrlRe, url => `<a href="${url}" target="_blank" rel="noopener noreferrer" class="citation-link">${url}</a>`);
-  work = work.replace(/\u0000(\d+)\u0000/g, (m, i) => {
-    const p = placeholders[+i];
-    return `<a href="${escapeHtml(p.url)}" target="_blank" rel="noopener noreferrer" class="citation-link">${escapeHtml(p.label)}</a>`;
-  });
+  work = work.replace(/(https?:\/\/[^\s<>"')]+)/g, url => sourceChip(url, null));
+  work = work.replace(/\u0000(\d+)\u0000/g, (m, i) => holders[+i]);
   return work;
 }
 function extractLinks(text) {
-  const out = [];
-  const mdLinkRe = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
-  let m;
-  while ((m = mdLinkRe.exec(text))) out.push({ label: m[1], url: m[2] });
+  const out = [], md = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g; let m;
+  while ((m = md.exec(text))) out.push({ label: m[1], url: m[2] });
+  const bare = /(https?:\/\/[^\s<>"')\]]+)/g;
+  const seen = new Set(out.map(o => o.url));
+  while ((m = bare.exec(text))) { if (!seen.has(m[1])) { out.push({ label: null, url: m[1] }); seen.add(m[1]); } }
   return out;
 }
-function dashToast(msg) {
-  const el = document.getElementById('dashToast');
-  el.textContent = msg;
-  el.classList.add('show');
-  clearTimeout(dashToast._t);
-  dashToast._t = setTimeout(() => el.classList.remove('show'), 2400);
-}
 
+/* ---------- Supabase ---------- */
 async function sbSelect(table, query) {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${query}`, {
-    headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` },
-  });
-  if (!res.ok) throw new Error(`select failed (${res.status})`);
-  return res.json();
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${query}`, { headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` } });
+  if (!res.ok) throw new Error(`select failed (${res.status})`); return res.json();
 }
 async function sbInsert(table, row) {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
-    method: 'POST',
-    headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
-    body: JSON.stringify(row),
-  });
-  if (!res.ok) throw new Error(`insert failed (${res.status})`);
-  return res.json();
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, { method: 'POST',
+    headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=representation' },
+    body: JSON.stringify(row) });
+  if (!res.ok) throw new Error(`insert failed (${res.status})`); return res.json();
 }
 async function sbUpdate(table, id, patch) {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, {
-    method: 'PATCH',
-    headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
-    body: JSON.stringify(patch),
-  });
-  if (!res.ok) throw new Error(`update failed (${res.status})`);
-  return res.json();
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, { method: 'PATCH',
+    headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=representation' },
+    body: JSON.stringify(patch) });
+  if (!res.ok) throw new Error(`update failed (${res.status})`); return res.json();
 }
 
-/* ==================== HIERARCHICAL PARSER ==================== */
+/* ==================== PARSER (preserved) ==================== */
 function matchHeading(line) {
-  const t = line.trim();
-  if (!t) return null;
+  const t = line.trim(); if (!t) return null;
   const atx = t.match(/^(#{1,4})\s+(.+)$/);
   if (atx) return { level: atx[1].length, text: atx[2].replace(/\*+/g, '').trim() };
   if (/^\*\*[^*]{2,80}\*\*:?$/.test(t)) return { level: null, text: t.replace(/^\*\*|\*\*:?$/g, '').trim() };
@@ -383,321 +615,391 @@ function parseMarkdownTable(lines) {
   const rows = lines.map(l => l.trim().replace(/^\||\|$/g, '').split('|').map(c => c.trim()));
   if (rows.length < 2) return null;
   const isSep = rows[1].every(c => /^:?-{2,}:?$/.test(c));
-  const headers = rows[0];
-  const body = isSep ? rows.slice(2) : rows.slice(1);
-  return { headers, rows: body };
+  return { headers: rows[0], rows: isSep ? rows.slice(2) : rows.slice(1) };
 }
 function makeNode(heading, level) {
   return { heading, level, type: heading ? classifyHeading(heading) : 'root', children: [], raw: [], items: [], table: null, paragraph: '' };
 }
 function processNode(node) {
   const raw = node.raw;
-  const tableLineIdx = raw.map((l, i) => (l.includes('|') && l.trim().length > 2 ? i : -1)).filter(i => i >= 0);
-  if (tableLineIdx.length >= 2) {
-    let bestStart = -1, bestLen = 0, curStart = -1, curLen = 0, prevIdx = -2;
-    for (const idx of tableLineIdx) {
-      if (idx === prevIdx + 1) { curLen++; } else { curStart = idx; curLen = 1; }
-      if (curLen > bestLen) { bestLen = curLen; bestStart = curStart; }
-      prevIdx = idx;
-    }
-    if (bestLen >= 2) {
-      const tbl = parseMarkdownTable(raw.slice(bestStart, bestStart + bestLen));
-      if (tbl) {
-        node.table = tbl;
-        node.raw = [...raw.slice(0, bestStart), ...raw.slice(bestStart + bestLen)];
-      }
-    }
+  const tIdx = raw.map((l, i) => (l.includes('|') && l.trim().length > 2 ? i : -1)).filter(i => i >= 0);
+  if (tIdx.length >= 2) {
+    let bs = -1, bl = 0, cs = -1, cl = 0, prev = -2;
+    for (const idx of tIdx) { if (idx === prev+1) cl++; else { cs = idx; cl = 1; } if (cl > bl) { bl = cl; bs = cs; } prev = idx; }
+    if (bl >= 2) { const tbl = parseMarkdownTable(raw.slice(bs, bs+bl)); if (tbl) { node.table = tbl; node.raw = [...raw.slice(0, bs), ...raw.slice(bs+bl)]; } }
   }
-  const remaining = [];
+  const rem = [];
   for (const l of node.raw) {
-    const t = l.trim();
-    if (/^(\*{3,}|-{3,}|_{3,})$/.test(t)) continue;
+    const t = l.trim(); if (/^(\*{3,}|-{3,}|_{3,})$/.test(t)) continue;
     const m = t.match(/^(?:[-*•]|\d+[.)])\s+(.*)$/);
-    if (m && m[1].trim()) node.items.push(m[1].trim());
-    else if (t) remaining.push(t);
+    if (m && m[1].trim()) node.items.push(m[1].trim()); else if (t) rem.push(t);
   }
-  node.paragraph = remaining.join(' ').trim();
-  delete node.raw;
-  for (const child of node.children) processNode(child);
+  node.paragraph = rem.join(' ').trim(); delete node.raw;
+  for (const c of node.children) processNode(c);
 }
 function parseAgentText(raw) {
   const lines = raw.replace(/\r\n/g, '\n').split('\n');
-  const root = makeNode(null, 0);
-  const stack = [root];
+  const root = makeNode(null, 0), stack = [root];
   for (const line of lines) {
     const h = matchHeading(line);
     if (h) {
-      const parent = stack[stack.length - 1];
+      const parent = stack[stack.length-1];
       const level = h.level != null ? h.level : parent.level + 1;
-      while (stack.length > 1 && stack[stack.length - 1].level >= level) stack.pop();
+      while (stack.length > 1 && stack[stack.length-1].level >= level) stack.pop();
       const node = makeNode(h.text, level);
-      stack[stack.length - 1].children.push(node);
-      stack.push(node);
-    } else {
-      stack[stack.length - 1].raw.push(line);
-    }
+      stack[stack.length-1].children.push(node); stack.push(node);
+    } else stack[stack.length-1].raw.push(line);
   }
-  processNode(root);
-  return root.children;
+  processNode(root); return root.children;
 }
-
 function collectStats(nodes) {
-  let sections = 0, sources = 0, items = 0;
-  function walk(list) {
-    for (const n of list) {
-      sections++;
-      items += n.items.length;
-      for (const it of n.items) sources += extractLinks(it).length;
-      sources += extractLinks(n.paragraph).length;
-      walk(n.children);
-    }
-  }
-  walk(nodes);
-  return { sections, sources, items };
+  let sections = 0, sources = 0, items = 0; const urls = new Set();
+  (function walk(list){ for (const n of list) {
+    sections++; items += n.items.length;
+    for (const it of n.items) extractLinks(it).forEach(l => urls.add(l.url));
+    extractLinks(n.paragraph).forEach(l => urls.add(l.url));
+    if (n.table) n.table.rows.forEach(r => r.forEach(c => extractLinks(c).forEach(l => urls.add(l.url))));
+    walk(n.children);
+  }})(nodes);
+  return { sections, sources: urls.size, items };
 }
 
 /* ==================== State ==================== */
-let currentTree = [];
-let currentPromoted = [];
-let currentLinks = [];
-let currentBriefId = null;
-let promoIdSeq = 0;
+let currentTree = [], currentPromoted = [], currentLinks = [], currentBriefId = null, promoIdSeq = 0;
+let TABLES = {}, tableSeq = 0;
+function registerTable(tbl) { const id = 'tbl' + (tableSeq++); TABLES[id] = tbl; return id; }
 
+/* ==================== View routing + pipeline ==================== */
 function showView(name) {
   document.querySelectorAll('.view').forEach(v => v.classList.remove('show'));
   document.getElementById('view' + name.charAt(0).toUpperCase() + name.slice(1)).classList.add('show');
+  document.querySelectorAll('.pipe-step').forEach(s => s.classList.toggle('active', s.getAttribute('data-step') === name));
   window.scrollTo(0, 0);
 }
 document.getElementById('brandHome').addEventListener('click', () => { showView('library'); loadLibrary(); });
-document.getElementById('navLibrary').addEventListener('click', () => { showView('library'); loadLibrary(); });
-document.getElementById('navPaste').addEventListener('click', () => {
-  document.getElementById('pasteTopic').value = '';
-  document.getElementById('pasteEditor').value = '';
-  document.getElementById('pasteText').value = '';
-  document.getElementById('parseProgress').textContent = '';
-  showView('paste');
+document.getElementById('pipeline').addEventListener('click', (e) => {
+  const step = e.target.closest('.pipe-step'); if (!step) return;
+  const s = step.getAttribute('data-step');
+  if (s === 'library') { showView('library'); loadLibrary(); }
+  else if (s === 'paste') openIntake();
+  else if (s === 'review' && currentTree.length) showView('review');
+  else if (s === 'detail' && currentBriefId) { /* stay */ }
+  else dashToast(s === 'review' ? 'Parse an answer first' : s === 'detail' ? 'Open a brief first' : '');
 });
+function openIntake() {
+  ['pasteTopic','pasteEditor','pasteText'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('parseProgress').textContent = '';
+  updateCharCount(); showView('paste');
+}
+document.getElementById('navPaste').addEventListener('click', openIntake);
 
+/* ---------- Intake ---------- */
+function updateCharCount() {
+  const t = document.getElementById('pasteText').value;
+  document.getElementById('charCount').textContent = `${t ? t.split('\n').length : 0} lines · ${t.length} chars`;
+}
+document.getElementById('pasteText').addEventListener('input', updateCharCount);
+document.getElementById('loadSample').addEventListener('click', () => {
+  document.getElementById('pasteTopic').value = 'Strait of Hormuz escalation — July 7–8';
+  document.getElementById('pasteText').value = SAMPLE_ANSWER;
+  updateCharCount(); dashToast('Sample loaded — parse it');
+});
 document.getElementById('parseBtn').addEventListener('click', () => {
   const topic = document.getElementById('pasteTopic').value.trim();
   const text = document.getElementById('pasteText').value.trim();
-  if (!topic) { dashToast('Add a topic first'); return; }
-  if (!text) { dashToast('Paste the LLM answer first'); return; }
-
-  const progress = document.getElementById('parseProgress');
-  progress.classList.add('active');
-  progress.textContent = `Reading ${text.split('\n').length} lines…`;
-
+  if (!topic) return dashToast('Add a topic first');
+  if (!text) return dashToast('Paste the agent answer first');
+  const p = document.getElementById('parseProgress');
+  p.classList.add('active'); p.textContent = `Reading ${text.split('\n').length} lines…`;
   setTimeout(() => {
     currentTree = parseAgentText(text);
-    const stats = collectStats(currentTree);
-    progress.textContent = `Detected ${stats.sections} sections, ${stats.items} points, ${stats.sources} linked sources…`;
+    const st = collectStats(currentTree);
+    p.textContent = `Found ${st.sections} sections · ${st.items} points · ${st.sources} sources`;
     setTimeout(() => {
-      currentPromoted = [];
-      currentLinks = [];
-      currentBriefId = null;
-      progress.classList.remove('active');
-      progress.textContent = '';
+      currentPromoted = []; currentLinks = []; currentBriefId = null;
+      p.classList.remove('active'); p.textContent = '';
       document.getElementById('reviewTitle').textContent = topic;
-      renderReview();
-      showView('review');
-    }, 350);
-  }, 250);
+      renderReview(); showView('review');
+    }, 380);
+  }, 260);
 });
 
-function renderStatStrip() {
-  const stats = collectStats(currentTree);
-  document.getElementById('statStrip').innerHTML = `
-    <span class="stat-pill"><b>${stats.sections}</b> sections</span>
-    <span class="stat-pill"><b>${stats.items}</b> points</span>
-    <span class="stat-pill"><b>${stats.sources}</b> linked sources</span>
-    <span class="stat-pill"><b>${currentPromoted.length}</b> promoted</span>
-  `;
+/* ==================== Interactive table hydration ==================== */
+function hydrateTables(root) {
+  root.querySelectorAll('.itable-mount').forEach(mount => {
+    const tbl = TABLES[mount.getAttribute('data-tid')]; if (!tbl) return;
+    const many = tbl.rows.length > 5;
+    const wrap = document.createElement('div'); wrap.className = 'itable-wrap';
+    wrap.innerHTML = `
+      ${many ? `<div class="itable-bar"><input class="itable-filter" placeholder="Filter rows…"><span class="itable-meta"></span></div>` : ''}
+      <div class="itable-scroll"><table class="itable">
+        <thead><tr>${tbl.headers.map((h,i) => `<th data-col="${i}">${escapeHtml(h)}<span class="sort-ind">↕</span></th>`).join('')}</tr></thead>
+        <tbody>${tbl.rows.map(r => `<tr>${r.map(c => `<td>${linkify(c)}</td>`).join('')}</tr>`).join('')}</tbody>
+      </table></div>`;
+    mount.replaceWith(wrap);
+
+    const tbody = wrap.querySelector('tbody');
+    const rowsEls = Array.from(tbody.querySelectorAll('tr'));
+    const meta = wrap.querySelector('.itable-meta');
+    const setMeta = () => { if (meta) { const vis = rowsEls.filter(r => !r.classList.contains('row-hidden')).length; meta.textContent = `${vis} / ${tbl.rows.length} rows`; } };
+    setMeta();
+
+    // sorting
+    let sortCol = -1, sortDir = 0;
+    wrap.querySelectorAll('th').forEach(th => th.addEventListener('click', () => {
+      const col = +th.getAttribute('data-col');
+      if (sortCol === col) sortDir = sortDir === 1 ? -1 : (sortDir === -1 ? 0 : 1); else { sortCol = col; sortDir = 1; }
+      wrap.querySelectorAll('th').forEach(h => { h.classList.remove('sorted'); h.querySelector('.sort-ind').textContent = '↕'; });
+      let ordered = rowsEls.slice();
+      if (sortDir !== 0) {
+        th.classList.add('sorted'); th.querySelector('.sort-ind').textContent = sortDir === 1 ? '↑' : '↓';
+        const val = tr => tr.children[col] ? tr.children[col].textContent.trim() : '';
+        const num = v => { const n = parseFloat(String(v).replace(/[^0-9.\-]/g, '')); return isNaN(n) ? null : n; };
+        ordered.sort((a, b) => {
+          const av = val(a), bv = val(b), an = num(av), bn = num(bv);
+          let c = (an !== null && bn !== null) ? an - bn : av.localeCompare(bv, undefined, { numeric: true, sensitivity: 'base' });
+          return c * sortDir;
+        });
+      }
+      ordered.forEach(r => tbody.appendChild(r));
+    }));
+
+    // filter
+    const filter = wrap.querySelector('.itable-filter');
+    if (filter) filter.addEventListener('input', () => {
+      const q = filter.value.trim().toLowerCase();
+      rowsEls.forEach(r => r.classList.toggle('row-hidden', q && !r.textContent.toLowerCase().includes(q)));
+      setMeta();
+    });
+  });
 }
 
+/* ==================== Desk (review) rendering ==================== */
 function renderReview() {
+  citeStop(); // desk chips show domain only, no numbers
+  TABLES = {}; tableSeq = 0;
   const wrap = document.getElementById('reviewSections');
-  wrap.innerHTML = currentTree.map(node => nodeHtml(node)).join('');
+  wrap.innerHTML = currentTree.map((n, i) => nodeHtml(n, String(i))).join('');
+  hydrateTables(wrap);
   wireTreeListeners(wrap);
-  renderStatStrip();
-  renderPromoBoxes();
-  renderLinksList();
+  renderStatStrip(); renderPromoBoxes(); renderLinksList(); renderMeter();
+  buildSpine('deskSpineNav', currentTree, '#dsec-', 'reviewSections');
+}
+function renderStatStrip() {
+  const s = collectStats(currentTree);
+  document.getElementById('statStrip').innerHTML = `
+    <span class="stat-pill"><b>${s.sections}</b> sections</span>
+    <span class="stat-pill"><b>${s.items}</b> points</span>
+    <span class="stat-pill"><b>${s.sources}</b> sources</span>
+    <span class="stat-pill"><b>${currentPromoted.length}</b> promoted</span>`;
+}
+function renderMeter() {
+  const cats = new Set(currentPromoted.map(p => p.category));
+  const score = Math.min(100, currentPromoted.length * 12 + cats.size * 10 + currentLinks.length * 6);
+  document.getElementById('meterFill').style.width = score + '%';
+  const hint = document.getElementById('meterHint');
+  if (score === 0) hint.textContent = 'Hover any line and hit ★ promote to start building the brief.';
+  else if (score < 45) hint.textContent = 'Good start. Add a couple of key sources and a person to watch.';
+  else if (score < 80) hint.textContent = 'Solid. Rank your angles by dragging, then publish.';
+  else hint.textContent = 'Desk-ready. Publish when you are happy with the order.';
 }
 
 function nodeBodyInnerHtml(node) {
   let body = '';
   if (node.paragraph) body += `<p>${linkify(node.paragraph)}</p>`;
-  if (node.items.length) {
-    body += '<ul>' + node.items.map(it =>
-      `<li>${linkify(it)}<button class="promote-trigger" data-text="${escapeHtml(it)}">★ promote</button></li>`
-    ).join('') + '</ul>';
+  if (node.type === 'entities' && node.items.length) {
+    body += node.items.map(it => `<span class="entity-chip">${linkify(it)}</span>`).join('');
+    body += node.items.map(it => `<div style="height:0;overflow:hidden"><button class="promote-trigger" data-text="${escapeHtml(it)}">★</button></div>`).join('');
+  } else if (node.items.length) {
+    body += '<ul>' + node.items.map(it => `<li>${linkify(it)}<button class="promote-trigger" data-text="${escapeHtml(it)}">★ promote</button></li>`).join('') + '</ul>';
   }
-  if (node.table) {
-    body += `<table class="mtable"><thead><tr>${node.table.headers.map(h => `<th>${escapeHtml(h)}</th>`).join('')}</tr></thead><tbody>` +
-      node.table.rows.map(r => `<tr>${r.map(c => `<td>${linkify(c)}</td>`).join('')}</tr>`).join('') + `</tbody></table>`;
-  }
+  if (node.table) body += `<div class="itable-mount" data-tid="${registerTable(node.table)}"></div>`;
   return body;
 }
-function nodeHtml(node) {
-  const hasOwnContent = !!(node.paragraph || node.items.length || node.table);
-  const childrenHtml = node.children.length ? `<div class="tree-children">${node.children.map(c => nodeHtml(c)).join('')}</div>` : '';
-  const bodyInner = nodeBodyInnerHtml(node);
+function nodeHtml(node, path) {
+  const hasOwn = !!(node.paragraph || node.items.length || node.table);
+  const kids = node.children.length ? `<div class="tree-children">${node.children.map((c,i) => nodeHtml(c, path+'-'+i)).join('')}</div>` : '';
+  const icon = KIND_ICON[node.type] ? `<span class="node-kind">${KIND_ICON[node.type]}</span>` : '';
+  const badge = node.items.length ? `<span class="node-badge">${node.items.length}</span>` : (node.table ? `<span class="node-badge">table</span>` : '');
   return `
-    <div class="tree-node" data-lvl="${node.level}">
+    <div class="tree-node" data-lvl="${node.level}" id="dsec-${path}">
       <div class="node-head" data-toggle="1">
-        <span class="chevron open">▸</span>
-        <span class="node-title">${escapeHtml(node.heading)}</span>
+        <span class="chevron open">▸</span>${icon}
+        <span class="node-title">${escapeHtml(node.heading)}</span>${badge}
       </div>
-      ${hasOwnContent ? `<div class="node-body">${bodyInner}</div>` : ''}
-      ${childrenHtml}
+      ${hasOwn ? `<div class="node-body">${nodeBodyInnerHtml(node)}</div>` : ''}
+      ${kids}
     </div>`;
 }
-
 function wireTreeListeners(wrap) {
   wrap.querySelectorAll('[data-toggle]').forEach(headEl => {
-    const node = headEl.parentElement;
-    const chevron = headEl.querySelector('.chevron');
-    const body = node.querySelector(':scope > .node-body');
+    const node = headEl.parentElement, chevron = headEl.querySelector('.chevron'), body = node.querySelector(':scope > .node-body');
     headEl.addEventListener('click', () => {
       chevron.classList.toggle('open');
       if (body) body.classList.toggle('collapsed');
-      const children = node.querySelector(':scope > .tree-children');
-      if (children) children.style.display = children.style.display === 'none' ? '' : 'none';
+      const kids = node.querySelector(':scope > .tree-children');
+      if (kids) kids.style.display = kids.style.display === 'none' ? '' : 'none';
     });
   });
+  wrap.querySelectorAll('.promote-trigger').forEach(btn => btn.addEventListener('click', e => {
+    e.stopPropagation(); openPromotePop(btn, btn.getAttribute('data-text'));
+  }));
+  syncPromoteTriggers(wrap);
+}
+function syncPromoteTriggers(wrap) {
+  const promotedTexts = new Set(currentPromoted.map(p => p.text));
   wrap.querySelectorAll('.promote-trigger').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      openPromoteMenu(btn, btn.getAttribute('data-text'));
-    });
+    const on = promotedTexts.has(btn.getAttribute('data-text'));
+    btn.classList.toggle('promoted', on);
+    if (btn.textContent.includes('promote') || on) btn.textContent = on ? '★ promoted' : '★ promote';
   });
 }
 
-let activePromoteMenu = null;
-function openPromoteMenu(anchorEl, text) {
-  closePromoteMenu();
-  const menu = document.createElement('div');
-  menu.className = 'promote-menu show';
-  menu.innerHTML = CATEGORY_ORDER.map(cat =>
-    `<div class="promote-menu-item" data-cat="${cat}">${CATEGORY_META[cat].icon} ${CATEGORY_META[cat].label.replace(/s$/, '')}</div>`
-  ).join('') + `<div class="promote-menu-item" data-cat="__custom">✏️ Custom category…</div>`;
-  document.body.appendChild(menu);
-  const r = anchorEl.getBoundingClientRect();
-  menu.style.position = 'absolute';
-  menu.style.left = Math.min(r.left + window.scrollX, window.innerWidth - 170) + 'px';
-  menu.style.top = (r.bottom + window.scrollY + 4) + 'px';
-  activePromoteMenu = menu;
-  menu.querySelectorAll('[data-cat]').forEach(item => {
-    item.addEventListener('click', () => {
-      let cat = item.getAttribute('data-cat');
-      if (cat === '__custom') {
-        const c = prompt('Custom category name:');
-        if (!c) { closePromoteMenu(); return; }
-        cat = c.trim().toLowerCase();
-      }
-      promoteItem(text, cat);
-      closePromoteMenu();
-    });
-  });
-  setTimeout(() => document.addEventListener('click', closePromoteMenuOnce), 0);
-}
-function closePromoteMenuOnce() { closePromoteMenu(); }
-function closePromoteMenu() {
-  if (activePromoteMenu) { activePromoteMenu.remove(); activePromoteMenu = null; }
-  document.removeEventListener('click', closePromoteMenuOnce);
-}
+/* ---------- Promote popover ---------- */
+let popState = null;
+function openPromotePop(anchor, text) {
+  const pop = document.getElementById('promotePop');
+  popState = { text, cat: 'angle' };
+  pop.innerHTML = `
+    <div class="pop-quote">${escapeHtml(text)}</div>
+    <div class="pop-label">Promote into</div>
+    <div class="pop-cats">
+      ${CATEGORY_ORDER.map(c => `<button class="pop-cat${c==='angle'?' sel':''}" data-cat="${c}">${CATEGORY_META[c].icon} ${CATEGORY_META[c].label.replace(/s$/,'')}</button>`).join('')}
+      <button class="pop-cat" data-cat="__custom">✏️ Custom</button>
+    </div>
+    <textarea class="pop-note" placeholder="Editor note (optional) — why this matters"></textarea>
+    <div class="pop-actions">
+      <button class="btn ghost sm" data-act="cancel">Cancel</button>
+      <button class="btn primary sm" data-act="add">Add to brief</button>
+    </div>`;
+  pop.classList.add('show');
+  const r = anchor.getBoundingClientRect();
+  pop.style.left = Math.min(r.left + window.scrollX, window.innerWidth - 276) + 'px';
+  pop.style.top = (r.bottom + window.scrollY + 6) + 'px';
 
-function promoteItem(text, category) {
+  pop.querySelectorAll('.pop-cat').forEach(b => b.addEventListener('click', () => {
+    let cat = b.getAttribute('data-cat');
+    if (cat === '__custom') {
+      const c = window.prompt('Custom category name:'); if (!c) return;
+      cat = c.trim().toLowerCase(); popState.customLabel = c.trim();
+    }
+    popState.cat = cat;
+    pop.querySelectorAll('.pop-cat').forEach(x => x.classList.remove('sel'));
+    if (cat === (b.getAttribute('data-cat'))) b.classList.add('sel');
+  }));
+  pop.querySelector('[data-act="cancel"]').addEventListener('click', closePromotePop);
+  pop.querySelector('[data-act="add"]').addEventListener('click', () => {
+    const note = pop.querySelector('.pop-note').value.trim();
+    promoteItem(popState.text, popState.cat, note, popState.customLabel);
+    closePromotePop();
+  });
+  pop.querySelector('.pop-note').focus();
+  setTimeout(() => document.addEventListener('mousedown', outsidePop), 0);
+}
+function outsidePop(e) { const pop = document.getElementById('promotePop'); if (!pop.contains(e.target)) closePromotePop(); }
+function closePromotePop() { document.getElementById('promotePop').classList.remove('show'); document.removeEventListener('mousedown', outsidePop); popState = null; }
+
+function promoteItem(text, category, note, customLabel) {
   const links = extractLinks(text);
-  const url = links.length ? links[0].url : null;
-  currentPromoted.push({ id: 'p' + (promoIdSeq++), text, url, category, note: '' });
-  renderPromoBoxes();
-  renderStatStrip();
-  dashToast(`Added to ${CATEGORY_META[category] ? CATEGORY_META[category].label : category}`);
+  currentPromoted.push({ id: 'p'+(promoIdSeq++), text, url: links.length ? links[0].url : null, category, note: note || '', customLabel: customLabel || null });
+  renderPromoBoxes(); renderStatStrip(); renderMeter();
+  syncPromoteTriggers(document.getElementById('reviewSections'));
+  const meta = CATEGORY_META[category] || { label: customLabel || category };
+  dashToast(`Promoted to ${meta.label}`);
 }
 
+function catLabel(cat) { return (CATEGORY_META[cat] || { label: cat.charAt(0).toUpperCase()+cat.slice(1), icon: '📌' }); }
 function renderPromoBoxes() {
   const container = document.getElementById('promoBoxesContainer');
   const cats = Array.from(new Set([...CATEGORY_ORDER, ...currentPromoted.map(p => p.category)]));
-  container.innerHTML = cats.map(cat => {
-    const items = currentPromoted.filter(p => p.category === cat);
-    if (!items.length) return '';
-    const meta = CATEGORY_META[cat] || { label: cat.charAt(0).toUpperCase() + cat.slice(1), icon: '📌' };
+  const any = currentPromoted.length;
+  container.innerHTML = (any ? cats.map(cat => {
+    const items = currentPromoted.filter(p => p.category === cat); if (!items.length) return '';
+    const meta = catLabel(cat);
     return `
-      <div class="promo-box" data-cat="${cat}">
-        <div class="promo-box-title">${meta.icon} ${meta.label} <span class="promo-box-count">${items.length}</span></div>
-        ${items.map(p => `
-          <div class="promo-item" data-id="${p.id}">
-            <div class="promo-item-text">${p.url ? `<a href="${escapeHtml(p.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(p.text)}</a>` : escapeHtml(p.text)}</div>
+      <div class="promo-box" data-cat="${escapeHtml(cat)}">
+        <div class="promo-box-title">${meta.icon || '📌'} ${escapeHtml(meta.label)} <span class="promo-box-count">${items.length}</span></div>
+        ${items.map((p, i) => `
+          <div class="promo-item" draggable="true" data-id="${p.id}">
+            <div class="promo-item-head">
+              <span class="promo-item-rank">${i+1}</span>
+              <span class="promo-item-text">${p.url ? `<a href="${escapeHtml(p.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(p.text)}</a>` : escapeHtml(p.text)}</span>
+            </div>
             ${p.note ? `<div class="promo-item-note">${escapeHtml(p.note)}</div>` : ''}
             <div class="promo-item-actions">
-              <button class="mini-icon-btn" data-act="up" data-id="${p.id}">↑</button>
-              <button class="mini-icon-btn" data-act="down" data-id="${p.id}">↓</button>
               <button class="mini-icon-btn" data-act="note" data-id="${p.id}">✎ note</button>
-              <button class="mini-icon-btn" data-act="remove" data-id="${p.id}">✕</button>
+              <button class="mini-icon-btn danger" data-act="remove" data-id="${p.id}">✕ remove</button>
             </div>
           </div>`).join('')}
       </div>`;
-  }).join('');
-  container.querySelectorAll('[data-act]').forEach(el => {
-    el.addEventListener('click', () => {
-      const id = el.getAttribute('data-id');
-      const act = el.getAttribute('data-act');
-      const idx = currentPromoted.findIndex(p => p.id === id);
-      if (idx < 0) return;
-      if (act === 'remove') currentPromoted.splice(idx, 1);
-      if (act === 'note') {
-        const n = prompt('Editor note:', currentPromoted[idx].note || '');
-        if (n !== null) currentPromoted[idx].note = n;
-      }
-      if (act === 'up' || act === 'down') {
-        const cat = currentPromoted[idx].category;
-        const sameCategoryIdxs = currentPromoted.map((p, i) => p.category === cat ? i : -1).filter(i => i >= 0);
-        const pos = sameCategoryIdxs.indexOf(idx);
-        const swapWith = act === 'up' ? pos - 1 : pos + 1;
-        if (swapWith >= 0 && swapWith < sameCategoryIdxs.length) {
-          const j = sameCategoryIdxs[swapWith];
-          [currentPromoted[idx], currentPromoted[j]] = [currentPromoted[j], currentPromoted[idx]];
-        }
-      }
-      renderPromoBoxes();
-      renderStatStrip();
+  }).join('') : `<div class="promo-box" style="background:rgba(26,57,72,0.03);border-color:var(--border)"><div class="promo-empty">Nothing promoted yet.<br>Hover a line in the outline and press <b>★ promote</b>.</div></div>`);
+
+  container.querySelectorAll('[data-act]').forEach(el => el.addEventListener('click', () => {
+    const id = el.getAttribute('data-id'), act = el.getAttribute('data-act');
+    const idx = currentPromoted.findIndex(p => p.id === id); if (idx < 0) return;
+    if (act === 'remove') { currentPromoted.splice(idx, 1); }
+    if (act === 'note') { startNoteEdit(el.closest('.promo-item'), idx); return; }
+    renderPromoBoxes(); renderStatStrip(); renderMeter(); syncPromoteTriggers(document.getElementById('reviewSections'));
+  }));
+  wireDrag(container);
+}
+function startNoteEdit(itemEl, idx) {
+  if (itemEl.querySelector('.promo-note-input')) return;
+  const input = document.createElement('input');
+  input.className = 'promo-note-input'; input.value = currentPromoted[idx].note || ''; input.placeholder = 'Editor note…';
+  itemEl.querySelector('.promo-item-actions').before(input); input.focus();
+  const commit = () => { currentPromoted[idx].note = input.value.trim(); renderPromoBoxes(); };
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') commit(); if (e.key === 'Escape') renderPromoBoxes(); });
+  input.addEventListener('blur', commit);
+}
+function wireDrag(container) {
+  let dragId = null;
+  container.querySelectorAll('.promo-item').forEach(item => {
+    item.addEventListener('dragstart', () => { dragId = item.getAttribute('data-id'); item.classList.add('dragging'); });
+    item.addEventListener('dragend', () => { item.classList.remove('dragging'); container.querySelectorAll('.drag-over').forEach(x => x.classList.remove('drag-over')); });
+    item.addEventListener('dragover', e => { e.preventDefault(); item.classList.add('drag-over'); });
+    item.addEventListener('dragleave', () => item.classList.remove('drag-over'));
+    item.addEventListener('drop', e => {
+      e.preventDefault(); item.classList.remove('drag-over');
+      const targetId = item.getAttribute('data-id'); if (!dragId || dragId === targetId) return;
+      const from = currentPromoted.findIndex(p => p.id === dragId), to = currentPromoted.findIndex(p => p.id === targetId);
+      if (from < 0 || to < 0) return;
+      if (currentPromoted[from].category !== currentPromoted[to].category) currentPromoted[from].category = currentPromoted[to].category;
+      const [moved] = currentPromoted.splice(from, 1); currentPromoted.splice(to, 0, moved);
+      renderPromoBoxes(); renderStatStrip();
     });
   });
 }
 
 function renderLinksList() {
   const wrap = document.getElementById('linksList');
-  wrap.innerHTML = currentLinks.map((l, i) => `
+  wrap.innerHTML = currentLinks.length ? currentLinks.map((l, i) => `
     <div class="link-item">
-      <div><a href="${escapeHtml(l.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(l.label)}</a></div>
-      <div class="link-item-tag">${l.tag}</div>
-      ${l.note ? `<div class="promo-item-note">${escapeHtml(l.note)}</div>` : ''}
-      <button class="mini-icon-btn" data-remove="${i}">✕ remove</button>
-    </div>`).join('');
-  wrap.querySelectorAll('[data-remove]').forEach(el => {
-    el.addEventListener('click', () => { currentLinks.splice(+el.getAttribute('data-remove'), 1); renderLinksList(); });
-  });
+      <div class="link-item-top">
+        <a href="${escapeHtml(l.url)}" target="_blank" rel="noopener noreferrer" style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(l.label)}</a>
+        <span class="link-item-tag">${escapeHtml(l.tag)}</span>
+      </div>
+      <div class="ledger-url" style="margin-top:3px">${escapeHtml(domainOf(l.url))}</div>
+      ${l.note ? `<div class="promo-item-note" style="padding-left:0;margin-top:4px">${escapeHtml(l.note)}</div>` : ''}
+      <button class="mini-icon-btn danger" data-remove="${i}" style="margin-top:6px">✕ remove</button>
+    </div>`).join('') : `<div class="promo-empty">No extra resources yet.</div>`;
+  wrap.querySelectorAll('[data-remove]').forEach(el => el.addEventListener('click', () => { currentLinks.splice(+el.getAttribute('data-remove'), 1); renderLinksList(); renderMeter(); }));
 }
 document.getElementById('addLinkBtn').addEventListener('click', () => {
-  const label = document.getElementById('newLinkLabel').value.trim();
-  const url = document.getElementById('newLinkUrl').value.trim();
-  const tag = document.getElementById('newLinkTag').value;
-  const note = document.getElementById('newLinkNote').value.trim();
-  if (!label || !url) { dashToast('Add both a label and a URL'); return; }
+  const label = document.getElementById('newLinkLabel').value.trim(), url = document.getElementById('newLinkUrl').value.trim();
+  const tag = document.getElementById('newLinkTag').value, note = document.getElementById('newLinkNote').value.trim();
+  if (!label || !url) return dashToast('Add both a label and a URL');
   currentLinks.push({ label, url, tag, note });
-  document.getElementById('newLinkLabel').value = '';
-  document.getElementById('newLinkUrl').value = '';
-  document.getElementById('newLinkNote').value = '';
-  renderLinksList();
+  ['newLinkLabel','newLinkUrl','newLinkNote'].forEach(id => document.getElementById(id).value = '');
+  renderLinksList(); renderMeter();
 });
 
+/* ---------- Save ---------- */
 document.getElementById('saveBriefBtn').addEventListener('click', async () => {
   const topic = document.getElementById('reviewTitle').textContent;
-  const btn = document.getElementById('saveBriefBtn');
-  btn.disabled = true; btn.textContent = 'Saving…';
+  const btn = document.getElementById('saveBriefBtn'); btn.disabled = true; btn.textContent = 'Publishing…';
   try {
-    const row = {
+    const saved = await sbInsert('dna_agent_briefs', {
       topic,
       editor_name: document.getElementById('pasteEditor').value.trim() || null,
       source_llm: document.getElementById('pasteSourceLlm').value,
@@ -706,187 +1008,278 @@ document.getElementById('saveBriefBtn').addEventListener('click', async () => {
       promoted_items: currentPromoted,
       priority_angles: [],
       manual_links: currentLinks,
-    };
-    const saved = await sbInsert('dna_agent_briefs', row);
+    });
     currentBriefId = saved[0].id;
-    dashToast('Brief saved to library');
-    openDetail(saved[0]);
-  } catch (err) {
-    dashToast('Save failed: ' + err.message);
-  } finally {
-    btn.disabled = false; btn.textContent = '💾 Save to Library';
-  }
+    dashToast('Published to library'); openDetail(saved[0]);
+  } catch (err) { dashToast('Publish failed: ' + err.message); }
+  finally { btn.disabled = false; btn.textContent = 'Publish to library'; }
 });
 
-let LIBRARY_CACHE = [];
-async function loadLibrary() {
-  const grid = document.getElementById('briefGrid');
-  grid.innerHTML = '<div class="lib-empty">Loading…</div>';
-  try {
-    const rows = await sbSelect('dna_agent_briefs', 'select=*&order=created_at.desc&limit=100');
-    LIBRARY_CACHE = rows;
-    renderLibrary(rows);
-  } catch (err) {
-    grid.innerHTML = `<div class="lib-empty">Couldn't load library (${escapeHtml(err.message)})</div>`;
-  }
-}
+/* ==================== Library ==================== */
+let LIBRARY_CACHE = [], activeLlm = 'all';
 function briefPromotedItems(row) {
   if (row.promoted_items && row.promoted_items.length) return row.promoted_items;
-  return (row.priority_angles || []).map((p, i) => ({ id: 'legacy' + i, text: p.text, url: null, category: 'angle', note: p.note || '' }));
+  return (row.priority_angles || []).map((p, i) => ({ id: 'legacy'+i, text: p.text, url: null, category: 'angle', note: p.note || '' }));
+}
+function briefStatus(row) { return (briefPromotedItems(row).length || (row.manual_links||[]).length) ? 'curated' : 'raw'; }
+function briefSnippet(row) {
+  const secs = row.parsed_sections || [];
+  for (const s of secs) { if (s.paragraph) return s.paragraph; if (s.items && s.items.length) return s.items[0]; }
+  return (row.raw_text || '').slice(0, 160);
+}
+async function loadLibrary() {
+  const grid = document.getElementById('briefGrid');
+  grid.innerHTML = Array.from({length:6}).map(() => `<div class="skel-card"></div>`).join('');
+  try {
+    LIBRARY_CACHE = await sbSelect('dna_agent_briefs', 'select=*&order=created_at.desc&limit=100');
+    renderLlmFilters(); applyLibraryFilter();
+  } catch (err) {
+    grid.innerHTML = `<div class="lib-empty"><div class="lib-empty-icon">⚠️</div><h3>Couldn't reach the library</h3><p>${escapeHtml(err.message)}. Check the connection and try again.</p><button class="btn" onclick="loadLibrary()">Retry</button></div>`;
+  }
+}
+function renderLlmFilters() {
+  const llms = Array.from(new Set(LIBRARY_CACHE.map(r => r.source_llm).filter(Boolean)));
+  document.getElementById('llmFilters').innerHTML =
+    [`<button class="filter-chip${activeLlm==='all'?' active':''}" data-llm="all">All</button>`]
+    .concat(llms.map(l => `<button class="filter-chip${activeLlm===l?' active':''}" data-llm="${escapeHtml(l)}">${escapeHtml(l)}</button>`)).join('');
+  document.getElementById('llmFilters').querySelectorAll('.filter-chip').forEach(c => c.addEventListener('click', () => {
+    activeLlm = c.getAttribute('data-llm'); renderLlmFilters(); applyLibraryFilter();
+  }));
+}
+function applyLibraryFilter() {
+  const q = document.getElementById('librarySearch').value.trim().toLowerCase();
+  let rows = LIBRARY_CACHE;
+  if (activeLlm !== 'all') rows = rows.filter(r => r.source_llm === activeLlm);
+  if (q) rows = rows.filter(r => (r.topic || '').toLowerCase().includes(q) || (r.raw_text || '').toLowerCase().includes(q));
+  renderLibrary(rows);
 }
 function renderLibrary(rows) {
   const grid = document.getElementById('briefGrid');
+  document.getElementById('libCount').textContent = `${rows.length} brief${rows.length===1?'':'s'}`;
   if (!rows.length) {
-    grid.innerHTML = `<div class="lib-empty"><div class="lib-empty-icon">🧬</div>No briefs yet. Click "＋ New Brief" to add the first one.</div>`;
+    grid.innerHTML = `<div class="lib-empty"><div class="lib-empty-icon">🧬</div><h3>No briefs yet</h3><p>Take any agent-mode answer and turn it into a desk-ready brief the whole newsroom can use.</p><button class="btn primary" onclick="document.getElementById('navPaste').click()">＋ New brief</button></div>`;
     return;
   }
   grid.innerHTML = rows.map(r => {
-    const promoted = briefPromotedItems(r);
+    const promoted = briefPromotedItems(r), status = briefStatus(r), sources = collectStats(r.parsed_sections || []).sources;
     return `
-    <div class="brief-card" data-id="${r.id}">
-      <div class="brief-card-topic">${escapeHtml(r.topic)}</div>
-      <div class="brief-card-meta">
-        <span>${r.editor_name ? escapeHtml(r.editor_name) : 'Unattributed'}</span>
-        <span>${r.source_llm ? escapeHtml(r.source_llm) : ''}</span>
-        <span>${new Date(r.created_at).toLocaleDateString()}</span>
-      </div>
-      ${promoted.length ? `<div class="brief-card-priorities"><b>${promoted.length}</b> promoted item${promoted.length > 1 ? 's' : ''} · <b>${(r.manual_links || []).length}</b> resources</div>` : ''}
-    </div>`;
+      <div class="brief-card" data-id="${r.id}" data-status="${status}">
+        <div class="brief-card-top">
+          <span class="status-chip ${status}">${status === 'curated' ? '✦ curated' : 'raw intake'}</span>
+          ${r.source_llm ? `<span class="llm-chip">${escapeHtml(r.source_llm)}</span>` : ''}
+        </div>
+        <div class="brief-card-topic">${escapeHtml(r.topic)}</div>
+        <div class="brief-card-snippet">${escapeHtml(briefSnippet(r))}</div>
+        <div class="brief-card-meta">
+          <span>${r.editor_name ? escapeHtml(r.editor_name) : 'Unattributed'}</span>
+          <span class="meta-dot">·</span>
+          <span>${relTime(r.created_at)}</span>
+        </div>
+        <div class="brief-card-foot">
+          <span class="count-pill">★ <b>${promoted.length}</b> promoted</span>
+          <span class="count-pill">🔗 <b>${sources + (r.manual_links||[]).length}</b> sources</span>
+          <span class="count-pill">👁️ <b>${r.view_count || 0}</b></span>
+        </div>
+      </div>`;
   }).join('');
-  grid.querySelectorAll('.brief-card').forEach(el => {
-    el.addEventListener('click', () => {
-      const row = LIBRARY_CACHE.find(r => r.id === el.getAttribute('data-id'));
-      if (row) openDetail(row);
-    });
-  });
+  grid.querySelectorAll('.brief-card').forEach(el => el.addEventListener('click', () => {
+    const row = LIBRARY_CACHE.find(r => r.id === el.getAttribute('data-id')); if (row) openDetail(row);
+  }));
 }
-document.getElementById('librarySearch').addEventListener('input', (e) => {
-  const q = e.target.value.trim().toLowerCase();
-  const filtered = q ? LIBRARY_CACHE.filter(r => r.topic.toLowerCase().includes(q)) : LIBRARY_CACHE;
-  renderLibrary(filtered);
-});
+document.getElementById('librarySearch').addEventListener('input', applyLibraryFilter);
 
+/* ==================== Spine builder (shared) ==================== */
+function buildSpine(navId, sections, idPrefix, scrollContainerId) {
+  const nav = document.getElementById(navId); if (!nav) return;
+  const entries = [];
+  sections.forEach((s, i) => {
+    entries.push({ id: idPrefix + i, title: s.heading, sub: false });
+    (s.children || []).forEach((c, j) => { if (c.heading) entries.push({ id: idPrefix + i + '-' + j, title: c.heading, sub: true }); });
+  });
+  nav.innerHTML = `<div class="spine-fill" id="${navId}Fill"></div>` +
+    entries.map(e => `<a class="spine-link${e.sub ? ' sub' : ''}" href="#${e.id}" data-id="${e.id}">${escapeHtml(e.title)}</a>`).join('');
+  const links = Array.from(nav.querySelectorAll('.spine-link'));
+  links.forEach(a => a.addEventListener('click', ev => {
+    ev.preventDefault();
+    const t = document.getElementById(a.getAttribute('data-id'));
+    if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }));
+  const fill = document.getElementById(navId + 'Fill');
+  const spy = () => {
+    let active = 0;
+    links.forEach((a, i) => { const el = document.getElementById(a.getAttribute('data-id')); if (el && el.getBoundingClientRect().top < 170) active = i; });
+    links.forEach((a, i) => a.classList.toggle('active', i === active));
+    if (fill && links[active]) {
+      const top = links[active].offsetTop, h = links[active].offsetHeight;
+      fill.style.top = top + 'px'; fill.style.height = h + 'px';
+    }
+  };
+  window.removeEventListener('scroll', nav._spy || (()=>{}));
+  nav._spy = spy; window.addEventListener('scroll', spy); spy();
+}
+
+/* ==================== Brief (detail) rendering ==================== */
 function detailNodeHtml(node, path) {
-  const hasOwnContent = !!(node.paragraph || (node.items && node.items.length) || node.table);
+  const hasOwn = !!(node.paragraph || (node.items && node.items.length) || node.table);
   let body = '';
   if (node.paragraph) body += `<p>${linkify(node.paragraph)}</p>`;
-  if (node.type === 'timeline' && node.items && node.items.length) {
-    body += node.items.map(it => `<div class="timeline-item">${linkify(it)}</div>`).join('');
-  } else if (node.type === 'entities' && node.items && node.items.length) {
-    body += node.items.map(it => `<span class="entity-chip">${linkify(it)}</span>`).join('');
-  } else if (node.items && node.items.length) {
-    body += `<ul>` + node.items.map(it => `<li>${linkify(it)}</li>`).join('') + `</ul>`;
-  }
-  if (node.table) {
-    body += `<table class="mtable"><thead><tr>${node.table.headers.map(h => `<th>${escapeHtml(h)}</th>`).join('')}</tr></thead><tbody>` +
-      node.table.rows.map(r => `<tr>${r.map(c => `<td>${linkify(c)}</td>`).join('')}</tr>`).join('') + `</tbody></table>`;
-  }
-  const childrenHtml = (node.children || []).map((c, i) => detailNodeHtml(c, path + '-' + i)).join('');
+  if (node.type === 'timeline' && node.items && node.items.length) body += node.items.map(it => `<div class="timeline-item">${linkify(it)}</div>`).join('');
+  else if (node.type === 'entities' && node.items && node.items.length) body += node.items.map(it => `<span class="entity-chip">${linkify(it)}</span>`).join('');
+  else if (node.items && node.items.length) body += '<ul>' + node.items.map(it => `<li>${linkify(it)}</li>`).join('') + '</ul>';
+  if (node.table) body += `<div class="itable-mount" data-tid="${registerTable(node.table)}"></div>`;
+  const icon = KIND_ICON[node.type] ? `<span class="node-kind">${KIND_ICON[node.type]}</span>` : '';
+  const kids = (node.children || []).map((c, i) => detailNodeHtml(c, path + '-' + i)).join('');
   return `
     <div class="tree-node" data-lvl="${node.level}" id="dsec-${path}">
-      <div class="node-head" data-toggle="1"><span class="chevron open">▸</span><span class="node-title">${escapeHtml(node.heading)}</span></div>
-      ${hasOwnContent ? `<div class="node-body">${body}</div>` : ''}
-      ${childrenHtml ? `<div class="tree-children">${childrenHtml}</div>` : ''}
+      <div class="node-head" data-toggle="1"><span class="chevron open">▸</span>${icon}<span class="node-title">${escapeHtml(node.heading)}</span></div>
+      ${hasOwn ? `<div class="node-body">${body}</div>` : ''}
+      ${kids ? `<div class="tree-children">${kids}</div>` : ''}
     </div>`;
 }
 
 async function openDetail(row) {
   currentBriefId = row.id;
+  citeStart(); TABLES = {}; tableSeq = 0;
   const el = document.getElementById('viewDetail');
-  const sections = row.parsed_sections || [];
-  const promoted = briefPromotedItems(row);
-  const links = row.manual_links || [];
-
-  const tocHtml = sections.map((s, i) => `<a class="toc-chip" href="#dsec-${i}" data-idx="${i}">${escapeHtml(s.heading)}</a>`).join('');
+  const sections = row.parsed_sections || [], promoted = briefPromotedItems(row), links = row.manual_links || [];
+  const status = briefStatus(row), stats = collectStats(sections);
 
   const verdictBoxes = CATEGORY_ORDER.concat(Array.from(new Set(promoted.map(p => p.category))).filter(c => !CATEGORY_ORDER.includes(c)))
     .map(cat => {
-      const items = promoted.filter(p => p.category === cat);
-      if (!items.length) return '';
-      const meta = CATEGORY_META[cat] || { label: cat.charAt(0).toUpperCase() + cat.slice(1), icon: '📌' };
-      return `
-        <div class="priority-verdict">
-          <div class="priority-verdict-title">${meta.icon} ${meta.label}</div>
-          ${items.map((p, i) => `
-            <div class="priority-verdict-item">
-              <div class="priority-verdict-rank">${i + 1}</div>
-              <div>
-                <div class="priority-verdict-text">${p.url ? `<a href="${escapeHtml(p.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(p.text)}</a>` : escapeHtml(p.text)}</div>
-                ${p.note ? `<div class="priority-verdict-note">${escapeHtml(p.note)}</div>` : ''}
-              </div>
-            </div>`).join('')}
-        </div>`;
+      const items = promoted.filter(p => p.category === cat); if (!items.length) return '';
+      const meta = catLabel(cat);
+      return `<div class="priority-verdict"><div class="priority-verdict-title">${meta.icon || '📌'} ${escapeHtml(meta.label)}</div>
+        ${items.map((p, i) => `<div class="priority-verdict-item"><div class="priority-verdict-rank">${i+1}</div>
+          <div><div class="priority-verdict-text">${p.url ? `<a href="${escapeHtml(p.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(p.text)}</a>` : escapeHtml(p.text)}</div>
+          ${p.note ? `<div class="priority-verdict-note">${escapeHtml(p.note)}</div>` : ''}</div></div>`).join('')}
+      </div>`;
     }).join('');
 
+  const sectionsHtml = sections.map((sec, i) => detailNodeHtml(sec, String(i))).join('');
+
   const resourcesHtml = links.length ? `
-    <div class="resources-box">
-      <div class="promo-box-title" style="color:var(--teal2);">🔗 Additional Resources</div>
-      ${links.map(l => `<div class="link-item"><a href="${escapeHtml(l.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(l.label)}</a> <span class="link-item-tag">${l.tag}</span>${l.note ? `<div class="promo-item-note">${escapeHtml(l.note)}</div>` : ''}</div>`).join('')}
+    <div class="ledger" style="background:var(--glass)">
+      <div class="ledger-title">🔗 Extra resources</div>
+      ${links.map(l => `<div class="ledger-item"><span class="ledger-n" style="background:var(--flame)">+</span>
+        <div class="ledger-body"><div class="ledger-label"><a href="${escapeHtml(l.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(l.label)}</a> <span class="link-item-tag">${escapeHtml(l.tag)}</span></div>
+        <div class="ledger-url"><img src="https://www.google.com/s2/favicons?domain=${encodeURIComponent(domainOf(l.url))}&sz=64" onerror="this.style.display='none'">${escapeHtml(l.url)}</div>
+        ${l.note ? `<div class="priority-verdict-note">${escapeHtml(l.note)}</div>` : ''}</div></div>`).join('')}
     </div>` : '';
 
-  const sectionsHtml = sections.map((sec, i) => detailNodeHtml(sec, String(i))).join('');
-  const stats = collectStats(sections);
-
   el.innerHTML = `
-    <button class="btn ghost" id="backToLibrary">← Back to Library</button>
-    <div class="showcase-hero" style="margin-top:16px;">
-      <div class="showcase-topic">${escapeHtml(row.topic)}</div>
-      <div class="showcase-meta">
-        <span>👤 ${row.editor_name ? escapeHtml(row.editor_name) : 'Unattributed'}</span>
-        <span>🤖 ${row.source_llm ? escapeHtml(row.source_llm) : 'Unknown source'}</span>
-        <span>📅 ${new Date(row.created_at).toLocaleString()}</span>
-        <span>👁️ ${(row.view_count || 0) + 1} views</span>
+    <button class="btn ghost sm" id="backToLibrary">← Library</button>
+    <div class="brief-layout" style="margin-top:14px;">
+      <div class="brief-spine">
+        <div class="spine">
+          <div class="brief-summary">
+            <div class="bs-row"><span class="bs-ico">✦</span><span class="status-chip ${status}">${status==='curated'?'curated':'raw intake'}</span></div>
+            <div class="bs-progress"><div class="bs-progress-fill" id="briefProgFill" style="width:0%"></div></div>
+            <div class="bs-pct" id="briefPct">Top of brief</div>
+            <div style="height:1px;background:var(--border);margin:11px 0"></div>
+            <div class="bs-row"><span class="bs-ico">👤</span>${row.editor_name ? escapeHtml(row.editor_name) : 'Unattributed'}</div>
+            <div class="bs-row"><span class="bs-ico">🤖</span>${row.source_llm ? escapeHtml(row.source_llm) : 'Unknown model'}</div>
+            <div class="bs-row"><span class="bs-ico">📅</span>${relTime(row.created_at)}</div>
+            <div class="bs-row"><span class="bs-ico">❖</span>${stats.sections} sections · ${promoted.length} promoted</div>
+          </div>
+          <div class="spine-label">Contents</div>
+          <div class="spine-nav" id="briefSpineNav"></div>
+        </div>
       </div>
-      <div class="stat-strip" style="margin-top:12px;">
-        <span class="stat-pill"><b>${stats.sections}</b> sections</span>
-        <span class="stat-pill"><b>${stats.sources}</b> sources</span>
-        <span class="stat-pill"><b>${promoted.length}</b> promoted</span>
+      <div>
+        <div class="showcase-hero">
+          <div class="eyebrow">Newsroom brief <span class="role-tag">· reporter-ready</span></div>
+          <div class="showcase-topic">${escapeHtml(row.topic)}</div>
+          <div class="showcase-meta">
+            <span>👤 ${row.editor_name ? escapeHtml(row.editor_name) : 'Unattributed'}</span><span class="meta-dot">·</span>
+            <span>🤖 ${row.source_llm ? escapeHtml(row.source_llm) : 'Unknown'}</span><span class="meta-dot">·</span>
+            <span>👁️ ${(row.view_count || 0) + 1} views</span>
+          </div>
+          <div class="brief-actions">
+            <button class="btn sm" id="copyBriefBtn">⧉ Copy brief as Markdown</button>
+            <button class="btn sm" id="copilotFromBrief">🤖 Send to Copilot</button>
+            <button class="btn sm ghost" id="printBrief">🖨 Print</button>
+          </div>
+        </div>
+        ${verdictBoxes ? `<div class="eyebrow" style="margin-bottom:2px">Editor's verdict</div><div class="verdict-grid">${verdictBoxes}</div>` : ''}
+        <div class="eyebrow" style="margin:22px 0 10px">Full brief</div>
+        <div id="showcaseSections">${sectionsHtml}</div>
+        ${resourcesHtml}
+        <div id="sourceLedger"></div>
       </div>
-    </div>
-    ${verdictBoxes ? `<div class="verdict-grid">${verdictBoxes}</div>` : ''}
-    <div class="showcase-toc" id="showcaseToc">${tocHtml}</div>
-    <div id="showcaseSections">${sectionsHtml}</div>
-    ${resourcesHtml}
-  `;
-  document.getElementById('backToLibrary').addEventListener('click', () => { showView('library'); loadLibrary(); });
+    </div>`;
 
-  el.querySelectorAll('[data-toggle]').forEach(headEl => {
-    const node = headEl.parentElement;
-    const chevron = headEl.querySelector('.chevron');
-    const body = node.querySelector(':scope > .node-body');
-    headEl.addEventListener('click', () => {
-      chevron.classList.toggle('open');
-      if (body) body.classList.toggle('collapsed');
-      const children = node.querySelector(':scope > .tree-children');
-      if (children) children.style.display = children.style.display === 'none' ? '' : 'none';
-    });
-  });
+  const sectionsRoot = document.getElementById('showcaseSections');
+  hydrateTables(sectionsRoot); // table cells now register their citations too
+  wireTreeListeners(sectionsRoot);
 
-  const tocChips = Array.from(el.querySelectorAll('#showcaseToc .toc-chip'));
-  const sectionEls = tocChips.map(c => document.getElementById(c.getAttribute('href').slice(1)));
-  function updateSpy() {
-    let activeIdx = 0;
-    for (let i = 0; i < sectionEls.length; i++) {
-      if (sectionEls[i] && sectionEls[i].getBoundingClientRect().top < 160) activeIdx = i;
-    }
-    tocChips.forEach((c, i) => c.classList.toggle('active', i === activeIdx));
+  // Sources ledger (after tables hydrated so table sources are numbered)
+  const ledger = document.getElementById('sourceLedger');
+  if (CITE && CITE.list.length) {
+    ledger.innerHTML = `<div class="ledger"><div class="ledger-title">📎 Sources <span class="node-badge">${CITE.list.length}</span></div>
+      ${CITE.list.map(e => `<div class="ledger-item"><span class="ledger-n">${e.n}</span>
+        <div class="ledger-body"><div class="ledger-label"><a href="${escapeHtml(e.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(e.label)}</a></div>
+        <div class="ledger-url"><img src="https://www.google.com/s2/favicons?domain=${encodeURIComponent(domainOf(e.url))}&sz=64" onerror="this.style.display='none'">${escapeHtml(e.url)}</div></div></div>`).join('')}
+    </div>`;
   }
-  window.addEventListener('scroll', updateSpy);
-  updateSpy();
 
+  document.getElementById('backToLibrary').addEventListener('click', () => { showView('library'); loadLibrary(); });
+  document.getElementById('copyBriefBtn').addEventListener('click', () => copyBriefMarkdown(row, promoted, links));
+  document.getElementById('copilotFromBrief').addEventListener('click', () => openCopilotPopup(briefToMarkdown(row, promoted, links)));
+  document.getElementById('printBrief').addEventListener('click', () => window.print());
+
+  buildSpine('briefSpineNav', sections, '#dsec-', 'showcaseSections');
+
+  // reading progress in summary card
+  const progFill = document.getElementById('briefProgFill'), pctEl = document.getElementById('briefPct');
+  const onScroll = () => {
+    const h = document.documentElement.scrollHeight - window.innerHeight;
+    const p = h > 0 ? Math.min(100, Math.round((window.scrollY / h) * 100)) : 100;
+    if (progFill) progFill.style.width = p + '%';
+    if (pctEl) pctEl.textContent = p < 3 ? 'Top of brief' : p > 97 ? 'End of brief' : p + '% read';
+  };
+  window.addEventListener('scroll', onScroll); onScroll();
+
+  citeStop();
   showView('detail');
   sbUpdate('dna_agent_briefs', row.id, { view_count: (row.view_count || 0) + 1 }).catch(() => {});
 }
 
+/* ---------- Markdown export ---------- */
+function briefToMarkdown(row, promoted, links) {
+  let out = `# ${row.topic}\n\n_Editor: ${row.editor_name || 'Unattributed'} · Source: ${row.source_llm || 'Unknown'}_\n\n`;
+  const cats = CATEGORY_ORDER.concat(Array.from(new Set(promoted.map(p => p.category))).filter(c => !CATEGORY_ORDER.includes(c)));
+  cats.forEach(cat => {
+    const items = promoted.filter(p => p.category === cat); if (!items.length) return;
+    out += `## ${catLabel(cat).label}\n`;
+    items.forEach((p, i) => { out += `${i+1}. ${p.text}${p.note ? ` — _${p.note}_` : ''}${p.url ? ` (${p.url})` : ''}\n`; });
+    out += `\n`;
+  });
+  function walk(nodes, depth) {
+    nodes.forEach(n => {
+      out += `${'#'.repeat(Math.min(6, depth+2))} ${n.heading}\n`;
+      if (n.paragraph) out += `${n.paragraph}\n\n`;
+      (n.items || []).forEach(it => out += `- ${it}\n`);
+      if (n.items && n.items.length) out += `\n`;
+      if (n.table) { out += `| ${n.table.headers.join(' | ')} |\n| ${n.table.headers.map(()=> '---').join(' | ')} |\n`; n.table.rows.forEach(r => out += `| ${r.join(' | ')} |\n`); out += `\n`; }
+      if (n.children && n.children.length) walk(n.children, depth+1);
+    });
+  }
+  out += `## Full brief\n`; walk(row.parsed_sections || [], 0);
+  if (links.length) { out += `## Extra resources\n`; links.forEach(l => out += `- [${l.label}](${l.url})${l.note ? ` — ${l.note}` : ''}\n`); }
+  return out;
+}
+function copyBriefMarkdown(row, promoted, links) {
+  navigator.clipboard.writeText(briefToMarkdown(row, promoted, links)).then(() => dashToast('Brief copied as Markdown')).catch(() => dashToast('Copy failed'));
+}
+
+/* ---------- Copilot popup ---------- */
 let copilotWindowRef = null;
 function openCopilotPopup(promptText) {
   if (promptText) navigator.clipboard.writeText(promptText).catch(() => {});
-  if (copilotWindowRef && !copilotWindowRef.closed) {
-    copilotWindowRef.focus();
-  } else {
+  if (copilotWindowRef && !copilotWindowRef.closed) copilotWindowRef.focus();
+  else {
     const w = 460, h = 760;
-    const left = Math.max(0, (window.screenX || 0) + (window.outerWidth || 1200) - w - 24);
-    const top = Math.max(0, (window.screenY || 0) + 60);
+    const left = Math.max(0, (window.screenX || 0) + (window.outerWidth || 1200) - w - 24), top = Math.max(0, (window.screenY || 0) + 60);
     copilotWindowRef = window.open('https://m365.cloud.microsoft/chat/', 'pilotdesk_copilot', `width=${w},height=${h},left=${left},top=${top},noopener,noreferrer`);
     if (copilotWindowRef) copilotWindowRef.focus();
   }
@@ -894,9 +1287,35 @@ function openCopilotPopup(promptText) {
 }
 document.getElementById('copilotFab').addEventListener('click', () => openCopilotPopup());
 
+/* ---------- Sample ---------- */
+const SAMPLE_ANSWER = `## Snapshot
+Tensions in the Strait of Hormuz sharply escalated on July 7 after two commercial tankers reported GPS spoofing and a brief seizure attempt. Roughly 20% of global oil transits this corridor.
+
+## Timeline
+- **July 7, 06:00 GMT** — First spoofing reports near Bandar Abbas.
+- **July 7, 14:30 GMT** — IRGC fast boats shadow a Liberia-flagged tanker.
+- **July 8, 09:00 GMT** — Coalition escorts resume; insurance premiums spike.
+
+## Coverage matrix
+| Outlet | Framing | Primary source |
+| --- | --- | --- |
+| Reuters | Escalation, shipping risk | https://www.reuters.com/world/middle-east/ |
+| Al Jazeera | Regional sovereignty | https://www.aljazeera.com/news/ |
+| IRNA | Defensive posture | https://en.irna.ir/ |
+
+## Key entities
+- Islamic Revolutionary Guard Corps (IRGC) Navy
+- US Fifth Fleet
+- Bahri and Frontline tanker operators
+
+## Recommendations
+- Verify the spoofing claims against MarineTraffic AIS gaps: https://www.marinetraffic.com
+- Contact Farda's Gulf shipping contact for on-record comment.
+- Track insurance war-risk premiums as a leading indicator.`;
+
+/* ---------- boot ---------- */
 showView('library');
 loadLibrary();
-
 </script>
 </body>
 </html>
