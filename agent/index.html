@@ -434,8 +434,29 @@ mark.anno.pulse { animation: markPulse 1200ms var(--eo); }
 .mat:active { cursor: grabbing; }
 .mat.dragging { opacity: 0.4; }
 .mat-kind { font-size: 12px; flex-shrink: 0; margin-top: 1px; }
+.mat-body { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 3px; }
 .mat-txt { font-size: 12px; color: var(--teal); line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.mat-sub { font-size: 10.5px; color: var(--soft); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; font-style: italic; }
 .mat-grip { margin-left: auto; color: var(--faint); font-size: 12px; flex-shrink: 0; }
+
+/* Left column: accordion menu */
+.ml-acc { border: 1px solid var(--border2); border-radius: 12px; margin-bottom: 10px; background: var(--paper); overflow: hidden; }
+.ml-acc-head { display: flex; align-items: center; gap: 8px; padding: 12px 13px; cursor: pointer; list-style: none; user-select: none; }
+.ml-acc-head::-webkit-details-marker { display: none; }
+.ml-acc-head::marker { content: ''; }
+.ml-acc-ico { font-size: 13px; flex-shrink: 0; }
+.ml-acc-title { font-family: var(--serif); font-size: 13.5px; font-weight: 600; color: var(--teal); }
+.ml-acc-count { margin-left: auto; font-size: 10px; font-weight: 700; color: var(--soft); background: rgba(var(--inkC),0.06); border-radius: 100px; padding: 2px 8px; flex-shrink: 0; }
+.ml-acc-chev { font-size: 11px; color: var(--soft); transition: transform 160ms var(--eo); flex-shrink: 0; }
+.ml-acc[open] > .ml-acc-head .ml-acc-chev { transform: rotate(180deg); }
+.ml-acc-body { padding: 0 12px 12px; }
+.ml-acc-sub { border: 1px solid var(--border); border-radius: 10px; margin: 8px 0; background: var(--ivory); overflow: hidden; }
+.ml-sub-head { display: flex; align-items: center; gap: 8px; padding: 9px 11px; cursor: pointer; font-size: 12px; font-weight: 600; color: var(--teal2); list-style: none; user-select: none; }
+.ml-sub-head::-webkit-details-marker { display: none; }
+.ml-sub-head::marker { content: ''; }
+.ml-acc-sub[open] > .ml-sub-head .ml-acc-chev { transform: rotate(180deg); }
+.ml-acc-sub .ml-acc-body { padding: 4px 9px 9px; }
+.ml-acc-empty { font-size: 11.5px; color: var(--soft); text-align: center; padding: 30px 14px; line-height: 1.6; }
 
 .cmp-headline { font-family: var(--serif); font-size: 27px; font-weight: 700; letter-spacing: -0.02em; color: var(--teal); width: 100%;
   border: none; border-bottom: 2px solid var(--border); background: transparent; outline: none; padding: 4px 0; }
@@ -451,20 +472,34 @@ mark.anno.pulse { animation: markPulse 1200ms var(--eo); }
 .cmp-index-chip .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--faint); flex-shrink: 0; }
 .cmp-index-chip.answered .dot { background: var(--flame); }
 .cmp-index-chip .lbl { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.cmp-empty { font-size: 12.5px; color: var(--soft); text-align: center; padding: 40px 20px; border: 1.5px dashed var(--border2); border-radius: 14px; line-height: 1.6; }
+.cmp-empty { font-size: 12.5px; color: var(--soft); text-align: center; padding: 44px 24px; border: 1.5px dashed var(--border2); border-radius: 14px; line-height: 1.6; }
+.cmp-empty-icon { font-size: 26px; margin-bottom: 10px; opacity: 0.4; }
+.cmp-empty-title { font-family: var(--serif); font-size: 14.5px; font-weight: 600; color: var(--teal); margin-bottom: 6px; }
+.cmp-empty-sub { font-size: 11.5px; color: var(--soft); max-width: 360px; margin: 0 auto 16px; line-height: 1.6; }
 .cmp-body { min-height: 120px; margin-top: 12px; border-radius: 14px; transition: background 140ms, box-shadow 140ms; padding: 2px; }
 .cmp-body.drop-active { box-shadow: inset 0 0 0 2px rgba(255,84,0,0.5); background: rgba(255,84,0,0.04); }
 .blk { border: 1px solid var(--border2); border-radius: 14px; padding: 13px 15px; margin-bottom: 12px; background: var(--ivory); scroll-margin-top: 12px; }
 .blk-mat { border-left: 3px solid var(--honey); }
 .blk-text { border-left: 3px solid var(--teal2); }
 .blk-head { display: flex; align-items: center; gap: 8px; margin-bottom: 9px; }
-.kind-chip { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; color: var(--teal2); background: rgba(36,80,106,0.08); border-radius: 100px; padding: 3px 9px; }
+.kind-chip { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; color: var(--teal2); background: rgba(36,80,106,0.08); border-radius: 100px; padding: 3px 9px; flex-shrink: 0; }
 .blk-tools { margin-left: auto; display: flex; gap: 3px; }
 .blk-quote { font-size: 12px; color: var(--muted); line-height: 1.5; background: rgba(var(--inkC),0.03); border-radius: 8px; padding: 8px 11px; }
 .blk-quote .src-chip { margin-top: 4px; }
+.blk-note { font-size: 11.5px; color: var(--muted); line-height: 1.5; margin-top: 6px; padding: 7px 10px; background: rgba(255,192,71,0.1); border-radius: 8px; border-left: 2px solid var(--honey); }
 .blk-q { font-size: 12.5px; font-weight: 600; color: var(--flame); margin: 10px 0 6px; }
-.blk-answer { width: 100%; font-family: var(--sans); font-size: 14px; line-height: 1.65; color: var(--teal); background: var(--paper); border: 1px solid var(--border2); border-radius: 10px; padding: 11px 13px; outline: none; resize: vertical; min-height: 72px; }
+.blk-answer { width: 100%; font-family: var(--sans); font-size: 14.5px; line-height: 1.65; color: var(--teal); background: var(--paper); border: 1px solid var(--border2); border-radius: 10px; padding: 11px 13px; outline: none; resize: vertical; min-height: 72px; transition: min-height 200ms var(--eo); }
 .blk-answer:focus { border-color: var(--flame); }
+/* Collapsible material context — writer's own text is the focus */
+.blk-toggle { display: flex; align-items: center; gap: 9px; cursor: pointer; padding-bottom: 2px; }
+.blk-toggle-txt { font-size: 11.5px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; display: none; }
+.blk-chev { font-size: 10px; color: var(--soft); transition: transform 160ms var(--eo); flex-shrink: 0; }
+.blk.collapsed .blk-chev { transform: rotate(-90deg); }
+.blk.collapsed .blk-toggle-txt { display: block; }
+.blk-source { overflow: hidden; max-height: 800px; opacity: 1; margin-top: 9px; margin-bottom: 4px; transition: max-height 240ms var(--eo), opacity 200ms var(--eo), margin 200ms var(--eo); }
+.blk.collapsed .blk-source { max-height: 0; opacity: 0; margin: 0; pointer-events: none; }
+.blk.collapsed .blk-answer { min-height: 110px; }
+.blk.collapsed { background: var(--paper); }
 .cmp-add { display: flex; gap: 8px; margin-top: 4px; }
 .cmp-foot { position: sticky; bottom: 0; margin: 18px -30px -80px; padding: 12px 30px; background: var(--glass-b); backdrop-filter: blur(14px); border-top: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
 .cmp-wordcount { font-size: 11.5px; color: var(--soft); font-variant-numeric: tabular-nums; }
@@ -1876,6 +1911,7 @@ let composePiece = null, composeBriefId = null, COMPOSE_MATERIALS = {}, matSeq =
 const KIND_LABEL = {
   angle: { i: '★', l: 'Angle' }, source: { i: '🔗', l: 'Source' }, person: { i: '👤', l: 'Person' },
   keyword: { i: '🏷️', l: 'Keyword' }, table: { i: '▦', l: 'Data' }, text: { i: '¶', l: 'Excerpt' }, section: { i: '❖', l: 'Section' },
+  annotation: { i: '🖍', l: 'Editor note' },
 };
 function pieceFromTree(tree) { const n = (Array.isArray(tree) ? tree : []).find(x => x && x._editor === 'piece'); return n && n.piece ? n.piece : null; }
 function materialQuestion(kind) {
@@ -1886,6 +1922,7 @@ function materialQuestion(kind) {
     case 'keyword': return 'How will you work this term into the piece naturally?';
     case 'table':   return 'What does this data point mean for your reader?';
     case 'section': return 'What is the essential point here, in your own words?';
+    case 'annotation': return "What does this editor's note ask you to address?";
     default:        return 'How will you use this in your piece?';
   }
 }
@@ -1903,13 +1940,13 @@ function enterCompose(row) {
     <div class="compose-wrap">
       <div class="compose-col compose-left">
         <div class="compose-bar">
-          <div><div class="ml-topic">${escapeHtml(row.topic)}</div><div class="ml-hint">Drag material into your piece →</div></div>
+          <div><div class="ml-topic">${escapeHtml(row.topic)}</div><div class="ml-hint">Open a section, drag material into your piece →</div></div>
           <button class="btn ghost sm" id="composeBack">← Back to brief</button>
         </div>
         <div id="materialLibrary">${composeMaterialsHtml(row)}</div>
       </div>
       <div class="compose-col compose-right">
-        <div class="eyebrow" style="margin-bottom:12px">Your piece <span class="role-tag">· drawn from this brief</span></div>
+        <div class="eyebrow" style="margin-bottom:12px">Your piece <span class="role-tag">· write freely, backed by the brief</span></div>
         <input class="cmp-headline" id="cmpHeadline" placeholder="Headline" value="${escapeHtml(composePiece.headline || '')}">
         <input class="cmp-standfirst" id="cmpStandfirst" placeholder="Standfirst / dek — the one-sentence promise of the story" value="${escapeHtml(composePiece.standfirst || '')}">
         <div class="cmp-index-wrap"><div class="cmp-index-label">Materials in use</div><div class="cmp-index" id="cmpIndex"></div></div>
@@ -1928,7 +1965,7 @@ function enterCompose(row) {
   document.getElementById('composeBack').addEventListener('click', () => { flushComposeSave(); document.querySelector('.main').classList.remove('compose-mode'); openDetail(row); });
   document.getElementById('cmpHeadline').addEventListener('input', e => { composePiece.headline = e.target.value; scheduleComposeSave(); updateWordCount(); });
   document.getElementById('cmpStandfirst').addEventListener('input', e => { composePiece.standfirst = e.target.value; scheduleComposeSave(); updateWordCount(); });
-  document.getElementById('cmpAddPara').addEventListener('click', () => { composePiece.blocks.push({ id: 'b' + (blkSeq++), type: 'text', answer: '' }); renderComposerBody(); scheduleComposeSave(); });
+  document.getElementById('cmpAddPara').addEventListener('click', addParagraphBlock);
   document.getElementById('cmpCopy').addEventListener('click', copyPiece);
   wireMaterialDrag();
   wireComposerDrop();
@@ -1939,35 +1976,66 @@ function enterCompose(row) {
 function composeMaterialsHtml(row) {
   const promoted = briefPromotedItems(row);
   const sections = visibleNodes(row.parsed_sections);
+  const annotations = annotationsFromTree(row.parsed_sections);
   let html = '';
+
   if (promoted.length) {
     const cats = Array.from(new Set([...CATEGORY_ORDER, ...promoted.map(p => p.category)]));
-    html += `<div class="ml-group"><div class="ml-h">★ Promoted material</div>`;
+    let body = '';
     cats.forEach(cat => {
       const items = promoted.filter(p => p.category === cat); if (!items.length) return;
       const meta = catLabel(cat);
-      html += `<div class="ml-sec-title">${meta.icon || '📌'} ${escapeHtml(meta.label)}</div>`;
+      let rows = '';
       items.forEach(p => {
         const mid = regMat({ kind: CATEGORY_META[cat] ? cat : 'text', text: p.text, url: p.url || null, note: p.note || '' });
-        html += matRow(mid, KIND_LABEL[cat] ? KIND_LABEL[cat].i : '📌', p.text);
+        rows += matRow(mid, KIND_LABEL[cat] ? KIND_LABEL[cat].i : '📌', p.text);
       });
+      body += accSub(meta.icon || '📌', meta.label, items.length, rows);
     });
-    html += `</div>`;
+    html += accWrap('★', 'Promoted material', promoted.length, body, true);
   }
-  html += `<div class="ml-group"><div class="ml-h">📄 From the brief</div>`;
+
+  if (annotations.length) {
+    let rows = '';
+    annotations.forEach(a => {
+      const mid = regMat({ kind: 'annotation', text: a.quote, note: a.comment || '', audio: a.audio || null });
+      rows += matRow(mid, '🖍', a.quote, a.comment);
+    });
+    html += accWrap('🖍', 'Editor annotations', annotations.length, rows, true);
+  }
+
+  let briefBody = '', briefCount = 0;
   const walk = (nodes) => nodes.forEach(n => {
-    if (n.heading) html += `<div class="ml-sec-title">${escapeHtml(n.heading)}</div>`;
-    if (n.paragraph) { const mid = regMat({ kind: 'text', text: n.paragraph }); html += matRow(mid, '¶', n.paragraph); }
-    (n.items || []).forEach(it => { const mid = regMat({ kind: 'text', text: it }); html += matRow(mid, '›', it); });
-    if (n.table && Array.isArray(n.table.rows)) n.table.rows.forEach(r => { const txt = r.join(' · '); const mid = regMat({ kind: 'table', text: txt }); html += matRow(mid, '▦', txt); });
+    let inner = '', n_count = 0;
+    if (n.paragraph) { const mid = regMat({ kind: 'text', text: n.paragraph }); inner += matRow(mid, '¶', n.paragraph); n_count++; }
+    (n.items || []).forEach(it => { const mid = regMat({ kind: 'text', text: it }); inner += matRow(mid, '›', it); n_count++; });
+    if (n.table && Array.isArray(n.table.rows)) n.table.rows.forEach(r => { const txt = r.join(' · '); const mid = regMat({ kind: 'table', text: txt }); inner += matRow(mid, '▦', txt); n_count++; });
+    briefCount += n_count;
+    if (inner) briefBody += n.heading ? accSub('❖', n.heading, n_count, inner) : inner;
     if (n.children) walk(n.children);
   });
   walk(sections);
-  html += `</div>`;
+  if (briefBody) html += accWrap('📄', 'From the brief', briefCount, briefBody, false);
+
+  if (!html) html = `<div class="ml-acc-empty">No material to drag in yet — promote items or leave annotations from the brief view first.</div>`;
   return html;
 }
-function matRow(mid, icon, text) {
-  return `<div class="mat" draggable="true" data-mid="${mid}"><span class="mat-kind">${icon}</span><span class="mat-txt">${escapeHtml(text)}</span><span class="mat-grip">⋮⋮</span></div>`;
+function accWrap(icon, title, count, body, open) {
+  return `<details class="ml-acc"${open ? ' open' : ''}>
+    <summary class="ml-acc-head"><span class="ml-acc-ico">${icon}</span><span class="ml-acc-title">${escapeHtml(title)}</span><span class="ml-acc-count">${count}</span><span class="blk-chev ml-acc-chev">⌄</span></summary>
+    <div class="ml-acc-body">${body}</div>
+  </details>`;
+}
+function accSub(icon, title, count, body) {
+  return `<details class="ml-acc-sub">
+    <summary class="ml-sub-head"><span>${icon} ${escapeHtml(title)}</span>${count != null ? `<span class="ml-acc-count">${count}</span>` : ''}<span class="blk-chev ml-acc-chev">⌄</span></summary>
+    <div class="ml-acc-body">${body}</div>
+  </details>`;
+}
+function matRow(mid, icon, text, sub) {
+  return `<div class="mat" draggable="true" data-mid="${mid}"><span class="mat-kind">${icon}</span>
+    <div class="mat-body"><span class="mat-txt">${escapeHtml(text)}</span>${sub && sub.trim() ? `<span class="mat-sub">${escapeHtml(sub)}</span>` : ''}</div>
+    <span class="mat-grip">⋮⋮</span></div>`;
 }
 
 function wireMaterialDrag() {
@@ -1988,7 +2056,7 @@ function wireComposerDrop() {
 }
 function addMaterialBlock(mat) {
   const id = 'b' + (blkSeq++);
-  composePiece.blocks.push({ id, type: 'material', kind: mat.kind, text: mat.text, url: mat.url || null, note: mat.note || '', question: materialQuestion(mat.kind), answer: '' });
+  composePiece.blocks.push({ id, type: 'material', kind: mat.kind, text: mat.text, url: mat.url || null, note: mat.note || '', audio: mat.audio || null, question: materialQuestion(mat.kind), answer: '' });
   renderComposerBody(); scheduleComposeSave();
   const blk = document.querySelector(`.blk[data-id="${id}"]`);
   if (blk) { blk.scrollIntoView({ behavior: 'smooth', block: 'center' }); const ta = blk.querySelector('.blk-answer'); if (ta) setTimeout(() => ta.focus(), 300); }
@@ -1998,14 +2066,29 @@ function addMaterialBlock(mat) {
 function renderComposerBody() {
   const body = document.getElementById('cmpBody'); if (!body) return;
   if (!composePiece.blocks.length) {
-    body.innerHTML = `<div class="cmp-empty">Drag a promoted angle, source, or any line from the brief into here.<br>Each piece of material arrives with a question to help you shape your prose — or add a plain paragraph to start writing.</div>`;
+    body.innerHTML = `<div class="cmp-empty">
+      <div class="cmp-empty-icon">✍</div>
+      <div class="cmp-empty-title">This is your piece — write it freely</div>
+      <div class="cmp-empty-sub">Material on the left is optional backup. Drag a piece in when you want a source, a quote, or an editor's note to build on — or just start typing your own paragraph.</div>
+      <button class="btn sm primary" id="cmpAddParaEmpty">＋ Start a paragraph</button>
+    </div>`;
+    const addBtn = document.getElementById('cmpAddParaEmpty');
+    if (addBtn) addBtn.addEventListener('click', addParagraphBlock);
   } else {
     body.innerHTML = composePiece.blocks.map(b => b.type === 'material' ? `
-      <div class="blk blk-mat" data-id="${b.id}">
-        <div class="blk-head"><span class="kind-chip">${(KIND_LABEL[b.kind]||KIND_LABEL.text).i} ${(KIND_LABEL[b.kind]||KIND_LABEL.text).l}</span>
-          <div class="blk-tools"><button class="mini-icon-btn" data-bmove="up" data-id="${b.id}">↑</button><button class="mini-icon-btn" data-bmove="down" data-id="${b.id}">↓</button><button class="mini-icon-btn danger" data-brem="${b.id}">✕</button></div></div>
-        <div class="blk-quote">${linkify(b.text)}</div>
-        <div class="blk-q">${escapeHtml(b.question)}</div>
+      <div class="blk blk-mat${b.answer && b.answer.trim() ? ' collapsed' : ''}" data-id="${b.id}">
+        <div class="blk-toggle" data-btoggle="${b.id}">
+          <span class="kind-chip">${(KIND_LABEL[b.kind]||KIND_LABEL.text).i} ${(KIND_LABEL[b.kind]||KIND_LABEL.text).l}</span>
+          <span class="blk-toggle-txt">${escapeHtml((b.text||'').slice(0,64))}${(b.text||'').length>64?'…':''}</span>
+          <span class="blk-chev">⌄</span>
+          <div class="blk-tools"><button class="mini-icon-btn" data-bmove="up" data-id="${b.id}">↑</button><button class="mini-icon-btn" data-bmove="down" data-id="${b.id}">↓</button><button class="mini-icon-btn danger" data-brem="${b.id}">✕</button></div>
+        </div>
+        <div class="blk-source">
+          <div class="blk-quote">${linkify(b.text)}</div>
+          ${b.note && b.note.trim() ? `<div class="blk-note">${linkify(b.note)}</div>` : ''}
+          ${b.audio ? `<audio class="anno-audio" controls preload="none" src="${b.audio}"></audio>` : ''}
+          <div class="blk-q">${escapeHtml(b.question)}</div>
+        </div>
         <textarea class="blk-answer" data-id="${b.id}" placeholder="Write this passage in your own words…">${escapeHtml(b.answer || '')}</textarea>
       </div>` : `
       <div class="blk blk-text" data-id="${b.id}">
@@ -2015,9 +2098,15 @@ function renderComposerBody() {
       </div>`).join('');
     body.querySelectorAll('.blk-answer').forEach(ta => ta.addEventListener('input', () => {
       const b = composePiece.blocks.find(x => x.id === ta.getAttribute('data-id')); if (b) { b.answer = ta.value; scheduleComposeSave(); updateWordCount(); renderComposerIndex(); }
+      const blk = ta.closest('.blk.blk-mat'); if (blk) blk.classList.toggle('collapsed', ta.value.trim().length > 0);
     }));
-    body.querySelectorAll('[data-brem]').forEach(btn => btn.addEventListener('click', () => { composePiece.blocks = composePiece.blocks.filter(x => x.id !== btn.getAttribute('data-brem')); renderComposerBody(); scheduleComposeSave(); }));
-    body.querySelectorAll('[data-bmove]').forEach(btn => btn.addEventListener('click', () => {
+    body.querySelectorAll('[data-btoggle]').forEach(t => t.addEventListener('click', e => {
+      if (e.target.closest('[data-bmove],[data-brem]')) return;
+      t.closest('.blk').classList.toggle('collapsed');
+    }));
+    body.querySelectorAll('[data-brem]').forEach(btn => btn.addEventListener('click', e => { e.stopPropagation(); composePiece.blocks = composePiece.blocks.filter(x => x.id !== btn.getAttribute('data-brem')); renderComposerBody(); scheduleComposeSave(); }));
+    body.querySelectorAll('[data-bmove]').forEach(btn => btn.addEventListener('click', e => {
+      e.stopPropagation();
       const id = btn.getAttribute('data-id'), dir = btn.getAttribute('data-bmove');
       const i = composePiece.blocks.findIndex(x => x.id === id); const j = dir === 'up' ? i - 1 : i + 1;
       if (j < 0 || j >= composePiece.blocks.length) return;
@@ -2026,6 +2115,13 @@ function renderComposerBody() {
     }));
   }
   renderComposerIndex(); updateWordCount();
+}
+function addParagraphBlock() {
+  composePiece.blocks.push({ id: 'b' + (blkSeq++), type: 'text', answer: '' });
+  renderComposerBody(); scheduleComposeSave();
+  const textBlks = document.querySelectorAll('.blk-text .blk-answer');
+  const last = textBlks[textBlks.length - 1];
+  if (last) { last.scrollIntoView({ behavior: 'smooth', block: 'center' }); setTimeout(() => last.focus(), 300); }
 }
 function renderComposerIndex() {
   const idx = document.getElementById('cmpIndex'); if (!idx) return;
