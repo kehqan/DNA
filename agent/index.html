@@ -437,8 +437,11 @@ html[dir="rtl"] .blk-note { border-left: none; border-right: 2px solid var(--hon
 .priority-verdict { background: linear-gradient(135deg, rgba(255,84,0,0.07), rgba(255,192,71,0.05)); border: 1.5px solid rgba(255,84,0,0.28);
   border-radius: 18px; padding: 17px 19px; }
 .priority-verdict-title { font-size: 11px; font-weight: 800; color: var(--flame); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 11px; display: flex; align-items: center; gap: 6px; }
-.priority-verdict-item { display: flex; gap: 11px; padding: 10px 0; border-bottom: 1px solid rgba(255,84,0,0.13); }
+.priority-verdict-item { display: flex; gap: 11px; padding: 10px 0; border-bottom: 1px solid rgba(255,84,0,0.13); cursor: pointer; transition: background 140ms; border-radius: 6px; }
+.priority-verdict-item:hover { background: rgba(255,84,0,0.06); }
 .priority-verdict-item:last-child { border-bottom: none; }
+@keyframes promoPulse { 0% { background: rgba(255,84,0,0.30); } 100% { background: transparent; } }
+.promo-pulse { animation: promoPulse 1.5s ease; border-radius: 6px; }
 .priority-verdict-rank { font-family: var(--serif); font-size: 18px; font-weight: 700; color: var(--flame); flex-shrink: 0; width: 22px; line-height: 1.3; }
 .priority-verdict-text { font-weight: 600; color: var(--teal); font-size: 13.5px; line-height: 1.5; }
 .priority-verdict-note { font-size: 11.5px; color: var(--muted); margin-top: 4px; }
@@ -1063,8 +1066,14 @@ async function sbUpdate(table, id, patch) {
 }
 async function sbDelete(table, id) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, { method: 'DELETE',
-    headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` } });
-  if (!res.ok) throw new Error(`delete failed (${res.status})`); return true;
+    headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}`, Prefer: 'return=representation' } });
+  if (!res.ok) throw new Error(`delete failed (${res.status})`);
+  let data = [];
+  try { data = await res.json(); } catch (e) { data = []; }
+  if (!Array.isArray(data) || data.length === 0) {
+    throw new Error('Supabase reported success but deleted 0 rows — check that the anon role has a DELETE policy on this table');
+  }
+  return true;
 }
 
 /* ==================== PARSER (preserved + hardened) ==================== */
@@ -1190,11 +1199,48 @@ function showView(name) {
   document.querySelectorAll('.pipe-step').forEach(s => s.classList.toggle('active', s.getAttribute('data-step') === name));
   window.scrollTo(0, 0);
 }
-document.getElementById('brandHome').addEventListener('click', () => { showView('library'); loadLibrary(); });
+
+/* ==================== Routing: /briefdesk (library) + /briefdesk/<slug>--<id> (brief) ==================== */
+const ROUTE_BASE = '/briefdesk';
+function slugify(s) {
+  return String(s || 'untitled').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 48) || 'untitled';
+}
+function briefShortId(id) { return String(id || '').replace(/-/g, '').slice(0, 8); }
+function briefSlug(row) { return `${slugify(row.topic)}--${briefShortId(row.id)}`; }
+function briefPath(row) { return `${ROUTE_BASE}/${briefSlug(row)}`; }
+function goToLibrary() {
+  if (window.location.pathname.replace(/\/+$/, '') !== ROUTE_BASE) history.pushState({ view: 'library' }, '', ROUTE_BASE);
+  showView('library'); loadLibrary();
+}
+function goToBrief(row) {
+  const path = briefPath(row);
+  if (window.location.pathname.replace(/\/+$/, '') !== path) history.pushState({ view: 'detail', briefId: row.id }, '', path);
+}
+function routeFromLocation() {
+  const path = window.location.pathname.replace(/\/+$/, '');
+  const m = path.match(/^\/briefdesk\/(.+)--([a-f0-9]{6,10})$/i);
+  if (m) {
+    const shortId = m[2].toLowerCase();
+    const row = LIBRARY_CACHE.find(r => briefShortId(r.id) === shortId);
+    if (row) { openDetail(row); return; }
+    dashToast('That brief link could not be found — showing the library instead');
+  }
+  showView('library');
+}
+/* If arriving via the GitHub Pages 404.html redirect trick (?p=/briefdesk/...), restore the real URL first. */
+(function restoreGhPagesRedirect() {
+  const params = new URLSearchParams(window.location.search);
+  const p = params.get('p');
+  if (p) { history.replaceState(null, '', p); }
+})();
+window.addEventListener('popstate', () => routeFromLocation());
+
+document.getElementById('brandHome').addEventListener('click', () => goToLibrary());
 document.getElementById('pipeline').addEventListener('click', (e) => {
   const step = e.target.closest('.pipe-step'); if (!step) return;
   const s = step.getAttribute('data-step');
-  if (s === 'library') { showView('library'); loadLibrary(); }
+  if (s === 'library') { goToLibrary(); }
   else if (s === 'paste') openIntake();
   else if (s === 'review' && currentTree.length) showView('review');
   else if (s === 'detail' && currentBriefId) { /* stay */ }
@@ -1583,6 +1629,7 @@ function promoteItem(text, category, note, customLabel) {
   currentPromoted.push({ id: 'p'+(promoIdSeq++), text, url: links.length ? links[0].url : null, category, note: note || '', customLabel: customLabel || null });
   renderPromoBoxes(); renderStatStrip(); renderMeter();
   syncPromoteTriggers(document.getElementById('reviewSections'));
+  renderDeskRail(); renderDeskTopSummary();
   const meta = CATEGORY_META[category] || { label: customLabel || category };
   dashToast(`Promoted to ${meta.label}`);
 }
@@ -2041,7 +2088,7 @@ async function openDetail(row) {
       const items = promoted.filter(p => p.category === cat); if (!items.length) return '';
       const meta = catLabel(cat);
       return `<div class="priority-verdict"><div class="priority-verdict-title">${meta.icon || '📌'} ${escapeHtml(meta.label)}</div>
-        ${items.map((p, i) => `<div class="priority-verdict-item"><div class="priority-verdict-rank">${i+1}</div>
+        ${items.map((p, i) => `<div class="priority-verdict-item" data-jump-promo="${escapeHtml(p.text)}"><div class="priority-verdict-rank">${i+1}</div>
           <div><div class="priority-verdict-text">${linkify(p.text)}</div>
           ${p.note ? `<div class="priority-verdict-note">${escapeHtml(p.note)}</div>` : ''}</div></div>`).join('')}
       </div>`;
@@ -2107,7 +2154,7 @@ async function openDetail(row) {
     </div>`;
   }
 
-  document.getElementById('backToLibrary').addEventListener('click', () => { showView('library'); loadLibrary(); });
+  document.getElementById('backToLibrary').addEventListener('click', () => goToLibrary());
   document.getElementById('editBriefBtn').addEventListener('click', () => openEditor(row));
   const wp = document.getElementById('writePieceBtn');
   if (pieceFromTree(row.parsed_sections)) wp.textContent = t('continue_piece');
@@ -2119,6 +2166,7 @@ async function openDetail(row) {
   buildSpine('briefSpineNav', sections, 'dsec-', 'showcaseSections');
   renderBriefBento(sections);
   renderBriefTopSummary();
+  const vg = document.querySelector('.verdict-grid'); if (vg) wireJumpToPromoted(vg);
 
   // annotations: restore highlights, render the top box, enable new selections
   restoreAnnotations();
@@ -2126,6 +2174,7 @@ async function openDetail(row) {
   wireAnnotationSelection();
 
   citeStop();
+  goToBrief(row);
   showView('detail');
   sbUpdate('dna_agent_briefs', row.id, { view_count: (row.view_count || 0) + 1 }).catch(() => {});
 }
@@ -2157,7 +2206,7 @@ function renderBriefTopSummary() {
   const promoted = detailPromotedCache;
   const promotedChips = promoted.slice(0, 8).map(p => {
     const meta = catLabel(p.category);
-    return `<span class="ds-chip" data-scrollto="verdict">${meta.icon || '★'} ${escapeHtml((p.text || '').slice(0, 40))}${(p.text || '').length > 40 ? '…' : ''}</span>`;
+    return `<span class="ds-chip" data-jump-promo="${escapeHtml(p.text)}">${meta.icon || '★'} ${escapeHtml((p.text || '').slice(0, 40))}${(p.text || '').length > 40 ? '…' : ''}</span>`;
   }).join('');
   const annoChips = currentAnnotations.slice(0, 6).map(a =>
     `<span class="ds-chip" data-jump-anno="${a.id}">🖍 ${escapeHtml((a.quote || '').slice(0, 34))}${(a.quote || '').length > 34 ? '…' : ''}</span>`
@@ -2171,9 +2220,7 @@ function renderBriefTopSummary() {
       <div class="ds-label">🖍 Annotations <b>${currentAnnotations.length}</b></div>
       <div class="ds-chips">${annoChips || '<span class="ds-empty">No annotations yet — select any text in a section to highlight and comment.</span>'}</div>
     </div>`;
-  el.querySelectorAll('[data-scrollto]').forEach(b => b.addEventListener('click', () => {
-    const t2 = document.querySelector('.verdict-grid'); if (t2) t2.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  }));
+  wireJumpToPromoted(el);
   el.querySelectorAll('[data-jump-anno]').forEach(b => b.addEventListener('click', () => {
     const id = b.getAttribute('data-jump-anno');
     const ann = currentAnnotations.find(a => a.id === id); if (!ann) return;
@@ -2182,6 +2229,39 @@ function renderBriefTopSummary() {
     openBriefPanel(topEl ? topEl.getAttribute('data-top') : undefined);
     setTimeout(() => jumpToAnno(id), 260);
   }));
+}
+function wireJumpToPromoted(scope) {
+  (scope || document).querySelectorAll('[data-jump-promo]').forEach(b => b.addEventListener('click', () => jumpToPromoted(b.getAttribute('data-jump-promo'))));
+}
+function findPromotedAnchor(text) {
+  const wrap = document.getElementById('showcaseSections'); if (!wrap) return null;
+  const clean = s => String(s || '').replace(/\s+/g, ' ').trim().toLowerCase();
+  const target = clean(text); if (!target) return null;
+  const candidates = wrap.querySelectorAll('li, p, .entity-chip, .timeline-item');
+  for (const cEl of candidates) {
+    const txt = clean(cEl.textContent);
+    if (txt === target) return cEl;
+  }
+  for (const cEl of candidates) {
+    const txt = clean(cEl.textContent);
+    if (target.length > 12 && (txt.includes(target) || target.includes(txt))) return cEl;
+  }
+  return null;
+}
+function jumpToPromoted(text) {
+  const anchor = findPromotedAnchor(text);
+  if (!anchor) {
+    const t2 = document.querySelector('.verdict-grid'); if (t2) t2.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    dashToast("Couldn't locate the exact line in the brief — showing priorities instead");
+    return;
+  }
+  const topEl = anchor.closest('[data-top]');
+  openBriefPanel(topEl ? topEl.getAttribute('data-top') : undefined);
+  setTimeout(() => {
+    anchor.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    anchor.classList.add('promo-pulse');
+    setTimeout(() => anchor.classList.remove('promo-pulse'), 1500);
+  }, 260);
 }
 function openBriefPanel(focusTop) {
   document.getElementById('briefOverlay').classList.add('show');
@@ -2840,8 +2920,7 @@ Tensions in the Strait of Hormuz sharply escalated on July 7 after two commercia
 /* ---------- boot ---------- */
 document.getElementById('reviewTitle').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); e.target.blur(); } });
 applyLang();
-showView('library');
-loadLibrary();
+loadLibrary().then(() => { routeFromLocation(); }).catch(() => { showView('library'); });
 </script>
 </body>
 </html>
