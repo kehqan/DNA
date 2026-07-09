@@ -284,7 +284,7 @@ html[dir="rtl"] .blk-note { border-left: none; border-right: 2px solid var(--hon
 .timeline-item::before { content: ''; position: absolute; left: -5px; top: 12px; width: 8px; height: 8px; border-radius: 50%; background: var(--flame); }
 
 /* Promote popover (replaces native prompt) */
-.pop { position: absolute; z-index: 80; width: 260px; background: var(--paper); border: 1px solid var(--border2); border-radius: 14px;
+.pop { position: absolute; z-index: 160; width: 260px; background: var(--paper); border: 1px solid var(--border2); border-radius: 14px;
   box-shadow: 0 16px 44px rgba(26,57,72,0.24); padding: 14px; display: none; animation: popIn 160ms var(--eo); }
 .pop.show { display: block; }
 @keyframes popIn { from { opacity: 0; transform: translateY(-6px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
@@ -416,6 +416,14 @@ html[dir="rtl"] .blk-note { border-left: none; border-right: 2px solid var(--hon
   .desk-modal { max-width: 100%; max-height: 92vh; border-radius: 20px 20px 0 0; }
   .desk-modal-back .lbl { display: none; }
 }
+@media print {
+  .hdr, .desk-bento, .desk-rail, .desk-top-summary, .stat-strip, .brief-actions, .copilot-fab, .lang-switch, .sdiv2 { display: none !important; }
+  #briefOverlay { display: block !important; position: static !important; background: none !important; backdrop-filter: none !important; padding: 0 !important; inset: auto !important; }
+  #briefOverlay .desk-modal { position: static !important; max-width: none !important; max-height: none !important; box-shadow: none !important; border: none !important; background: #fff !important; display: block !important; margin: 0 !important; }
+  #briefOverlay .desk-modal-head { display: none !important; }
+  #briefOverlay .desk-modal-body { max-height: none !important; overflow: visible !important; padding: 0 !important; }
+  #briefOverlay [data-top] { display: block !important; }
+}
 
 /* ============ Brief (detail) view ============ */
 .brief-layout { display: grid; grid-template-columns: 230px 1fr; gap: 28px; align-items: stretch; }
@@ -479,7 +487,7 @@ mark.anno.active { background: rgba(255,84,0,0.35); }
 mark.anno.pulse { animation: markPulse 1200ms var(--eo); }
 @keyframes markPulse { 0% { background: rgba(255,84,0,0.6); } 100% { background: rgba(255,192,71,0.42); } }
 
-.sel-toolbar { position: absolute; z-index: 85; display: none; gap: 4px; background: var(--teal); border-radius: 100px; padding: 4px; box-shadow: 0 8px 24px rgba(26,57,72,0.32); }
+.sel-toolbar { position: absolute; z-index: 165; display: none; gap: 4px; background: var(--teal); border-radius: 100px; padding: 4px; box-shadow: 0 8px 24px rgba(26,57,72,0.32); }
 .sel-toolbar.show { display: flex; }
 .sel-toolbar button { font-size: 11.5px; font-weight: 600; color: #fff; background: transparent; border: none; border-radius: 100px; padding: 6px 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; }
 .sel-toolbar button:hover { background: rgba(255,255,255,0.16); }
@@ -814,6 +822,20 @@ mark.anno.pulse { animation: markPulse 1200ms var(--eo); }
 
 <div class="info-pop" id="deskInfoPop"></div>
 
+<div class="desk-overlay" id="briefOverlay">
+  <div class="desk-modal">
+    <div class="desk-modal-head">
+      <button class="desk-modal-back" id="briefModalBack"><span>←</span><span class="lbl">Overview</span></button>
+      <div class="desk-modal-title" id="briefModalTitle"></div>
+      <button class="desk-modal-close" id="briefModalClose">✕</button>
+    </div>
+    <div class="desk-modal-body">
+      <div id="annoBox"></div>
+      <div id="showcaseSections"></div>
+    </div>
+  </div>
+</div>
+
 <button class="copilot-fab" id="copilotFab" title="Open Copilot">🤖</button>
 <div class="pop" id="promotePop"></div>
 <div class="pop anno-pop" id="annoPop"></div>
@@ -1045,14 +1067,24 @@ async function sbDelete(table, id) {
   if (!res.ok) throw new Error(`delete failed (${res.status})`); return true;
 }
 
-/* ==================== PARSER (preserved) ==================== */
+/* ==================== PARSER (preserved + hardened) ==================== */
 function matchHeading(line) {
   const t = line.trim(); if (!t) return null;
+  if (/^https?:\/\//.test(t)) return null;
   const atx = t.match(/^(#{1,4})\s+(.+)$/);
-  if (atx) return { level: atx[1].length, text: atx[2].replace(/\*+/g, '').trim() };
-  if (/^\*\*[^*]{2,80}\*\*:?$/.test(t)) return { level: null, text: t.replace(/^\*\*|\*\*:?$/g, '').trim() };
-  if (/^[A-Z][A-Z0-9 &/'\-:]{3,70}$/.test(t) && !/^https?:\/\//.test(t)) return { level: null, text: t.replace(/:$/, '').trim() };
-  if (/^[A-Z][A-Za-z0-9 &/'\-]{3,60}:$/.test(t) && t.length < 60) return { level: null, text: t.replace(/:$/, '').trim() };
+  if (atx) return { level: atx[1].length, text: atx[2].replace(/\*+/g, '').trim(), style: 'atx' };
+  if (/^\*\*[^*]{2,80}\*\*:?$/.test(t)) return { level: null, text: t.replace(/^\*\*|\*\*:?$/g, '').trim(), style: 'bold' };
+  // Domain anchors: the fixed /agentmode section names are always top-level, regardless of case or dash style.
+  if (/^topic\s*snapshot\.?$/i.test(t) || /^final\s*synthesis\.?$/i.test(t) || (/^agent\s*\d+\b/i.test(t) && t.length < 90)) {
+    return { level: 1, text: t.replace(/\.$/, '').trim(), style: 'anchor', anchor: true };
+  }
+  if (/^[A-Z][A-Z0-9 &/'\-:]{3,70}$/.test(t)) return { level: null, text: t.replace(/:$/, '').trim(), style: 'caps' };
+  if (/^[A-Z][A-Za-z0-9 &/'\-]{3,60}:$/.test(t) && t.length < 60) return { level: null, text: t.replace(/:$/, '').trim(), style: 'colon' };
+  // "1. Section Title" / "1) Section Title" — a numbered section header, not a sentence (no internal terminal punctuation).
+  const numHead = t.match(/^(\d{1,2})[.)]\s+([A-Z][^.:;!?]{2,68})$/);
+  if (numHead) return { level: null, text: numHead[2].trim(), style: 'numbered' };
+  // Bare standalone short title line: no terminal/sentence punctuation, capitalized, at most 7 words.
+  if (/^[A-Z][^.:;!?"'’”]{2,58}$/.test(t) && t.split(/\s+/).length <= 7) return { level: null, text: t.trim(), style: 'bare' };
   return null;
 }
 function classifyHeading(h) {
@@ -1093,16 +1125,34 @@ function processNode(node) {
 }
 function parseAgentText(raw) {
   const lines = raw.replace(/\r\n/g, '\n').split('\n');
+  const classified = lines.map(line => ({ line, h: matchHeading(line) }));
+  // A single isolated "bare" heading candidate is likely a real sub-heading (e.g. "Core Revenue Streams").
+  // A RUN of 2+ consecutive bare candidates is almost always a plain unbulleted list (e.g. "Television rights /
+  // Streaming rights / ...") — downgrade the whole run to list items on the current parent instead of headings.
+  for (let i = 0; i < classified.length; i++) {
+    if (classified[i].h && classified[i].h.style === 'bare') {
+      let j = i;
+      while (j < classified.length && classified[j].h && classified[j].h.style === 'bare') j++;
+      if (j - i >= 2) { for (let k = i; k < j; k++) classified[k].downgrade = classified[k].h.text; }
+      i = j - 1;
+    }
+  }
   const root = makeNode(null, 0), stack = [root];
-  for (const line of lines) {
-    const h = matchHeading(line);
+  let styleLevel = {}; // heading style -> resolved depth, reset at each top-level anchor so repeated
+                        // unstyled heading patterns (no #, no **, no caps) become siblings, not infinite children.
+  for (const c of classified) {
+    if (c.downgrade != null) { stack[stack.length-1].items.push(c.downgrade); continue; }
+    const h = c.h;
     if (h) {
-      const parent = stack[stack.length-1];
-      const level = h.level != null ? h.level : parent.level + 1;
+      if (h.anchor) styleLevel = {};
+      let level;
+      if (h.level != null) level = h.level;
+      else { const key = h.style || 'default'; if (styleLevel[key] == null) styleLevel[key] = stack[stack.length-1].level + 1; level = styleLevel[key]; }
+      level = Math.min(level, 8);
       while (stack.length > 1 && stack[stack.length-1].level >= level) stack.pop();
       const node = makeNode(h.text, level);
       stack[stack.length-1].children.push(node); stack.push(node);
-    } else stack[stack.length-1].raw.push(line);
+    } else stack[stack.length-1].raw.push(c.line);
   }
   processNode(root); return root.children;
 }
@@ -1364,6 +1414,7 @@ function renderDeskTopSummary() {
 let deskCurrentPanel = null;
 function openDeskPanel(which, focusTop) {
   document.getElementById('deskOverlay').classList.add('show');
+  document.body.style.overflow = 'hidden';
   document.querySelectorAll('.desk-panel').forEach(p => p.style.display = 'none');
   deskCurrentPanel = which;
   const panelId = 'deskPanel' + which.charAt(0).toUpperCase() + which.slice(1);
@@ -1390,6 +1441,7 @@ function focusOutlineTop(topIndex) {
 }
 function closeDeskOverlay() {
   const ov = document.getElementById('deskOverlay'); if (ov) ov.classList.remove('show');
+  document.body.style.overflow = '';
   deskCurrentPanel = null;
 }
 function openDeskInfo(anchorEl, icon, title, body) {
@@ -1406,7 +1458,12 @@ function openDeskInfo(anchorEl, icon, title, body) {
 function deskInfoOutside(e) { const pop = document.getElementById('deskInfoPop'); if (!pop.contains(e.target)) { pop.classList.remove('show'); document.removeEventListener('mousedown', deskInfoOutside); } }
 document.getElementById('deskModalClose').addEventListener('click', closeDeskOverlay);
 document.getElementById('deskModalBack').addEventListener('click', closeDeskOverlay);
-document.getElementById('deskOverlay').addEventListener('click', e => { if (e.target.id === 'deskOverlay') closeDeskOverlay(); });
+document.getElementById('deskOverlay').addEventListener('click', e => {
+  if (e.target.id !== 'deskOverlay') return;
+  if (document.getElementById('promotePop').classList.contains('show')) return;
+  if (document.getElementById('annoPop').classList.contains('show')) return;
+  closeDeskOverlay();
+});
 function renderStatStrip() {
   const s = collectStats(visibleNodes(currentTree));
   document.getElementById('statStrip').innerHTML = `
@@ -1966,12 +2023,15 @@ function detailNodeHtml(node, path) {
     </div>`;
 }
 
+let detailPromotedCache = [];
 async function openDetail(row) {
   currentBriefId = row.id; detailRow = row; annoMode = 'detail'; annoContainerId = 'showcaseSections';
   citeStart(); TABLES = {}; tableSeq = 0;
+  closeBriefOverlay();
   const el = document.getElementById('viewDetail');
   const allSections = Array.isArray(row.parsed_sections) ? row.parsed_sections : [];
   const sections = visibleNodes(allSections), promoted = briefPromotedItems(row), links = Array.isArray(row.manual_links) ? row.manual_links : [];
+  detailPromotedCache = promoted;
   const annNode = allSections.find(n => n && n._editor === 'annotations');
   currentAnnotations = annNode && Array.isArray(annNode.annotations) ? annNode.annotations.slice() : [];
   const status = briefStatus(row), stats = collectStats(sections);
@@ -2000,52 +2060,42 @@ async function openDetail(row) {
 
   el.innerHTML = `
     <button class="btn ghost sm" id="backToLibrary">← Library</button>
-    <div class="brief-layout" style="margin-top:14px;">
-      <div class="brief-spine">
-        <div class="spine">
-          <div class="brief-summary">
-            <div class="bs-row"><span class="bs-ico">✦</span><span class="status-chip ${status}">${status==='curated'?'curated':'raw intake'}</span></div>
-            <div class="bs-progress"><div class="bs-progress-fill" id="briefProgFill" style="width:0%"></div></div>
-            <div class="bs-pct" id="briefPct">Top of brief</div>
-            <div style="height:1px;background:var(--border);margin:11px 0"></div>
-            <div class="bs-row"><span class="bs-ico">👤</span>${row.editor_name ? escapeHtml(row.editor_name) : 'Unattributed'}</div>
-            <div class="bs-row"><span class="bs-ico">🤖</span>${row.source_llm ? escapeHtml(row.source_llm) : 'Unknown model'}</div>
-            <div class="bs-row"><span class="bs-ico">📅</span>${relTime(row.created_at)}</div>
-            <div class="bs-row"><span class="bs-ico">❖</span>${stats.sections} sections · ${promoted.length} promoted</div>
-          </div>
-          <div class="spine-label">Contents</div>
-          <div class="spine-nav" id="briefSpineNav"></div>
-        </div>
+    <div class="showcase-hero" style="margin-top:14px;">
+      <div class="eyebrow">${t('detail_eyebrow')} <span class="role-tag">${t('detail_eyebrow_role')}</span></div>
+      <div class="showcase-topic">${escapeHtml(row.topic)}</div>
+      <div class="showcase-meta">
+        <span>👤 ${row.editor_name ? escapeHtml(row.editor_name) : 'Unattributed'}</span><span class="meta-dot">·</span>
+        <span>🤖 ${row.source_llm ? escapeHtml(row.source_llm) : 'Unknown'}</span><span class="meta-dot">·</span>
+        <span>👁️ ${(row.view_count || 0) + 1} ${t('views_suffix')}</span>
       </div>
-      <div>
-        <div class="showcase-hero">
-          <div class="eyebrow">${t('detail_eyebrow')} <span class="role-tag">${t('detail_eyebrow_role')}</span></div>
-          <div class="showcase-topic">${escapeHtml(row.topic)}</div>
-          <div class="showcase-meta">
-            <span>👤 ${row.editor_name ? escapeHtml(row.editor_name) : 'Unattributed'}</span><span class="meta-dot">·</span>
-            <span>🤖 ${row.source_llm ? escapeHtml(row.source_llm) : 'Unknown'}</span><span class="meta-dot">·</span>
-            <span>👁️ ${(row.view_count || 0) + 1} ${t('views_suffix')}</span>
-          </div>
-          <div class="brief-actions">
-            <button class="btn sm primary" id="writePieceBtn">${t('write_piece')}</button>
-            <button class="btn sm" id="editBriefBtn">${t('edit_brief')}</button>
-            <button class="btn sm" id="copyBriefBtn">${t('copy_brief_md')}</button>
-            <button class="btn sm" id="copilotFromBrief">${t('send_copilot')}</button>
-            <button class="btn sm ghost" id="printBrief">${t('print')}</button>
-          </div>
-        </div>
-        ${verdictBoxes ? `<div class="eyebrow" style="margin-bottom:2px">${t('editors_verdict')}</div><div class="verdict-grid">${verdictBoxes}</div>` : ''}
-        <div id="annoBox"></div>
-        <div class="eyebrow" style="margin:22px 0 10px">${t('full_brief')}</div>
-        <div id="showcaseSections">${sectionsHtml}</div>
-        ${resourcesHtml}
-        <div id="sourceLedger"></div>
+      <div class="brief-actions">
+        <button class="btn sm primary" id="writePieceBtn">${t('write_piece')}</button>
+        <button class="btn sm" id="editBriefBtn">${t('edit_brief')}</button>
+        <button class="btn sm" id="copyBriefBtn">${t('copy_brief_md')}</button>
+        <button class="btn sm" id="copilotFromBrief">${t('send_copilot')}</button>
+        <button class="btn sm ghost" id="printBrief">${t('print')}</button>
       </div>
-    </div>`;
+    </div>
+    <div class="stat-strip">
+      <span class="stat-pill"><b>${stats.sections}</b> sections</span>
+      <span class="stat-pill"><b>${stats.items}</b> points</span>
+      <span class="stat-pill"><b>${stats.sources}</b> sources</span>
+      <span class="stat-pill"><b>${promoted.length}</b> promoted</span>
+    </div>
+    <div class="desk-top-summary" id="briefTopSummary"></div>
+    ${verdictBoxes ? `<div class="sdiv2"><h2>${t('editors_verdict')}</h2><div class="rule2"></div></div><div class="verdict-grid">${verdictBoxes}</div>` : ''}
+    <div class="sdiv2"><h2>${t('full_brief')}</h2><div class="rule2"></div></div>
+    <div class="desk-bento" id="briefBento"></div>
+    ${resourcesHtml}
+    <div id="sourceLedger"></div>
+    <div style="display:none" aria-hidden="true"><div class="spine" id="briefSpineLegacy"><div class="spine-nav" id="briefSpineNav"></div></div></div>`;
 
-  const sectionsRoot = document.getElementById('showcaseSections');
-  hydrateTables(sectionsRoot); // table cells now register their citations too
-  wireTreeListeners(sectionsRoot);
+  const sectionsWrap = document.getElementById('showcaseSections');
+  sectionsWrap.innerHTML = sectionsHtml;
+  Array.from(sectionsWrap.children).forEach((c, i) => c.setAttribute('data-top', String(i)));
+
+  hydrateTables(sectionsWrap); // table cells now register their citations too
+  wireTreeListeners(sectionsWrap);
 
   // Sources ledger (after tables hydrated so table sources are numbered)
   const ledger = document.getElementById('sourceLedger');
@@ -2067,26 +2117,102 @@ async function openDetail(row) {
   document.getElementById('printBrief').addEventListener('click', () => window.print());
 
   buildSpine('briefSpineNav', sections, 'dsec-', 'showcaseSections');
+  renderBriefBento(sections);
+  renderBriefTopSummary();
 
   // annotations: restore highlights, render the top box, enable new selections
   restoreAnnotations();
   renderAnnoBox();
   wireAnnotationSelection();
 
-  // reading progress in summary card
-  const progFill = document.getElementById('briefProgFill'), pctEl = document.getElementById('briefPct');
-  const onScroll = () => {
-    const h = document.documentElement.scrollHeight - window.innerHeight;
-    const p = h > 0 ? Math.min(100, Math.round((window.scrollY / h) * 100)) : 100;
-    if (progFill) progFill.style.width = p + '%';
-    if (pctEl) pctEl.textContent = p < 3 ? 'Top of brief' : p > 97 ? 'End of brief' : p + '% read';
-  };
-  window.addEventListener('scroll', onScroll); onScroll();
-
   citeStop();
   showView('detail');
   sbUpdate('dna_agent_briefs', row.id, { view_count: (row.view_count || 0) + 1 }).catch(() => {});
 }
+
+/* ---------- Brief (reading) overview: bento cards + liquid-glass drill-down ---------- */
+function renderBriefBento(sections) {
+  const grid = document.getElementById('briefBento'); if (!grid) return;
+  grid.innerHTML = sections.map((n, i) => {
+    const s = collectStats([n]);
+    return `<div class="dcard" data-top="${i}">
+      <button class="dc-info" data-info="${i}" title="What is this?">i</button>
+      <div class="dc-top"><div class="dc-ico">${iconForHeading(n.heading)}</div><span class="dc-count">${s.sections} sections</span></div>
+      <div><div class="dc-title">${escapeHtml(displayHeading(n.heading))}</div><div class="dc-sub">${s.items} points · ${s.sources} sources</div></div>
+      <div class="dc-open">Open <span>→</span></div>
+    </div>`;
+  }).join('') || `<div class="promo-empty">This brief has no parsed sections.</div>`;
+  grid.querySelectorAll('.dcard').forEach(elx => elx.addEventListener('click', e => {
+    if (e.target.closest('.dc-info')) return;
+    openBriefPanel(elx.getAttribute('data-top'));
+  }));
+  grid.querySelectorAll('[data-info]').forEach(b => b.addEventListener('click', e => {
+    e.stopPropagation();
+    const n = sections[+b.getAttribute('data-info')]; if (!n) return;
+    openDeskInfo(b, iconForHeading(n.heading), displayHeading(n.heading), `Part of the full brief. Open it to read the complete section — select any passage to highlight it and leave a comment.`);
+  }));
+}
+function renderBriefTopSummary() {
+  const el = document.getElementById('briefTopSummary'); if (!el) return;
+  const promoted = detailPromotedCache;
+  const promotedChips = promoted.slice(0, 8).map(p => {
+    const meta = catLabel(p.category);
+    return `<span class="ds-chip" data-scrollto="verdict">${meta.icon || '★'} ${escapeHtml((p.text || '').slice(0, 40))}${(p.text || '').length > 40 ? '…' : ''}</span>`;
+  }).join('');
+  const annoChips = currentAnnotations.slice(0, 6).map(a =>
+    `<span class="ds-chip" data-jump-anno="${a.id}">🖍 ${escapeHtml((a.quote || '').slice(0, 34))}${(a.quote || '').length > 34 ? '…' : ''}</span>`
+  ).join('');
+  el.innerHTML = `
+    <div class="ds-row">
+      <div class="ds-label">★ Priorities <b>${promoted.length}</b></div>
+      <div class="ds-chips">${promotedChips || '<span class="ds-empty">Nothing promoted for this brief.</span>'}</div>
+    </div>
+    <div class="ds-row">
+      <div class="ds-label">🖍 Annotations <b>${currentAnnotations.length}</b></div>
+      <div class="ds-chips">${annoChips || '<span class="ds-empty">No annotations yet — select any text in a section to highlight and comment.</span>'}</div>
+    </div>`;
+  el.querySelectorAll('[data-scrollto]').forEach(b => b.addEventListener('click', () => {
+    const t2 = document.querySelector('.verdict-grid'); if (t2) t2.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }));
+  el.querySelectorAll('[data-jump-anno]').forEach(b => b.addEventListener('click', () => {
+    const id = b.getAttribute('data-jump-anno');
+    const ann = currentAnnotations.find(a => a.id === id); if (!ann) return;
+    const secEl = document.getElementById(ann.sectionId);
+    const topEl = secEl && secEl.closest('[data-top]');
+    openBriefPanel(topEl ? topEl.getAttribute('data-top') : undefined);
+    setTimeout(() => jumpToAnno(id), 260);
+  }));
+}
+function openBriefPanel(focusTop) {
+  document.getElementById('briefOverlay').classList.add('show');
+  document.body.style.overflow = 'hidden';
+  focusBriefTop(focusTop);
+}
+function focusBriefTop(topIndex) {
+  const wrap = document.getElementById('showcaseSections'); if (!wrap) return;
+  const kids = Array.from(wrap.children);
+  if (topIndex === undefined || topIndex === null) {
+    kids.forEach(k => k.style.display = '');
+    document.getElementById('briefModalTitle').innerHTML = `<span>📖</span> Full brief`;
+    return;
+  }
+  kids.forEach(k => { k.style.display = (k.getAttribute('data-top') === String(topIndex)) ? '' : 'none'; });
+  const node = kids[+topIndex];
+  const headingText = node ? node.querySelector(':scope > .node-head .node-title')?.textContent : '';
+  document.getElementById('briefModalTitle').innerHTML = `<span>${iconForHeading(headingText)}</span> ${escapeHtml(displayHeading(headingText || ''))}`;
+}
+function closeBriefOverlay() {
+  const ov = document.getElementById('briefOverlay'); if (ov) ov.classList.remove('show');
+  document.body.style.overflow = '';
+}
+document.getElementById('briefModalClose').addEventListener('click', closeBriefOverlay);
+document.getElementById('briefModalBack').addEventListener('click', closeBriefOverlay);
+document.getElementById('briefOverlay').addEventListener('click', e => {
+  if (e.target.id !== 'briefOverlay') return;
+  if (document.getElementById('promotePop').classList.contains('show')) return;
+  if (document.getElementById('annoPop').classList.contains('show')) return;
+  closeBriefOverlay();
+});
 
 /* ==================== Annotations: highlight + comment ==================== */
 function annoSkipped(node, root) {
@@ -2169,7 +2295,7 @@ function wireMarkClicks() {
 }
 function renderAnnoBox() {
   const box = document.getElementById(annoMode === 'desk' ? 'deskAnnoBox' : 'annoBox'); if (!box) return;
-  if (!currentAnnotations.length) { box.innerHTML = ''; renderDeskTopSummary(); return; }
+  if (!currentAnnotations.length) { box.innerHTML = ''; refreshTopSummary(); return; }
   box.innerHTML = `<div class="anno-box"><div class="anno-box-title">${t('anno_box_title')} <span class="anno-box-count">${currentAnnotations.length}</span></div>
     ${currentAnnotations.map(a => `<div class="anno-item" data-jump="${a.id}">
       <div class="anno-mark"></div>
@@ -2183,7 +2309,11 @@ function renderAnnoBox() {
     unwrapAnno(id); currentAnnotations = currentAnnotations.filter(x => x.id !== id);
     renderAnnoBox(); persistAnnotations(); dashToast('Annotation removed');
   }));
-  renderDeskTopSummary();
+  refreshTopSummary();
+}
+function refreshTopSummary() {
+  if (annoMode === 'desk') { if (typeof renderDeskTopSummary === 'function') renderDeskTopSummary(); }
+  else { if (typeof renderBriefTopSummary === 'function') renderBriefTopSummary(); }
 }
 function jumpToAnno(id) {
   const mk = document.querySelector(`mark.anno[data-anno-id="${id}"]`); if (!mk) return;
