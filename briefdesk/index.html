@@ -879,7 +879,7 @@ const I18N = {
     lib_empty_title: 'No briefs yet', lib_empty_sub: 'Take any AI research answer and turn it into a desk-ready brief the whole newsroom can use.',
     detail_eyebrow: 'Newsroom brief', detail_eyebrow_role: '· reporter-ready',
     write_piece: '✍ Write your piece', continue_piece: '✍ Continue your piece', edit_brief: '✎ Edit brief',
-    copy_brief_md: '⧉ Copy brief as Markdown', send_copilot: '🤖 Send to Copilot', print: '🖨 Print',
+    copy_brief_md: '⧉ Copy brief as Markdown', send_copilot: '🤖 Send to Copilot', print: '🖨 Print', share: '🔗 Share', link_copied: 'Link copied', continue_word: '📄 Continue in Word', word_copied: 'Copied your piece — paste it into the new Word document',
     editors_verdict: "Editor's verdict", full_brief: 'Full brief', extra_resources: '🔗 Extra resources', sources_label: '📎 Sources',
     anno_box_title: '🖍 Editor annotations',
     compose_hint: 'Open a section, drag material into your piece →', back_to_brief: '← Back to brief',
@@ -898,7 +898,7 @@ const I18N = {
     exported_doc: 'Exported as .doc', exported_pdf: 'Opening print dialog — choose "Save as PDF"',
     write_first: 'Write something first', allow_popups: 'Allow pop-ups to export as PDF', copy_failed: 'Copy failed',
     copied_md: 'Piece copied as Markdown',
-    k_angle: 'Angle', k_source: 'Source', k_person: 'Person', k_keyword: 'Keyword', k_data: 'Data', k_excerpt: 'Excerpt', k_section: 'Section', k_note: 'Editor note', k_paragraph: '¶ Paragraph',
+    k_angle: 'Angle', k_source: 'Source', k_person: 'Person', k_keyword: 'Keyword', k_data: 'Data', k_excerpt: 'Excerpt', k_section: 'Section', k_note: 'Editor note', k_search: 'Search data', k_paragraph: '¶ Paragraph',
     q_angle: 'How does this angle shape your story — and what is the strongest version of it?',
     q_source: 'What does this source establish, and how will you attribute it?',
     q_person: "What is this person's role or stake — and will you seek comment?",
@@ -906,6 +906,9 @@ const I18N = {
     q_table: 'What does this data point mean for your reader?',
     q_section: 'What is the essential point here, in your own words?',
     q_annotation: "What does this editor's note ask you to address?",
+    q_search: 'What does this search data tell you about audience demand — how will you use it?',
+    search_intel: 'Search Intelligence',
+    seo_prompt_title: 'Link a related article? (optional)', seo_prompt_ph: 'https://… a related article that helps SEO relevance', seo_add: 'Add link', seo_skip: 'Skip',
     q_default: 'How will you use this in your piece?',
   },
   fa: {
@@ -922,7 +925,7 @@ const I18N = {
     lib_empty_title: 'هنوز بریفی ثبت نشده', lib_empty_sub: 'هر پاسخ پژوهشی هوش مصنوعی را بردارید و آن را به بریفی آماده برای کل تحریریه تبدیل کنید.',
     detail_eyebrow: 'بریف تحریریه', detail_eyebrow_role: '· آماده گزارشگر',
     write_piece: '✍ نگارش متن', continue_piece: '✍ ادامه نگارش متن', edit_brief: '✎ ویرایش بریف',
-    copy_brief_md: '⧉ کپی بریف به‌صورت مارک‌داون', send_copilot: '🤖 ارسال به کوپایلوت', print: '🖨 چاپ',
+    copy_brief_md: '⧉ کپی بریف به‌صورت مارک‌داون', send_copilot: '🤖 ارسال به کوپایلوت', print: '🖨 چاپ', share: '🔗 اشتراک‌گذاری', link_copied: 'لینک کپی شد', continue_word: '📄 ادامه در Word', word_copied: 'متن شما کپی شد — آن را در سند Word جدید جای‌گذاری کنید',
     editors_verdict: 'رأی دبیر', full_brief: 'بریف کامل', extra_resources: '🔗 منابع تکمیلی', sources_label: '📎 منابع',
     anno_box_title: '🖍 یادداشت‌های دبیر',
     compose_hint: 'یک بخش را باز کنید و منابع را به متن خود بکشید ←', back_to_brief: '→ بازگشت به بریف',
@@ -941,7 +944,7 @@ const I18N = {
     exported_doc: 'خروجی .doc ذخیره شد', exported_pdf: 'پنجره چاپ باز شد — گزینه «ذخیره به‌صورت PDF» را انتخاب کنید',
     write_first: 'ابتدا چیزی بنویسید', allow_popups: 'برای خروجی PDF، پنجره‌های بازشو را مجاز کنید', copy_failed: 'کپی ناموفق بود',
     copied_md: 'متن به‌صورت مارک‌داون کپی شد',
-    k_angle: 'زاویه', k_source: 'منبع', k_person: 'فرد', k_keyword: 'کلیدواژه', k_data: 'داده', k_excerpt: 'گزیده', k_section: 'بخش', k_note: 'یادداشت دبیر', k_paragraph: '¶ پاراگراف',
+    k_angle: 'زاویه', k_source: 'منبع', k_person: 'فرد', k_keyword: 'کلیدواژه', k_data: 'داده', k_excerpt: 'گزیده', k_section: 'بخش', k_note: 'یادداشت دبیر', k_search: 'داده جست‌وجو', k_paragraph: '¶ پاراگراف',
     q_angle: 'این زاویه چگونه داستان شما را شکل می‌دهد — و قوی‌ترین برداشت از آن چیست؟',
     q_source: 'این منبع چه چیزی را اثبات می‌کند و چگونه به آن استناد می‌دهید؟',
     q_person: 'نقش یا سهم این فرد چیست — آیا برای اظهارنظر با او تماس می‌گیرید؟',
@@ -949,6 +952,9 @@ const I18N = {
     q_table: 'این داده برای خواننده شما چه معنایی دارد؟',
     q_section: 'نکته اصلی اینجا، با کلام خودتان، چیست؟',
     q_annotation: 'این یادداشت دبیر از شما چه می‌خواهد؟',
+    q_search: 'این داده جست‌وجو درباره تقاضای مخاطب چه می‌گوید — چگونه از آن استفاده می‌کنید؟',
+    search_intel: 'هوش جست‌وجو',
+    seo_prompt_title: 'لینک مقاله مرتبط؟ (اختیاری)', seo_prompt_ph: 'https:// … مقاله مرتبطی که به سئو کمک می‌کند', seo_add: 'افزودن لینک', seo_skip: 'رد کردن',
     q_default: 'چگونه از این در متن خود استفاده می‌کنید؟',
   },
 };
@@ -1182,7 +1188,8 @@ function collectStats(nodes) {
   })(nodes);
   return { sections, sources: urls.size, items };
 }
-function visibleNodes(tree) { return (Array.isArray(tree) ? tree : []).filter(n => n && n._editor !== 'annotations' && n._editor !== 'piece'); }
+function visibleNodes(tree) { return (Array.isArray(tree) ? tree : []).filter(n => n && n._editor !== 'annotations' && n._editor !== 'piece' && n._editor !== 'search'); }
+function searchIntelNode(tree) { return (Array.isArray(tree) ? tree : []).find(n => n && n._editor === 'search') || null; }
 
 /* ==================== State ==================== */
 let currentTree = [], currentPromoted = [], currentLinks = [], currentBriefId = null, promoIdSeq = 0, editingId = null, detailRow = null, currentAnnotations = [];
@@ -1910,6 +1917,7 @@ document.getElementById('saveBriefBtn').addEventListener('click', async () => {
   try {
     const saved = editingId ? await sbUpdate('dna_agent_briefs', editingId, payload) : await sbInsert('dna_agent_briefs', payload);
     currentBriefId = saved[0].id;
+    upsertLibraryCache(saved[0]);
     dashToast(editingId ? 'Brief updated' : 'Published to library');
     editingId = null; updateSaveMode();
     openDetail(saved[0]);
@@ -1919,6 +1927,11 @@ document.getElementById('saveBriefBtn').addEventListener('click', async () => {
 
 /* ==================== Library ==================== */
 let LIBRARY_CACHE = [], activeLlm = 'all';
+function upsertLibraryCache(row) {
+  if (!row || !row.id) return;
+  const i = LIBRARY_CACHE.findIndex(r => r.id === row.id);
+  if (i >= 0) LIBRARY_CACHE[i] = row; else LIBRARY_CACHE.unshift(row);
+}
 function briefPromotedItems(row) {
   if (Array.isArray(row.promoted_items) && row.promoted_items.length) return row.promoted_items;
   const pa = Array.isArray(row.priority_angles) ? row.priority_angles : [];
@@ -2120,7 +2133,7 @@ async function openDetail(row) {
         <button class="btn sm" id="editBriefBtn">${t('edit_brief')}</button>
         <button class="btn sm" id="copyBriefBtn">${t('copy_brief_md')}</button>
         <button class="btn sm" id="copilotFromBrief">${t('send_copilot')}</button>
-        <button class="btn sm ghost" id="printBrief">${t('print')}</button>
+        <button class="btn sm ghost" id="shareBrief">${t('share')}</button>
       </div>
     </div>
     <div class="stat-strip">
@@ -2161,7 +2174,12 @@ async function openDetail(row) {
   wp.addEventListener('click', () => enterCompose(row));
   document.getElementById('copyBriefBtn').addEventListener('click', () => copyBriefMarkdown(row, promoted, links));
   document.getElementById('copilotFromBrief').addEventListener('click', () => openCopilotPopup(briefToMarkdown(row, promoted, links)));
-  document.getElementById('printBrief').addEventListener('click', () => window.print());
+  document.getElementById('shareBrief').addEventListener('click', async () => {
+    const url = window.location.origin + briefPath(row);
+    if (navigator.share) { try { await navigator.share({ title: row.topic, url }); return; } catch (e) { if (e && e.name === 'AbortError') return; } }
+    try { await navigator.clipboard.writeText(url); dashToast(t('link_copied') + ' — ' + url); }
+    catch (e) { dashToast(t('copy_failed')); }
+  });
 
   buildSpine('briefSpineNav', sections, 'dsec-', 'showcaseSections');
   renderBriefBento(sections);
@@ -2515,14 +2533,14 @@ function persistAnnotations() {
 /* ==================== Composer: Write your piece ==================== */
 let composePiece = null, composeBriefId = null, COMPOSE_MATERIALS = {}, matSeq = 0, blkSeq = 0, composeSaveTimer = null;
 function KIND_LABEL_OF(kind) {
-  const map = { angle: 'k_angle', source: 'k_source', person: 'k_person', keyword: 'k_keyword', table: 'k_data', text: 'k_excerpt', section: 'k_section', annotation: 'k_note' };
-  const icons = { angle: '★', source: '🔗', person: '👤', keyword: '🏷️', table: '▦', text: '¶', section: '❖', annotation: '🖍' };
+  const map = { angle: 'k_angle', source: 'k_source', person: 'k_person', keyword: 'k_keyword', table: 'k_data', text: 'k_excerpt', section: 'k_section', annotation: 'k_note', search: 'k_search' };
+  const icons = { angle: '★', source: '🔗', person: '👤', keyword: '🏷️', table: '▦', text: '¶', section: '❖', annotation: '🖍', search: '🔎' };
   return { i: icons[kind] || icons.text, l: t(map[kind] || 'k_excerpt') };
 }
 const KIND_LABEL = new Proxy({}, { get: (_, kind) => KIND_LABEL_OF(kind) });
 function pieceFromTree(tree) { const n = (Array.isArray(tree) ? tree : []).find(x => x && x._editor === 'piece'); return n && n.piece ? n.piece : null; }
 function materialQuestion(kind) {
-  const map = { angle: 'q_angle', source: 'q_source', person: 'q_person', keyword: 'q_keyword', table: 'q_table', section: 'q_section', annotation: 'q_annotation' };
+  const map = { angle: 'q_angle', source: 'q_source', person: 'q_person', keyword: 'q_keyword', table: 'q_table', section: 'q_section', annotation: 'q_annotation', search: 'q_search' };
   return t(map[kind] || 'q_default');
 }
 function regMat(m) { const id = 'm' + (matSeq++); COMPOSE_MATERIALS[id] = m; return id; }
@@ -2560,6 +2578,7 @@ function enterCompose(row) {
             <button class="btn sm" id="cmpCopy">${t('copy_text')}</button>
             <button class="btn sm" id="cmpExportDoc">${t('export_doc')}</button>
             <button class="btn sm" id="cmpExportPdf">${t('export_pdf')}</button>
+            <button class="btn sm" id="cmpWordCloud">${t('continue_word')}</button>
           </div>
         </div>
         <div class="cmp-foot">
@@ -2576,6 +2595,13 @@ function enterCompose(row) {
   document.getElementById('cmpCopy').addEventListener('click', copyPiece);
   document.getElementById('cmpExportDoc').addEventListener('click', exportPieceDoc);
   document.getElementById('cmpExportPdf').addEventListener('click', exportPiecePdf);
+  document.getElementById('cmpWordCloud').addEventListener('click', () => {
+    renderFinalPreview();
+    const finalEl = document.getElementById('cmpFinal');
+    const text = finalEl ? finalEl.innerText : '';
+    if (text.trim()) { navigator.clipboard.writeText(text).catch(() => {}); dashToast(t('word_copied')); }
+    window.open('https://word.cloud.microsoft/', '_blank', 'noopener');
+  });
   wireMaterialDrag();
   wireComposerDrop();
   renderComposerBody();
@@ -2611,6 +2637,29 @@ function composeMaterialsHtml(row) {
       rows += matRow(mid, '🖍', a.quote, a.comment);
     });
     html += accWrap('🖍', t('editor_annotations'), annotations.length, rows, true);
+  }
+
+  const searchNode = searchIntelNode(row.parsed_sections);
+  if (searchNode && searchNode.children && searchNode.children.length) {
+    let siBody = '', siCount = 0;
+    searchNode.children.forEach(c => {
+      let rows = '';
+      if (c.table && Array.isArray(c.table.rows)) {
+        c.table.rows.forEach(r => {
+          const kw = (r[0] || '').trim(); if (!kw) return;
+          const stats = r.slice(1).filter(Boolean).join(' · ');
+          const mid = regMat({ kind: 'search', text: kw, note: stats });
+          rows += matRow(mid, '🔎', kw, stats); siCount++;
+        });
+      } else {
+        (c.items || []).forEach(it => {
+          const mid = regMat({ kind: 'search', text: it });
+          rows += matRow(mid, /trend/i.test(c.heading || '') ? '📈' : '📰', it); siCount++;
+        });
+      }
+      if (rows) siBody += accSub(/trend/i.test(c.heading||'') ? '📈' : /article/i.test(c.heading||'') ? '📰' : '🔎', c.heading || 'Search data', null, rows);
+    });
+    if (siBody) html += accWrap('🔎', t('search_intel') || 'Search Intelligence', siCount, siBody, true);
   }
 
   let briefBody = '', briefCount = 0;
@@ -2665,11 +2714,18 @@ function wireComposerDrop() {
 }
 function addMaterialBlock(mat) {
   const id = 'b' + (blkSeq++);
-  composePiece.blocks.push({ id, type: 'material', kind: mat.kind, text: mat.text, url: mat.url || null, note: mat.note || '', audio: mat.audio || null, question: materialQuestion(mat.kind), answer: '' });
+  const block = { id, type: 'material', kind: mat.kind, text: mat.text, url: mat.url || null, note: mat.note || '', audio: mat.audio || null, question: materialQuestion(mat.kind), answer: '', seoLink: null };
+  composePiece.blocks.push(block);
   renderComposerBody(); scheduleComposeSave();
   const blk = document.querySelector(`.blk[data-id="${id}"]`);
   if (blk) { blk.scrollIntoView({ behavior: 'smooth', block: 'center' }); const ta = blk.querySelector('.blk-answer'); if (ta) setTimeout(() => ta.focus(), 300); }
   dashToast(t('material_added'));
+  if (mat.kind === 'search') {
+    setTimeout(() => {
+      const url = window.prompt(`${t('seo_prompt_title')}\n${t('seo_prompt_ph')}`, '');
+      if (url && url.trim()) { block.seoLink = url.trim(); renderComposerBody(); scheduleComposeSave(); }
+    }, 350);
+  }
 }
 
 function renderComposerBody() {
@@ -2696,6 +2752,7 @@ function renderComposerBody() {
           <div class="blk-quote">${linkify(b.text)}</div>
           ${b.note && b.note.trim() ? `<div class="blk-note">${linkify(b.note)}</div>` : ''}
           ${b.audio ? `<audio class="anno-audio" controls preload="none" src="${b.audio}"></audio>` : ''}
+          ${b.seoLink ? `<div class="blk-note">🔗 SEO reference: <a href="${escapeHtml(b.seoLink)}" target="_blank" rel="noopener noreferrer">${escapeHtml(b.seoLink)}</a></div>` : ''}
           <div class="blk-q">${escapeHtml(b.question)}</div>
         </div>
         <textarea class="blk-answer" data-id="${b.id}" placeholder="${t('write_passage_ph')}">${escapeHtml(b.answer || '')}</textarea>
@@ -2836,13 +2893,14 @@ function scheduleComposeSave() {
 function flushComposeSave() {
   clearTimeout(composeSaveTimer);
   if (!composeBriefId) return;
-  const rowRef = LIBRARY_CACHE.find(r => r.id === composeBriefId) || detailRow;
+  const rowRef = (detailRow && detailRow.id === composeBriefId) ? detailRow : LIBRARY_CACHE.find(r => r.id === composeBriefId);
   if (!rowRef) return;
   let ps = Array.isArray(rowRef.parsed_sections) ? rowRef.parsed_sections.filter(n => !(n && n._editor === 'piece')) : [];
   const hasContent = composePiece.headline || composePiece.standfirst || composePiece.blocks.length;
   if (hasContent) ps = ps.concat([{ _editor: 'piece', heading: '', level: 0, type: 'text', children: [], items: [], table: null, paragraph: '', piece: composePiece }]);
   rowRef.parsed_sections = ps;
   if (detailRow && detailRow.id === composeBriefId) detailRow.parsed_sections = ps;
+  upsertLibraryCache(rowRef);
   sbUpdate('dna_agent_briefs', composeBriefId, { parsed_sections: ps })
     .then(() => { const s = document.getElementById('cmpSave'); if (s) { s.textContent = t('draft_saved'); s.classList.remove('saving'); } })
     .catch(err => { const s = document.getElementById('cmpSave'); if (s) { s.textContent = t('save_failed'); s.classList.remove('saving'); } dashToast(t('save_failed') + ': ' + err.message); });
