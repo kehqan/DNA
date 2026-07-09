@@ -1,6 +1,0 @@
-{
-  "rewrites": [
-    { "source": "/briefdesk", "destination": "/index.html" },
-    { "source": "/briefdesk/:slug", "destination": "/index.html" }
-  ]
-}
