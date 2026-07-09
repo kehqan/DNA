@@ -342,6 +342,81 @@ html[dir="rtl"] .blk-note { border-left: none; border-right: 2px solid var(--hon
 .small-btn:hover { background: var(--flame-d); }
 .sc-lbl { font-size: 10px; font-weight: 600; color: var(--soft); line-height: 1.4; } .sc-lbl b { color: var(--teal2); }
 
+/* ============ Desk: bento overview + liquid-glass drill-down ============ */
+.sdiv2 { display: flex; align-items: center; gap: 14px; margin: 26px 0 14px; }
+.sdiv2 h2 { font-family: var(--serif); font-size: 13.5px; font-weight: 600; color: var(--soft); text-transform: uppercase; letter-spacing: 0.06em; white-space: nowrap; }
+.rule2 { flex: 1; height: 1px; background: var(--border); }
+
+.desk-top-summary { display: flex; flex-direction: column; gap: 10px; background: var(--glass); border: 1px solid var(--glass-b); box-shadow: var(--gs), var(--gi); border-radius: 16px; padding: 14px 16px; margin-bottom: 4px; }
+.ds-row { display: flex; align-items: center; gap: 10px; }
+.ds-label { font-size: 11px; font-weight: 700; color: var(--teal2); white-space: nowrap; flex-shrink: 0; display: flex; align-items: baseline; gap: 5px; }
+.ds-label b { font-family: var(--serif); font-size: 13px; color: var(--flame); }
+.ds-chips { display: flex; gap: 6px; overflow-x: auto; flex: 1; scrollbar-width: none; padding: 2px 0; }
+.ds-chips::-webkit-scrollbar { display: none; }
+.ds-chip { font-size: 11px; color: var(--muted); background: rgba(var(--inkC),0.04); border: 1px solid var(--border2); border-radius: 100px; padding: 5px 12px; white-space: nowrap; cursor: pointer; transition: all 140ms; flex-shrink: 0; }
+.ds-chip:hover { background: var(--teal); color: #fff; border-color: transparent; }
+.ds-empty { font-size: 11px; color: var(--soft); font-style: italic; padding: 5px 0; }
+.ds-more { font-size: 10.5px; font-weight: 700; color: var(--teal2); background: transparent; border: none; cursor: pointer; white-space: nowrap; flex-shrink: 0; padding: 5px 8px; }
+.ds-more:hover { color: var(--flame); }
+
+.desk-bento { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; margin-bottom: 8px; }
+.desk-rail { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.dcard {
+  position: relative; border-radius: 18px; padding: 16px 17px; cursor: pointer;
+  background: var(--glass); backdrop-filter: blur(18px) saturate(1.7); -webkit-backdrop-filter: blur(18px) saturate(1.7);
+  border: 1px solid var(--glass-b); box-shadow: var(--gs), var(--gi);
+  transition: transform 200ms var(--eo), box-shadow 200ms var(--eo);
+  display: flex; flex-direction: column; gap: 8px; min-height: 128px;
+  animation: dcardRise 380ms var(--eo) both;
+}
+@keyframes dcardRise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.dcard:hover { transform: translateY(-2px); box-shadow: 0 16px 38px rgba(26,57,72,0.13), 0 2px 8px rgba(26,57,72,0.06), inset 0 1px 0 rgba(255,255,255,0.96); }
+.dc-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.dc-ico { font-size: 17px; width: 32px; height: 32px; border-radius: 10px; background: rgba(255,255,255,0.65); border: 1px solid var(--glass-b); display: flex; align-items: center; justify-content: center; box-shadow: var(--gi); flex-shrink: 0; }
+.dc-count { font-size: 10px; font-weight: 700; color: var(--flame); background: rgba(255,84,0,0.09); border: 1px solid rgba(255,84,0,0.18); padding: 3px 9px; border-radius: 100px; white-space: nowrap; }
+.dc-title { font-family: var(--serif); font-size: 14.5px; font-weight: 600; color: var(--teal); line-height: 1.3; }
+.dc-sub { font-size: 11px; color: var(--muted); line-height: 1.45; }
+.dc-open { font-size: 10.5px; font-weight: 700; color: var(--teal2); display: flex; align-items: center; gap: 4px; margin-top: auto; }
+.dcard:hover .dc-open { color: var(--flame); }
+.dc-info { position: absolute; bottom: 12px; right: 12px; width: 22px; height: 22px; border-radius: 50%; border: 1px solid var(--border2); background: rgba(255,255,255,0.75); color: var(--soft); font-size: 11px; font-weight: 700; font-family: var(--serif); font-style: italic; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 150ms; z-index: 2; }
+.dc-info:hover { background: var(--teal2); color: #fff; border-color: transparent; transform: scale(1.08); }
+
+.desk-overlay { position: fixed; inset: 0; z-index: 90; background: rgba(15,28,35,0.42); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); display: none; align-items: center; justify-content: center; padding: 24px; overflow-y: auto; }
+.desk-overlay.show { display: flex; animation: deskFade 200ms var(--eo); }
+@keyframes deskFade { from { opacity: 0; } to { opacity: 1; } }
+.desk-modal { width: 100%; max-width: 980px; margin: auto; border-radius: 26px; position: relative;
+  background: rgba(248,247,246,0.94); backdrop-filter: blur(30px) saturate(1.9); -webkit-backdrop-filter: blur(30px) saturate(1.9);
+  border: 1px solid rgba(255,255,255,0.9); box-shadow: 0 30px 80px rgba(15,28,35,0.32), 0 4px 16px rgba(15,28,35,0.14), inset 0 1px 0 rgba(255,255,255,0.95);
+  animation: deskModalRise 260ms var(--eo); overflow: hidden; display: flex; flex-direction: column; max-height: 88vh; }
+@keyframes deskModalRise { from { opacity: 0; transform: translateY(16px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+.desk-modal-head { display: flex; align-items: center; gap: 12px; padding: 16px 22px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+.desk-modal-back { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: var(--teal2); background: rgba(255,255,255,0.7); border: 1px solid var(--border2); border-radius: 100px; padding: 8px 14px; cursor: pointer; transition: all 150ms; flex-shrink: 0; }
+.desk-modal-back:hover { background: var(--teal); color: #fff; border-color: transparent; }
+.desk-modal-title { font-family: var(--serif); font-size: 17px; font-weight: 600; color: var(--teal); display: flex; align-items: center; gap: 9px; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.desk-modal-close { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--border2); background: rgba(255,255,255,0.7); color: var(--muted); font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 150ms; flex-shrink: 0; }
+.desk-modal-close:hover { background: var(--teal); color: #fff; border-color: transparent; transform: rotate(90deg); }
+.desk-modal-body { padding: 20px 24px 26px; overflow-y: auto; }
+.desk-panel .resources-box { background: transparent; border: none; padding: 0; }
+.desk-panel .promo-box:first-child { margin-top: 0; }
+
+.info-pop { position: fixed; z-index: 200; width: 300px; max-width: calc(100vw - 32px); background: var(--paper); border: 1px solid var(--border2); border-radius: 14px;
+  box-shadow: 0 20px 50px rgba(26,57,72,0.20); padding: 14px 16px; display: none; }
+.info-pop.show { display: block; animation: dcardRise 180ms var(--eo); }
+.info-pop-title { font-family: var(--serif); font-size: 13.5px; font-weight: 600; color: var(--teal); margin-bottom: 6px; display: flex; align-items: center; gap: 7px; }
+.info-pop-body { font-size: 12px; color: var(--muted); line-height: 1.6; }
+
+@media (max-width: 860px) {
+  .desk-bento { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+  .desk-rail { grid-template-columns: repeat(2, 1fr); }
+  .ds-row { flex-wrap: wrap; }
+}
+@media (max-width: 620px) {
+  .desk-bento, .desk-rail { grid-template-columns: 1fr; }
+  .desk-overlay { padding: 0; align-items: flex-end; }
+  .desk-modal { max-width: 100%; max-height: 92vh; border-radius: 20px 20px 0 0; }
+  .desk-modal-back .lbl { display: none; }
+}
+
 /* ============ Brief (detail) view ============ */
 .brief-layout { display: grid; grid-template-columns: 230px 1fr; gap: 28px; align-items: stretch; }
 @media (max-width: 940px) { .brief-layout { grid-template-columns: 1fr; } .brief-spine { display: none; } }
@@ -643,26 +718,48 @@ mark.anno.pulse { animation: markPulse 1200ms var(--eo); }
       <button class="btn primary" id="saveBriefBtn">Publish to library</button>
     </div>
     <div class="stat-strip" id="statStrip"></div>
-    <div class="desk-layout">
-      <div class="desk-spine">
-        <div class="spine">
-          <div class="spine-label">Outline</div>
-          <div class="spine-nav" id="deskSpineNav"></div>
-        </div>
-      </div>
-      <div>
+
+    <div class="desk-meter">
+      <div class="desk-meter-title">Brief readiness</div>
+      <div class="meter-track"><div class="meter-fill" id="meterFill" style="width:0%"></div></div>
+      <div class="meter-hint" id="meterHint">Promote a few angles and sources to make this desk-ready.</div>
+    </div>
+
+    <div class="desk-top-summary" id="deskTopSummary"></div>
+
+    <div class="sdiv2"><h2>Outline</h2><div class="rule2"></div></div>
+    <div class="desk-bento" id="deskBento"></div>
+
+    <div class="sdiv2"><h2>Working panel</h2><div class="rule2"></div></div>
+    <div class="desk-rail" id="deskRail"></div>
+
+    <div style="display:none" aria-hidden="true">
+      <div class="spine" id="deskSpineLegacy"><div class="spine-nav" id="deskSpineNav"></div></div>
+    </div>
+  </div>
+
+  <!-- BRIEF (detail) -->
+  <div class="view" id="viewDetail"></div>
+
+</div>
+
+<div class="desk-overlay" id="deskOverlay">
+  <div class="desk-modal">
+    <div class="desk-modal-head">
+      <button class="desk-modal-back" id="deskModalBack"><span>←</span><span class="lbl">Overview</span></button>
+      <div class="desk-modal-title" id="deskModalTitle"></div>
+      <button class="desk-modal-close" id="deskModalClose">✕</button>
+    </div>
+    <div class="desk-modal-body">
+      <div id="deskPanelOutline" class="desk-panel">
         <div id="deskAnnoBox"></div>
         <div id="reviewSections"></div>
       </div>
-      <div class="editor-panel">
-        <div class="desk-meter">
-          <div class="desk-meter-title">Brief readiness</div>
-          <div class="meter-track"><div class="meter-fill" id="meterFill" style="width:0%"></div></div>
-          <div class="meter-hint" id="meterHint">Promote a few angles and sources to make this desk-ready.</div>
-        </div>
+      <div id="deskPanelPriorities" class="desk-panel" style="display:none">
         <div id="promoBoxesContainer"></div>
+      </div>
+      <div id="deskPanelResources" class="desk-panel" style="display:none">
         <div class="resources-box">
-          <div class="promo-box-title">🔗 Extra resources</div>
           <div id="linksList"></div>
           <div class="add-link-form">
             <input type="text" id="newLinkLabel" placeholder="Label (e.g. Radio Farda dossier)">
@@ -672,9 +769,9 @@ mark.anno.pulse { animation: markPulse 1200ms var(--eo); }
             <button class="small-btn" id="addLinkBtn">+ Add resource</button>
           </div>
         </div>
-
-        <div class="resources-box" style="margin-top:12px;">
-          <div class="promo-box-title" style="color:var(--teal2);">👤 People &amp; experts</div>
+      </div>
+      <div id="deskPanelPeople" class="desk-panel" style="display:none">
+        <div class="resources-box">
           <div id="peopleList"></div>
           <div class="add-link-form">
             <input type="text" id="newPersonName" placeholder="Name (e.g. Ali Vaez)">
@@ -684,11 +781,10 @@ mark.anno.pulse { animation: markPulse 1200ms var(--eo); }
             <button class="small-btn" id="addPersonBtn">+ Add person</button>
           </div>
         </div>
-
-        <div class="resources-box" style="margin-top:12px;">
-          <div class="promo-box-title" style="color:var(--teal2);">🔎 Search intelligence</div>
+      </div>
+      <div id="deskPanelSearch" class="desk-panel" style="display:none">
+        <div class="resources-box">
           <div class="meter-hint" style="margin-bottom:10px;">Fill the table, paste rows, or upload a Search Console CSV. New data accumulates — nothing is replaced.</div>
-
           <div class="sc-sub">Search Console keywords</div>
           <div id="scKwTable"></div>
           <div class="sc-tools">
@@ -698,7 +794,6 @@ mark.anno.pulse { animation: markPulse 1200ms var(--eo); }
             <input type="file" id="scFile" accept=".csv,.tsv,.txt" hidden>
             <button class="mini-icon-btn danger" id="scClearKw">Clear</button>
           </div>
-
           <div class="sc-sub" style="margin-top:14px;">Winning articles</div>
           <div id="scArtList"></div>
           <div class="add-link-form" style="margin-top:6px;">
@@ -706,22 +801,18 @@ mark.anno.pulse { animation: markPulse 1200ms var(--eo); }
             <input type="text" id="scArtUrl" placeholder="https://…">
             <button class="mini-icon-btn" id="scAddArt" style="align-self:flex-start;">＋ Add article</button>
           </div>
-
           <div class="sc-sub" style="margin-top:14px;">Google Trends terms</div>
           <div id="scTrendChips" class="sc-chips"></div>
           <input type="text" id="scTrendInput" placeholder="Type a term, press Enter" style="font-size:11.5px;padding:8px 10px;border:1px solid var(--border2);border-radius:8px;background:var(--paper);outline:none;width:100%;margin-top:6px;">
-
           <button class="small-btn" id="scApply" style="margin-top:12px;">Add to brief</button>
           <div id="searchIntelStatus" class="meter-hint" style="margin-top:8px;"></div>
         </div>
       </div>
     </div>
   </div>
-
-  <!-- BRIEF (detail) -->
-  <div class="view" id="viewDetail"></div>
-
 </div>
+
+<div class="info-pop" id="deskInfoPop"></div>
 
 <button class="copilot-fab" id="copilotFab" title="Open Copilot">🤖</button>
 <div class="pop" id="promotePop"></div>
@@ -1098,7 +1189,7 @@ document.getElementById('parseBtn').addEventListener('click', () => {
       currentPromoted = []; currentLinks = []; currentBriefId = null; editingId = null; currentAnnotations = []; resetSearchIntel(); updateSaveMode();
       p.classList.remove('active'); p.textContent = '';
       document.getElementById('reviewTitle').textContent = topic;
-      renderReview(); showView('review');
+      closeDeskOverlay(); renderReview(); showView('review');
     }, 380);
   }, 260);
 });
@@ -1161,12 +1252,161 @@ function renderReview() {
   const wrap = document.getElementById('reviewSections');
   const vis = visibleNodes(currentTree);
   wrap.innerHTML = vis.map((n, i) => nodeHtml(n, String(i))).join('');
+  Array.from(wrap.children).forEach((el, i) => el.setAttribute('data-top', String(i)));
   hydrateTables(wrap);
   wireTreeListeners(wrap);
   renderStatStrip(); renderPromoBoxes(); renderLinksList(); renderPeopleList(); renderSearchIntel(); renderMeter();
   buildSpine('deskSpineNav', vis, 'dsec-', 'reviewSections');
   restoreAnnotations(); wireAnnotationSelection(); renderAnnoBox();
+  renderDeskBento(vis); renderDeskRail(); renderDeskTopSummary();
 }
+
+/* ---------- Desk overview: bento cards + liquid-glass drill-down ---------- */
+function displayHeading(h) {
+  return String(h || '').replace(/^\/?agentmode:\s*/i, '').replace(/^AGENT\s*\d+\s*[—\-:]\s*/i, '').trim() || 'Untitled section';
+}
+function iconForHeading(h) {
+  const s = String(h || '').toLowerCase();
+  if (/snapshot/.test(s)) return '📌';
+  if (/research/.test(s)) return '🔎';
+  if (/coverage/.test(s)) return '📰';
+  if (/discovery|seo|demand/.test(s)) return '🧭';
+  if (/editorial|opportunity/.test(s)) return '🎯';
+  if (/synthesis|assessment/.test(s)) return '🧬';
+  if (/timeline/.test(s)) return '🕘';
+  return '❖';
+}
+const DESK_RAIL_META = {
+  priorities: { icon: '★', title: 'Priorities', explain: 'Everything promoted from the outline — priority angles, key sources, people to watch, and keywords — ranked and ready to hand to a reporter.' },
+  resources:  { icon: '🔗', title: 'Extra Resources', explain: 'Links an editor attaches manually — background reading, embargoed documents, internal dossiers — that sit outside the automated research.' },
+  people:     { icon: '👤', title: 'People & Experts', explain: 'Sources and experts worth contacting for this story, with role and context, so a reporter can go straight to outreach.' },
+  search:     { icon: '🔎', title: 'Search Intelligence', explain: 'Search Console keywords, winning articles already ranking, and Google Trends terms — grounds the angle in real audience demand.' },
+};
+function renderDeskBento(vis) {
+  const grid = document.getElementById('deskBento'); if (!grid) return;
+  grid.innerHTML = vis.map((n, i) => {
+    const stats = collectStats([n]);
+    const icon = iconForHeading(n.heading);
+    return `<div class="dcard" data-top="${i}">
+      <button class="dc-info" data-info="top-${i}" title="What is this?">i</button>
+      <div class="dc-top"><div class="dc-ico">${icon}</div><span class="dc-count">${stats.sections} sections</span></div>
+      <div><div class="dc-title">${escapeHtml(displayHeading(n.heading))}</div><div class="dc-sub">${stats.items} points · ${stats.sources} sources</div></div>
+      <div class="dc-open">Open <span>→</span></div>
+    </div>`;
+  }).join('') || `<div class="promo-empty">This brief has no parsed sections yet.</div>`;
+  grid.querySelectorAll('.dcard').forEach(el => el.addEventListener('click', e => {
+    if (e.target.closest('.dc-info')) return;
+    openDeskPanel('outline', el.getAttribute('data-top'));
+  }));
+  grid.querySelectorAll('[data-info]').forEach(b => b.addEventListener('click', e => {
+    e.stopPropagation();
+    const idx = +b.getAttribute('data-info').replace('top-', '');
+    const n = vis[idx]; if (!n) return;
+    openDeskInfo(b, iconForHeading(n.heading), displayHeading(n.heading), `Part of the ${displayHeading(n.heading)} research — expand it to read the full breakdown, promote key points into Priorities, or highlight a passage to leave a comment for the reporter.`);
+  }));
+}
+function renderDeskRail() {
+  const rail = document.getElementById('deskRail'); if (!rail) return;
+  const counts = {
+    priorities: currentPromoted.length,
+    resources: currentLinks.length,
+    people: currentPromoted.filter(p => p.category === 'person' && p.manual).length,
+    search: (searchIntel.keywords.filter(r => r.some(c => String(c).trim())).length) + searchIntel.articles.length + searchIntel.trends.length,
+  };
+  rail.innerHTML = Object.keys(DESK_RAIL_META).map(key => {
+    const m = DESK_RAIL_META[key];
+    return `<div class="dcard" data-panel="${key}">
+      <button class="dc-info" data-info="rail-${key}" title="What is this?">i</button>
+      <div class="dc-top"><div class="dc-ico">${m.icon}</div><span class="dc-count">${counts[key]}</span></div>
+      <div><div class="dc-title" style="font-size:14px">${m.title}</div></div>
+      <div class="dc-open">Open <span>→</span></div>
+    </div>`;
+  }).join('');
+  rail.querySelectorAll('.dcard').forEach(el => el.addEventListener('click', e => {
+    if (e.target.closest('.dc-info')) return;
+    openDeskPanel(el.getAttribute('data-panel'));
+  }));
+  rail.querySelectorAll('[data-info]').forEach(b => b.addEventListener('click', e => {
+    e.stopPropagation();
+    const key = b.getAttribute('data-info').replace('rail-', ''); const m = DESK_RAIL_META[key];
+    openDeskInfo(b, m.icon, m.title, m.explain);
+  }));
+}
+function renderDeskTopSummary() {
+  const el = document.getElementById('deskTopSummary'); if (!el) return;
+  const promotedChips = currentPromoted.slice(0, 8).map(p => {
+    const meta = catLabel(p.category);
+    return `<span class="ds-chip" data-openpanel="priorities">${meta.icon || '★'} ${escapeHtml((p.text || '').slice(0, 40))}${(p.text || '').length > 40 ? '…' : ''}</span>`;
+  }).join('');
+  const annoChips = currentAnnotations.slice(0, 6).map(a =>
+    `<span class="ds-chip" data-jump-anno="${a.id}">🖍 ${escapeHtml((a.quote || '').slice(0, 34))}${(a.quote || '').length > 34 ? '…' : ''}</span>`
+  ).join('');
+  el.innerHTML = `
+    <div class="ds-row">
+      <div class="ds-label">★ Priorities <b>${currentPromoted.length}</b></div>
+      <div class="ds-chips">${promotedChips || '<span class="ds-empty">Nothing promoted yet — open a section and hit ★ promote on any line.</span>'}</div>
+      ${currentPromoted.length ? `<button class="ds-more" data-openpanel="priorities">Open all →</button>` : ''}
+    </div>
+    <div class="ds-row">
+      <div class="ds-label">🖍 Annotations <b>${currentAnnotations.length}</b></div>
+      <div class="ds-chips">${annoChips || '<span class="ds-empty">No annotations yet — select any text in a section to highlight and comment.</span>'}</div>
+    </div>`;
+  el.querySelectorAll('[data-openpanel]').forEach(b => b.addEventListener('click', () => openDeskPanel(b.getAttribute('data-openpanel'))));
+  el.querySelectorAll('[data-jump-anno]').forEach(b => b.addEventListener('click', () => {
+    const id = b.getAttribute('data-jump-anno');
+    const ann = currentAnnotations.find(a => a.id === id); if (!ann) return;
+    const secEl = document.getElementById(ann.sectionId);
+    const topEl = secEl && secEl.closest('[data-top]');
+    openDeskPanel('outline', topEl ? topEl.getAttribute('data-top') : undefined);
+    setTimeout(() => jumpToAnno(id), 260);
+  }));
+}
+let deskCurrentPanel = null;
+function openDeskPanel(which, focusTop) {
+  document.getElementById('deskOverlay').classList.add('show');
+  document.querySelectorAll('.desk-panel').forEach(p => p.style.display = 'none');
+  deskCurrentPanel = which;
+  const panelId = 'deskPanel' + which.charAt(0).toUpperCase() + which.slice(1);
+  const panelEl = document.getElementById(panelId); if (panelEl) panelEl.style.display = 'block';
+  if (which === 'outline') {
+    focusOutlineTop(focusTop);
+  } else {
+    const m = DESK_RAIL_META[which];
+    document.getElementById('deskModalTitle').innerHTML = m ? `<span>${m.icon}</span> ${m.title}` : '';
+  }
+}
+function focusOutlineTop(topIndex) {
+  const wrap = document.getElementById('reviewSections');
+  const kids = Array.from(wrap.children);
+  if (topIndex === undefined || topIndex === null) {
+    kids.forEach(k => k.style.display = '');
+    document.getElementById('deskModalTitle').innerHTML = `<span>📖</span> Full outline`;
+    return;
+  }
+  kids.forEach(k => { k.style.display = (k.getAttribute('data-top') === String(topIndex)) ? '' : 'none'; });
+  const node = kids[+topIndex];
+  const headingText = node ? node.querySelector(':scope > .node-head .node-title')?.textContent : '';
+  document.getElementById('deskModalTitle').innerHTML = `<span>${iconForHeading(headingText)}</span> ${escapeHtml(displayHeading(headingText || ''))}`;
+}
+function closeDeskOverlay() {
+  const ov = document.getElementById('deskOverlay'); if (ov) ov.classList.remove('show');
+  deskCurrentPanel = null;
+}
+function openDeskInfo(anchorEl, icon, title, body) {
+  const pop = document.getElementById('deskInfoPop');
+  pop.innerHTML = `<div class="info-pop-title"><span>${icon}</span> ${escapeHtml(title)}</div><div class="info-pop-body">${escapeHtml(body)}</div>`;
+  pop.classList.add('show');
+  const r = anchorEl.getBoundingClientRect();
+  let left = r.left + window.scrollX - 130, top = r.top + window.scrollY - 10 - pop.offsetHeight;
+  if (top < window.scrollY + 8) top = r.bottom + window.scrollY + 8;
+  left = Math.max(8, Math.min(left, window.scrollX + window.innerWidth - pop.offsetWidth - 8));
+  pop.style.left = left + 'px'; pop.style.top = top + 'px';
+  setTimeout(() => document.addEventListener('mousedown', deskInfoOutside), 0);
+}
+function deskInfoOutside(e) { const pop = document.getElementById('deskInfoPop'); if (!pop.contains(e.target)) { pop.classList.remove('show'); document.removeEventListener('mousedown', deskInfoOutside); } }
+document.getElementById('deskModalClose').addEventListener('click', closeDeskOverlay);
+document.getElementById('deskModalBack').addEventListener('click', closeDeskOverlay);
+document.getElementById('deskOverlay').addEventListener('click', e => { if (e.target.id === 'deskOverlay') closeDeskOverlay(); });
 function renderStatStrip() {
   const s = collectStats(visibleNodes(currentTree));
   document.getElementById('statStrip').innerHTML = `
@@ -1321,7 +1561,7 @@ function renderPromoBoxes() {
     const idx = currentPromoted.findIndex(p => p.id === id); if (idx < 0) return;
     if (act === 'remove') { currentPromoted.splice(idx, 1); }
     if (act === 'note') { startNoteEdit(el.closest('.promo-item'), idx); return; }
-    renderPromoBoxes(); renderStatStrip(); renderMeter(); syncPromoteTriggers(document.getElementById('reviewSections'));
+    renderPromoBoxes(); renderStatStrip(); renderMeter(); syncPromoteTriggers(document.getElementById('reviewSections')); renderDeskRail(); renderDeskTopSummary();
   }));
   wireDrag(container);
 }
@@ -1365,7 +1605,7 @@ function renderLinksList() {
       ${l.note ? `<div class="promo-item-note" style="padding-left:0;margin-top:4px">${escapeHtml(l.note)}</div>` : ''}
       <button class="mini-icon-btn danger" data-remove="${i}" style="margin-top:6px">✕ remove</button>
     </div>`).join('') : `<div class="promo-empty">No extra resources yet.</div>`;
-  wrap.querySelectorAll('[data-remove]').forEach(el => el.addEventListener('click', () => { currentLinks.splice(+el.getAttribute('data-remove'), 1); renderLinksList(); renderMeter(); }));
+  wrap.querySelectorAll('[data-remove]').forEach(el => el.addEventListener('click', () => { currentLinks.splice(+el.getAttribute('data-remove'), 1); renderLinksList(); renderMeter(); renderDeskRail(); }));
 }
 document.getElementById('addLinkBtn').addEventListener('click', () => {
   const label = document.getElementById('newLinkLabel').value.trim(), url = document.getElementById('newLinkUrl').value.trim();
@@ -1373,7 +1613,7 @@ document.getElementById('addLinkBtn').addEventListener('click', () => {
   if (!label || !url) return dashToast('Add both a label and a URL');
   currentLinks.push({ label, url, tag, note });
   ['newLinkLabel','newLinkUrl','newLinkNote'].forEach(id => document.getElementById(id).value = '');
-  renderLinksList(); renderMeter();
+  renderLinksList(); renderMeter(); renderDeskRail();
 });
 
 /* ---------- People & experts (manual → promoted 'person') ---------- */
@@ -1393,7 +1633,7 @@ function renderPeopleList() {
   wrap.querySelectorAll('[data-person-remove]').forEach(el => el.addEventListener('click', () => {
     const idx = currentPromoted.findIndex(p => p.id === el.getAttribute('data-person-remove'));
     if (idx >= 0) currentPromoted.splice(idx, 1);
-    renderPeopleList(); renderPromoBoxes(); renderStatStrip(); renderMeter();
+    renderPeopleList(); renderPromoBoxes(); renderStatStrip(); renderMeter(); renderDeskRail(); renderDeskTopSummary();
   }));
 }
 document.getElementById('addPersonBtn').addEventListener('click', () => {
@@ -1404,7 +1644,7 @@ document.getElementById('addPersonBtn').addEventListener('click', () => {
   if (!name) return dashToast('Add a name first');
   currentPromoted.push({ id: 'p'+(promoIdSeq++), text: role ? `${name} — ${role}` : name, url: url || null, category: 'person', note, manual: true });
   ['newPersonName','newPersonRole','newPersonUrl','newPersonNote'].forEach(id => document.getElementById(id).value = '');
-  renderPeopleList(); renderPromoBoxes(); renderStatStrip(); renderMeter();
+  renderPeopleList(); renderPromoBoxes(); renderStatStrip(); renderMeter(); renderDeskRail(); renderDeskTopSummary();
   dashToast('Added to People to Watch');
 });
 
@@ -1461,12 +1701,12 @@ function renderScArticles() {
       <button class="mini-icon-btn danger" data-artdel="${i}">✕</button></div>
       ${a.url ? `<div class="ledger-url" style="margin-top:3px">${escapeHtml(domainOf(a.url))}</div>` : ''}
     </div>`).join('') : '';
-  wrap.querySelectorAll('[data-artdel]').forEach(b => b.addEventListener('click', () => { searchIntel.articles.splice(+b.getAttribute('data-artdel'), 1); renderScArticles(); }));
+  wrap.querySelectorAll('[data-artdel]').forEach(b => b.addEventListener('click', () => { searchIntel.articles.splice(+b.getAttribute('data-artdel'), 1); renderScArticles(); renderDeskRail(); }));
 }
 function renderScTrends() {
   const wrap = document.getElementById('scTrendChips'); if (!wrap) return;
   wrap.innerHTML = searchIntel.trends.map((t, i) => `<span class="entity-chip" style="cursor:default">${escapeHtml(t)} <b data-trenddel="${i}" style="cursor:pointer;color:var(--flame)">×</b></span>`).join('');
-  wrap.querySelectorAll('[data-trenddel]').forEach(b => b.addEventListener('click', () => { searchIntel.trends.splice(+b.getAttribute('data-trenddel'), 1); renderScTrends(); }));
+  wrap.querySelectorAll('[data-trenddel]').forEach(b => b.addEventListener('click', () => { searchIntel.trends.splice(+b.getAttribute('data-trenddel'), 1); renderScTrends(); renderDeskRail(); }));
 }
 function renderSearchIntel() { renderScKwTable(); renderScArticles(); renderScTrends(); }
 
@@ -1490,8 +1730,8 @@ function parseKeywordRows(text) {
   return out.filter(r => r[0]);
 }
 
-document.getElementById('scAddRow').addEventListener('click', () => { searchIntel.keywords.push(['', '', '', '']); renderScKwTable(); });
-document.getElementById('scClearKw').addEventListener('click', () => { searchIntel.keywords = []; renderScKwTable(); });
+document.getElementById('scAddRow').addEventListener('click', () => { searchIntel.keywords.push(['', '', '', '']); renderScKwTable(); renderDeskRail(); });
+document.getElementById('scClearKw').addEventListener('click', () => { searchIntel.keywords = []; renderScKwTable(); renderDeskRail(); });
 document.getElementById('scPaste').addEventListener('click', async () => {
   try {
     const text = await navigator.clipboard.readText();
@@ -1509,13 +1749,13 @@ document.getElementById('scFile').addEventListener('change', e => {
 document.getElementById('scAddArt').addEventListener('click', () => {
   const title = document.getElementById('scArtTitle').value.trim(), url = document.getElementById('scArtUrl').value.trim();
   if (!title && !url) return dashToast('Add a title or URL');
-  searchIntel.articles.push({ title, url }); document.getElementById('scArtTitle').value = ''; document.getElementById('scArtUrl').value = ''; renderScArticles();
+  searchIntel.articles.push({ title, url }); document.getElementById('scArtTitle').value = ''; document.getElementById('scArtUrl').value = ''; renderScArticles(); renderDeskRail();
 });
 document.getElementById('scTrendInput').addEventListener('keydown', e => {
   if (e.key !== 'Enter') return; e.preventDefault();
   const v = e.target.value.trim(); if (!v) return;
   v.split(',').map(s => s.trim()).filter(Boolean).forEach(t => { if (!searchIntel.trends.includes(t)) searchIntel.trends.push(t); });
-  e.target.value = ''; renderScTrends();
+  e.target.value = ''; renderScTrends(); renderDeskRail();
 });
 document.getElementById('scApply').addEventListener('click', () => {
   syncSearchNode(); renderReview();
@@ -1547,7 +1787,7 @@ function openEditor(row) {
   document.getElementById('pasteEditor').value = row.editor_name || '';
   document.getElementById('pasteSourceLlm').value = row.source_llm || 'Other';
   document.getElementById('pasteText').value = row.raw_text || '';
-  updateSaveMode(); clearDeskInputs(); renderReview(); showView('review'); dashToast('Editing — update when ready');
+  updateSaveMode(); clearDeskInputs(); closeDeskOverlay(); renderReview(); showView('review'); dashToast('Editing — update when ready');
 }
 document.getElementById('saveBriefBtn').addEventListener('click', async () => {
   const topic = document.getElementById('reviewTitle').textContent.trim() || 'Untitled brief';
@@ -1929,7 +2169,7 @@ function wireMarkClicks() {
 }
 function renderAnnoBox() {
   const box = document.getElementById(annoMode === 'desk' ? 'deskAnnoBox' : 'annoBox'); if (!box) return;
-  if (!currentAnnotations.length) { box.innerHTML = ''; return; }
+  if (!currentAnnotations.length) { box.innerHTML = ''; renderDeskTopSummary(); return; }
   box.innerHTML = `<div class="anno-box"><div class="anno-box-title">${t('anno_box_title')} <span class="anno-box-count">${currentAnnotations.length}</span></div>
     ${currentAnnotations.map(a => `<div class="anno-item" data-jump="${a.id}">
       <div class="anno-mark"></div>
@@ -1943,6 +2183,7 @@ function renderAnnoBox() {
     unwrapAnno(id); currentAnnotations = currentAnnotations.filter(x => x.id !== id);
     renderAnnoBox(); persistAnnotations(); dashToast('Annotation removed');
   }));
+  renderDeskTopSummary();
 }
 function jumpToAnno(id) {
   const mk = document.querySelector(`mark.anno[data-anno-id="${id}"]`); if (!mk) return;
