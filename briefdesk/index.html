@@ -469,8 +469,8 @@ html[dir="rtl"] .blk-note { border-left: none; border-right: 2px solid var(--hon
 .sc-grid td { padding: 2px; }
 .sc-grid input { width: 100%; font-size: 11.5px; color: var(--teal); background: var(--paper); border: 1px solid var(--border2); border-radius: 6px; padding: 5px 7px; outline: none; }
 .sc-grid input:focus { border-color: var(--flame); }
-.sc-grid td:first-child { width: 46%; }
-.sc-grid td:last-child { width: 22px; text-align: center; }
+.sc-grid td:first-child { width: 34%; }
+.sc-grid td:last-child { width: 50px; text-align: center; }
 .sc-tools { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 7px; }
 .sc-chips { display: flex; flex-wrap: wrap; gap: 4px; }
 
@@ -843,6 +843,22 @@ mark.anno.pulse { animation: markPulse 1200ms var(--eo); }
 <button class="copilot-fab" id="copilotFab" title="Open Copilot">🤖</button>
 <div class="pop" id="promotePop"></div>
 <div class="pop anno-pop" id="annoPop"></div>
+<div class="desk-overlay" id="seoLinkOverlay">
+  <div class="desk-modal" style="max-width:460px;">
+    <div class="desk-modal-head">
+      <div class="desk-modal-title" id="seoLinkTitle"></div>
+      <button class="desk-modal-close" id="seoLinkClose">✕</button>
+    </div>
+    <div class="desk-modal-body" style="padding:16px;">
+      <div class="meter-hint" id="seoLinkHint" style="margin-bottom:8px;"></div>
+      <textarea id="seoLinkInput" rows="5" placeholder="https://…" style="width:100%;font-size:13px;padding:10px;border:1px solid var(--border2);border-radius:8px;background:var(--paper);outline:none;resize:vertical;font-family:inherit;color:var(--teal);"></textarea>
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px;">
+        <button class="btn ghost sm" id="seoLinkSkip"></button>
+        <button class="btn sm primary" id="seoLinkAdd"></button>
+      </div>
+    </div>
+  </div>
+</div>
 <div class="sel-toolbar" id="selToolbar">
   <button data-sel="highlight">🖍 Highlight</button>
   <button data-sel="comment">💬 Comment</button>
@@ -909,7 +925,9 @@ const I18N = {
     q_annotation: "What does this editor's note ask you to address?",
     q_search: 'What does this search data tell you about audience demand — how will you use it?',
     search_intel: 'Search Intelligence',
-    seo_prompt_title: 'Link a related article? (optional)', seo_prompt_ph: 'https://… a related article that helps SEO relevance', seo_add: 'Add link', seo_skip: 'Skip',
+    seo_prompt_title: 'Related articles (optional)', seo_prompt_ph: 'Paste one or more article links — one per line, or comma-separated. They\'ll show up under this passage in the final piece.', seo_add: 'Add link', seo_skip: 'Skip',
+    filter_keywords_ph: 'Filter keywords…', promote_row_title: 'Promote this keyword', add_keyword_first: 'Add a keyword first',
+    search_materials_ph: 'Search materials…', related_coverage: 'Related coverage',
     q_default: 'How will you use this in your piece?',
   },
   fa: {
@@ -955,7 +973,9 @@ const I18N = {
     q_annotation: 'این یادداشت دبیر از شما چه می‌خواهد؟',
     q_search: 'این داده جست‌وجو درباره تقاضای مخاطب چه می‌گوید — چگونه از آن استفاده می‌کنید؟',
     search_intel: 'هوش جست‌وجو',
-    seo_prompt_title: 'لینک مقاله مرتبط؟ (اختیاری)', seo_prompt_ph: 'https:// … مقاله مرتبطی که به سئو کمک می‌کند', seo_add: 'افزودن لینک', seo_skip: 'رد کردن',
+    seo_prompt_title: 'مقاله‌های مرتبط (اختیاری)', seo_prompt_ph: 'یک یا چند لینک مقاله را جای‌گذاری کنید — هر خط یک لینک یا با کاما جدا شده. این‌ها در متن نهایی زیر همین بخش نمایش داده می‌شوند.', seo_add: 'افزودن لینک', seo_skip: 'رد کردن',
+    filter_keywords_ph: 'فیلتر کلیدواژه‌ها…', promote_row_title: 'ترویج این کلیدواژه', add_keyword_first: 'ابتدا یک کلیدواژه اضافه کنید',
+    search_materials_ph: 'جست‌وجوی مواد…', related_coverage: 'پوشش مرتبط',
     q_default: 'چگونه از این در متن خود استفاده می‌کنید؟',
   },
 };
@@ -1614,17 +1634,18 @@ function syncPromoteTriggers(wrap) {
 
 /* ---------- Promote popover ---------- */
 let popState = null;
-function openPromotePop(anchor, text) {
+function openPromotePop(anchor, text, initialCat, initialNote) {
   const pop = document.getElementById('promotePop');
-  popState = { text, cat: 'angle' };
+  const cat0 = initialCat || 'angle';
+  popState = { text, cat: cat0 };
   pop.innerHTML = `
     <div class="pop-quote">${escapeHtml(text)}</div>
     <div class="pop-label">Promote into</div>
     <div class="pop-cats">
-      ${CATEGORY_ORDER.map(c => `<button class="pop-cat${c==='angle'?' sel':''}" data-cat="${c}">${CATEGORY_META[c].icon} ${CATEGORY_META[c].label.replace(/s$/,'')}</button>`).join('')}
+      ${CATEGORY_ORDER.map(c => `<button class="pop-cat${c===cat0?' sel':''}" data-cat="${c}">${CATEGORY_META[c].icon} ${CATEGORY_META[c].label.replace(/s$/,'')}</button>`).join('')}
       <button class="pop-cat" data-cat="__custom">✏️ Custom</button>
     </div>
-    <textarea class="pop-note" placeholder="Editor note (optional) — why this matters"></textarea>
+    <textarea class="pop-note" placeholder="Editor note (optional) — why this matters">${escapeHtml(initialNote || '')}</textarea>
     <div class="pop-actions">
       <button class="btn ghost sm" data-act="cancel">Cancel</button>
       <button class="btn primary sm" data-act="add">Add to brief</button>
@@ -1786,15 +1807,22 @@ document.getElementById('addPersonBtn').addEventListener('click', () => {
 
 /* ---------- Search intelligence (cumulative, editable) ---------- */
 let searchIntel = { keywords: [], articles: [], trends: [] };
-const SC_HEADERS = ['Keyword', 'Clicks', 'Impressions', 'Avg. position'];
+const SC_HEADERS = ['Keyword', 'Clicks', 'Impressions', 'CTR', 'Position'];
 
 function resetSearchIntel() { searchIntel = { keywords: [], articles: [], trends: [] }; }
+function migrateKwRow(r) {
+  r = Array.isArray(r) ? r : [];
+  if (r.length >= 5) return [r[0]||'', r[1]||'', r[2]||'', r[3]||'', r[4]||''];
+  // Old schema was [Keyword, Clicks, Impressions, Position] — insert an empty CTR before Position.
+  if (r.length === 4) return [r[0]||'', r[1]||'', r[2]||'', '', r[3]||''];
+  return [r[0]||'', r[1]||'', r[2]||'', r[3]||'', ''];
+}
 function loadSearchIntelFromTree() {
   resetSearchIntel();
   const node = (currentTree || []).find(n => n._editor === 'search');
   if (!node) return;
   (node.children || []).forEach(c => {
-    if (c.type === 'table' && c.table && Array.isArray(c.table.rows)) searchIntel.keywords = c.table.rows.map(r => [r[0]||'', r[1]||'', r[2]||'', r[3]||'']);
+    if (c.type === 'table' && c.table && Array.isArray(c.table.rows)) searchIntel.keywords = c.table.rows.map(r => migrateKwRow(r));
     else if (c.type === 'entities') searchIntel.trends = (c.items || []).slice();
     else if (Array.isArray(c.items)) {
       searchIntel.articles = c.items.map(it => {
@@ -1817,17 +1845,50 @@ function syncSearchNode() {
   currentTree.push({ heading: 'Search intelligence (editor)', level: 1, type: 'summary', _editor: 'search', children, items: [], table: null, paragraph: '' });
 }
 
+let scKwFilterQuery = '';
+function scRowStatsNote(row) {
+  const parts = [];
+  if ((row[1]||'').trim()) parts.push(`${row[1]} clicks`);
+  if ((row[2]||'').trim()) parts.push(`${row[2]} impressions`);
+  if ((row[3]||'').trim()) parts.push(`${row[3]} CTR`);
+  if ((row[4]||'').trim()) parts.push(`pos ${row[4]}`);
+  return parts.join(' · ');
+}
 function renderScKwTable() {
   const wrap = document.getElementById('scKwTable'); if (!wrap) return;
   const rows = searchIntel.keywords;
-  wrap.innerHTML = `<table class="sc-grid"><thead><tr>${SC_HEADERS.map(h => `<th>${h}</th>`).join('')}<th></th></tr></thead><tbody>${
-    rows.length ? rows.map((r, i) => `<tr>${r.map((c, j) => `<td><input data-r="${i}" data-c="${j}" value="${escapeHtml(c)}" ${j ? 'inputmode="decimal"' : ''}></td>`).join('')}<td><button class="mini-icon-btn danger" data-scdel="${i}">✕</button></td></tr>`).join('')
-    : `<tr><td colspan="5" class="itable-empty" style="padding:10px">No keywords yet — add a row, paste, or upload a CSV.</td></tr>`
+  const filterBar = rows.length > 5 ? `<div class="itable-bar" style="margin-bottom:8px;"><input class="itable-filter" id="scKwFilterInput" placeholder="${t('filter_keywords_ph') || 'Filter keywords…'}" value="${escapeHtml(scKwFilterQuery)}"><span class="itable-meta" id="scKwFilterMeta"></span></div>` : '';
+  wrap.innerHTML = filterBar + `<table class="sc-grid"><thead><tr>${SC_HEADERS.map(h => `<th>${h}</th>`).join('')}<th></th></tr></thead><tbody>${
+    rows.length ? rows.map((r, i) => `<tr data-rowidx="${i}">${r.map((c, j) => `<td><input data-r="${i}" data-c="${j}" value="${escapeHtml(c)}" ${j ? 'inputmode="decimal"' : ''}></td>`).join('')}<td style="white-space:nowrap"><button class="mini-icon-btn" data-scpromote="${i}" title="${t('promote_row_title') || 'Promote this keyword'}">★</button><button class="mini-icon-btn danger" data-scdel="${i}">✕</button></td></tr>`).join('')
+    : `<tr><td colspan="6" class="itable-empty" style="padding:10px">No keywords yet — add a row, paste, or upload a CSV.</td></tr>`
   }</tbody></table>`;
   wrap.querySelectorAll('input[data-r]').forEach(inp => inp.addEventListener('input', () => {
     searchIntel.keywords[+inp.getAttribute('data-r')][+inp.getAttribute('data-c')] = inp.value;
   }));
   wrap.querySelectorAll('[data-scdel]').forEach(b => b.addEventListener('click', () => { searchIntel.keywords.splice(+b.getAttribute('data-scdel'), 1); renderScKwTable(); }));
+  wrap.querySelectorAll('[data-scpromote]').forEach(b => b.addEventListener('click', e => {
+    e.stopPropagation();
+    const i = +b.getAttribute('data-scpromote'); const row = searchIntel.keywords[i];
+    if (!row || !(row[0]||'').trim()) { dashToast(t('add_keyword_first') || 'Add a keyword first'); return; }
+    openPromotePop(b, row[0], 'keyword', scRowStatsNote(row));
+  }));
+  const filterInput = document.getElementById('scKwFilterInput');
+  if (filterInput) filterInput.addEventListener('input', e => { scKwFilterQuery = e.target.value; applyScKwFilter(); });
+  applyScKwFilter();
+}
+function applyScKwFilter() {
+  const wrap = document.getElementById('scKwTable'); if (!wrap) return;
+  const q = scKwFilterQuery.trim().toLowerCase();
+  let visible = 0, total = 0;
+  wrap.querySelectorAll('tbody tr[data-rowidx]').forEach(tr => {
+    total++;
+    const i = +tr.getAttribute('data-rowidx');
+    const row = searchIntel.keywords[i] || [];
+    const match = !q || row.some(c => String(c).toLowerCase().includes(q));
+    tr.style.display = match ? '' : 'none';
+    if (match) visible++;
+  });
+  const meta = document.getElementById('scKwFilterMeta'); if (meta) meta.textContent = `${visible} / ${total} rows`;
 }
 function renderScArticles() {
   const wrap = document.getElementById('scArtList'); if (!wrap) return;
@@ -1855,18 +1916,18 @@ function parseKeywordRows(text) {
   if (firstCells.some(c => /query|keyword|clicks|impressions|position|ctr/.test(c))) {
     header = firstCells;
     const find = (...names) => header.findIndex(h => names.some(n => h.includes(n)));
-    map = { kw: Math.max(0, find('query', 'keyword')), clicks: find('click'), impr: find('impression'), pos: find('position') };
+    map = { kw: Math.max(0, find('query', 'keyword')), clicks: find('click'), impr: find('impression'), ctr: find('ctr'), pos: find('position') };
   }
   const out = [];
   lines.slice(header ? 1 : 0).forEach(l => {
     const cells = l.split(delim).map(c => c.trim().replace(/^"|"$/g, ''));
-    if (map) out.push([cells[map.kw] || '', map.clicks >= 0 ? cells[map.clicks] || '' : '', map.impr >= 0 ? cells[map.impr] || '' : '', map.pos >= 0 ? cells[map.pos] || '' : '']);
-    else out.push([cells[0] || '', cells[1] || '', cells[2] || '', cells[3] || '']);
+    if (map) out.push([cells[map.kw] || '', map.clicks >= 0 ? cells[map.clicks] || '' : '', map.impr >= 0 ? cells[map.impr] || '' : '', map.ctr >= 0 ? cells[map.ctr] || '' : '', map.pos >= 0 ? cells[map.pos] || '' : '']);
+    else out.push([cells[0] || '', cells[1] || '', cells[2] || '', cells[3] || '', cells[4] || '']); // matches Search Console's export order: Query, Clicks, Impressions, CTR, Position
   });
   return out.filter(r => r[0]);
 }
 
-document.getElementById('scAddRow').addEventListener('click', () => { searchIntel.keywords.push(['', '', '', '']); renderScKwTable(); renderDeskRail(); });
+document.getElementById('scAddRow').addEventListener('click', () => { searchIntel.keywords.push(['', '', '', '', '']); renderScKwTable(); renderDeskRail(); });
 document.getElementById('scClearKw').addEventListener('click', () => { searchIntel.keywords = []; renderScKwTable(); renderDeskRail(); });
 document.getElementById('scPaste').addEventListener('click', async () => {
   try {
@@ -2589,6 +2650,7 @@ function enterCompose(row) {
           <div><div class="ml-topic">${escapeHtml(row.topic)}</div><div class="ml-hint">${t('compose_hint')}</div></div>
           <button class="btn ghost sm" id="composeBack">${t('back_to_brief')}</button>
         </div>
+        <input class="itable-filter" id="matLibSearch" placeholder="${t('search_materials_ph')}" style="width:100%;margin-bottom:10px;">
         <div id="materialLibrary">${composeMaterialsHtml(row)}</div>
       </div>
       <div class="compose-col compose-right">
@@ -2645,6 +2707,7 @@ function enterCompose(row) {
       window.open('https://word.cloud.microsoft/', '_blank', 'noopener');
     }
   });
+  document.getElementById('matLibSearch').addEventListener('input', e => filterMaterials(e.target.value));
   wireMaterialDrag();
   wireComposerDrop();
   renderComposerBody();
@@ -2733,6 +2796,24 @@ function accSub(icon, title, count, body) {
     <div class="ml-acc-body">${body}</div>
   </details>`;
 }
+function filterMaterials(query) {
+  const lib = document.getElementById('materialLibrary'); if (!lib) return;
+  const q = query.trim().toLowerCase();
+  lib.querySelectorAll('.mat').forEach(m => {
+    const txt = ((m.querySelector('.mat-txt') || {}).textContent || '') + ' ' + ((m.querySelector('.mat-sub') || {}).textContent || '');
+    m.style.display = (!q || txt.toLowerCase().includes(q)) ? '' : 'none';
+  });
+  lib.querySelectorAll('.ml-acc-sub').forEach(sub => {
+    const anyVisible = Array.from(sub.querySelectorAll('.mat')).some(m => m.style.display !== 'none');
+    sub.style.display = (!q || anyVisible) ? '' : 'none';
+    if (q && anyVisible) sub.setAttribute('open', '');
+  });
+  lib.querySelectorAll('.ml-acc').forEach(acc => {
+    const anyVisible = Array.from(acc.querySelectorAll('.mat')).some(m => m.style.display !== 'none');
+    acc.style.display = (!q || anyVisible) ? '' : 'none';
+    if (q && anyVisible) acc.setAttribute('open', '');
+  });
+}
 function matRow(mid, icon, text, sub) {
   return `<div class="mat" draggable="true" data-mid="${mid}"><span class="mat-kind">${icon}</span>
     <div class="mat-body"><span class="mat-txt">${escapeHtml(text)}</span>${sub && sub.trim() ? `<span class="mat-sub">${escapeHtml(sub)}</span>` : ''}</div>
@@ -2757,20 +2838,57 @@ function wireComposerDrop() {
 }
 function addMaterialBlock(mat) {
   const id = 'b' + (blkSeq++);
-  const block = { id, type: 'material', kind: mat.kind, text: mat.text, url: mat.url || null, note: mat.note || '', audio: mat.audio || null, question: materialQuestion(mat.kind), answer: '', seoLink: null };
+  const block = { id, type: 'material', kind: mat.kind, text: mat.text, url: mat.url || null, note: mat.note || '', audio: mat.audio || null, question: materialQuestion(mat.kind), answer: '', seoLinks: [] };
   composePiece.blocks.push(block);
   renderComposerBody(); scheduleComposeSave();
   const blk = document.querySelector(`.blk[data-id="${id}"]`);
   if (blk) { blk.scrollIntoView({ behavior: 'smooth', block: 'center' }); const ta = blk.querySelector('.blk-answer'); if (ta) setTimeout(() => ta.focus(), 300); }
   dashToast(t('material_added'));
   if (mat.kind === 'search') {
-    setTimeout(() => {
-      const url = window.prompt(`${t('seo_prompt_title')}\n${t('seo_prompt_ph')}`, '');
-      if (url && url.trim()) { block.seoLink = url.trim(); renderComposerBody(); scheduleComposeSave(); }
-    }, 350);
+    setTimeout(() => openSeoLinkModal(id, []), 350);
   }
 }
+function blockSeoLinks(b) {
+  if (Array.isArray(b.seoLinks) && b.seoLinks.length) return b.seoLinks;
+  if (b.seoLink) return [b.seoLink]; // legacy single-link field from older saved pieces
+  return [];
+}
+let seoModalBlockId = null;
+function openSeoLinkModal(blockId, existingLinks) {
+  seoModalBlockId = blockId;
+  document.getElementById('seoLinkTitle').textContent = t('seo_prompt_title');
+  document.getElementById('seoLinkHint').textContent = t('seo_prompt_ph');
+  document.getElementById('seoLinkSkip').textContent = t('seo_skip');
+  document.getElementById('seoLinkAdd').textContent = t('seo_add');
+  const ta = document.getElementById('seoLinkInput');
+  ta.value = (existingLinks || []).join('\n');
+  document.getElementById('seoLinkOverlay').classList.add('show');
+  setTimeout(() => ta.focus(), 50);
+}
+function closeSeoLinkModal() { document.getElementById('seoLinkOverlay').classList.remove('show'); seoModalBlockId = null; }
+function commitSeoLinkModal() {
+  const ta = document.getElementById('seoLinkInput');
+  const urls = ta.value.split(/[\n,]/).map(s => s.trim()).filter(Boolean).filter(u => /^https?:\/\//i.test(u));
+  const block = composePiece.blocks.find(b => b.id === seoModalBlockId);
+  if (block) {
+    block.seoLinks = urls; delete block.seoLink;
+    renderComposerBody(); scheduleComposeSave();
+    if (urls.length) dashToast(`${urls.length} related link${urls.length > 1 ? 's' : ''} added`);
+  }
+  closeSeoLinkModal();
+}
+document.getElementById('seoLinkClose').addEventListener('click', closeSeoLinkModal);
+document.getElementById('seoLinkSkip').addEventListener('click', closeSeoLinkModal);
+document.getElementById('seoLinkAdd').addEventListener('click', commitSeoLinkModal);
+document.getElementById('seoLinkOverlay').addEventListener('click', e => { if (e.target.id === 'seoLinkOverlay') closeSeoLinkModal(); });
 
+function seoLinksBlockHtml(b) {
+  const links = blockSeoLinks(b);
+  if (links.length) {
+    return `<div class="blk-note">🔗 ${t('related_coverage')}: ${links.map(u => `<a href="${escapeHtml(u)}" target="_blank" rel="noopener noreferrer">${escapeHtml(domainOf(u))}</a>`).join(', ')} <button class="mini-icon-btn" data-seoedit="${b.id}" style="margin-left:6px;">✎</button></div>`;
+  }
+  return `<button class="mini-icon-btn" data-seoedit="${b.id}" style="margin-top:2px;">+ ${t('seo_add')}</button>`;
+}
 function renderComposerBody() {
   const body = document.getElementById('cmpBody'); if (!body) return;
   if (!composePiece.blocks.length) {
@@ -2795,7 +2913,7 @@ function renderComposerBody() {
           <div class="blk-quote">${linkify(b.text)}</div>
           ${b.note && b.note.trim() ? `<div class="blk-note">${linkify(b.note)}</div>` : ''}
           ${b.audio ? `<audio class="anno-audio" controls preload="none" src="${b.audio}"></audio>` : ''}
-          ${b.seoLink ? `<div class="blk-note">🔗 SEO reference: <a href="${escapeHtml(b.seoLink)}" target="_blank" rel="noopener noreferrer">${escapeHtml(b.seoLink)}</a></div>` : ''}
+          ${seoLinksBlockHtml(b)}
           <div class="blk-q">${escapeHtml(b.question)}</div>
         </div>
         <textarea class="blk-answer" data-id="${b.id}" placeholder="${t('write_passage_ph')}">${escapeHtml(b.answer || '')}</textarea>
@@ -2809,6 +2927,10 @@ function renderComposerBody() {
     body.querySelectorAll('.blk-answer').forEach(ta => ta.addEventListener('input', () => {
       const b = composePiece.blocks.find(x => x.id === ta.getAttribute('data-id')); if (b) { b.answer = ta.value; scheduleComposeSave(); updateWordCount(); renderComposerIndex(); renderFinalPreview(); }
       const blk = ta.closest('.blk.blk-mat'); if (blk) blk.classList.toggle('collapsed', ta.value.trim().length > 0);
+    }));
+    body.querySelectorAll('[data-seoedit]').forEach(btn => btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const b = composePiece.blocks.find(x => x.id === btn.getAttribute('data-seoedit')); if (b) openSeoLinkModal(b.id, blockSeoLinks(b));
     }));
     body.querySelectorAll('[data-bcopilot]').forEach(btn => btn.addEventListener('click', e => {
       e.stopPropagation();
@@ -2840,6 +2962,10 @@ function renderFinalPreview() {
   composePiece.blocks.forEach(b => {
     const a = (b.answer || '').trim(); if (!a) return;
     html += a.split(/\n{2,}/).map(seg => `<p>${escapeHtml(seg).replace(/\n/g, '<br>')}</p>`).join('');
+    const links = blockSeoLinks(b);
+    if (links.length) {
+      html += `<p class="final-related" style="font-size:12.5px;color:var(--muted);margin:-6px 0 14px;">${t('related_coverage')}: ${links.map(u => `<a href="${escapeHtml(u)}" target="_blank" rel="noopener noreferrer">${escapeHtml(domainOf(u))}</a>`).join(', ')}</p>`;
+    }
   });
   html += `</div>`;
   el.innerHTML = html;
@@ -2884,6 +3010,10 @@ async function buildRealDocx(piece) {
   (piece.blocks || []).forEach(b => {
     const a = (b.answer || '').trim(); if (!a) return;
     a.split(/\n{2,}/).forEach(seg => { bodyXml += docxPara(seg, '<w:rPr><w:sz w:val="24"/></w:rPr>', '<w:pPr><w:spacing w:after="200"/></w:pPr>'); });
+    const links = (Array.isArray(b.seoLinks) && b.seoLinks.length) ? b.seoLinks : (b.seoLink ? [b.seoLink] : []);
+    if (links.length) {
+      bodyXml += docxPara('Related coverage: ' + links.join(' · '), '<w:rPr><w:i/><w:sz w:val="20"/><w:color w:val="595959"/></w:rPr>', '<w:pPr><w:spacing w:after="200"/></w:pPr>');
+    }
   });
   bodyXml += '<w:sectPr><w:pgSz w:w="12240" w:h="15840"/><w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440"/></w:sectPr>';
   const documentXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -2972,7 +3102,12 @@ function updateWordCount() {
 function compilePiece() {
   let out = `# ${composePiece.headline || 'Untitled'}\n\n`;
   if (composePiece.standfirst) out += `**${composePiece.standfirst}**\n\n`;
-  composePiece.blocks.forEach(b => { const a = (b.answer || '').trim(); if (a) out += a + '\n\n'; });
+  composePiece.blocks.forEach(b => {
+    const a = (b.answer || '').trim(); if (!a) return;
+    out += a + '\n\n';
+    const links = blockSeoLinks(b);
+    if (links.length) out += `*Related coverage: ${links.join(', ')}*\n\n`;
+  });
   return out.trim();
 }
 function copyPiece() { navigator.clipboard.writeText(compilePiece()).then(() => dashToast(t('copied_md'))).catch(() => dashToast(t('copy_failed'))); }
