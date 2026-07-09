@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Briefs Desk | DNA</title>
 <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&family=Noto+Sans:wght@400;500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600&family=Vazirmatn:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
 :root {
   --ivory:   #F8F7F6;
@@ -879,7 +880,7 @@ const I18N = {
     lib_empty_title: 'No briefs yet', lib_empty_sub: 'Take any AI research answer and turn it into a desk-ready brief the whole newsroom can use.',
     detail_eyebrow: 'Newsroom brief', detail_eyebrow_role: '· reporter-ready',
     write_piece: '✍ Write your piece', continue_piece: '✍ Continue your piece', edit_brief: '✎ Edit brief',
-    copy_brief_md: '⧉ Copy brief as Markdown', send_copilot: '🤖 Send to Copilot', print: '🖨 Print', share: '🔗 Share', link_copied: 'Link copied', continue_word: '📄 Continue in Word', word_copied: 'Copied your piece — paste it into the new Word document',
+    copy_brief_md: '⧉ Copy brief as Markdown', send_copilot: '🤖 Send to Copilot', print: '🖨 Print', share: '🔗 Share', link_copied: 'Link copied', continue_word: '📄 Continue in Word', word_copied: 'Downloaded as a Word file — drop it into the new Word Online tab to keep editing', word_build_failed: 'Could not build the Word file — copied the text instead, paste it in',
     editors_verdict: "Editor's verdict", full_brief: 'Full brief', extra_resources: '🔗 Extra resources', sources_label: '📎 Sources',
     anno_box_title: '🖍 Editor annotations',
     compose_hint: 'Open a section, drag material into your piece →', back_to_brief: '← Back to brief',
@@ -925,7 +926,7 @@ const I18N = {
     lib_empty_title: 'هنوز بریفی ثبت نشده', lib_empty_sub: 'هر پاسخ پژوهشی هوش مصنوعی را بردارید و آن را به بریفی آماده برای کل تحریریه تبدیل کنید.',
     detail_eyebrow: 'بریف تحریریه', detail_eyebrow_role: '· آماده گزارشگر',
     write_piece: '✍ نگارش متن', continue_piece: '✍ ادامه نگارش متن', edit_brief: '✎ ویرایش بریف',
-    copy_brief_md: '⧉ کپی بریف به‌صورت مارک‌داون', send_copilot: '🤖 ارسال به کوپایلوت', print: '🖨 چاپ', share: '🔗 اشتراک‌گذاری', link_copied: 'لینک کپی شد', continue_word: '📄 ادامه در Word', word_copied: 'متن شما کپی شد — آن را در سند Word جدید جای‌گذاری کنید',
+    copy_brief_md: '⧉ کپی بریف به‌صورت مارک‌داون', send_copilot: '🤖 ارسال به کوپایلوت', print: '🖨 چاپ', share: '🔗 اشتراک‌گذاری', link_copied: 'لینک کپی شد', continue_word: '📄 ادامه در Word', word_copied: 'به‌صورت فایل Word دانلود شد — آن را در تب جدید Word Online بازکنید تا ادامه دهید', word_build_failed: 'ساخت فایل Word ممکن نشد — متن کپی شد، آن را جای‌گذاری کنید',
     editors_verdict: 'رأی دبیر', full_brief: 'بریف کامل', extra_resources: '🔗 منابع تکمیلی', sources_label: '📎 منابع',
     anno_box_title: '🖍 یادداشت‌های دبیر',
     compose_hint: 'یک بخش را باز کنید و منابع را به متن خود بکشید ←', back_to_brief: '→ بازگشت به بریف',
@@ -2595,12 +2596,26 @@ function enterCompose(row) {
   document.getElementById('cmpCopy').addEventListener('click', copyPiece);
   document.getElementById('cmpExportDoc').addEventListener('click', exportPieceDoc);
   document.getElementById('cmpExportPdf').addEventListener('click', exportPiecePdf);
-  document.getElementById('cmpWordCloud').addEventListener('click', () => {
+  document.getElementById('cmpWordCloud').addEventListener('click', async () => {
     renderFinalPreview();
-    const finalEl = document.getElementById('cmpFinal');
-    const text = finalEl ? finalEl.innerText : '';
-    if (text.trim()) { navigator.clipboard.writeText(text).catch(() => {}); dashToast(t('word_copied')); }
-    window.open('https://word.cloud.microsoft/', '_blank', 'noopener');
+    const hasContent = (composePiece.headline || '').trim() || (composePiece.standfirst || '').trim() || composePiece.blocks.some(b => (b.answer || '').trim());
+    if (!hasContent) { dashToast(t('write_first')); return; }
+    try {
+      const blob = await buildRealDocx(composePiece);
+      const url = URL.createObjectURL(blob);
+      const filename = `${(composePiece.headline || 'piece').replace(/[^\w\-]+/g, '_').slice(0, 60) || 'piece'}.docx`;
+      const a = document.createElement('a'); a.href = url; a.download = filename;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 4000);
+      dashToast(t('word_copied'));
+      window.open('https://word.cloud.microsoft/', '_blank', 'noopener');
+    } catch (e) {
+      const finalEl = document.getElementById('cmpFinal');
+      const text = finalEl ? finalEl.innerText : '';
+      if (text.trim()) navigator.clipboard.writeText(text).catch(() => {});
+      dashToast(t('word_build_failed'));
+      window.open('https://word.cloud.microsoft/', '_blank', 'noopener');
+    }
   });
   wireMaterialDrag();
   wireComposerDrop();
@@ -2824,6 +2839,54 @@ function buildMaterialCopilotPrompt(b) {
   p += `\nHere is what I've written so far in my piece using it:\n"${(b.answer || '').trim() || '(nothing written yet — I have not decided how to use it)'}"\n`;
   p += `\nGiven the full context of this story: 1) verify the accuracy and currency of this material, 2) tell me whether my use of it is correct and well-framed, 3) flag anything I might be missing or should double-check, 4) suggest a sharper way to phrase this passage if useful.`;
   return p;
+}
+function xmlEscape(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+function docxParaRun(text, rPrXml) {
+  const lines = String(text == null ? '' : text).split('\n');
+  const inner = lines.map((line, i) => (i > 0 ? '<w:br/>' : '') + `<w:t xml:space="preserve">${xmlEscape(line)}</w:t>`).join('');
+  return `<w:r>${rPrXml || ''}${inner}</w:r>`;
+}
+function docxPara(text, rPrXml, pPrXml) { return `<w:p>${pPrXml || ''}${docxParaRun(text, rPrXml)}</w:p>`; }
+async function buildRealDocx(piece) {
+  if (typeof JSZip === 'undefined') throw new Error('JSZip not loaded');
+  const headline = (piece.headline || 'Untitled').trim() || 'Untitled';
+  const standfirst = (piece.standfirst || '').trim();
+  let bodyXml = docxPara(headline, '<w:rPr><w:b/><w:sz w:val="56"/></w:rPr>', '<w:pPr><w:spacing w:after="240"/></w:pPr>');
+  if (standfirst) bodyXml += docxPara(standfirst, '<w:rPr><w:i/><w:color w:val="595959"/><w:sz w:val="26"/></w:rPr>', '<w:pPr><w:spacing w:after="240"/></w:pPr>');
+  (piece.blocks || []).forEach(b => {
+    const a = (b.answer || '').trim(); if (!a) return;
+    a.split(/\n{2,}/).forEach(seg => { bodyXml += docxPara(seg, '<w:rPr><w:sz w:val="24"/></w:rPr>', '<w:pPr><w:spacing w:after="200"/></w:pPr>'); });
+  });
+  bodyXml += '<w:sectPr><w:pgSz w:w="12240" w:h="15840"/><w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440"/></w:sectPr>';
+  const documentXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>${bodyXml}</w:body></w:document>`;
+  const contentTypesXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+<Default Extension="xml" ContentType="application/xml"/>
+<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
+<Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/>
+<Override PartName="/docProps/app.xml" ContentType="application/vnd.openxmlformats-officedocument.extended-properties+xml"/>
+</Types>`;
+  const relsXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>
+<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/>
+<Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties" Target="docProps/app.xml"/>
+</Relationships>`;
+  const coreXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<dc:title>${xmlEscape(headline)}</dc:title><dc:creator>PilotDesk Briefs Desk</dc:creator>
+</cp:coreProperties>`;
+  const appXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties"><Application>PilotDesk Briefs Desk</Application></Properties>`;
+  const zip = new JSZip();
+  zip.file('[Content_Types].xml', contentTypesXml);
+  zip.file('_rels/.rels', relsXml);
+  zip.file('docProps/core.xml', coreXml);
+  zip.file('docProps/app.xml', appXml);
+  zip.file('word/document.xml', documentXml);
+  return await zip.generateAsync({ type: 'blob', mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
 }
 function exportPieceDoc() {
   renderFinalPreview();
