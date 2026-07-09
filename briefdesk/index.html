@@ -1191,6 +1191,30 @@ function collectStats(nodes) {
 }
 function visibleNodes(tree) { return (Array.isArray(tree) ? tree : []).filter(n => n && n._editor !== 'annotations' && n._editor !== 'piece' && n._editor !== 'search'); }
 function searchIntelNode(tree) { return (Array.isArray(tree) ? tree : []).find(n => n && n._editor === 'search') || null; }
+function searchIntelLedgerHtml(searchNode) {
+  if (!searchNode || !Array.isArray(searchNode.children) || !searchNode.children.length) return '';
+  let inner = '';
+  searchNode.children.forEach(c => {
+    if (c.type === 'table' && c.table && Array.isArray(c.table.rows) && c.table.rows.length) {
+      inner += `<div class="ledger-title" style="margin-top:${inner ? '18px' : '0'}">🔎 ${escapeHtml(c.heading || 'Top keywords')}</div>
+        <div class="itable-mount" data-tid="${registerTable(c.table)}"></div>`;
+    } else if (c.type === 'entities' && Array.isArray(c.items) && c.items.length) {
+      inner += `<div class="ledger-title" style="margin-top:${inner ? '18px' : '0'}">📈 ${escapeHtml(c.heading || 'Trends')}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;">${c.items.map(it => `<span class="entity-chip" style="cursor:default">${escapeHtml(it)}</span>`).join('')}</div>`;
+    } else if (Array.isArray(c.items) && c.items.length) {
+      inner += `<div class="ledger-title" style="margin-top:${inner ? '18px' : '0'}">📰 ${escapeHtml(c.heading || 'Articles')}</div>
+        ${c.items.map(it => {
+          const m = String(it).match(/^\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)$/);
+          const label = m ? m[1] : it, url = m ? m[2] : '';
+          return `<div class="ledger-item"><span class="ledger-n" style="background:var(--flame)">↗</span>
+            <div class="ledger-body"><div class="ledger-label">${url ? `<a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(label)}</a>` : escapeHtml(label)}</div>
+            ${url ? `<div class="ledger-url"><img src="https://www.google.com/s2/favicons?domain=${encodeURIComponent(domainOf(url))}&sz=64" onerror="this.style.display='none'">${escapeHtml(url)}</div>` : ''}</div></div>`;
+        }).join('')}`;
+    }
+  });
+  if (!inner) return '';
+  return `<div class="ledger" style="background:var(--glass)"><div class="ledger-title" style="font-weight:700;">${t('search_intel') || 'Search Intelligence'}</div>${inner}</div>`;
+}
 
 /* ==================== State ==================== */
 let currentTree = [], currentPromoted = [], currentLinks = [], currentBriefId = null, promoIdSeq = 0, editingId = null, detailRow = null, currentAnnotations = [];
@@ -2119,6 +2143,8 @@ async function openDetail(row) {
         ${l.note ? `<div class="priority-verdict-note">${escapeHtml(l.note)}</div>` : ''}</div></div>`).join('')}
     </div>` : '';
 
+  const searchIntelHtml = searchIntelLedgerHtml(searchIntelNode(allSections));
+
   el.innerHTML = `
     <button class="btn ghost sm" id="backToLibrary">← Library</button>
     <div class="showcase-hero" style="margin-top:14px;">
@@ -2148,6 +2174,7 @@ async function openDetail(row) {
     <div class="sdiv2"><h2>${t('full_brief')}</h2><div class="rule2"></div></div>
     <div class="desk-bento" id="briefBento"></div>
     ${resourcesHtml}
+    ${searchIntelHtml}
     <div id="sourceLedger"></div>
     <div style="display:none" aria-hidden="true"><div class="spine" id="briefSpineLegacy"><div class="spine-nav" id="briefSpineNav"></div></div></div>`;
 
@@ -2156,6 +2183,7 @@ async function openDetail(row) {
   Array.from(sectionsWrap.children).forEach((c, i) => c.setAttribute('data-top', String(i)));
 
   hydrateTables(sectionsWrap); // table cells now register their citations too
+  hydrateTables(el); // also hydrate the Search Intelligence table mount on the main detail page
   wireTreeListeners(sectionsWrap);
 
   // Sources ledger (after tables hydrated so table sources are numbered)
