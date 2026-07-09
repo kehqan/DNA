@@ -329,6 +329,9 @@ html[dir="rtl"] .blk-note { border-left: none; border-right: 2px solid var(--hon
 .mini-icon-btn { font-size: 10px; background: rgba(var(--inkC),0.06); border: none; border-radius: 6px; padding: 3px 8px; cursor: pointer; color: var(--soft); transition: background 130ms; }
 .mini-icon-btn:hover { background: rgba(var(--inkC),0.13); color: var(--teal); }
 .mini-icon-btn.danger:hover { background: var(--flame); color: #fff; }
+.mini-icon-btn.primary-ish { background: rgba(255,84,0,0.10); color: var(--flame); font-weight: 700; }
+.mini-icon-btn.primary-ish:hover { background: var(--flame); color: #fff; }
+.mini-icon-btn:disabled { opacity: 0.55; cursor: default; }
 .promo-empty { font-size: 11.5px; color: var(--soft); text-align: center; padding: 18px 10px; line-height: 1.5; }
 
 .resources-box { background: var(--glass); border: 1px solid var(--glass-b); border-radius: 16px; padding: 13px 15px; }
@@ -800,12 +803,14 @@ mark.anno.pulse { animation: markPulse 1200ms var(--eo); }
           <div class="sc-sub">Search Console keywords</div>
           <div id="scKwTable"></div>
           <div class="sc-tools">
+            <button class="mini-icon-btn primary-ish" id="scSyncGsc">🔄 Sync from Search Console</button>
             <button class="mini-icon-btn" id="scAddRow">＋ Row</button>
             <button class="mini-icon-btn" id="scPaste">⧉ Paste rows</button>
             <label class="mini-icon-btn" for="scFile" style="cursor:pointer;">⭱ Upload CSV</label>
             <input type="file" id="scFile" accept=".csv,.tsv,.txt" hidden>
             <button class="mini-icon-btn danger" id="scClearKw">Clear</button>
           </div>
+          <div class="meter-hint" id="scSyncStatus" style="margin-top:6px;"></div>
           <div class="sc-sub" style="margin-top:14px;">Winning articles</div>
           <div id="scArtList"></div>
           <div class="add-link-form" style="margin-top:6px;">
@@ -1929,6 +1934,45 @@ function parseKeywordRows(text) {
 
 document.getElementById('scAddRow').addEventListener('click', () => { searchIntel.keywords.push(['', '', '', '', '']); renderScKwTable(); renderDeskRail(); });
 document.getElementById('scClearKw').addEventListener('click', () => { searchIntel.keywords = []; renderScKwTable(); renderDeskRail(); });
+
+/* ---------- Google Search Console sync (via Apps Script web app) ---------- */
+const GSC_SYNC_URL = 'https://script.google.com/macros/s/AKfycbwJ86LCOG73cqSp5_17rH4925v1NQabzeEg-jE2XZpV7Sq1AvD0ZIwvjTsJbQoAFxQa/exec';
+document.getElementById('scSyncGsc').addEventListener('click', async () => {
+  const btn = document.getElementById('scSyncGsc'), status = document.getElementById('scSyncStatus');
+  const topic = (document.getElementById('reviewTitle').textContent || '').trim();
+  const q = topic.split(/\s+/).slice(0, 3).join(' '); // first few words of the topic as a relevance filter
+  btn.disabled = true; btn.textContent = '🔄 Syncing…';
+  if (status) status.textContent = `Pulling Search Console queries matching "${q}"…`;
+  try {
+    const url = `${GSC_SYNC_URL}?q=${encodeURIComponent(q)}&days=90`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || 'Unknown error from Search Console script');
+    const rows = Array.isArray(data.rows) ? data.rows : [];
+    if (!rows.length) {
+      if (status) status.textContent = `No matching queries found for "${q}" in the last 90 days. Try broadening the topic title, or add rows manually.`;
+    } else {
+      const existing = new Set(searchIntel.keywords.map(r => (r[0] || '').toLowerCase().trim()));
+      let added = 0;
+      rows.forEach(r => {
+        const kw = (r.keyword || '').trim(); if (!kw || existing.has(kw.toLowerCase())) return;
+        const clicks = Number(r.clicks) || 0, impressions = Number(r.impressions) || 0;
+        const ctr = impressions > 0 ? ((clicks / impressions) * 100).toFixed(1) + '%' : '';
+        searchIntel.keywords.push([kw, String(r.clicks ?? ''), String(r.impressions ?? ''), ctr, String(r.position ?? '')]);
+        existing.add(kw.toLowerCase()); added++;
+      });
+      renderScKwTable(); renderDeskRail();
+      if (status) status.textContent = `Synced ${added} new keyword${added === 1 ? '' : 's'} from Search Console (${rows.length} matched "${q}").`;
+      dashToast(`Synced ${added} keyword${added === 1 ? '' : 's'} from Search Console`);
+    }
+  } catch (err) {
+    if (status) status.textContent = `Sync failed: ${err.message}. Check the Apps Script deployment is still active and the site URL matches your Search Console property.`;
+    dashToast('Search Console sync failed — see the note under the button');
+  } finally {
+    btn.disabled = false; btn.textContent = '🔄 Sync from Search Console';
+  }
+});
 document.getElementById('scPaste').addEventListener('click', async () => {
   try {
     const text = await navigator.clipboard.readText();
