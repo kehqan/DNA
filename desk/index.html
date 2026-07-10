@@ -113,6 +113,9 @@ body.dark .mat-row:hover { background: rgba(255,255,255,0.08); }
 .mat-badge { font-size: 8.5px; font-weight: 700; white-space: nowrap; }
 .mat-badge.drafted { color: var(--soft); }
 .mat-badge.inpiece { color: var(--flame); }
+.bsb-search { width: 100%; font-size: 12px; padding: 9px 12px; border: 1px solid var(--border2); border-radius: 10px; background: var(--paper); color: var(--teal); outline: none; }
+.bsb-back { font-size: 10.5px; font-weight: 700; color: var(--soft); cursor: pointer; margin-bottom: 10px; display: inline-block; }
+.bsb-back:hover { color: var(--flame); }
 
 .hint-banner { font-size: 10.5px; color: var(--teal2); background: rgba(36,80,106,0.06); border: 1px solid rgba(36,80,106,0.13); border-radius: 10px; padding: 8px 12px; margin-bottom: 12px; line-height: 1.5; }
 .cmp-head-input { width: 100%; font-family: var(--serif); font-size: 17px; font-weight: 700; border: none; background: transparent; outline: none; color: var(--teal); margin-bottom: 6px; }
@@ -454,21 +457,61 @@ async function openDoc(doc) {
   document.getElementById('tbDirLbl').textContent = doc.direction === 'rtl' ? 'RTL' : 'LTR';
   updateCounts();
 
+  document.getElementById('colMat').classList.remove('hidden'); // materials rail is available on every document now, brief or not
   if (doc.brief_id) {
-    document.getElementById('modeToggleWrap').classList.remove('hidden');
-    document.getElementById('colMat').classList.remove('hidden');
     try {
       const rows = await sbSelect('dna_agent_briefs', `id=eq.${doc.brief_id}&select=*&limit=1`);
       if (rows.length) { CURRENT_BRIEF = rows[0]; buildMaterialGroups(); }
     } catch (e) { dashToast('Could not load the linked brief: ' + e.message); }
+  }
+  if (CURRENT_BRIEF) {
+    document.getElementById('modeToggleWrap').classList.remove('hidden');
     setMode(true);
+    renderMatAccordions();
   } else {
     document.getElementById('modeToggleWrap').classList.add('hidden');
-    document.getElementById('colMat').classList.add('hidden');
     document.getElementById('colComposer').classList.add('collapsed');
+    matSidebarOpen = true; applyMatSidebarState();
+    renderBriefPickerUI();
   }
-  renderMatAccordions(); renderBlocks();
+  renderBlocks();
   sbUpdate('desk_documents', doc.id, { view_count: (doc.view_count || 0) + 1 }).catch(() => {});
+}
+
+/* ---------- Brief Library: pick or switch which brief feeds the materials sidebar ---------- */
+async function renderBriefPickerUI() {
+  document.getElementById('matBriefName').innerHTML = '📚 Brief Library';
+  const wrap = document.getElementById('matAccordions');
+  wrap.innerHTML = `<input class="bsb-search" id="briefPickSearch" placeholder="🔍 Search BriefDesk…"><div id="briefPickList" style="margin-top:8px;"></div>`;
+  let allBriefs = [];
+  try { allBriefs = await sbSelect('dna_agent_briefs', 'select=id,topic,promoted_items&order=created_at.desc&limit=100'); }
+  catch (e) { document.getElementById('briefPickList').innerHTML = `<div class="cmp-empty-note">Couldn't load BriefDesk: ${escapeHtml(e.message)}</div>`; return; }
+  const renderList = filter => {
+    const f = (filter || '').toLowerCase();
+    const filtered = allBriefs.filter(b => (b.topic || '').toLowerCase().includes(f));
+    document.getElementById('briefPickList').innerHTML = filtered.length ? filtered.map(b => `
+      <div class="mat-row" data-brief-pick="${b.id}">
+        <span class="mat-row-ico">📌</span><span class="mat-row-txt">${escapeHtml(b.topic || 'Untitled brief')}</span>
+        <span class="mat-badges"><span class="mat-badge drafted">${(b.promoted_items || []).length} promoted</span></span>
+      </div>`).join('') : '<div class="cmp-empty-note">No briefs match.</div>';
+    document.querySelectorAll('[data-brief-pick]').forEach(el => el.addEventListener('click', () => attachBriefToDoc(el.getAttribute('data-brief-pick'))));
+  };
+  renderList('');
+  document.getElementById('briefPickSearch').addEventListener('input', e => renderList(e.target.value));
+}
+async function attachBriefToDoc(briefId) {
+  if (!CURRENT_DOC) return;
+  try {
+    await sbUpdate('desk_documents', CURRENT_DOC.id, { brief_id: briefId });
+    CURRENT_DOC.brief_id = briefId;
+    const rows = await sbSelect('dna_agent_briefs', `id=eq.${briefId}&select=*&limit=1`);
+    if (!rows.length) throw new Error('brief not found');
+    CURRENT_BRIEF = rows[0]; buildMaterialGroups(); blocks = [];
+    document.getElementById('modeToggleWrap').classList.remove('hidden');
+    setMode(true);
+    renderMatAccordions(); renderBlocks();
+    dashToast('Brief attached — materials are ready on the left');
+  } catch (e) { dashToast('Could not attach brief: ' + e.message); }
 }
 
 function buildMaterialGroups() {
@@ -504,8 +547,9 @@ function renderMatAccordions() {
   document.getElementById('matBriefName').innerHTML = CURRENT_BRIEF ? `📌 ${escapeHtml(CURRENT_BRIEF.topic || '')}` : '';
   const drafted = draftedMatIds(), inPiece = inPieceMatIds();
   const wrap = document.getElementById('matAccordions');
-  if (!MATERIAL_GROUPS.length) { wrap.innerHTML = '<div class="cmp-empty-note">No promoted material or search data on this brief yet.</div>'; return; }
-  wrap.innerHTML = MATERIAL_GROUPS.map(g => `
+  const switchLink = `<div class="bsb-back" id="switchBriefLink">🔁 Switch brief</div>`;
+  if (!MATERIAL_GROUPS.length) { wrap.innerHTML = switchLink + '<div class="cmp-empty-note">No promoted material or search data on this brief yet.</div>'; wireSwitchLink(); return; }
+  wrap.innerHTML = switchLink + MATERIAL_GROUPS.map(g => `
     <div class="acc open" data-key="${g.key}">
       <div class="acc-head" data-toggle="1"><span>${g.icon} ${escapeHtml(g.label)}</span><span class="acc-count">${g.items.length}</span><span class="acc-chev">⌄</span></div>
       <div class="acc-body">
@@ -515,6 +559,7 @@ function renderMatAccordions() {
         </div>`).join('')}
       </div>
     </div>`).join('');
+  wireSwitchLink();
   wrap.querySelectorAll('[data-toggle]').forEach(h => h.addEventListener('click', () => h.closest('.acc').classList.toggle('open')));
   wrap.querySelectorAll('.mat-row').forEach(row => {
     const matId = row.getAttribute('data-mat');
@@ -525,6 +570,15 @@ function renderMatAccordions() {
       const span = canvas.querySelector(`.mat-trace[data-mat-id="${matId}"]`);
       if (span) { span.scrollIntoView({ behavior: 'smooth', block: 'center' }); traceMaterial(matId, true); setTimeout(() => traceMaterial(matId, false), 1200); }
     });
+  });
+}
+function wireSwitchLink() {
+  const link = document.getElementById('switchBriefLink');
+  if (link) link.addEventListener('click', () => {
+    CURRENT_BRIEF = null; MATERIAL_GROUPS = [];
+    document.getElementById('modeToggleWrap').classList.add('hidden');
+    setMode(false);
+    renderBriefPickerUI();
   });
 }
 function findMat(id) { for (const g of MATERIAL_GROUPS) { const f = g.items.find(i => i.id === id); if (f) return f; } return null; }
