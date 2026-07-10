@@ -2700,7 +2700,7 @@ async function openPiecePicker(row) {
   const body = document.getElementById('piecePickerBody');
   body.innerHTML = '<div class="promo-empty">Loading…</div>';
   let docs = [];
-  try { docs = await sbSelect('desk_documents', `brief_id=eq.${row.id}&select=id,title,updated_at,direction,status&order=updated_at.desc`); }
+  try { docs = await sbSelect('desk_documents', `brief_ids=cs.{${row.id}}&select=id,title,updated_at,direction,status&order=updated_at.desc`); }
   catch (err) { body.innerHTML = `<div class="promo-empty">Couldn't load pieces: ${escapeHtml(err.message)}</div>`; return; }
   body.innerHTML = `
     ${docs.length ? docs.map(d => `<div class="dcard" data-open-doc="${d.id}" data-title="${escapeHtml(d.title || '')}" style="margin-bottom:10px;cursor:pointer;">
@@ -2713,7 +2713,7 @@ async function openPiecePicker(row) {
   document.getElementById('piecePickerNew').addEventListener('click', async () => {
     const btn = document.getElementById('piecePickerNew'); btn.disabled = true; btn.textContent = 'Creating…';
     try {
-      const created = await sbInsert('desk_documents', { title: row.topic || 'Untitled document', body_html: '<p>Start writing…</p>', direction: 'ltr', brief_id: row.id, status: 'draft' });
+      const created = await sbInsert('desk_documents', { title: row.topic || 'Untitled document', body_html: '<p>Start writing…</p>', direction: 'ltr', brief_id: row.id, brief_ids: [row.id], status: 'draft' });
       navigateToDeskDoc(created[0]);
     } catch (err) { btn.disabled = false; btn.textContent = '＋ Start a new piece from this brief'; dashToast('Could not create piece: ' + err.message); }
   });
