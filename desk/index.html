@@ -232,6 +232,73 @@ body.dark .mat-row:hover { background: rgba(255,255,255,0.08); }
   .appbar, .col-mat, .col-composer, .desk-toolbar, .desk-footer { display: none !important; }
   .col-desk { padding: 0; } .page-wrap { box-shadow: none; border: none; background: none; }
 }
+
+/* ============ Assignments screen ============ */
+.asn-stage { max-width: 1240px; margin: 0 auto; padding: 22px 24px 70px; position: relative; z-index: 1; }
+.asn-stat-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+.asn-stat-pill { background: var(--glass); border: 1px solid var(--glass-b); box-shadow: var(--gs), var(--gi); border-radius: 100px; padding: 9px 16px; display: flex; align-items: baseline; gap: 6px; }
+.asn-stat-pill.mine { background: linear-gradient(135deg, rgba(255,84,0,0.10), rgba(255,192,71,0.08)), var(--glass); }
+.asn-stat-n { font-family: var(--serif); font-size: 16px; font-weight: 700; color: var(--flame); }
+.asn-stat-l { font-size: 11px; color: var(--muted); }
+.asn-toolbar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+.asn-filter-chip { font-size: 11px; font-weight: 600; color: var(--muted); background: rgba(255,255,255,0.5); border: 1px solid var(--border2); border-radius: 100px; padding: 6px 13px; cursor: pointer; transition: all 140ms; }
+.asn-filter-chip.active { background: var(--teal); color: #fff; border-color: transparent; }
+.asn-view-toggle { display: inline-flex; background: rgba(var(--inkC),0.06); border-radius: 100px; padding: 3px; gap: 2px; }
+.asn-view-btn { font-size: 11px; font-weight: 700; padding: 7px 13px; border-radius: 100px; border: none; background: transparent; color: var(--muted); cursor: pointer; }
+.asn-view-btn.active { background: var(--teal); color: #fff; }
+.asn-board { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; align-items: start; }
+.asn-col { background: rgba(var(--inkC),0.025); border: 1px solid var(--border); border-radius: 18px; padding: 12px; min-height: 200px; transition: background 150ms; }
+.asn-col.drag-over { background: rgba(255,84,0,0.06); border-color: rgba(255,84,0,0.25); }
+.asn-col-head { display: flex; align-items: center; gap: 8px; padding: 4px 6px 12px; }
+.asn-col-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.asn-col-title { font-family: var(--serif); font-size: 13px; font-weight: 700; }
+.asn-col-count { margin-left: auto; font-size: 10px; font-weight: 700; color: var(--soft); background: rgba(var(--inkC),0.06); border-radius: 100px; padding: 2px 8px; }
+.acard { background: var(--glass); backdrop-filter: blur(16px) saturate(1.7); border: 1px solid var(--glass-b); box-shadow: var(--gs), var(--gi);
+  border-radius: 14px; padding: 12px 13px; margin-bottom: 10px; cursor: grab; transition: transform 160ms var(--eo), box-shadow 160ms; }
+.acard:hover { transform: translateY(-2px); }
+.acard.dragging { opacity: 0.4; }
+.acard-top { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+.acard-type { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 100px; }
+.acard-type.brief { color: var(--teal2); background: rgba(36,80,106,0.09); }
+.acard-type.piece { color: var(--flame); background: rgba(255,84,0,0.09); }
+.acard-priority { margin-left: auto; width: 7px; height: 7px; border-radius: 50%; }
+.acard-title { font-family: var(--serif); font-size: 13px; font-weight: 600; line-height: 1.4; margin-bottom: 9px; }
+.acard-foot { display: flex; align-items: center; justify-content: space-between; }
+.acard-assignee { display: flex; align-items: center; gap: 6px; }
+.asn-avatar { width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 9px; font-weight: 700; flex-shrink: 0; }
+.acard-assignee-name { font-size: 10.5px; color: var(--muted); }
+.acard-due { font-size: 9.5px; color: var(--soft); }
+.acard-due.overdue { color: var(--flame); font-weight: 700; }
+.acard-unassigned { font-size: 10px; font-weight: 700; color: var(--soft); border: 1px dashed var(--border2); border-radius: 100px; padding: 3px 9px; }
+.asn-mywork-list, .asn-team-grid { max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 10px; }
+.asn-team-grid { max-width: 1000px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.asn-mywork-row { display: flex; align-items: center; gap: 13px; background: var(--glass); border: 1px solid var(--glass-b); box-shadow: var(--gs), var(--gi); border-radius: 14px; padding: 13px 16px; cursor: pointer; transition: transform 150ms; }
+.asn-mywork-row:hover { transform: translateX(3px); }
+.asn-status-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+.asn-mywork-body { flex: 1; min-width: 0; }
+.asn-mywork-title { font-family: var(--serif); font-size: 13.5px; font-weight: 600; }
+.asn-mywork-meta { font-size: 10.5px; color: var(--soft); margin-top: 2px; }
+.asn-team-card { background: var(--glass); border: 1px solid var(--glass-b); box-shadow: var(--gs), var(--gi); border-radius: 18px; padding: 16px; }
+.asn-team-head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.asn-team-name { font-family: var(--serif); font-size: 14px; font-weight: 600; }
+.asn-team-role { font-size: 9.5px; font-weight: 700; color: var(--teal2); text-transform: uppercase; letter-spacing: .03em; }
+.asn-team-mini { display: flex; align-items: center; gap: 8px; padding: 7px 0; border-bottom: 1px solid var(--border); font-size: 11.5px; }
+.asn-team-mini:last-child { border-bottom: none; }
+.field-label { font-size: 10.5px; font-weight: 700; color: var(--soft); text-transform: uppercase; letter-spacing: .03em; margin: 12px 0 6px; }
+.field-label:first-child { margin-top: 0; }
+.field-input, .field-select { width: 100%; font-size: 12.5px; padding: 9px 12px; border: 1px solid var(--border2); border-radius: 10px; background: var(--ivory); color: var(--teal); outline: none; }
+.people-pick-row { display: flex; align-items: center; gap: 9px; padding: 8px 9px; border-radius: 10px; cursor: pointer; transition: background 130ms; }
+.people-pick-row:hover { background: rgba(var(--inkC),0.05); }
+.people-pick-row.selected { background: rgba(255,84,0,0.08); border: 1px solid rgba(255,84,0,0.2); }
+.priority-row { display: flex; gap: 8px; margin-top: 4px; }
+.priority-opt { flex: 1; text-align: center; font-size: 11px; font-weight: 700; padding: 8px; border-radius: 10px; border: 1px solid var(--border2); cursor: pointer; color: var(--muted); }
+.role-legend-card { background: var(--glass); border: 1px solid var(--glass-b); border-radius: 14px; padding: 13px 15px; margin-bottom: 10px; }
+.role-legend-head { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; }
+.role-legend-name { font-family: var(--serif); font-size: 13.5px; font-weight: 700; }
+.role-legend-list { font-size: 11.5px; color: var(--muted); line-height: 1.8; padding-left: 4px; }
+.role-note { font-size: 10.5px; color: var(--soft); font-style: italic; margin-top: 4px; padding: 10px 4px 0; border-top: 1px dashed var(--border2); }
+.asn-empty { text-align: center; padding: 40px 20px; color: var(--soft); font-size: 12px; }
+@media (max-width: 900px) { .asn-board { grid-template-columns: 1fr; } .asn-team-grid { grid-template-columns: 1fr 1fr; } }
 </style>
 </head>
 <body>
@@ -264,6 +331,11 @@ body.dark .mat-row:hover { background: rgba(255,255,255,0.08); }
         <div class="wcard-ico">🖋️</div>
         <div><div class="wcard-title">Blank document</div><div class="wcard-sub">Just write — no brief attached. Full formatting, RTL/LTR, export.</div></div>
         <div class="wcard-open">Start writing →</div>
+      </div>
+      <div class="wcard" onclick="goAssign()">
+        <div class="wcard-ico">🗞️</div>
+        <div><div class="wcard-title">Newsroom</div><div class="wcard-sub">Who's working on what — assign briefs and pieces, track status across the team.</div></div>
+        <div class="wcard-open">Open board →</div>
       </div>
     </div>
     <div class="sdiv"><h2>Recent documents</h2><div class="rule"></div><button class="see-all-btn" id="seeAllDocsBtn">See all →</button></div>
@@ -355,7 +427,97 @@ body.dark .mat-row:hover { background: rgba(255,255,255,0.08); }
   </div>
 </div>
 
-<!-- Find & Replace mini bar -->
+<!-- ============ SCREEN: Assignments ============ -->
+<div id="screenAssign" class="hidden">
+  <div class="appbar">
+    <div class="appbar-brand" onclick="goHome()"><span>🖋️</span><span class="appbar-title">Desk</span></div>
+    <div class="crumb-pill">
+      <span class="crumb-seg" onclick="goHome()">Desk</span><span class="crumb-sep">/</span>
+      <span class="crumb-seg here">Newsroom</span>
+    </div>
+    <div class="appbar-spacer"></div>
+    <div class="asn-view-toggle">
+      <button class="asn-view-btn active" data-view="board">📋 Board</button>
+      <button class="asn-view-btn" data-view="mywork">👤 My Work</button>
+      <button class="asn-view-btn" data-view="team">👥 Team</button>
+    </div>
+    <div class="help-pill" id="asnUserSwitch" title="Preview as a different team member (no real auth yet)">🎭 Viewing as: <span id="asnCurrentUserLabel">…</span></div>
+  </div>
+
+  <div class="asn-stage">
+    <div class="asn-stat-row" id="asnStatRow"></div>
+    <div class="asn-toolbar-row">
+      <button class="asn-filter-chip active" data-filter="all">All</button>
+      <button class="asn-filter-chip" data-filter="brief">🧬 Briefs only</button>
+      <button class="asn-filter-chip" data-filter="piece">🖋️ Pieces only</button>
+      <button class="asn-filter-chip" data-filter="overdue">⚠ Overdue</button>
+      <div style="flex:1"></div>
+      <button class="btn" id="asnRolesBtn">🔐 Roles &amp; access</button>
+      <button class="btn primary" id="asnNewAssignBtn">＋ Assign work</button>
+    </div>
+    <div id="asnViewBoard"><div class="asn-board" id="asnBoardEl"><div class="asn-empty">Loading…</div></div></div>
+    <div id="asnViewMywork" class="hidden"><div class="asn-mywork-list" id="asnMyworkEl"></div></div>
+    <div id="asnViewTeam" class="hidden"><div class="asn-team-grid" id="asnTeamEl"></div></div>
+  </div>
+</div>
+
+<!-- User switch (mock auth preview) -->
+<div class="modal-overlay" id="asnUserSwitchOverlay">
+  <div class="onb-modal" style="max-width:360px;">
+    <div class="onb-head"><div class="onb-title" style="font-size:14px;">🎭 Preview as…</div><button class="onb-close" id="asnUserSwitchClose">✕</button></div>
+    <div class="onb-body" id="asnUserSwitchBody"></div>
+  </div>
+</div>
+
+<!-- Assign modal -->
+<div class="modal-overlay" id="asnAssignOverlay">
+  <div class="onb-modal" style="max-width:480px;">
+    <div class="onb-head"><div class="onb-title" style="font-size:15px;">＋ Assign work</div><button class="onb-close" id="asnAssignClose">✕</button></div>
+    <div class="onb-body">
+      <div class="field-label">Item</div>
+      <select class="field-select" id="asnAssignItemPick"></select>
+      <div class="field-label">Assign to</div>
+      <div id="asnAssignPeopleList"></div>
+      <div class="field-label">Priority</div>
+      <div class="priority-row" id="asnPriorityRow"></div>
+      <div class="field-label">Due date</div>
+      <input class="field-input" type="date" id="asnAssignDue">
+      <button class="btn primary" id="asnAssignSaveBtn" style="width:100%;margin-top:16px;">Save assignment</button>
+    </div>
+  </div>
+</div>
+
+<!-- Item detail modal -->
+<div class="modal-overlay" id="asnDetailOverlay">
+  <div class="onb-modal" style="max-width:480px;">
+    <div class="onb-head"><div class="onb-title" id="asnDetailTitle" style="font-size:15px;">Item</div><button class="onb-close" id="asnDetailClose">✕</button></div>
+    <div class="onb-body" id="asnDetailBody"></div>
+  </div>
+</div>
+
+<!-- Roles & access + Add user modal -->
+<div class="modal-overlay" id="asnRolesOverlay">
+  <div class="onb-modal" style="max-width:600px;">
+    <div class="onb-head"><div class="onb-title" style="font-size:15px;">🔐 Roles &amp; access</div><button class="onb-close" id="asnRolesClose">✕</button></div>
+    <div class="onb-body">
+      <div id="asnRoleLegendEl"></div>
+      <div class="field-label" style="display:flex;align-items:center;justify-content:space-between;">
+        <span>Team members</span>
+        <button class="btn primary" id="asnAddUserBtn" style="display:none;">＋ Add user</button>
+      </div>
+      <div id="asnTeamListEl"></div>
+      <div id="asnAddUserForm" class="hidden" style="margin-top:10px;padding:12px;border:1px solid var(--border2);border-radius:12px;background:var(--glass);">
+        <input class="field-input" id="asnNewUserName" placeholder="Full name" style="margin-bottom:8px;">
+        <input class="field-input" id="asnNewUserEmail" placeholder="Email (optional)" style="margin-bottom:8px;">
+        <select class="field-select" id="asnNewUserRole" style="margin-bottom:10px;">
+          <option value="reporter">Reporter</option><option value="editor">Editor</option><option value="admin">Admin</option>
+        </select>
+        <button class="btn primary" id="asnNewUserSaveBtn" style="width:100%;">Add to team</button>
+      </div>
+      <div class="role-note">Admin-only. There's no real login yet, so "who's an admin" is simulated via the 🎭 preview switcher in the header — this becomes a real gate once auth is wired in.</div>
+    </div>
+  </div>
+</div>
 <div class="modal-overlay" id="allDocsOverlay">
   <div class="onb-modal" style="max-width:640px;">
     <div class="onb-head"><div class="onb-title">📄 All documents</div><button class="onb-close" id="allDocsClose">✕</button></div>
@@ -465,9 +627,11 @@ function shortId(id) { return String(id || '').replace(/-/g, '').slice(0, 8); }
 function docSlug(doc) { return `${slugify(doc.title)}--${shortId(doc.id)}`; }
 function docPath(doc) { return `/desk/doc/${docSlug(doc)}`; }
 function goHome() { if (location.pathname.replace(/\/+$/, '') !== '/desk') history.pushState(null, '', '/desk'); showHome(); }
+function goAssign() { if (location.pathname.replace(/\/+$/, '') !== '/desk/assign') history.pushState(null, '', '/desk/assign'); showAssign(); }
 function goDoc(doc) { const p = docPath(doc); if (location.pathname !== p) history.pushState({ docId: doc.id }, '', p); }
 async function routeFromLocation() {
   const path = location.pathname.replace(/\/+$/, '');
+  if (path === '/desk/assign') { showAssign(); return; }
   const m = path.match(/^\/desk\/doc\/(.+)--([a-f0-9]{6,10})$/i);
   if (m) {
     const sid = m[2].toLowerCase();
@@ -485,6 +649,7 @@ window.addEventListener('popstate', () => routeFromLocation());
 /* ==================== Home ==================== */
 function showHome() {
   document.getElementById('screenEditor').classList.add('hidden');
+  document.getElementById('screenAssign').classList.add('hidden');
   document.getElementById('screenHome').classList.remove('hidden');
   loadRecentDocs();
   loadRecentBriefs();
@@ -599,6 +764,7 @@ async function openDoc(doc) {
   CURRENT_DOC = doc; CURRENT_BRIEF = null; MATERIAL_GROUPS = [];
   blocks = Array.isArray(doc.blocks) ? doc.blocks : []; // drafted material persists for the life of the document, independent of which brief is currently attached
   document.getElementById('screenHome').classList.add('hidden');
+  document.getElementById('screenAssign').classList.add('hidden');
   document.getElementById('screenEditor').classList.remove('hidden');
   document.getElementById('docTitle').value = doc.title || '';
   document.getElementById('crumbDocTitle').textContent = doc.title || 'Untitled';
@@ -1083,6 +1249,289 @@ document.getElementById('onbCopyPrompt').addEventListener('click', async e => {
   btn.textContent = '✓ Copied'; btn.classList.add('done');
   setTimeout(() => { btn.textContent = '⧉ Copy prompt'; btn.classList.remove('done'); }, 1800);
 });
+
+/* ==================== Assignments (Newsroom board) ==================== */
+const ROLE_DEFS = [
+  { name: 'Admin', color: '#1A3948', abilities: ['Full access to every brief, piece, and setting', 'Add and manage team members and roles', "Delete anything, including other people's work", 'Configure Search Console / Copilot integrations'] },
+  { name: 'Editor', color: '#24506A', abilities: ['Promote material and assign work to reporters', 'Publish pieces and mark them final', "Edit or comment on anyone's brief or piece", 'Cannot manage team roles or integrations'] },
+  { name: 'Reporter', color: '#FF5400', abilities: ['Write and edit pieces assigned to them', 'Promote material within their own briefs', 'Comment on their own work', 'Cannot publish, delete, or reassign to others'] },
+];
+const STATUSES = [
+  { id: 'research', label: 'Researching', color: '#B9CCCC' },
+  { id: 'writing', label: 'Writing', color: '#FFC047' },
+  { id: 'review', label: 'In Review', color: '#24506A' },
+  { id: 'published', label: 'Published', color: '#2E7D32' },
+];
+const PRIORITIES = [
+  { id: 'low', label: 'Low', color: '#B9CCCC' },
+  { id: 'normal', label: 'Normal', color: '#24506A' },
+  { id: 'high', label: 'High', color: '#FF5400' },
+];
+let TEAM = [], ASSIGNMENTS = [], CURRENT_USER = null, asnFilter = 'all', asnView = 'board';
+function briefPath(title, id) { return `/briefdesk/${slugify(title)}--${shortId(id)}`; }
+function personOf(id) { return TEAM.find(p => p.id === id); }
+function statusOf(id) { return STATUSES.find(s => s.id === id) || STATUSES[0]; }
+function priorityOf(id) { return PRIORITIES.find(p => p.id === id) || PRIORITIES[1]; }
+function isOverdue(a) { return a.due_date && new Date(a.due_date) < new Date(new Date().toDateString()) && a.status !== 'published'; }
+function itemPath(a) { return a.item_type === 'brief' ? briefPath(a.title, a.brief_id) : docPath({ title: a.title, id: a.doc_id }); }
+
+async function showAssign() {
+  document.getElementById('screenHome').classList.add('hidden');
+  document.getElementById('screenEditor').classList.add('hidden');
+  document.getElementById('screenAssign').classList.remove('hidden');
+  await loadAssignData();
+}
+async function loadAssignData() {
+  try {
+    TEAM = await sbSelect('team_members', 'select=*&order=created_at.asc');
+    if (!CURRENT_USER && TEAM.length) CURRENT_USER = TEAM.find(t => t.role === 'admin') || TEAM[0];
+  } catch (e) { TEAM = []; dashToast('Could not load team members — has team_assignments.sql been run in Supabase?'); }
+  try { ASSIGNMENTS = await sbSelect('assignments', 'select=*&order=updated_at.desc'); }
+  catch (e) { ASSIGNMENTS = []; dashToast('Could not load assignments — has team_assignments.sql been run in Supabase?'); }
+  updateUserLabel(); renderAsnAll();
+}
+function updateUserLabel() {
+  document.getElementById('asnCurrentUserLabel').textContent = CURRENT_USER ? `${CURRENT_USER.name} (${CURRENT_USER.role})` : 'No team members yet';
+}
+function isAdmin() { return CURRENT_USER && CURRENT_USER.role === 'admin'; }
+
+function filteredAssignments() {
+  return ASSIGNMENTS.filter(a => asnFilter === 'all' ? true : asnFilter === 'overdue' ? isOverdue(a) : a.item_type === asnFilter);
+}
+function renderAsnStats() {
+  const mine = CURRENT_USER ? ASSIGNMENTS.filter(a => a.assignee_id === CURRENT_USER.id && a.status !== 'published').length : 0;
+  const review = ASSIGNMENTS.filter(a => a.status === 'review').length;
+  const overdue = ASSIGNMENTS.filter(isOverdue).length;
+  const unassigned = ASSIGNMENTS.filter(a => !a.assignee_id).length;
+  document.getElementById('asnStatRow').innerHTML = `
+    <div class="asn-stat-pill mine"><span class="asn-stat-n">${mine}</span><span class="asn-stat-l">assigned to you</span></div>
+    <div class="asn-stat-pill"><span class="asn-stat-n">${review}</span><span class="asn-stat-l">in review</span></div>
+    <div class="asn-stat-pill"><span class="asn-stat-n">${overdue}</span><span class="asn-stat-l">overdue</span></div>
+    <div class="asn-stat-pill"><span class="asn-stat-n">${unassigned}</span><span class="asn-stat-l">unassigned</span></div>`;
+}
+function acardHtml(a) {
+  const p = personOf(a.assignee_id), pr = priorityOf(a.priority);
+  return `<div class="acard" draggable="true" data-item="${a.id}">
+    <div class="acard-top"><span class="acard-type ${a.item_type}">${a.item_type === 'brief' ? '🧬 Brief' : '🖋️ Piece'}</span><span class="acard-priority" style="background:${pr.color}" title="${pr.label} priority"></span></div>
+    <div class="acard-title">${escapeHtml(a.title)}</div>
+    <div class="acard-foot">
+      ${p ? `<div class="acard-assignee"><div class="asn-avatar" style="background:${p.color}">${escapeHtml(p.name[0])}</div><span class="acard-assignee-name">${escapeHtml(p.name)}</span></div>` : '<span class="acard-unassigned">Unassigned</span>'}
+      ${a.due_date ? `<span class="acard-due ${isOverdue(a) ? 'overdue' : ''}">${isOverdue(a) ? '⚠ ' : ''}${fmtDate(a.due_date)}</span>` : ''}
+    </div>
+  </div>`;
+}
+function fmtDate(iso) { const d = new Date(iso); return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }); }
+function renderAsnBoard() {
+  const items = filteredAssignments();
+  const el = document.getElementById('asnBoardEl');
+  if (!TEAM.length && !ASSIGNMENTS.length) { el.innerHTML = '<div class="asn-empty">No team or assignments yet — run team_assignments.sql, then click "＋ Assign work" to get started.</div>'; return; }
+  el.innerHTML = STATUSES.map(s => {
+    const colItems = items.filter(a => a.status === s.id);
+    return `<div class="asn-col" data-status="${s.id}">
+      <div class="asn-col-head"><span class="asn-col-dot" style="background:${s.color}"></span><span class="asn-col-title">${s.label}</span><span class="asn-col-count">${colItems.length}</span></div>
+      <div>${colItems.map(acardHtml).join('')}</div>
+    </div>`;
+  }).join('');
+  el.querySelectorAll('.acard').forEach(card => {
+    card.addEventListener('dragstart', e => { e.dataTransfer.setData('text/asn-id', card.getAttribute('data-item')); card.classList.add('dragging'); });
+    card.addEventListener('dragend', () => card.classList.remove('dragging'));
+    card.addEventListener('click', () => openAsnDetail(card.getAttribute('data-item')));
+  });
+  el.querySelectorAll('.asn-col').forEach(col => {
+    col.addEventListener('dragover', e => { e.preventDefault(); col.classList.add('drag-over'); });
+    col.addEventListener('dragleave', () => col.classList.remove('drag-over'));
+    col.addEventListener('drop', async e => {
+      e.preventDefault(); col.classList.remove('drag-over');
+      const id = e.dataTransfer.getData('text/asn-id'); const a = ASSIGNMENTS.find(x => x.id === id); if (!a) return;
+      const newStatus = col.getAttribute('data-status'); if (a.status === newStatus) return;
+      a.status = newStatus; renderAsnAll();
+      try { await sbUpdate('assignments', a.id, { status: newStatus }); dashToast(`Moved to ${statusOf(newStatus).label}`); }
+      catch (err) { dashToast('Could not save: ' + err.message); }
+    });
+  });
+}
+function renderAsnMyWork() {
+  const mine = CURRENT_USER ? ASSIGNMENTS.filter(a => a.assignee_id === CURRENT_USER.id) : [];
+  const el = document.getElementById('asnMyworkEl');
+  el.innerHTML = mine.length ? mine.map(a => `
+    <div class="asn-mywork-row" data-item="${a.id}">
+      <span class="asn-status-dot" style="background:${statusOf(a.status).color}"></span>
+      <div class="asn-mywork-body"><div class="asn-mywork-title">${a.item_type === 'brief' ? '🧬' : '🖋️'} ${escapeHtml(a.title)}</div>
+      <div class="asn-mywork-meta">${statusOf(a.status).label}${a.due_date ? ' · due ' + fmtDate(a.due_date) : ''}${isOverdue(a) ? ' · ⚠ overdue' : ''}</div></div>
+    </div>`).join('') : '<div class="asn-empty">Nothing assigned to you right now.</div>';
+  el.querySelectorAll('.asn-mywork-row').forEach(row => row.addEventListener('click', () => openAsnDetail(row.getAttribute('data-item'))));
+}
+function renderAsnTeam() {
+  document.getElementById('asnTeamEl').innerHTML = TEAM.map(p => {
+    const mine = ASSIGNMENTS.filter(a => a.assignee_id === p.id);
+    return `<div class="asn-team-card">
+      <div class="asn-team-head"><div class="asn-avatar" style="background:${p.color};width:32px;height:32px;font-size:12px;">${escapeHtml(p.name[0])}</div>
+        <div><div class="asn-team-name">${escapeHtml(p.name)}</div><div class="asn-team-role">${p.role}</div></div></div>
+      ${mine.length ? mine.map(a => `<div class="asn-team-mini"><span class="asn-status-dot" style="background:${statusOf(a.status).color}"></span>${escapeHtml(a.title)}</div>`).join('') : '<div class="asn-empty" style="padding:6px 0;">Nothing assigned</div>'}
+    </div>`;
+  }).join('');
+}
+function renderAsnAll() { renderAsnStats(); renderAsnBoard(); renderAsnMyWork(); renderAsnTeam(); }
+
+document.querySelectorAll('.asn-view-btn').forEach(btn => btn.addEventListener('click', () => {
+  asnView = btn.getAttribute('data-view');
+  document.querySelectorAll('.asn-view-btn').forEach(b => b.classList.toggle('active', b === btn));
+  document.getElementById('asnViewBoard').classList.toggle('hidden', asnView !== 'board');
+  document.getElementById('asnViewMywork').classList.toggle('hidden', asnView !== 'mywork');
+  document.getElementById('asnViewTeam').classList.toggle('hidden', asnView !== 'team');
+}));
+document.querySelectorAll('.asn-filter-chip').forEach(chip => chip.addEventListener('click', () => {
+  asnFilter = chip.getAttribute('data-filter');
+  document.querySelectorAll('.asn-filter-chip').forEach(c => c.classList.toggle('active', c === chip));
+  renderAsnBoard();
+}));
+
+/* ---- Detail modal: reassign, status, priority, due, real navigation, real share ---- */
+function renderPeoplePicker(containerId, selectedId, onPick) {
+  const el = document.getElementById(containerId);
+  el.innerHTML = TEAM.map(p => `<div class="people-pick-row ${p.id === selectedId ? 'selected' : ''}" data-pick="${p.id}">
+      <div class="asn-avatar" style="background:${p.color}">${escapeHtml(p.name[0])}</div><span>${escapeHtml(p.name)}</span><span style="margin-left:auto;font-size:9px;color:var(--soft);">${p.role}</span></div>`).join('')
+    + `<div class="people-pick-row ${!selectedId ? 'selected' : ''}" data-pick="">✕ Unassign</div>`;
+  el.querySelectorAll('[data-pick]').forEach(row => row.addEventListener('click', () => {
+    onPick(row.getAttribute('data-pick') || null);
+    el.querySelectorAll('.people-pick-row').forEach(r => r.classList.toggle('selected', r === row));
+  }));
+}
+function renderPriorityPicker(containerId, selected, onPick) {
+  const el = document.getElementById(containerId);
+  const paint = () => el.querySelectorAll('.priority-opt').forEach(o => { const on = o.getAttribute('data-pri') === selected; o.classList.toggle('selected', on); o.style.background = on ? PRIORITIES.find(p=>p.id===selected).color : ''; o.style.color = on ? '#fff' : ''; });
+  el.innerHTML = PRIORITIES.map(p => `<div class="priority-opt" data-pri="${p.id}">${p.label}</div>`).join('');
+  paint();
+  el.querySelectorAll('[data-pri]').forEach(opt => opt.addEventListener('click', () => { selected = opt.getAttribute('data-pri'); onPick(selected); paint(); }));
+}
+function openAsnDetail(id) {
+  const a = ASSIGNMENTS.find(x => x.id === id); if (!a) return;
+  let pendingAssignee = a.assignee_id, pendingPriority = a.priority;
+  document.getElementById('asnDetailTitle').textContent = (a.item_type === 'brief' ? '🧬 ' : '🖋️ ') + a.title;
+  document.getElementById('asnDetailBody').innerHTML = `
+    <div class="field-label">Status</div>
+    <select class="field-select" id="asnDetailStatus">${STATUSES.map(s => `<option value="${s.id}" ${s.id===a.status?'selected':''}>${s.label}</option>`).join('')}</select>
+    <div class="field-label">Assigned to</div>
+    <div id="asnDetailPeopleList"></div>
+    <div class="field-label">Priority</div>
+    <div class="priority-row" id="asnDetailPriorityRow"></div>
+    <div class="field-label">Due date</div>
+    <input class="field-input" type="date" id="asnDetailDue" value="${a.due_date || ''}">
+    <button class="btn" id="asnDetailOpenBtn" style="width:100%;margin-top:14px;">↗ Open in ${a.item_type === 'brief' ? 'BriefDesk' : 'Desk'}</button>
+    <button class="btn" id="asnDetailShareBtn" style="width:100%;margin-top:8px;">🔗 Share link</button>
+    <button class="btn primary" id="asnDetailSaveBtn" style="width:100%;margin-top:8px;">Save changes</button>`;
+  renderPeoplePicker('asnDetailPeopleList', a.assignee_id, v => pendingAssignee = v);
+  renderPriorityPicker('asnDetailPriorityRow', a.priority, v => pendingPriority = v);
+  document.getElementById('asnDetailOpenBtn').addEventListener('click', () => { window.location.href = itemPath(a); });
+  document.getElementById('asnDetailShareBtn').addEventListener('click', async () => {
+    const url = window.location.origin + itemPath(a);
+    if (navigator.share) { try { await navigator.share({ title: a.title, url }); return; } catch (e) { if (e && e.name === 'AbortError') return; } }
+    try { await navigator.clipboard.writeText(url); dashToast('Link copied — share it with your team: ' + url); }
+    catch (e) { dashToast('Could not copy link'); }
+  });
+  document.getElementById('asnDetailSaveBtn').addEventListener('click', async () => {
+    const patch = { status: document.getElementById('asnDetailStatus').value, assignee_id: pendingAssignee, priority: pendingPriority, due_date: document.getElementById('asnDetailDue').value || null };
+    Object.assign(a, patch);
+    closeAsnDetail(); renderAsnAll();
+    try { await sbUpdate('assignments', a.id, patch); dashToast('Assignment updated'); }
+    catch (err) { dashToast('Could not save: ' + err.message); }
+  });
+  document.getElementById('asnDetailOverlay').classList.add('show');
+}
+function closeAsnDetail() { document.getElementById('asnDetailOverlay').classList.remove('show'); }
+document.getElementById('asnDetailClose').addEventListener('click', closeAsnDetail);
+document.getElementById('asnDetailOverlay').addEventListener('click', e => { if (e.target.id === 'asnDetailOverlay') closeAsnDetail(); });
+
+/* ---- Assign new work: pick from briefs/docs not already tracked ---- */
+document.getElementById('asnNewAssignBtn').addEventListener('click', async () => {
+  const pick = document.getElementById('asnAssignItemPick');
+  pick.innerHTML = '<option>Loading…</option>';
+  document.getElementById('asnAssignOverlay').classList.add('show');
+  let briefs = [], docs = [];
+  try { briefs = await sbSelect('dna_agent_briefs', 'select=id,topic&order=created_at.desc&limit=100'); } catch (e) {}
+  try { docs = await sbSelect('desk_documents', 'select=id,title&order=updated_at.desc&limit=100'); } catch (e) {}
+  const trackedBriefIds = new Set(ASSIGNMENTS.filter(a => a.item_type === 'brief').map(a => a.brief_id));
+  const trackedDocIds = new Set(ASSIGNMENTS.filter(a => a.item_type === 'piece').map(a => a.doc_id));
+  const freeBriefs = briefs.filter(b => !trackedBriefIds.has(b.id));
+  const freeDocs = docs.filter(d => !trackedDocIds.has(d.id));
+  pick.innerHTML =
+    (freeBriefs.length ? `<optgroup label="Briefs">${freeBriefs.map(b => `<option value="brief:${b.id}">🧬 ${escapeHtml(b.topic || 'Untitled brief')}</option>`).join('')}</optgroup>` : '') +
+    (freeDocs.length ? `<optgroup label="Pieces">${freeDocs.map(d => `<option value="piece:${d.id}">🖋️ ${escapeHtml(d.title || 'Untitled document')}</option>`).join('')}</optgroup>` : '') ||
+    '<option value="">Nothing left to assign — everything is already tracked</option>';
+  pick._briefs = briefs; pick._docs = docs;
+  let pendingAssignee = null, pendingPriority = 'normal';
+  renderPeoplePicker('asnAssignPeopleList', null, v => pendingAssignee = v);
+  renderPriorityPicker('asnPriorityRow', 'normal', v => pendingPriority = v);
+  document.getElementById('asnAssignDue').value = '';
+  document.getElementById('asnAssignSaveBtn').onclick = async () => {
+    const val = pick.value; if (!val || !val.includes(':')) { document.getElementById('asnAssignOverlay').classList.remove('show'); return; }
+    const [type, id] = val.split(':');
+    const source = type === 'brief' ? pick._briefs.find(b => b.id === id) : pick._docs.find(d => d.id === id);
+    const title = type === 'brief' ? (source && source.topic) : (source && source.title);
+    const payload = { item_type: type, brief_id: type === 'brief' ? id : null, doc_id: type === 'piece' ? id : null, title: title || 'Untitled', status: 'research', assignee_id: pendingAssignee, priority: pendingPriority, due_date: document.getElementById('asnAssignDue').value || null };
+    document.getElementById('asnAssignOverlay').classList.remove('show');
+    try { const created = await sbInsert('assignments', payload); ASSIGNMENTS.unshift(created[0]); renderAsnAll(); dashToast('Assigned'); }
+    catch (err) { dashToast('Could not save: ' + err.message); }
+  };
+});
+document.getElementById('asnAssignClose').addEventListener('click', () => document.getElementById('asnAssignOverlay').classList.remove('show'));
+document.getElementById('asnAssignOverlay').addEventListener('click', e => { if (e.target.id === 'asnAssignOverlay') document.getElementById('asnAssignOverlay').classList.remove('show'); });
+
+/* ---- Roles & access + admin-only Add user ---- */
+function renderRoleLegend() {
+  document.getElementById('asnRoleLegendEl').innerHTML = ROLE_DEFS.map(r => `
+    <div class="role-legend-card"><div class="role-legend-head"><span class="asn-avatar" style="background:${r.color}">${r.name[0]}</span><span class="role-legend-name">${r.name}</span></div>
+    <div class="role-legend-list">${r.abilities.map(a => '• ' + escapeHtml(a)).join('<br>')}</div></div>`).join('');
+}
+function renderAsnTeamList() {
+  document.getElementById('asnTeamListEl').innerHTML = TEAM.length ? TEAM.map(p => `
+    <div class="people-pick-row"><div class="asn-avatar" style="background:${p.color}">${escapeHtml(p.name[0])}</div>
+      <span>${escapeHtml(p.name)}</span><span style="margin-left:auto;font-size:9px;font-weight:700;color:var(--teal2);text-transform:uppercase;">${p.role}</span></div>`).join('')
+    : '<div class="asn-empty">No team members yet.</div>';
+}
+document.getElementById('asnRolesBtn').addEventListener('click', () => {
+  renderRoleLegend(); renderAsnTeamList();
+  document.getElementById('asnAddUserBtn').style.display = isAdmin() ? 'inline-flex' : 'none';
+  document.getElementById('asnAddUserForm').classList.add('hidden');
+  document.getElementById('asnRolesOverlay').classList.add('show');
+});
+document.getElementById('asnRolesClose').addEventListener('click', () => document.getElementById('asnRolesOverlay').classList.remove('show'));
+document.getElementById('asnRolesOverlay').addEventListener('click', e => { if (e.target.id === 'asnRolesOverlay') document.getElementById('asnRolesOverlay').classList.remove('show'); });
+document.getElementById('asnAddUserBtn').addEventListener('click', () => {
+  document.getElementById('asnAddUserForm').classList.toggle('hidden');
+  document.getElementById('asnNewUserName').value = ''; document.getElementById('asnNewUserEmail').value = ''; document.getElementById('asnNewUserRole').value = 'reporter';
+});
+document.getElementById('asnNewUserSaveBtn').addEventListener('click', async () => {
+  if (!isAdmin()) { dashToast('Only an admin can add team members'); return; }
+  const name = document.getElementById('asnNewUserName').value.trim();
+  if (!name) { dashToast('Name is required'); return; }
+  const email = document.getElementById('asnNewUserEmail').value.trim() || null;
+  const role = document.getElementById('asnNewUserRole').value;
+  const palette = ['#FF5400', '#24506A', '#9B6B43', '#2E7D32', '#6A4C93'];
+  const color = palette[TEAM.length % palette.length];
+  try {
+    const created = await sbInsert('team_members', { name, email, role, color });
+    TEAM.push(created[0]); renderAsnTeamList(); renderAsnAll();
+    document.getElementById('asnAddUserForm').classList.add('hidden');
+    dashToast(`${name} added to the team`);
+  } catch (err) { dashToast('Could not add user: ' + err.message); }
+});
+
+/* ---- User switch: simulates "who's logged in" until real auth exists ---- */
+document.getElementById('asnUserSwitch').addEventListener('click', () => {
+  const body = document.getElementById('asnUserSwitchBody');
+  body.innerHTML = TEAM.length ? TEAM.map(p => `<div class="people-pick-row ${CURRENT_USER && CURRENT_USER.id === p.id ? 'selected' : ''}" data-switch="${p.id}">
+      <div class="asn-avatar" style="background:${p.color}">${escapeHtml(p.name[0])}</div><span>${escapeHtml(p.name)}</span><span style="margin-left:auto;font-size:9px;color:var(--soft);">${p.role}</span></div>`).join('')
+    : '<div class="asn-empty">No team members yet — add one from Roles &amp; access.</div>';
+  body.querySelectorAll('[data-switch]').forEach(row => row.addEventListener('click', () => {
+    CURRENT_USER = TEAM.find(p => p.id === row.getAttribute('data-switch'));
+    updateUserLabel(); renderAsnAll();
+    document.getElementById('asnUserSwitchOverlay').classList.remove('show');
+  }));
+  document.getElementById('asnUserSwitchOverlay').classList.add('show');
+});
+document.getElementById('asnUserSwitchClose').addEventListener('click', () => document.getElementById('asnUserSwitchOverlay').classList.remove('show'));
+document.getElementById('asnUserSwitchOverlay').addEventListener('click', e => { if (e.target.id === 'asnUserSwitchOverlay') document.getElementById('asnUserSwitchOverlay').classList.remove('show'); });
 
 /* ==================== Boot ==================== */
 routeFromLocation();
