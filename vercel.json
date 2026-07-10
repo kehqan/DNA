@@ -1,6 +1,8 @@
 {
-     "rewrites": [
-       { "source": "/briefdesk", "destination": "/briefdesk/index.html" },
-       { "source": "/briefdesk/(.*)", "destination": "/briefdesk/index.html" }
-     ]
-   }
+  "rewrites": [
+    { "source": "/briefdesk", "destination": "/briefdesk/index.html" },
+    { "source": "/briefdesk/(.*)", "destination": "/briefdesk/index.html" },
+    { "source": "/desk", "destination": "/desk/index.html" },
+    { "source": "/desk/(.*)", "destination": "/desk/index.html" }
+  ]
+}
