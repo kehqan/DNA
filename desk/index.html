@@ -74,13 +74,32 @@ body.dark { background: #0F1B21; }
 .wcard-sub { font-size: 11.5px; color: var(--muted); line-height: 1.5; }
 .wcard-open { font-size: 11px; font-weight: 700; color: var(--teal2); margin-top: auto; }
 .doc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
-.dcard { border-radius: 16px; padding: 16px 17px; cursor: pointer; background: var(--glass); backdrop-filter: blur(16px) saturate(1.7); border: 1px solid var(--glass-b); box-shadow: var(--gs), var(--gi); transition: transform 180ms var(--eo); display: flex; flex-direction: column; gap: 9px; min-height: 110px; }
+.dcard { position: relative; border-radius: 16px; padding: 16px 17px; cursor: pointer; background: var(--glass); backdrop-filter: blur(16px) saturate(1.7); border: 1px solid var(--glass-b); box-shadow: var(--gs), var(--gi); transition: transform 180ms var(--eo); display: flex; flex-direction: column; gap: 9px; min-height: 110px; }
 .dcard:hover { transform: translateY(-2px); }
 .dcard-top { display: flex; align-items: center; justify-content: space-between; }
 .dcard-dir { font-size: 9.5px; font-weight: 700; color: var(--teal2); background: rgba(36,80,106,0.08); padding: 2px 8px; border-radius: 100px; }
 .dcard-brief-tag { font-size: 9.5px; font-weight: 700; color: var(--flame); background: rgba(255,84,0,0.08); padding: 2px 8px; border-radius: 100px; }
 .dcard-title { font-family: var(--serif); font-size: 14px; font-weight: 600; line-height: 1.35; }
 .dcard-meta { font-size: 10.5px; color: var(--soft); margin-top: auto; }
+.dcard-del { position: absolute; top: 8px; right: 8px; width: 22px; height: 22px; border-radius: 50%; border: none; background: rgba(var(--inkC),0.08); color: var(--soft); font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center; opacity: 0; transition: all 150ms; }
+.dcard:hover .dcard-del { opacity: 1; }
+.dcard-del:hover { background: var(--flame); color: #fff; }
+.see-all-btn { font-size: 11px; font-weight: 700; color: var(--teal2); background: rgba(36,80,106,0.07); border: 1px solid rgba(36,80,106,0.14); border-radius: 100px; padding: 6px 13px; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
+.see-all-btn:hover { background: var(--teal2); color: #fff; }
+.carousel-row { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 2px 2px 10px; scroll-behavior: smooth; }
+.carousel-row::-webkit-scrollbar { height: 6px; }
+.carousel-row .dcard, .carousel-row .bcard-mini { scroll-snap-align: start; flex: 0 0 230px; }
+.bcard-mini { border-radius: 16px; padding: 16px 17px; cursor: pointer; background: var(--glass); backdrop-filter: blur(16px) saturate(1.7); border: 1px solid var(--glass-b); box-shadow: var(--gs), var(--gi); transition: transform 180ms var(--eo); display: flex; flex-direction: column; gap: 9px; min-height: 110px; }
+.bcard-mini:hover { transform: translateY(-2px); }
+.bcard-mini-title { font-family: var(--serif); font-size: 14px; font-weight: 600; line-height: 1.35; }
+.bcard-mini-badge { font-size: 9.5px; font-weight: 700; color: var(--flame); background: rgba(255,84,0,0.08); padding: 2px 8px; border-radius: 100px; align-self: flex-start; }
+.list-row { display: flex; align-items: center; gap: 12px; padding: 11px 13px; border-radius: 12px; cursor: pointer; transition: background 130ms; }
+.list-row:hover { background: rgba(var(--inkC),0.04); }
+.list-row-body { flex: 1; min-width: 0; }
+.list-row-title { font-family: var(--serif); font-size: 13.5px; font-weight: 600; }
+.list-row-meta { font-size: 10.5px; color: var(--soft); margin-top: 2px; }
+.list-row-del { width: 26px; height: 26px; border-radius: 50%; border: none; background: rgba(var(--inkC),0.06); color: var(--soft); font-size: 11px; cursor: pointer; flex-shrink: 0; }
+.list-row-del:hover { background: var(--flame); color: #fff; }
 .empty-note { font-size: 11.5px; color: var(--soft); text-align: center; padding: 30px; border: 1.5px dashed var(--border2); border-radius: 14px; grid-column: 1 / -1; }
 
 /* ============ Editor shell ============ */
@@ -228,8 +247,11 @@ body.dark .mat-row:hover { background: rgba(255,255,255,0.08); }
         <div class="wcard-open">Start writing →</div>
       </div>
     </div>
-    <div class="sdiv"><h2>Recent documents</h2><div class="rule"></div></div>
-    <div class="doc-grid" id="docGrid"><div class="empty-note">Loading…</div></div>
+    <div class="sdiv"><h2>Recent documents</h2><div class="rule"></div><button class="see-all-btn" id="seeAllDocsBtn">See all →</button></div>
+    <div class="carousel-row" id="docCarousel"><div class="empty-note">Loading…</div></div>
+
+    <div class="sdiv"><h2>Recent briefs</h2><div class="rule"></div><button class="see-all-btn" id="seeAllBriefsBtn">See all →</button></div>
+    <div class="carousel-row" id="briefCarousel"><div class="empty-note">Loading…</div></div>
   </div>
 </div>
 
@@ -314,6 +336,13 @@ body.dark .mat-row:hover { background: rgba(255,255,255,0.08); }
 </div>
 
 <!-- Find & Replace mini bar -->
+<div class="modal-overlay" id="allDocsOverlay">
+  <div class="onb-modal" style="max-width:640px;">
+    <div class="onb-head"><div class="onb-title">📄 All documents</div><button class="onb-close" id="allDocsClose">✕</button></div>
+    <div class="onb-body" id="allDocsBody"></div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="findOverlay">
   <div class="onb-modal" style="max-width:420px;">
     <div class="onb-head"><div class="onb-title" style="font-size:14px;">🔍 Find &amp; Replace</div><button class="onb-close" id="findClose">✕</button></div>
@@ -377,6 +406,14 @@ async function sbUpdate(table, id, patch) {
     body: JSON.stringify(patch) });
   if (!res.ok) throw new Error(`update failed (${res.status})`); return res.json();
 }
+async function sbDelete(table, id) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, { method: 'DELETE',
+    headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}`, Prefer: 'return=representation' } });
+  if (!res.ok) throw new Error(`delete failed (${res.status})`);
+  let data = []; try { data = await res.json(); } catch (e) {}
+  if (!Array.isArray(data) || data.length === 0) throw new Error('No rows deleted — check the anon role has a DELETE policy on this table');
+  return true;
+}
 function escapeHtml(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function dashToast(msg) { const el = document.getElementById('dashToast'); el.textContent = msg; el.classList.add('show'); clearTimeout(window._toastT); window._toastT = setTimeout(() => el.classList.remove('show'), 2600); }
 
@@ -407,27 +444,97 @@ window.addEventListener('popstate', () => routeFromLocation());
 function showHome() {
   document.getElementById('screenEditor').classList.add('hidden');
   document.getElementById('screenHome').classList.remove('hidden');
-  loadDocGrid();
+  loadRecentDocs();
+  loadRecentBriefs();
 }
-async function loadDocGrid() {
-  const grid = document.getElementById('docGrid');
+function docCardHtml(d) {
+  return `<div class="dcard" data-doc="${d.id}">
+      <button class="dcard-del" data-del-doc="${d.id}" title="Delete document">✕</button>
+      <div class="dcard-top"><span class="dcard-dir">${(d.direction || 'ltr').toUpperCase()}</span>${d.brief_id ? '<span class="dcard-brief-tag">🧬 from brief</span>' : ''}</div>
+      <div class="dcard-title">${escapeHtml(d.title || 'Untitled document')}</div>
+      <div class="dcard-meta">Edited ${relTime(d.updated_at)}</div>
+    </div>`;
+}
+async function loadRecentDocs() {
+  const row = document.getElementById('docCarousel');
   try {
-    const rows = await sbSelect('desk_documents', 'select=*&order=updated_at.desc&limit=24');
-    if (!rows.length) { grid.innerHTML = '<div class="empty-note">No documents yet — start a blank one, or write a piece from a BriefDesk brief.</div>'; return; }
-    grid.innerHTML = rows.map(d => `
-      <div class="dcard" data-doc="${d.id}">
-        <div class="dcard-top"><span class="dcard-dir">${(d.direction || 'ltr').toUpperCase()}</span>${d.brief_id ? '<span class="dcard-brief-tag">🧬 from brief</span>' : ''}</div>
-        <div class="dcard-title">${escapeHtml(d.title || 'Untitled document')}</div>
-        <div class="dcard-meta">Edited ${relTime(d.updated_at)}</div>
-      </div>`).join('');
-    grid.querySelectorAll('.dcard').forEach(el => el.addEventListener('click', async () => {
-      const doc = rows.find(r => r.id === el.getAttribute('data-doc'));
-      if (doc) { goDoc(doc); await openDoc(doc); }
-    }));
+    const rows = await sbSelect('desk_documents', 'select=*&order=updated_at.desc&limit=5');
+    if (!rows.length) { row.innerHTML = '<div class="empty-note" style="flex:1;">No documents yet — start a blank one, or write a piece from a BriefDesk brief.</div>'; return; }
+    row.innerHTML = rows.map(docCardHtml).join('');
+    wireDocCards(row, rows);
   } catch (e) {
-    grid.innerHTML = `<div class="empty-note">Couldn't load documents: ${escapeHtml(e.message)}. Have you run the desk_documents.sql setup in Supabase yet?</div>`;
+    row.innerHTML = `<div class="empty-note" style="flex:1;">Couldn't load documents: ${escapeHtml(e.message)}. Have you run the desk_documents.sql setup in Supabase yet?</div>`;
   }
 }
+function wireDocCards(scope, rows) {
+  scope.querySelectorAll('.dcard').forEach(el => el.addEventListener('click', async e => {
+    if (e.target.closest('[data-del-doc]')) return;
+    const doc = rows.find(r => r.id === el.getAttribute('data-doc'));
+    if (doc) { goDoc(doc); await openDoc(doc); }
+  }));
+  scope.querySelectorAll('[data-del-doc]').forEach(btn => btn.addEventListener('click', async e => {
+    e.stopPropagation();
+    const id = btn.getAttribute('data-del-doc');
+    if (!confirm('Delete this document? This cannot be undone.')) return;
+    try { await sbDelete('desk_documents', id); dashToast('Document deleted'); loadRecentDocs(); if (document.getElementById('allDocsOverlay').classList.contains('show')) openAllDocs(); }
+    catch (err) { dashToast('Delete failed: ' + err.message); }
+  }));
+}
+async function openAllDocs() {
+  document.getElementById('allDocsOverlay').classList.add('show');
+  const body = document.getElementById('allDocsBody');
+  body.innerHTML = '<div class="empty-note">Loading…</div>';
+  try {
+    const rows = await sbSelect('desk_documents', 'select=*&order=updated_at.desc&limit=200');
+    if (!rows.length) { body.innerHTML = '<div class="empty-note">No documents yet.</div>'; return; }
+    body.innerHTML = rows.map(d => `
+      <div class="list-row" data-doc="${d.id}">
+        <div class="list-row-body">
+          <div class="list-row-title">${escapeHtml(d.title || 'Untitled document')}</div>
+          <div class="list-row-meta">${(d.direction || 'ltr').toUpperCase()} · ${d.brief_id ? '🧬 from brief · ' : ''}Edited ${relTime(d.updated_at)}</div>
+        </div>
+        <button class="list-row-del" data-del-doc="${d.id}" title="Delete">✕</button>
+      </div>`).join('');
+    body.querySelectorAll('.list-row').forEach(el => el.addEventListener('click', async e => {
+      if (e.target.closest('[data-del-doc]')) return;
+      const doc = rows.find(r => r.id === el.getAttribute('data-doc'));
+      if (doc) { closeAllDocs(); goDoc(doc); await openDoc(doc); }
+    }));
+    body.querySelectorAll('[data-del-doc]').forEach(btn => btn.addEventListener('click', async e => {
+      e.stopPropagation();
+      const id = btn.getAttribute('data-del-doc');
+      if (!confirm('Delete this document? This cannot be undone.')) return;
+      try { await sbDelete('desk_documents', id); dashToast('Document deleted'); openAllDocs(); loadRecentDocs(); }
+      catch (err) { dashToast('Delete failed: ' + err.message); }
+    }));
+  } catch (e) { body.innerHTML = `<div class="empty-note">Couldn't load documents: ${escapeHtml(e.message)}</div>`; }
+}
+function closeAllDocs() { document.getElementById('allDocsOverlay').classList.remove('show'); }
+document.getElementById('seeAllDocsBtn').addEventListener('click', openAllDocs);
+document.getElementById('allDocsClose').addEventListener('click', closeAllDocs);
+document.getElementById('allDocsOverlay').addEventListener('click', e => { if (e.target.id === 'allDocsOverlay') closeAllDocs(); });
+
+async function loadRecentBriefs() {
+  const row = document.getElementById('briefCarousel');
+  try {
+    const rows = await sbSelect('dna_agent_briefs', 'select=id,topic,promoted_items,created_at&order=created_at.desc&limit=5');
+    if (!rows.length) { row.innerHTML = '<div class="empty-note" style="flex:1;">No briefs in BriefDesk yet.</div>'; return; }
+    row.innerHTML = rows.map(b => `
+      <div class="bcard-mini" data-brief="${b.id}" data-topic="${escapeHtml(b.topic || '')}">
+        <div class="bcard-mini-badge">★ ${(b.promoted_items || []).length} promoted</div>
+        <div class="bcard-mini-title">${escapeHtml(b.topic || 'Untitled brief')}</div>
+        <div class="dcard-meta">Created ${relTime(b.created_at)}</div>
+      </div>`).join('');
+    row.querySelectorAll('.bcard-mini').forEach(el => el.addEventListener('click', () => {
+      const topic = el.getAttribute('data-topic'), id = el.getAttribute('data-brief');
+      window.location.href = `/briefdesk/${slugify(topic)}--${shortId(id)}`;
+    }));
+  } catch (e) {
+    row.innerHTML = `<div class="empty-note" style="flex:1;">Couldn't load briefs: ${escapeHtml(e.message)}</div>`;
+  }
+}
+document.getElementById('seeAllBriefsBtn').addEventListener('click', () => { window.location.href = '/briefdesk'; });
+
 function relTime(iso) {
   if (!iso) return 'just now';
   const s = (Date.now() - new Date(iso).getTime()) / 1000;
