@@ -447,7 +447,8 @@ let CURRENT_DOC = null, CURRENT_BRIEF = null, MATERIAL_GROUPS = [], blocks = [],
 const canvas = document.getElementById('pageCanvas');
 
 async function openDoc(doc) {
-  CURRENT_DOC = doc; CURRENT_BRIEF = null; MATERIAL_GROUPS = []; blocks = [];
+  CURRENT_DOC = doc; CURRENT_BRIEF = null; MATERIAL_GROUPS = [];
+  blocks = Array.isArray(doc.blocks) ? doc.blocks : []; // drafted material persists for the life of the document, independent of which brief is currently attached
   document.getElementById('screenHome').classList.add('hidden');
   document.getElementById('screenEditor').classList.remove('hidden');
   document.getElementById('docTitle').value = doc.title || '';
@@ -502,11 +503,12 @@ async function renderBriefPickerUI() {
 async function attachBriefToDoc(briefId) {
   if (!CURRENT_DOC) return;
   try {
-    await sbUpdate('desk_documents', CURRENT_DOC.id, { brief_id: briefId });
-    CURRENT_DOC.brief_id = briefId;
+    const nextIds = Array.from(new Set([...(CURRENT_DOC.brief_ids || []), briefId]));
+    await sbUpdate('desk_documents', CURRENT_DOC.id, { brief_id: briefId, brief_ids: nextIds });
+    CURRENT_DOC.brief_id = briefId; CURRENT_DOC.brief_ids = nextIds;
     const rows = await sbSelect('dna_agent_briefs', `id=eq.${briefId}&select=*&limit=1`);
     if (!rows.length) throw new Error('brief not found');
-    CURRENT_BRIEF = rows[0]; buildMaterialGroups(); blocks = [];
+    CURRENT_BRIEF = rows[0]; buildMaterialGroups(); // blocks are intentionally left untouched — drafted material isn't tied to whichever brief happens to be showing right now
     document.getElementById('modeToggleWrap').classList.remove('hidden');
     setMode(true);
     renderMatAccordions(); renderBlocks();
@@ -516,6 +518,7 @@ async function attachBriefToDoc(briefId) {
 
 function buildMaterialGroups() {
   const row = CURRENT_BRIEF; if (!row) return;
+  const bId = shortId(row.id); // material ids are scoped per-brief so they never collide once blocks/traces span multiple briefs
   const groups = [];
   const promoted = Array.isArray(row.promoted_items) ? row.promoted_items : [];
   if (promoted.length) {
@@ -524,7 +527,7 @@ function buildMaterialGroups() {
     promoted.forEach(p => { (byCat[p.category] = byCat[p.category] || []).push(p); });
     Object.keys(byCat).forEach(cat => {
       const meta = CATEGORY_META[cat] || { label: cat, icon: '📌' };
-      groups.push({ key: 'promo-' + cat, icon: meta.icon, label: meta.label, items: byCat[cat].map((p, i) => ({ id: 'p' + cat + i, icon: meta.icon, kind: meta.label.replace(/s$/, ''), text: p.text })) });
+      groups.push({ key: 'promo-' + cat, icon: meta.icon, label: meta.label, items: byCat[cat].map((p, i) => ({ id: `${bId}::p${cat}${i}`, icon: meta.icon, kind: meta.label.replace(/s$/, ''), text: p.text })) });
     });
   }
   const sections = Array.isArray(row.parsed_sections) ? row.parsed_sections : [];
@@ -532,8 +535,8 @@ function buildMaterialGroups() {
   if (searchNode && Array.isArray(searchNode.children)) {
     const items = [];
     searchNode.children.forEach(c => {
-      if (c.table && Array.isArray(c.table.rows)) c.table.rows.forEach((r, i) => { const kw = (r[0] || '').trim(); if (kw) items.push({ id: 'sq' + items.length, icon: '🔎', kind: 'Search data', text: kw }); });
-      (c.items || []).forEach((it, i) => items.push({ id: 'si' + items.length, icon: '📈', kind: 'Search data', text: it }));
+      if (c.table && Array.isArray(c.table.rows)) c.table.rows.forEach((r, i) => { const kw = (r[0] || '').trim(); if (kw) items.push({ id: `${bId}::sq${items.length}`, icon: '🔎', kind: 'Search data', text: kw }); });
+      (c.items || []).forEach((it, i) => items.push({ id: `${bId}::si${items.length}`, icon: '📈', kind: 'Search data', text: it }));
     });
     if (items.length) groups.push({ key: 'search', icon: '🔎', label: 'Search Intelligence', items: items.slice(0, 20) });
   }
@@ -590,6 +593,7 @@ function renderBlocks() {
   list.innerHTML = blocks.map(b => `
     <div class="blk" data-blk="${b.id}">
       <div class="blk-toggle"><span class="blk-chip">${escapeHtml(b.kind)}</span><span class="blk-preview">${escapeHtml(b.src.slice(0, 46))}${b.src.length > 46 ? '…' : ''}</span></div>
+      ${b.briefTopic ? `<div style="font-size:9.5px;color:var(--soft);margin:2px 0 4px;">from 📌 ${escapeHtml(b.briefTopic)}</div>` : ''}
       <div class="blk-q">${escapeHtml(b.q)}</div>
       <textarea class="blk-answer" data-blk-input="${b.id}" placeholder="Write this in your own words…">${escapeHtml(b.answer)}</textarea>
       <div class="blk-paste-row"><button class="blk-paste-btn" data-paste="${b.id}" ${!b.answer.trim() ? 'disabled style="opacity:.4;cursor:default;"' : ''}>📋 Paste to Desk</button></div>
@@ -606,14 +610,14 @@ function renderBlocks() {
     pasteIntoCanvas(b.answer.trim(), b.matId);
     btn.textContent = '✓ Pasted'; btn.classList.add('done');
     setTimeout(() => { btn.textContent = '📋 Paste to Desk'; btn.classList.remove('done'); }, 1400);
-    renderMatAccordions();
+    renderMatAccordions(); scheduleSave();
   }));
 }
 function addBlockFromMaterial(matId) {
   const mat = findMat(matId); if (!mat) return;
   const questions = { 'Priority Angle': 'How does this angle shape your story?', 'Key Source': 'What does this establish, and how will you attribute it?', 'People to Watch': "What's this person's role — will you seek comment?", 'Search data': 'How will you use this demand signal?' };
-  blocks.push({ id: 'b' + Date.now() + Math.floor(Math.random()*99), matId, kind: mat.kind, src: mat.text, q: questions[mat.kind] || 'How will you use this in your piece?', answer: '' });
-  renderBlocks(); renderMatAccordions();
+  blocks.push({ id: 'b' + Date.now() + Math.floor(Math.random()*99), matId, briefId: CURRENT_BRIEF ? CURRENT_BRIEF.id : null, briefTopic: CURRENT_BRIEF ? CURRENT_BRIEF.topic : '', kind: mat.kind, src: mat.text, q: questions[mat.kind] || 'How will you use this in your piece?', answer: '' });
+  renderBlocks(); renderMatAccordions(); scheduleSave();
   const el = document.getElementById('colComposer'); if (el) el.scrollTop = el.scrollHeight;
 }
 document.getElementById('colComposer').addEventListener('dragover', e => e.preventDefault());
@@ -716,7 +720,7 @@ function scheduleSave() {
 }
 function flushSave() {
   if (!CURRENT_DOC) return;
-  const patch = { title: document.getElementById('docTitle').value || 'Untitled document', body_html: canvas.innerHTML, direction: canvas.getAttribute('dir') || 'ltr' };
+  const patch = { title: document.getElementById('docTitle').value || 'Untitled document', body_html: canvas.innerHTML, direction: canvas.getAttribute('dir') || 'ltr', blocks: blocks, brief_ids: CURRENT_DOC.brief_ids || [] };
   sbUpdate('desk_documents', CURRENT_DOC.id, patch)
     .then(() => { CURRENT_DOC.title = patch.title; document.getElementById('saveState').textContent = 'Draft saved'; })
     .catch(err => { document.getElementById('saveState').textContent = 'Save failed'; dashToast('Save failed: ' + err.message); });
