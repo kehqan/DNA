@@ -2305,7 +2305,7 @@ async function openDetail(row) {
   document.getElementById('editBriefBtn').addEventListener('click', () => openEditor(row));
   const wp = document.getElementById('writePieceBtn');
   if (pieceFromTree(row.parsed_sections)) wp.textContent = t('continue_piece');
-  wp.addEventListener('click', () => enterCompose(row));
+  wp.addEventListener('click', () => openInDesk(row, wp));
   document.getElementById('copyBriefBtn').addEventListener('click', () => copyBriefMarkdown(row, promoted, links));
   document.getElementById('copilotFromBrief').addEventListener('click', () => openCopilotPopup(briefToMarkdown(row, promoted, links)));
   document.getElementById('shareBrief').addEventListener('click', async () => {
@@ -2678,6 +2678,28 @@ function materialQuestion(kind) {
   return t(map[kind] || 'q_default');
 }
 function regMat(m) { const id = 'm' + (matSeq++); COMPOSE_MATERIALS[id] = m; return id; }
+
+/* ---------- Handoff to the Desk product for writing ---------- */
+const DESK_BASE = '/desk';
+async function openInDesk(row, btn) {
+  const original = btn.textContent;
+  btn.disabled = true; btn.textContent = '↗ Opening in Desk…';
+  try {
+    const existing = await sbSelect('desk_documents', `brief_id=eq.${row.id}&select=id,title&order=created_at.desc&limit=1`);
+    let doc;
+    if (existing.length) {
+      doc = existing[0];
+    } else {
+      const created = await sbInsert('desk_documents', { title: row.topic || 'Untitled document', body_html: '<p>Start writing…</p>', direction: 'ltr', brief_id: row.id, status: 'draft' });
+      doc = created[0];
+    }
+    const slug = `${slugify(doc.title)}--${String(doc.id).replace(/-/g, '').slice(0, 8)}`;
+    window.location.href = `${DESK_BASE}/doc/${slug}`;
+  } catch (err) {
+    btn.disabled = false; btn.textContent = original;
+    dashToast('Could not open Desk: ' + err.message);
+  }
+}
 
 function enterCompose(row) {
   composeBriefId = row.id;
