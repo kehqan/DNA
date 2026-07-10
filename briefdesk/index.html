@@ -15,6 +15,8 @@
   --flame:   #FF5400;
   --flame-d: #e64a00;
   --honey:   #FFC047;
+  --violet:  #979DF7;
+  --violet-soft: rgba(151,157,247,0.14);
   --border:  rgba(26,57,72,0.09);
   --border2: rgba(26,57,72,0.16);
   --muted:   rgba(26,57,72,0.52);
@@ -65,6 +67,9 @@ html[dir="rtl"] .blk-note { border-left: none; border-right: 2px solid var(--hon
   border-bottom: 1px solid var(--border); }
 .hdr-brand { display: flex; align-items: center; gap: 12px; cursor: pointer; flex-shrink: 0; }
 .hdr-icon { font-size: 22px; }
+.hdr-mark-wrap { width: 38px; height: 38px; border-radius: 12px; background: rgba(255,255,255,0.65); border: 1px solid rgba(255,255,255,0.85); box-shadow: 0 6px 20px rgba(26,57,72,0.10), 0 0 0 1px var(--violet-soft); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.brand-mark { display: inline-flex; align-items: center; justify-content: center; }
+.brand-mark svg { display: block; }
 .hdr-title { font-family: var(--serif); font-size: 16px; font-weight: 700; color: var(--teal); letter-spacing: -0.01em; }
 .hdr-sub { font-size: 10.5px; color: var(--soft); margin-top: 1px; }
 .hdr-actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
@@ -634,10 +639,10 @@ mark.anno.pulse { animation: markPulse 1200ms var(--eo); }
 
 <div class="hdr">
   <div class="hdr-brand" id="brandHome">
-    <span class="hdr-icon">🧬</span>
+    <div class="hdr-mark-wrap"><div class="brand-mark" data-lamp-mark></div></div>
     <div>
-      <div class="hdr-title" id="tBrandTitle">Briefs Desk</div>
-      <div class="hdr-sub" id="tBrandSub">DNA · from raw research to a reporter-ready brief</div>
+      <div class="hdr-title" id="tBrandTitle">BriefDesk</div>
+      <div class="hdr-sub" id="tBrandSub">Where a tip becomes a lead worth writing</div>
     </div>
   </div>
   <div class="pipeline" id="pipeline">
@@ -899,19 +904,19 @@ const KIND_ICON = { timeline: '🕘', entities: '👥', table: '▦', actions: '
 let LANG = 'en';
 const I18N = {
   en: {
-    brand_title: 'Briefs Desk', brand_sub: 'DNA · from raw research to a reporter-ready brief',
+    brand_title: 'BriefDesk', brand_sub: 'Where a tip becomes a lead worth writing',
     nav_library: 'Library', nav_library_role: 'Newsroom', nav_intake: 'Intake', nav_intake_role: 'Research',
     nav_desk: 'Desk', nav_desk_role: 'Editor', nav_brief: 'Brief', nav_brief_role: 'Reporter',
-    new_brief: '＋ New brief',
-    lib_eyebrow: 'Newsroom library', lib_eyebrow_role: '· shared knowledge base',
-    lib_title: 'Every research answer, curated into a brief',
-    lib_tagline: 'Reporters run the research. Editors promote what matters, attach the sources, and rank the angles. What lands here is desk-ready.',
+    new_brief: '＋ Open a new lead',
+    lib_eyebrow: 'Investigation library', lib_eyebrow_role: '· shared knowledge base',
+    lib_title: 'Every lead, turned into something worth writing',
+    lib_tagline: 'Reporters chase the leads. Editors flag what matters, attach the sources, and rank the angles. What lands here is ready to build a case on.',
     lib_search_ph: 'Search topics…', filter_all: 'All',
     status_curated: '✦ curated', status_raw: 'raw intake', views_suffix: 'views',
     lib_err_title: "Couldn't reach the library", retry: 'Retry',
-    lib_empty_title: 'No briefs yet', lib_empty_sub: 'Take any AI research answer and turn it into a desk-ready brief the whole newsroom can use.',
-    detail_eyebrow: 'Newsroom brief', detail_eyebrow_role: '· reporter-ready',
-    write_piece: '✍ Write your piece', continue_piece: '✍ Continue your piece', edit_brief: '✎ Edit brief',
+    lib_empty_title: 'No leads yet', lib_empty_sub: 'Take any AI research answer and turn it into a lead worth chasing — sources checked, priorities flagged.',
+    detail_eyebrow: 'Investigative brief', detail_eyebrow_role: '· ready to write from',
+    write_piece: '✍ Take this to the desk', continue_piece: '✍ Continue at the desk', edit_brief: '✎ Edit brief',
     copy_brief_md: '⧉ Copy brief as Markdown', send_copilot: '🤖 Send to Copilot', print: '🖨 Print', share: '🔗 Share', link_copied: 'Link copied', continue_word: '📄 Continue in Word', word_copied: 'Downloaded as a Word file — drop it into the new Word Online tab to keep editing', word_build_failed: 'Could not build the Word file — copied the text instead, paste it in',
     editors_verdict: "Editor's verdict", full_brief: 'Full brief', extra_resources: '🔗 Extra resources', sources_label: '📎 Sources',
     anno_box_title: '🖍 Editor annotations',
@@ -947,19 +952,19 @@ const I18N = {
     q_default: 'How will you use this in your piece?',
   },
   fa: {
-    brand_title: 'میز بریف', brand_sub: 'DNA · از پژوهش خام تا بریفی آماده گزارشگر',
+    brand_title: 'میز بریف', brand_sub: 'جایی که یک سرنخ به موضوعی برای نوشتن تبدیل می‌شود',
     nav_library: 'کتابخانه', nav_library_role: 'تحریریه', nav_intake: 'دریافت', nav_intake_role: 'پژوهش',
     nav_desk: 'میز خبر', nav_desk_role: 'دبیر', nav_brief: 'بریف', nav_brief_role: 'گزارشگر',
-    new_brief: '＋ بریف تازه',
-    lib_eyebrow: 'کتابخانه تحریریه', lib_eyebrow_role: '· پایگاه دانش مشترک',
-    lib_title: 'هر پاسخ پژوهشی، تبدیل‌شده به یک بریف',
-    lib_tagline: 'خبرنگاران پژوهش را انجام می‌دهند. دبیران آنچه مهم است را برجسته می‌کنند، منابع را پیوست می‌کنند و زاویه‌ها را رتبه‌بندی می‌کنند. آنچه اینجاست، آماده میز خبر است.',
+    new_brief: '＋ سرنخ تازه',
+    lib_eyebrow: 'کتابخانه تحقیقات', lib_eyebrow_role: '· پایگاه دانش مشترک',
+    lib_title: 'هر سرنخ، تبدیل‌شده به چیزی ارزش نوشتن',
+    lib_tagline: 'خبرنگاران سرنخ‌ها را دنبال می‌کنند. دبیران آنچه مهم است را برجسته می‌کنند، منابع را پیوست می‌کنند و زاویه‌ها را رتبه‌بندی می‌کنند. آنچه اینجاست، آماده اثبات شدن است.',
     lib_search_ph: 'جست‌وجوی موضوع…', filter_all: 'همه',
     status_curated: '✦ برگزیده', status_raw: 'دریافت خام', views_suffix: 'بازدید',
     lib_err_title: 'اتصال به کتابخانه ممکن نشد', retry: 'تلاش دوباره',
-    lib_empty_title: 'هنوز بریفی ثبت نشده', lib_empty_sub: 'هر پاسخ پژوهشی هوش مصنوعی را بردارید و آن را به بریفی آماده برای کل تحریریه تبدیل کنید.',
-    detail_eyebrow: 'بریف تحریریه', detail_eyebrow_role: '· آماده گزارشگر',
-    write_piece: '✍ نگارش متن', continue_piece: '✍ ادامه نگارش متن', edit_brief: '✎ ویرایش بریف',
+    lib_empty_title: 'هنوز سرنخی ثبت نشده', lib_empty_sub: 'هر پاسخ پژوهشی هوش مصنوعی را بردارید و آن را به سرنخی ارزش پیگیری تبدیل کنید.',
+    detail_eyebrow: 'بریف تحقیقاتی', detail_eyebrow_role: '· آماده برای نوشتن',
+    write_piece: '✍ بردن به میز نگارش', continue_piece: '✍ ادامه در میز نگارش', edit_brief: '✎ ویرایش بریف',
     copy_brief_md: '⧉ کپی بریف به‌صورت مارک‌داون', send_copilot: '🤖 ارسال به کوپایلوت', print: '🖨 چاپ', share: '🔗 اشتراک‌گذاری', link_copied: 'لینک کپی شد', continue_word: '📄 ادامه در Word', word_copied: 'به‌صورت فایل Word دانلود شد — آن را در تب جدید Word Online بازکنید تا ادامه دهید', word_build_failed: 'ساخت فایل Word ممکن نشد — متن کپی شد، آن را جای‌گذاری کنید',
     editors_verdict: 'رأی دبیر', full_brief: 'بریف کامل', extra_resources: '🔗 منابع تکمیلی', sources_label: '📎 منابع',
     anno_box_title: '🖍 یادداشت‌های دبیر',
@@ -1022,6 +1027,11 @@ document.getElementById('langSwitch').addEventListener('click', e => {
   const nl = b.getAttribute('data-lang'); if (nl === LANG) return;
   LANG = nl; applyLang();
 });
+
+/* ---------- brand mark (real SVG, matches Desk's lamp icon) ---------- */
+const LAMP_SVG = `<svg width="{S}" height="{S}" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none"><path d="M6,21V7.78a1,1,0,0,1,.76-1L12,5.51" stroke="{C}" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/><line x1="3" y1="21" x2="13" y2="21" stroke="{C}" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/><path d="M16.82,6.33l-1-2.17a2,2,0,0,0-3.63,1.69l1,2.2" stroke="{C}" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/><path d="M16.11,6.53h0a4,4,0,0,1,4,4v2a0,0,0,0,1,0,0h-8a0,0,0,0,1,0,0v-2A4,4,0,0,1,16.11,6.53Z" transform="translate(-2.52 7.7) rotate(-25)" stroke="{A}" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg>`;
+function lampIcon(size, color, accent) { return LAMP_SVG.replaceAll('{S}', size).replaceAll('{C}', color).replaceAll('{A}', accent || color); }
+document.querySelectorAll('[data-lamp-mark]').forEach(el => el.innerHTML = lampIcon(22, '#24506A', '#2CA9BC'));
 
 /* ---------- helpers ---------- */
 function escapeHtml(s) {
