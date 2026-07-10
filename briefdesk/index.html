@@ -654,6 +654,7 @@ mark.anno.pulse { animation: markPulse 1200ms var(--eo); }
       <button class="lang-opt active" data-lang="en" type="button">EN</button>
       <button class="lang-opt" data-lang="fa" type="button">فا</button>
     </div>
+    <button class="btn sm" id="navToDesk" title="Back to Desk">🖋️ Desk</button>
     <button class="btn primary" id="navPaste"><span id="tNewBrief">＋ New brief</span></button>
   </div>
 </div>
@@ -1325,6 +1326,7 @@ function openIntake() {
   updateCharCount(); showView('paste');
 }
 document.getElementById('navPaste').addEventListener('click', openIntake);
+document.getElementById('navToDesk').addEventListener('click', () => { window.location.href = '/desk'; });
 
 /* ---------- Intake ---------- */
 function updateCharCount() {
