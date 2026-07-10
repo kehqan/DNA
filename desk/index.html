@@ -829,9 +829,16 @@ function insertEmbedIntoCanvas(data) {
   range.deleteContents();
   const wrapper = document.createElement('div');
   wrapper.innerHTML = buildEmbedHtml(data);
+  const frag = document.createDocumentFragment();
   let lastNode = null;
-  while (wrapper.firstChild) { lastNode = wrapper.firstChild; range.insertNode(wrapper.firstChild); range.setStartAfter(wrapper.firstChild); range.collapse(true); }
-  if (lastNode) { range.setStartAfter(lastNode); range.setEndAfter(lastNode); range.collapse(true); sel.addRange(range); savedRange = range.cloneRange(); lastNode.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+  while (wrapper.firstChild) { lastNode = wrapper.firstChild; frag.appendChild(wrapper.firstChild); }
+  range.insertNode(frag); // single atomic insert — avoids repeatedly mutating a range that still points into the (now-empty) detached wrapper
+  if (lastNode) {
+    const cursorRange = document.createRange();
+    cursorRange.setStartAfter(lastNode); cursorRange.setEndAfter(lastNode); cursorRange.collapse(true);
+    sel.removeAllRanges(); sel.addRange(cursorRange); savedRange = cursorRange.cloneRange();
+    lastNode.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
   wireEmbedDeleteButtons();
   updateCounts(); scheduleSave();
 }
