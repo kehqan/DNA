@@ -8,6 +8,7 @@
 <style>
 :root {
   --ivory: #F8F7F6; --teal: #1A3948; --teal2: #24506A; --flame: #FF5400; --honey: #FFC047;
+  --violet: #979DF7; --violet-soft: rgba(151,157,247,0.14);
   --border: rgba(26,57,72,0.09); --border2: rgba(26,57,72,0.14);
   --muted: rgba(26,57,72,0.52); --soft: rgba(26,57,72,0.36);
   --glass: rgba(255,255,255,0.55); --glass-b: rgba(255,255,255,0.85);
@@ -36,11 +37,14 @@ body.dark { background: #0F1B21; }
 .o2 { width: 460px; height: 380px; top: 40%; right: -140px; background: radial-gradient(ellipse, rgba(26,57,72,0.10) 0%, transparent 75%); }
 
 .hidden { display: none !important; }
+.brand-mark { display: inline-flex; align-items: center; justify-content: center; }
+.brand-mark svg { display: block; }
 
 /* ============ App bar ============ */
 .appbar { position: sticky; top: 0; z-index: 60; display: flex; align-items: center; gap: 12px; padding: 10px 20px;
   background: var(--glass); backdrop-filter: blur(22px) saturate(1.8); -webkit-backdrop-filter: blur(22px) saturate(1.8); border-bottom: 1px solid var(--border); }
-.appbar-brand { display: flex; align-items: center; gap: 8px; flex-shrink: 0; cursor: pointer; }
+.appbar-brand { display: flex; align-items: center; gap: 10px; flex-shrink: 0; cursor: pointer; }
+.appbar-mark-wrap { width: 40px; height: 40px; border-radius: 12px; background: var(--glass); border: 1px solid var(--glass-b); box-shadow: var(--gs), var(--gi), 0 0 0 1px var(--violet-soft); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .appbar-title { font-family: var(--serif); font-size: 15.5px; font-weight: 700; color: var(--teal); }
 .crumb-pill { display: inline-flex; align-items: center; gap: 3px; background: rgba(var(--inkC),0.06); border-radius: 100px; padding: 5px 6px; max-width: 40vw; overflow: hidden; }
 .crumb-seg { font-size: 11.5px; font-weight: 600; color: var(--muted); padding: 5px 10px; border-radius: 100px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
@@ -57,18 +61,36 @@ body.dark { background: #0F1B21; }
 .mode-btn.active { background: var(--teal); color: var(--paper); }
 
 /* ============ Home ============ */
-.stage { max-width: 1180px; margin: 0 auto; padding: 30px 28px 80px; position: relative; z-index: 1; }
-.home-hero { text-align: center; margin-bottom: 26px; }
+.stage { max-width: 1180px; margin: 0 auto; padding: 26px 28px 80px; position: relative; z-index: 1; }
 .eyebrow { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--soft); margin-bottom: 8px; }
-.home-hero h1 { font-family: var(--serif); font-size: 30px; font-weight: 600; letter-spacing: -0.02em; }
-.home-hero p { font-size: 13px; color: var(--muted); margin-top: 8px; max-width: 480px; margin-left: auto; margin-right: auto; line-height: 1.6; }
+
+.hero-block { position: relative; min-height: 460px; border-radius: 28px; overflow: hidden; margin-bottom: 8px; box-shadow: var(--gs), var(--gi); border: 1px solid var(--glass-b); }
+.hero-block-bg { position: absolute; inset: 0; background-image: url('https://images.stockcake.com/public/6/2/9/6291b4fd-aacd-4ef5-948e-bf4b1fba68a9_large/cluttered-investigative-desk-stockcake.jpg'); background-size: cover; background-position: 68% center; filter: saturate(0.88) brightness(0.97); }
+.hero-block-fade { position: absolute; inset: 0; background: linear-gradient(90deg, var(--ivory) 0%, var(--ivory) 24%, rgba(248,247,246,0.94) 40%, rgba(248,247,246,0.55) 58%, rgba(248,247,246,0.08) 78%, transparent 92%); }
+body.dark .hero-block-fade { background: linear-gradient(90deg, var(--ivory) 0%, var(--ivory) 24%, rgba(22,36,43,0.94) 40%, rgba(22,36,43,0.55) 58%, rgba(22,36,43,0.08) 78%, transparent 92%); }
+.hero-block-content { position: relative; z-index: 2; padding: 54px 36px 50px 48px; max-width: 480px; display: flex; flex-direction: column; height: 100%; min-height: 460px; justify-content: center; }
+.hero-block-mark { width: 58px; height: 58px; border-radius: 17px; background: var(--glass); border: 1px solid var(--glass-b); box-shadow: var(--gs), var(--gi), 0 0 0 5px var(--violet-soft); display: flex; align-items: center; justify-content: center; margin-bottom: 20px; backdrop-filter: blur(10px); }
+.hero-block-eyebrow { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--teal2); margin-bottom: 11px; }
+.hero-block-content h1 { font-family: var(--serif); font-size: 38px; font-weight: 600; letter-spacing: -0.02em; margin-bottom: 14px; line-height: 1.1; }
+.hero-block-content p { font-size: 13.5px; color: var(--muted); line-height: 1.7; margin-bottom: 6px; }
+.hero-block-content p.small { font-size: 11px; color: var(--soft); font-style: italic; margin-top: 6px; margin-bottom: 22px; }
+.hero-cta-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.hero-btn { font-size: 12.5px; font-weight: 700; padding: 12px 20px; border-radius: 100px; cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 7px; transition: all 180ms var(--eo); }
+.hero-btn.primary { background: var(--flame); color: #fff; box-shadow: 0 10px 26px rgba(255,84,0,0.28); }
+.hero-btn.primary:hover { background: #E44900; transform: translateY(-1px); box-shadow: 0 14px 32px rgba(255,84,0,0.34); }
+.hero-btn.ghost { background: rgba(255,255,255,0.7); color: var(--teal); border: 1px solid var(--border2); backdrop-filter: blur(8px); }
+.hero-btn.ghost:hover { background: #fff; transform: translateY(-1px); }
+.hero-block-credit { position: absolute; bottom: 9px; right: 13px; font-size: 8px; color: rgba(255,255,255,0.5); z-index: 2; }
+
 .sdiv { display: flex; align-items: center; gap: 14px; margin: 28px 0 14px; }
 .sdiv h2 { font-family: var(--serif); font-size: 13.5px; font-weight: 600; color: var(--soft); text-transform: uppercase; letter-spacing: 0.06em; white-space: nowrap; }
 .rule { flex: 1; height: 1px; background: var(--border); }
 .workspace-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
 .wcard { position: relative; border-radius: 20px; padding: 20px 22px; cursor: pointer; overflow: hidden; background: var(--glass); backdrop-filter: blur(20px) saturate(1.8); border: 1px solid var(--glass-b); box-shadow: var(--gs), var(--gi); transition: transform 200ms var(--eo); display: flex; flex-direction: column; gap: 10px; min-height: 130px; }
 .wcard:hover { transform: translateY(-3px); }
-.wcard.accent { background: linear-gradient(135deg, rgba(255,84,0,0.09), rgba(255,192,71,0.07)), var(--glass); }
+.wcard.accent { background: linear-gradient(135deg, rgba(44,169,188,0.11), rgba(44,169,188,0.03)), var(--glass); }
+.wcard.desk-a { background: linear-gradient(135deg, rgba(255,84,0,0.09), rgba(255,192,71,0.06)), var(--glass); }
+.wcard.violet { background: linear-gradient(135deg, rgba(151,157,247,0.14), rgba(151,157,247,0.04)), var(--glass); }
 .wcard-ico { font-size: 22px; width: 42px; height: 42px; border-radius: 13px; background: rgba(255,255,255,0.5); border: 1px solid var(--glass-b); display: flex; align-items: center; justify-content: center; }
 .wcard-title { font-family: var(--serif); font-size: 16px; font-weight: 600; }
 .wcard-sub { font-size: 11.5px; color: var(--muted); line-height: 1.5; }
@@ -308,40 +330,51 @@ body.dark .mat-row:hover { background: rgba(255,255,255,0.08); }
 <!-- ============ SCREEN: Home ============ -->
 <div id="screenHome">
   <div class="appbar">
-    <div class="appbar-brand" onclick="goHome()"><span>🖋️</span><span class="appbar-title">Desk</span></div>
+    <div class="appbar-brand" onclick="goHome()"><div class="appbar-mark-wrap"><div class="brand-mark" data-desk-mark></div></div><div><div class="appbar-title">Desk</div><div style="font-size:9px;color:var(--soft);letter-spacing:0.04em;text-transform:uppercase;margin-top:1px;">Investigative writing</div></div></div>
     <div class="crumb-pill"><span class="crumb-seg here">Desk</span></div>
     <div class="appbar-spacer"></div>
-    <div class="help-pill" id="helpPillHome">❓ How Desk + BriefDesk work</div>
     <button class="icon-btn" id="darkToggleHome" title="Toggle dark mode">🌙</button>
   </div>
   <div class="stage">
-    <div class="home-hero">
-      <div class="eyebrow">RFE/RL · Radio Farda</div>
-      <h1>Desk</h1>
-      <p>One writing home for the newsroom — plain journalist-friendly documents, or step into BriefDesk when a piece needs research behind it.</p>
+    <div class="hero-block">
+      <div class="hero-block-bg"></div>
+      <div class="hero-block-fade"></div>
+      <div class="hero-block-content">
+        <div class="hero-block-mark"><div class="brand-mark" data-desk-mark-lg></div></div>
+        <div class="hero-block-eyebrow">RFE/RL · Radio Farda — Investigative Desk</div>
+        <h1>Desk</h1>
+        <p>Not a place to draft a quick post. Desk is where an investigation gets written — one confirmed line at a time, until the piece can survive an edit.</p>
+        <p class="small">Built for the story that takes longer than a day, not the one that needs to be live in an hour.</p>
+        <div class="hero-cta-row">
+          <button class="hero-btn primary" onclick="createBlankDoc()">🖋️ Sit down and write</button>
+          <button class="hero-btn ghost" id="helpPillHome">❓ How it works</button>
+        </div>
+      </div>
+      <div class="hero-block-credit">Photo: StockCake, CC0</div>
     </div>
-    <div class="sdiv"><h2>Workspaces</h2><div class="rule"></div></div>
+
+    <div class="sdiv"><h2>Where the work starts</h2><div class="rule"></div></div>
     <div class="workspace-row">
       <div class="wcard accent" onclick="window.location.href='/briefdesk'">
-        <div class="wcard-ico">🧬</div>
-        <div><div class="wcard-title">BriefDesk</div><div class="wcard-sub">Research briefs, promoted priorities, Search Console — the intelligence behind a piece.</div></div>
-        <div class="wcard-open">Open workspace →</div>
+        <div class="wcard-ico"><div class="brand-mark" data-lamp-mark></div></div>
+        <div><div class="wcard-title">BriefDesk</div><div class="wcard-sub">Where the digging happens. Sources, priorities, and demand signals — turned into something you'd stand behind in an editorial meeting.</div></div>
+        <div class="wcard-open">Start digging →</div>
       </div>
-      <div class="wcard" onclick="createBlankDoc()">
-        <div class="wcard-ico">🖋️</div>
-        <div><div class="wcard-title">Blank document</div><div class="wcard-sub">Just write — no brief attached. Full formatting, RTL/LTR, export.</div></div>
-        <div class="wcard-open">Start writing →</div>
+      <div class="wcard desk-a" onclick="createBlankDoc()">
+        <div class="wcard-ico"><div class="brand-mark" data-desk-mark-sm></div></div>
+        <div><div class="wcard-title">Open investigation</div><div class="wcard-sub">No brief yet. Sit down with a blank page and build your own paper trail from scratch.</div></div>
+        <div class="wcard-open">Sit down and write →</div>
       </div>
-      <div class="wcard" onclick="goAssign()">
+      <div class="wcard violet" onclick="goAssign()">
         <div class="wcard-ico">🗞️</div>
-        <div><div class="wcard-title">Newsroom</div><div class="wcard-sub">Who's working on what — assign briefs and pieces, track status across the team.</div></div>
-        <div class="wcard-open">Open board →</div>
+        <div><div class="wcard-title">Assignments</div><div class="wcard-sub">See who's chasing which lead, how long they've been on it, and what's ready for a second pair of eyes.</div></div>
+        <div class="wcard-open">See what's in motion →</div>
       </div>
     </div>
-    <div class="sdiv"><h2>Recent documents</h2><div class="rule"></div><button class="see-all-btn" id="seeAllDocsBtn">See all →</button></div>
+    <div class="sdiv"><h2>Open investigations</h2><div class="rule"></div><button class="see-all-btn" id="seeAllDocsBtn">See all →</button></div>
     <div class="carousel-row" id="docCarousel"><div class="empty-note">Loading…</div></div>
 
-    <div class="sdiv"><h2>Recent briefs</h2><div class="rule"></div><button class="see-all-btn" id="seeAllBriefsBtn">See all →</button></div>
+    <div class="sdiv"><h2>Leads from BriefDesk</h2><div class="rule"></div><button class="see-all-btn" id="seeAllBriefsBtn">See all →</button></div>
     <div class="carousel-row" id="briefCarousel"><div class="empty-note">Loading…</div></div>
   </div>
 </div>
@@ -349,7 +382,7 @@ body.dark .mat-row:hover { background: rgba(255,255,255,0.08); }
 <!-- ============ SCREEN: Editor ============ -->
 <div id="screenEditor" class="hidden">
   <div class="appbar">
-    <div class="appbar-brand" onclick="goHome()"><span>🖋️</span><span class="appbar-title">Desk</span></div>
+    <div class="appbar-brand" onclick="goHome()"><div class="appbar-mark-wrap"><div class="brand-mark" data-desk-mark></div></div><div><div class="appbar-title">Desk</div><div style="font-size:9px;color:var(--soft);letter-spacing:0.04em;text-transform:uppercase;margin-top:1px;">Investigative writing</div></div></div>
     <div class="crumb-pill">
       <span class="crumb-seg" onclick="goHome()">Desk</span><span class="crumb-sep">/</span>
       <span class="crumb-seg here" id="crumbDocTitle">Untitled</span>
@@ -374,7 +407,7 @@ body.dark .mat-row:hover { background: rgba(255,255,255,0.08); }
     </div>
 
     <div class="col col-composer collapsed" id="colComposer">
-      <div class="hint-banner">Drag material in, draft it in your own words, then hit Paste when a line is ready for Desk. Nothing moves over on its own.</div>
+      <div class="hint-banner">Draft each line in your own words before it earns a place in the piece — nothing moves to Desk on its own. Hit Paste when a line is ready.</div>
       <input class="cmp-head-input" id="cmpHeadline" placeholder="Headline">
       <input class="cmp-sub-input" id="cmpStandfirst" placeholder="Standfirst…">
       <div id="blockList"></div>
@@ -430,7 +463,7 @@ body.dark .mat-row:hover { background: rgba(255,255,255,0.08); }
 <!-- ============ SCREEN: Assignments ============ -->
 <div id="screenAssign" class="hidden">
   <div class="appbar">
-    <div class="appbar-brand" onclick="goHome()"><span>🖋️</span><span class="appbar-title">Desk</span></div>
+    <div class="appbar-brand" onclick="goHome()"><div class="appbar-mark-wrap"><div class="brand-mark" data-desk-mark></div></div><div><div class="appbar-title">Desk</div><div style="font-size:9px;color:var(--soft);letter-spacing:0.04em;text-transform:uppercase;margin-top:1px;">Investigative writing</div></div></div>
     <div class="crumb-pill">
       <span class="crumb-seg" onclick="goHome()">Desk</span><span class="crumb-sep">/</span>
       <span class="crumb-seg here">Newsroom</span>
@@ -565,24 +598,24 @@ body.dark .mat-row:hover { background: rgba(255,255,255,0.08); }
 <!-- Onboarding modal -->
 <div class="modal-overlay" id="onbOverlay">
   <div class="onb-modal">
-    <div class="onb-head"><div class="onb-title">🖋️ How Desk + 🧬 BriefDesk work together</div><button class="onb-close" id="onbClose">✕</button></div>
+    <div class="onb-head"><div class="onb-title">How a lead becomes a published investigation</div><button class="onb-close" id="onbClose">✕</button></div>
     <div class="onb-body">
       <div class="onb-concept">
-        <div class="onb-concept-card"><h3>🖋️ Desk</h3><p>Your writing home. A clean, journalist-friendly editor — formatting, RTL/LTR, links, export to Word. Works with or without a brief attached.</p></div>
-        <div class="onb-concept-card"><h3>🧬 BriefDesk</h3><p>The research workspace. Turns a Copilot answer into a structured, promotable brief — priorities, sources, search demand — that Desk can pull from while you write.</p></div>
+        <div class="onb-concept-card"><h3><div class="brand-mark" data-lamp-mark-sm style="display:inline-flex;vertical-align:-4px;margin-right:6px;"></div>BriefDesk</h3><p>Where you interrogate a tip before committing a single sentence to it. Sources checked, priorities flagged, before anything earns a place in the piece.</p></div>
+        <div class="onb-concept-card"><h3><div class="brand-mark" data-desk-mark-sm2 style="display:inline-flex;vertical-align:-4px;margin-right:6px;"></div>Desk</h3><p>Where the piece actually gets written — long-form, careful, built to survive an editor's second look, not just a first read.</p></div>
       </div>
       <div class="onb-flow">
         <span class="onb-flow-node">Copilot</span><span>→</span><span class="onb-flow-node">/agentmode</span><span>→</span><span class="onb-flow-node">BriefDesk</span><span>→</span><span class="onb-flow-node">Desk</span>
       </div>
       <div class="onb-steps">
         <div class="onb-step"><div class="onb-step-n">1</div><div>
-          <div class="onb-step-title">Copy the research workflow, once</div>
-          <div class="onb-step-sub">Teaches Copilot the 4-agent newsroom research process.</div>
+          <div class="onb-step-title">Teach Copilot to dig, once</div>
+          <div class="onb-step-sub">This is the 4-agent research process — deep research, coverage, discovery, editorial opportunity — saved as one command.</div>
           <div class="onb-copy-box"><code>Save the following workflow in your memory under the command: /agentmode…</code><button class="onb-copy-btn" id="onbCopyPrompt">⧉ Copy prompt</button></div>
         </div></div>
         <div class="onb-step"><div class="onb-step-n">2</div><div><div class="onb-step-title">Paste it into Copilot, one time</div><div class="onb-step-sub">It confirms the workflow is saved as <b>/agentmode</b> — you won't need to do this again.</div></div></div>
-        <div class="onb-step"><div class="onb-step-n">3</div><div><div class="onb-step-title">Research any topic</div><div class="onb-step-sub">Type in Copilot: <code style="background:rgba(var(--inkC),0.06);padding:2px 6px;border-radius:5px;">/agentmode your topic here</code></div></div></div>
-        <div class="onb-step"><div class="onb-step-n">4</div><div><div class="onb-step-title">Turn it into a brief, then write</div><div class="onb-step-sub">Copy Copilot's answer → BriefDesk's <b>＋ New brief</b> → paste. From there, promote what matters and click <b>Write your piece</b> to land here in Desk with the brief pinned alongside you.</div></div></div>
+        <div class="onb-step"><div class="onb-step-n">3</div><div><div class="onb-step-title">Chase any lead</div><div class="onb-step-sub">Type in Copilot: <code style="background:rgba(var(--inkC),0.06);padding:2px 6px;border-radius:5px;">/agentmode your topic here</code></div></div></div>
+        <div class="onb-step"><div class="onb-step-n">4</div><div><div class="onb-step-title">Turn it into something worth writing</div><div class="onb-step-sub">Copy Copilot's answer → BriefDesk's <b>＋ Open a new lead</b> → paste. From there, flag what matters and click <b>Take this to the desk</b> to start writing with the brief pinned alongside you.</div></div></div>
       </div>
     </div>
   </div>
@@ -619,6 +652,26 @@ async function sbDelete(table, id) {
   return true;
 }
 function escapeHtml(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+/* ==================== Brand marks (real SVGs, not emoji) ==================== */
+const DESK_SVG = `<svg width="{S}" height="{S}" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+  <path d="M20,19a1,1,0,0,1-1-1V10a1,1,0,0,1,2,0v8A1,1,0,0,1,20,19ZM4,19a1,1,0,0,1-1-1V6A1,1,0,0,1,5,6V18A1,1,0,0,1,4,19Z" fill="{ACCENT}"/>
+  <path d="M20,5H13a1,1,0,0,0-1,1v8a1,1,0,0,0,1,1h8V6A1,1,0,0,0,20,5Z" fill="{PRIMARY}"/>
+  <path d="M12,5H4A1,1,0,0,0,3,6v5h9a1,1,0,0,0,1-1V6A1,1,0,0,0,12,5Z" fill="{PRIMARY}"/>
+  <path d="M21,7H3A1,1,0,0,1,3,5H21a1,1,0,0,1,0,2Z" fill="{ACCENT}"/>
+</svg>`;
+const LAMP_SVG = `<svg width="{S}" height="{S}" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none"><path d="M6,21V7.78a1,1,0,0,1,.76-1L12,5.51" stroke="{C}" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/><line x1="3" y1="21" x2="13" y2="21" stroke="{C}" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/><path d="M16.82,6.33l-1-2.17a2,2,0,0,0-3.63,1.69l1,2.2" stroke="{C}" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/><path d="M16.11,6.53h0a4,4,0,0,1,4,4v2a0,0,0,0,1,0,0h-8a0,0,0,0,1,0,0v-2A4,4,0,0,1,16.11,6.53Z" transform="translate(-2.52 7.7) rotate(-25)" stroke="{A}" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg>`;
+function deskIcon(size, primary, accent) { return DESK_SVG.replaceAll('{S}', size).replaceAll('{PRIMARY}', primary).replaceAll('{ACCENT}', accent); }
+function lampIcon(size, color, accent) { return LAMP_SVG.replaceAll('{S}', size).replaceAll('{C}', color).replaceAll('{A}', accent || color); }
+function injectBrandMarks() {
+  document.querySelectorAll('[data-desk-mark]').forEach(el => el.innerHTML = deskIcon(24, '#979DF7', '#FF9500'));
+  document.querySelectorAll('[data-desk-mark-lg]').forEach(el => el.innerHTML = deskIcon(36, '#979DF7', '#FF9500'));
+  document.querySelectorAll('[data-desk-mark-sm]').forEach(el => el.innerHTML = deskIcon(22, '#979DF7', '#FF9500'));
+  document.querySelectorAll('[data-desk-mark-sm2]').forEach(el => el.innerHTML = deskIcon(18, '#979DF7', '#FF9500'));
+  document.querySelectorAll('[data-lamp-mark]').forEach(el => el.innerHTML = lampIcon(22, '#24506A', '#2CA9BC'));
+  document.querySelectorAll('[data-lamp-mark-sm]').forEach(el => el.innerHTML = lampIcon(18, '#24506A', '#2CA9BC'));
+}
+injectBrandMarks();
 function dashToast(msg) { const el = document.getElementById('dashToast'); el.textContent = msg; el.classList.add('show'); clearTimeout(window._toastT); window._toastT = setTimeout(() => el.classList.remove('show'), 2600); }
 
 /* ==================== Routing: /desk (home) + /desk/doc/<slug>--<id> ==================== */
@@ -666,7 +719,7 @@ async function loadRecentDocs() {
   const row = document.getElementById('docCarousel');
   try {
     const rows = await sbSelect('desk_documents', 'select=*&order=updated_at.desc&limit=5');
-    if (!rows.length) { row.innerHTML = '<div class="empty-note" style="flex:1;">No documents yet — start a blank one, or write a piece from a BriefDesk brief.</div>'; return; }
+    if (!rows.length) { row.innerHTML = '<div class="empty-note" style="flex:1;">Nothing open yet. Every investigation starts with a blank page — or a lead worth chasing in BriefDesk.</div>'; return; }
     row.innerHTML = rows.map(docCardHtml).join('');
     wireDocCards(row, rows);
   } catch (e) {
@@ -693,7 +746,7 @@ async function openAllDocs() {
   body.innerHTML = '<div class="empty-note">Loading…</div>';
   try {
     const rows = await sbSelect('desk_documents', 'select=*&order=updated_at.desc&limit=200');
-    if (!rows.length) { body.innerHTML = '<div class="empty-note">No documents yet.</div>'; return; }
+    if (!rows.length) { body.innerHTML = '<div class="empty-note">Nothing open yet.</div>'; return; }
     body.innerHTML = rows.map(d => `
       <div class="list-row" data-doc="${d.id}">
         <div class="list-row-body">
@@ -725,7 +778,7 @@ async function loadRecentBriefs() {
   const row = document.getElementById('briefCarousel');
   try {
     const rows = await sbSelect('dna_agent_briefs', 'select=id,topic,promoted_items,created_at&order=created_at.desc&limit=5');
-    if (!rows.length) { row.innerHTML = '<div class="empty-note" style="flex:1;">No briefs in BriefDesk yet.</div>'; return; }
+    if (!rows.length) { row.innerHTML = '<div class="empty-note" style="flex:1;">No lead is worth writing until it\'s been through BriefDesk — that\'s the whole point of the lamp.</div>'; return; }
     row.innerHTML = rows.map(b => `
       <div class="bcard-mini" data-brief="${b.id}" data-topic="${escapeHtml(b.topic || '')}">
         <div class="bcard-mini-badge">★ ${(b.promoted_items || []).length} promoted</div>
