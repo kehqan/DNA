@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Desk</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&family=Noto+Sans:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ivory: #F8F7F6; --teal: #1A3948; --teal2: #24506A; --flame: #FF5400; --honey: #FFC047;
+  --border: rgba(26,57,72,0.09); --border2: rgba(26,57,72,0.14);
+  --muted: rgba(26,57,72,0.52); --soft: rgba(26,57,72,0.36);
+  --glass: rgba(255,255,255,0.55); --glass-b: rgba(255,255,255,0.85);
+  --gs: 0 8px 32px rgba(26,57,72,0.10), 0 1.5px 4px rgba(26,57,72,0.06);
+  --gi: inset 0 1px 0 rgba(255,255,255,0.92), inset 0 -1px 0 rgba(26,57,72,0.03);
+  --eo: cubic-bezier(0.25,0.46,0.45,0.94);
+  --serif: 'Lora', Georgia, serif; --sans: 'Noto Sans', system-ui, sans-serif; --inkC: 26,57,72;
+  --paper: #F8F7F6;
+}
+body.dark {
+  --ivory: #16242B; --teal: #EAF1F3; --teal2: #9FC2D4; --flame: #FF6B2B; --honey: #FFC047;
+  --border: rgba(234,241,243,0.10); --border2: rgba(234,241,243,0.16);
+  --muted: rgba(234,241,243,0.60); --soft: rgba(234,241,243,0.38);
+  --glass: rgba(24,38,46,0.55); --glass-b: rgba(40,58,68,0.7);
+  --gi: inset 0 1px 0 rgba(255,255,255,0.06), inset 0 -1px 0 rgba(0,0,0,0.2);
+  --paper: #1B2B33; --inkC: 234,241,243;
+  background: #0F1B21;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--sans); color: var(--teal); min-height: 100vh; overflow-x: hidden; background: #F0EFED; transition: background 200ms; }
+body.dark { background: #0F1B21; }
+::-webkit-scrollbar { width: 8px; } ::-webkit-scrollbar-thumb { background: rgba(var(--inkC),0.18); border-radius: 100px; }
+.scene { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.orb { position: absolute; border-radius: 50%; filter: blur(90px); }
+.o1 { width: 560px; height: 440px; top: -140px; left: -100px; background: radial-gradient(ellipse, rgba(255,84,0,0.18) 0%, transparent 70%); }
+.o2 { width: 460px; height: 380px; top: 40%; right: -140px; background: radial-gradient(ellipse, rgba(26,57,72,0.10) 0%, transparent 75%); }
+
+.hidden { display: none !important; }
+
+/* ============ App bar ============ */
+.appbar { position: sticky; top: 0; z-index: 60; display: flex; align-items: center; gap: 12px; padding: 10px 20px;
+  background: var(--glass); backdrop-filter: blur(22px) saturate(1.8); -webkit-backdrop-filter: blur(22px) saturate(1.8); border-bottom: 1px solid var(--border); }
+.appbar-brand { display: flex; align-items: center; gap: 8px; flex-shrink: 0; cursor: pointer; }
+.appbar-title { font-family: var(--serif); font-size: 15.5px; font-weight: 700; color: var(--teal); }
+.crumb-pill { display: inline-flex; align-items: center; gap: 3px; background: rgba(var(--inkC),0.06); border-radius: 100px; padding: 5px 6px; max-width: 40vw; overflow: hidden; }
+.crumb-seg { font-size: 11.5px; font-weight: 600; color: var(--muted); padding: 5px 10px; border-radius: 100px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
+.crumb-seg.here { background: var(--teal); color: var(--paper); }
+.crumb-sep { color: var(--soft); font-size: 10px; flex-shrink: 0; }
+.appbar-spacer { flex: 1; }
+.help-pill { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: var(--teal2); background: rgba(36,80,106,0.08); border: 1px solid rgba(36,80,106,0.16); border-radius: 100px; padding: 7px 12px; cursor: pointer; }
+.help-pill:hover { background: var(--teal2); color: #fff; }
+.icon-btn { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--border2); background: rgba(255,255,255,0.5); color: var(--muted); font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.icon-btn:hover { background: var(--teal); color: var(--paper); }
+.save-state { font-size: 10.5px; color: var(--soft); white-space: nowrap; }
+.mode-toggle { display: inline-flex; background: rgba(var(--inkC),0.06); border-radius: 100px; padding: 3px; gap: 2px; }
+.mode-btn { font-size: 11px; font-weight: 700; padding: 7px 14px; border-radius: 100px; border: none; background: transparent; color: var(--muted); cursor: pointer; }
+.mode-btn.active { background: var(--teal); color: var(--paper); }
+
+/* ============ Home ============ */
+.stage { max-width: 1180px; margin: 0 auto; padding: 30px 28px 80px; position: relative; z-index: 1; }
+.home-hero { text-align: center; margin-bottom: 26px; }
+.eyebrow { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--soft); margin-bottom: 8px; }
+.home-hero h1 { font-family: var(--serif); font-size: 30px; font-weight: 600; letter-spacing: -0.02em; }
+.home-hero p { font-size: 13px; color: var(--muted); margin-top: 8px; max-width: 480px; margin-left: auto; margin-right: auto; line-height: 1.6; }
+.sdiv { display: flex; align-items: center; gap: 14px; margin: 28px 0 14px; }
+.sdiv h2 { font-family: var(--serif); font-size: 13.5px; font-weight: 600; color: var(--soft); text-transform: uppercase; letter-spacing: 0.06em; white-space: nowrap; }
+.rule { flex: 1; height: 1px; background: var(--border); }
+.workspace-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.wcard { position: relative; border-radius: 20px; padding: 20px 22px; cursor: pointer; overflow: hidden; background: var(--glass); backdrop-filter: blur(20px) saturate(1.8); border: 1px solid var(--glass-b); box-shadow: var(--gs), var(--gi); transition: transform 200ms var(--eo); display: flex; flex-direction: column; gap: 10px; min-height: 130px; }
+.wcard:hover { transform: translateY(-3px); }
+.wcard.accent { background: linear-gradient(135deg, rgba(255,84,0,0.09), rgba(255,192,71,0.07)), var(--glass); }
+.wcard-ico { font-size: 22px; width: 42px; height: 42px; border-radius: 13px; background: rgba(255,255,255,0.5); border: 1px solid var(--glass-b); display: flex; align-items: center; justify-content: center; }
+.wcard-title { font-family: var(--serif); font-size: 16px; font-weight: 600; }
+.wcard-sub { font-size: 11.5px; color: var(--muted); line-height: 1.5; }
+.wcard-open { font-size: 11px; font-weight: 700; color: var(--teal2); margin-top: auto; }
+.doc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.dcard { border-radius: 16px; padding: 16px 17px; cursor: pointer; background: var(--glass); backdrop-filter: blur(16px) saturate(1.7); border: 1px solid var(--glass-b); box-shadow: var(--gs), var(--gi); transition: transform 180ms var(--eo); display: flex; flex-direction: column; gap: 9px; min-height: 110px; }
+.dcard:hover { transform: translateY(-2px); }
+.dcard-top { display: flex; align-items: center; justify-content: space-between; }
+.dcard-dir { font-size: 9.5px; font-weight: 700; color: var(--teal2); background: rgba(36,80,106,0.08); padding: 2px 8px; border-radius: 100px; }
+.dcard-brief-tag { font-size: 9.5px; font-weight: 700; color: var(--flame); background: rgba(255,84,0,0.08); padding: 2px 8px; border-radius: 100px; }
+.dcard-title { font-family: var(--serif); font-size: 14px; font-weight: 600; line-height: 1.35; }
+.dcard-meta { font-size: 10.5px; color: var(--soft); margin-top: auto; }
+.empty-note { font-size: 11.5px; color: var(--soft); text-align: center; padding: 30px; border: 1.5px dashed var(--border2); border-radius: 14px; grid-column: 1 / -1; }
+
+/* ============ Editor shell ============ */
+.shell { position: relative; z-index: 1; display: flex; height: calc(100vh - 51px); overflow: hidden; }
+.col { overflow-y: auto; transition: width 300ms var(--eo), opacity 220ms var(--eo), padding 300ms var(--eo); }
+.col-mat { width: 300px; flex-shrink: 0; padding: 16px; border-right: 1px solid var(--border); }
+.col-mat.collapsed { width: 44px; padding: 16px 6px; }
+.col-composer { width: 400px; flex-shrink: 0; padding: 18px; border-right: 1px solid var(--border); background: rgba(var(--inkC),0.02); }
+.col-composer.collapsed { width: 0; padding: 0; opacity: 0; overflow: hidden; border-right: none; }
+.col-desk { flex: 1; min-width: 0; padding: 18px 30px; }
+.mat-edge-tab { writing-mode: vertical-rl; text-orientation: mixed; font-size: 10.5px; font-weight: 700; color: var(--teal2); background: var(--glass); border: 1px solid var(--glass-b); border-radius: 10px; padding: 12px 6px; cursor: pointer; box-shadow: var(--gs); }
+.mat-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.mat-title { font-size: 10px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--soft); }
+.mat-collapse-btn { width: 22px; height: 22px; border-radius: 50%; border: none; background: rgba(var(--inkC),0.06); cursor: pointer; font-size: 10px; color: var(--soft); }
+.mat-brief-name { font-family: var(--serif); font-size: 13.5px; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 7px; }
+.acc { border: 1px solid var(--border2); border-radius: 12px; margin-bottom: 8px; background: var(--glass); overflow: hidden; }
+.acc-head { display: flex; align-items: center; gap: 7px; padding: 9px 11px; cursor: pointer; font-size: 11.5px; font-weight: 700; color: var(--teal2); }
+.acc-count { margin-left: auto; font-size: 9.5px; color: var(--soft); background: rgba(var(--inkC),0.06); border-radius: 100px; padding: 2px 7px; }
+.acc-body { padding: 0 8px 8px; display: none; }
+.acc.open .acc-body { display: block; }
+.acc.open .acc-chev { transform: rotate(180deg); }
+.acc-chev { margin-left: 4px; font-size: 9px; transition: transform 160ms; }
+.mat-row { display: flex; align-items: flex-start; gap: 8px; padding: 8px 9px; border-radius: 9px; margin-bottom: 4px; cursor: grab; background: rgba(255,255,255,0.4); border: 1px solid transparent; transition: all 150ms; }
+.mat-row:hover { background: rgba(255,255,255,0.8); border-color: var(--border2); }
+body.dark .mat-row:hover { background: rgba(255,255,255,0.08); }
+.mat-row.inpiece { border-left: 3px solid var(--flame); }
+.mat-row-ico { font-size: 12px; margin-top: 1px; }
+.mat-row-txt { font-size: 11px; color: var(--teal); line-height: 1.4; flex: 1; }
+.mat-badges { display: flex; flex-direction: column; gap: 2px; align-items: flex-end; flex-shrink: 0; }
+.mat-badge { font-size: 8.5px; font-weight: 700; white-space: nowrap; }
+.mat-badge.drafted { color: var(--soft); }
+.mat-badge.inpiece { color: var(--flame); }
+
+.hint-banner { font-size: 10.5px; color: var(--teal2); background: rgba(36,80,106,0.06); border: 1px solid rgba(36,80,106,0.13); border-radius: 10px; padding: 8px 12px; margin-bottom: 12px; line-height: 1.5; }
+.cmp-head-input { width: 100%; font-family: var(--serif); font-size: 17px; font-weight: 700; border: none; background: transparent; outline: none; color: var(--teal); margin-bottom: 6px; }
+.cmp-sub-input { width: 100%; font-size: 12px; border: none; background: transparent; outline: none; color: var(--muted); font-style: italic; margin-bottom: 16px; }
+.blk { border: 1px solid var(--border2); border-radius: 13px; padding: 11px 13px; margin-bottom: 10px; background: var(--ivory); }
+.blk-toggle { display: flex; align-items: center; gap: 7px; }
+.blk-chip { font-size: 9px; font-weight: 700; text-transform: uppercase; color: var(--teal2); background: rgba(36,80,106,0.08); border-radius: 100px; padding: 2px 7px; }
+.blk-preview { font-size: 10.5px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+.blk-q { font-size: 11px; font-weight: 600; color: var(--flame); margin: 8px 0 5px; }
+.blk-answer { width: 100%; font-size: 13px; line-height: 1.6; color: var(--teal); border: 1px solid var(--border2); border-radius: 9px; padding: 8px 10px; outline: none; resize: vertical; min-height: 54px; background: var(--paper); font-family: var(--sans); }
+.blk-answer:focus { border-color: var(--flame); }
+.blk-paste-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+.blk-paste-btn { font-size: 10px; font-weight: 700; color: var(--teal2); background: rgba(36,80,106,0.08); border: 1px solid rgba(36,80,106,0.15); border-radius: 100px; padding: 6px 12px; cursor: pointer; }
+.blk-paste-btn:hover { background: var(--teal2); color: #fff; }
+.blk-paste-btn.done { background: var(--teal2); color: #fff; }
+.cmp-empty-note { font-size: 11px; color: var(--soft); text-align: center; padding: 30px 14px; border: 1.5px dashed var(--border2); border-radius: 12px; line-height: 1.6; }
+
+.desk-toolbar { display: flex; align-items: center; gap: 3px; background: var(--glass); border: 1px solid var(--glass-b); border-radius: 12px; padding: 6px; margin-bottom: 14px; box-shadow: var(--gs); flex-wrap: wrap; }
+.tb-btn { width: 27px; height: 27px; border-radius: 7px; border: none; background: transparent; color: var(--teal); font-size: 12px; cursor: pointer; }
+.tb-btn:hover { background: rgba(var(--inkC),0.08); }
+.tb-btn.wide { width: auto; padding: 0 9px; font-size: 10.5px; font-weight: 700; }
+.tb-sep { width: 1px; height: 18px; background: var(--border); margin: 0 3px; }
+.tb-select { height: 27px; border-radius: 7px; border: 1px solid var(--border2); background: var(--paper); color: var(--teal); font-size: 10.5px; font-weight: 600; padding: 0 6px; }
+.tb-color { width: 22px; height: 22px; border-radius: 6px; border: 1px solid var(--border2); cursor: pointer; padding: 0; }
+.doc-title-input { width: 100%; font-family: var(--serif); font-size: 21px; font-weight: 700; border: none; background: transparent; outline: none; color: var(--teal); margin-bottom: 10px; }
+.page-wrap { background: var(--glass); border: 1px solid var(--glass-b); border-radius: 18px; box-shadow: var(--gs), var(--gi); padding: 30px 34px; min-height: 50vh; }
+.page-canvas { font-family: var(--serif); font-size: 14.5px; line-height: 1.85; color: var(--teal); outline: none; }
+.page-canvas[dir="rtl"] { font-family: 'Vazirmatn', sans-serif; }
+.page-canvas h1 { font-size: 24px; margin: 0 0 10px; } .page-canvas h2 { font-size: 18px; margin: 18px 0 8px; }
+.page-canvas p { margin: 0 0 13px; padding: 2px 4px; border-radius: 5px; }
+.page-canvas blockquote { border-left: 3px solid var(--honey); padding: 4px 14px; margin: 0 0 13px; color: var(--muted); font-style: italic; }
+.page-canvas pre { background: rgba(var(--inkC),0.06); border-radius: 8px; padding: 10px 12px; font-family: monospace; font-size: 12.5px; overflow-x: auto; margin: 0 0 13px; }
+.page-canvas img, .page-canvas video { max-width: 100%; border-radius: 10px; margin: 6px 0 13px; }
+.page-canvas a { color: var(--teal2); }
+.mat-trace { transition: background 200ms ease; border-radius: 3px; }
+.mat-trace.trace-glow { background: rgba(255,84,0,0.22); box-shadow: 0 0 0 2px rgba(255,84,0,0.3); }
+.desk-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; flex-wrap: wrap; gap: 8px; }
+.footer-stats { display: flex; gap: 10px; font-size: 10.5px; color: var(--soft); flex-wrap: wrap; }
+.footer-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.btn { font-size: 10.5px; font-weight: 700; padding: 7px 12px; border-radius: 100px; border: 1px solid var(--border2); background: rgba(255,255,255,0.6); color: var(--teal2); cursor: pointer; }
+.btn:hover { background: var(--teal); color: var(--paper); border-color: transparent; }
+.btn.primary { background: var(--flame); color: #fff; border-color: transparent; }
+
+/* ============ Modal (onboarding) ============ */
+.modal-overlay { position: fixed; inset: 0; z-index: 200; background: rgba(15,28,35,0.42); backdrop-filter: blur(6px); display: none; align-items: center; justify-content: center; padding: 24px; overflow-y: auto; }
+.modal-overlay.show { display: flex; }
+.onb-modal { width: 100%; max-width: 720px; margin: auto; border-radius: 26px; background: var(--paper); border: 1px solid var(--glass-b); box-shadow: 0 30px 80px rgba(15,28,35,0.32); overflow: hidden; max-height: 88vh; display: flex; flex-direction: column; }
+.onb-head { display: flex; align-items: center; gap: 12px; padding: 20px 26px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+.onb-title { font-family: var(--serif); font-size: 18px; font-weight: 600; flex: 1; }
+.onb-close { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--border2); background: rgba(255,255,255,0.5); cursor: pointer; font-size: 15px; color: var(--muted); }
+.onb-body { padding: 22px 26px 28px; overflow-y: auto; }
+.onb-concept { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 22px; }
+.onb-concept-card { background: var(--glass); border: 1px solid var(--glass-b); border-radius: 14px; padding: 14px 16px; }
+.onb-concept-card h3 { font-family: var(--serif); font-size: 14px; margin-bottom: 6px; }
+.onb-concept-card p { font-size: 11.5px; color: var(--muted); line-height: 1.6; }
+.onb-flow { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 4px 0 20px; font-size: 10.5px; flex-wrap: wrap; }
+.onb-flow-node { background: rgba(var(--inkC),0.05); border-radius: 100px; padding: 6px 12px; font-weight: 700; color: var(--teal2); }
+.onb-steps { display: flex; flex-direction: column; gap: 10px; }
+.onb-step { display: flex; gap: 12px; background: var(--glass); border: 1px solid var(--glass-b); border-radius: 14px; padding: 14px 16px; }
+.onb-step-n { width: 26px; height: 26px; border-radius: 50%; background: var(--teal); color: var(--paper); font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.onb-step-title { font-size: 13px; font-weight: 700; margin-bottom: 3px; }
+.onb-step-sub { font-size: 11.5px; color: var(--muted); line-height: 1.55; }
+.onb-copy-box { margin-top: 9px; background: rgba(var(--inkC),0.04); border: 1px solid var(--border2); border-radius: 10px; padding: 8px 10px; display: flex; align-items: center; gap: 10px; }
+.onb-copy-box code { font-size: 11px; color: var(--teal2); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: monospace; }
+.onb-copy-btn { font-size: 10.5px; font-weight: 700; color: #fff; background: var(--flame); border: none; border-radius: 100px; padding: 6px 12px; cursor: pointer; white-space: nowrap; }
+.onb-copy-btn.done { background: var(--teal2); }
+.dash-toast { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--teal); color: var(--paper); font-size: 12px; font-weight: 600; padding: 10px 18px; border-radius: 100px; box-shadow: 0 10px 30px rgba(0,0,0,0.25); z-index: 300; opacity: 0; pointer-events: none; transition: all 220ms var(--eo); }
+.dash-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+@media (max-width: 900px) {
+  .workspace-row, .doc-grid { grid-template-columns: repeat(2, 1fr); }
+  .col-mat, .col-composer { position: fixed; top: 51px; bottom: 0; z-index: 40; background: var(--paper); }
+  .col-mat { left: 0; } .col-composer { left: 44px; }
+}
+@media print {
+  .appbar, .col-mat, .col-composer, .desk-toolbar, .desk-footer { display: none !important; }
+  .col-desk { padding: 0; } .page-wrap { box-shadow: none; border: none; background: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="scene"><div class="orb o1"></div><div class="orb o2"></div></div>
+
+<!-- ============ SCREEN: Home ============ -->
+<div id="screenHome">
+  <div class="appbar">
+    <div class="appbar-brand" onclick="goHome()"><span>🖋️</span><span class="appbar-title">Desk</span></div>
+    <div class="crumb-pill"><span class="crumb-seg here">Desk</span></div>
+    <div class="appbar-spacer"></div>
+    <div class="help-pill" id="helpPillHome">❓ How Desk + BriefDesk work</div>
+    <button class="icon-btn" id="darkToggleHome" title="Toggle dark mode">🌙</button>
+  </div>
+  <div class="stage">
+    <div class="home-hero">
+      <div class="eyebrow">RFE/RL · Radio Farda</div>
+      <h1>Desk</h1>
+      <p>One writing home for the newsroom — plain journalist-friendly documents, or step into BriefDesk when a piece needs research behind it.</p>
+    </div>
+    <div class="sdiv"><h2>Workspaces</h2><div class="rule"></div></div>
+    <div class="workspace-row">
+      <div class="wcard accent" onclick="window.location.href='/briefdesk'">
+        <div class="wcard-ico">🧬</div>
+        <div><div class="wcard-title">BriefDesk</div><div class="wcard-sub">Research briefs, promoted priorities, Search Console — the intelligence behind a piece.</div></div>
+        <div class="wcard-open">Open workspace →</div>
+      </div>
+      <div class="wcard" onclick="createBlankDoc()">
+        <div class="wcard-ico">🖋️</div>
+        <div><div class="wcard-title">Blank document</div><div class="wcard-sub">Just write — no brief attached. Full formatting, RTL/LTR, export.</div></div>
+        <div class="wcard-open">Start writing →</div>
+      </div>
+    </div>
+    <div class="sdiv"><h2>Recent documents</h2><div class="rule"></div></div>
+    <div class="doc-grid" id="docGrid"><div class="empty-note">Loading…</div></div>
+  </div>
+</div>
+
+<!-- ============ SCREEN: Editor ============ -->
+<div id="screenEditor" class="hidden">
+  <div class="appbar">
+    <div class="appbar-brand" onclick="goHome()"><span>🖋️</span><span class="appbar-title">Desk</span></div>
+    <div class="crumb-pill">
+      <span class="crumb-seg" onclick="goHome()">Desk</span><span class="crumb-sep">/</span>
+      <span class="crumb-seg here" id="crumbDocTitle">Untitled</span>
+    </div>
+    <div class="appbar-spacer"></div>
+    <div class="mode-toggle hidden" id="modeToggleWrap">
+      <button class="mode-btn active" id="modeComposing">✎ Composing</button>
+      <button class="mode-btn" id="modeDesk">🖋️ Writing</button>
+    </div>
+    <div class="help-pill" id="helpPillEditor">❓ Help</div>
+    <button class="icon-btn" id="darkToggleEditor" title="Toggle dark mode">🌙</button>
+    <span class="save-state" id="saveState">Draft saved</span>
+  </div>
+
+  <div class="shell">
+    <div class="col col-mat hidden" id="colMat">
+      <div id="matExpanded">
+        <div class="mat-header"><span class="mat-title">Brief materials</span><button class="mat-collapse-btn" id="matCollapseBtn">⟨</button></div>
+        <div class="mat-brief-name" id="matBriefName"></div>
+        <div id="matAccordions"></div>
+      </div>
+    </div>
+
+    <div class="col col-composer collapsed" id="colComposer">
+      <div class="hint-banner">Drag material in, draft it in your own words, then hit Paste when a line is ready for Desk. Nothing moves over on its own.</div>
+      <input class="cmp-head-input" id="cmpHeadline" placeholder="Headline">
+      <input class="cmp-sub-input" id="cmpStandfirst" placeholder="Standfirst…">
+      <div id="blockList"></div>
+    </div>
+
+    <div class="col col-desk" id="colDesk">
+      <div class="desk-toolbar" id="deskToolbar">
+        <select class="tb-select" id="tbBlock"><option value="p">Paragraph</option><option value="h1">Heading 1</option><option value="h2">Heading 2</option><option value="blockquote">Quote</option><option value="pre">Code block</option></select>
+        <div class="tb-sep"></div>
+        <button class="tb-btn" data-cmd="bold" title="Bold (Ctrl+B)"><b>B</b></button>
+        <button class="tb-btn" data-cmd="italic" title="Italic (Ctrl+I)"><i>I</i></button>
+        <button class="tb-btn" data-cmd="underline" title="Underline (Ctrl+U)"><u>U</u></button>
+        <div class="tb-sep"></div>
+        <button class="tb-btn" data-cmd="justifyLeft" title="Align left">⟸</button>
+        <button class="tb-btn" data-cmd="justifyCenter" title="Center">≡</button>
+        <button class="tb-btn" data-cmd="justifyRight" title="Align right">⟹</button>
+        <div class="tb-sep"></div>
+        <button class="tb-btn wide" id="tbDir" title="Toggle RTL/LTR">🔁 <span id="tbDirLbl">LTR</span></button>
+        <div class="tb-sep"></div>
+        <button class="tb-btn" data-cmd="insertUnorderedList" title="Bullets">• ≡</button>
+        <button class="tb-btn" data-cmd="insertOrderedList" title="Numbered">1.≡</button>
+        <button class="tb-btn" id="tbLink" title="Link (Ctrl+K)">🔗</button>
+        <button class="tb-btn" id="tbImage" title="Insert image by URL">🖼️</button>
+        <button class="tb-btn" id="tbVideo" title="Embed video by URL">🎬</button>
+        <input class="tb-color" type="color" id="tbHighlight" title="Highlight" value="#ffc047">
+        <div class="tb-sep"></div>
+        <button class="tb-btn" data-cmd="undo" title="Undo (Ctrl+Z)">↺</button>
+        <button class="tb-btn" data-cmd="redo" title="Redo">↻</button>
+        <div class="tb-sep"></div>
+        <button class="tb-btn" id="tbFind" title="Find & Replace (Ctrl+F)">🔍</button>
+      </div>
+      <input class="doc-title-input" id="docTitle" placeholder="Untitled document">
+      <div class="page-wrap"><div class="page-canvas" id="pageCanvas" contenteditable="true" dir="ltr" spellcheck="true"></div></div>
+      <div class="desk-footer">
+        <div class="footer-stats">
+          <span id="wordCount">0 words</span><span>·</span><span id="charCount">0 characters</span><span>·</span><span id="readTime">~0 min read</span>
+        </div>
+        <div class="footer-actions">
+          <button class="btn" id="btnShare">🔗 Share</button>
+          <button class="btn" id="btnExportDoc">⬇ .doc</button>
+          <button class="btn" id="btnExportPdf">⬇ PDF</button>
+          <button class="btn" id="btnExportHtml">⬇ HTML</button>
+          <button class="btn" id="btnExportMd">⬇ Markdown</button>
+          <button class="btn" id="btnWord">📄 Continue in Word</button>
+          <button class="btn primary" id="btnFinal">✓ Mark final</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Find & Replace mini bar -->
+<div class="modal-overlay" id="findOverlay">
+  <div class="onb-modal" style="max-width:420px;">
+    <div class="onb-head"><div class="onb-title" style="font-size:14px;">🔍 Find &amp; Replace</div><button class="onb-close" id="findClose">✕</button></div>
+    <div class="onb-body" style="padding:16px 20px 20px;">
+      <input id="findInput" placeholder="Find…" style="width:100%;padding:9px 12px;border:1px solid var(--border2);border-radius:9px;background:var(--paper);color:var(--teal);font-size:12.5px;margin-bottom:8px;outline:none;">
+      <input id="replaceInput" placeholder="Replace with…" style="width:100%;padding:9px 12px;border:1px solid var(--border2);border-radius:9px;background:var(--paper);color:var(--teal);font-size:12.5px;margin-bottom:12px;outline:none;">
+      <div style="display:flex;gap:8px;justify-content:flex-end;">
+        <button class="btn" id="findReplaceOne">Replace next</button>
+        <button class="btn primary" id="findReplaceAll">Replace all</button>
+      </div>
+      <div id="findStatus" style="font-size:11px;color:var(--soft);margin-top:8px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Onboarding modal -->
+<div class="modal-overlay" id="onbOverlay">
+  <div class="onb-modal">
+    <div class="onb-head"><div class="onb-title">🖋️ How Desk + 🧬 BriefDesk work together</div><button class="onb-close" id="onbClose">✕</button></div>
+    <div class="onb-body">
+      <div class="onb-concept">
+        <div class="onb-concept-card"><h3>🖋️ Desk</h3><p>Your writing home. A clean, journalist-friendly editor — formatting, RTL/LTR, links, export to Word. Works with or without a brief attached.</p></div>
+        <div class="onb-concept-card"><h3>🧬 BriefDesk</h3><p>The research workspace. Turns a Copilot answer into a structured, promotable brief — priorities, sources, search demand — that Desk can pull from while you write.</p></div>
+      </div>
+      <div class="onb-flow">
+        <span class="onb-flow-node">Copilot</span><span>→</span><span class="onb-flow-node">/agentmode</span><span>→</span><span class="onb-flow-node">BriefDesk</span><span>→</span><span class="onb-flow-node">Desk</span>
+      </div>
+      <div class="onb-steps">
+        <div class="onb-step"><div class="onb-step-n">1</div><div>
+          <div class="onb-step-title">Copy the research workflow, once</div>
+          <div class="onb-step-sub">Teaches Copilot the 4-agent newsroom research process.</div>
+          <div class="onb-copy-box"><code>Save the following workflow in your memory under the command: /agentmode…</code><button class="onb-copy-btn" id="onbCopyPrompt">⧉ Copy prompt</button></div>
+        </div></div>
+        <div class="onb-step"><div class="onb-step-n">2</div><div><div class="onb-step-title">Paste it into Copilot, one time</div><div class="onb-step-sub">It confirms the workflow is saved as <b>/agentmode</b> — you won't need to do this again.</div></div></div>
+        <div class="onb-step"><div class="onb-step-n">3</div><div><div class="onb-step-title">Research any topic</div><div class="onb-step-sub">Type in Copilot: <code style="background:rgba(var(--inkC),0.06);padding:2px 6px;border-radius:5px;">/agentmode your topic here</code></div></div></div>
+        <div class="onb-step"><div class="onb-step-n">4</div><div><div class="onb-step-title">Turn it into a brief, then write</div><div class="onb-step-sub">Copy Copilot's answer → BriefDesk's <b>＋ New brief</b> → paste. From there, promote what matters and click <b>Write your piece</b> to land here in Desk with the brief pinned alongside you.</div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="dash-toast" id="dashToast"></div>
+
+<script>
+/* ==================== Supabase ==================== */
+const SUPABASE_URL = 'https://yiewnykbchfadipznpet.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlpZXdueWtiY2hmYWRpcHpucGV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxNzM3NTUsImV4cCI6MjA5NDc0OTc1NX0.utnlpToZGH7hno0QTXlrtWvzKDgP28Gv3Je7BBIRwmM';
+async function sbSelect(table, query) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${query}`, { headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` } });
+  if (!res.ok) throw new Error(`select failed (${res.status})`); return res.json();
+}
+async function sbInsert(table, row) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, { method: 'POST',
+    headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=representation' },
+    body: JSON.stringify(row) });
+  if (!res.ok) throw new Error(`insert failed (${res.status}): ${await res.text()}`); return res.json();
+}
+async function sbUpdate(table, id, patch) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, { method: 'PATCH',
+    headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=representation' },
+    body: JSON.stringify(patch) });
+  if (!res.ok) throw new Error(`update failed (${res.status})`); return res.json();
+}
+function escapeHtml(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function dashToast(msg) { const el = document.getElementById('dashToast'); el.textContent = msg; el.classList.add('show'); clearTimeout(window._toastT); window._toastT = setTimeout(() => el.classList.remove('show'), 2600); }
+
+/* ==================== Routing: /desk (home) + /desk/doc/<slug>--<id> ==================== */
+function slugify(s) { return String(s || 'untitled').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 48) || 'untitled'; }
+function shortId(id) { return String(id || '').replace(/-/g, '').slice(0, 8); }
+function docSlug(doc) { return `${slugify(doc.title)}--${shortId(doc.id)}`; }
+function docPath(doc) { return `/desk/doc/${docSlug(doc)}`; }
+function goHome() { if (location.pathname.replace(/\/+$/, '') !== '/desk') history.pushState(null, '', '/desk'); showHome(); }
+function goDoc(doc) { const p = docPath(doc); if (location.pathname !== p) history.pushState({ docId: doc.id }, '', p); }
+async function routeFromLocation() {
+  const path = location.pathname.replace(/\/+$/, '');
+  const m = path.match(/^\/desk\/doc\/(.+)--([a-f0-9]{6,10})$/i);
+  if (m) {
+    const sid = m[2].toLowerCase();
+    try {
+      const rows = await sbSelect('desk_documents', `select=*&order=created_at.desc&limit=200`);
+      const doc = rows.find(r => shortId(r.id) === sid);
+      if (doc) { await openDoc(doc); return; }
+    } catch (e) { /* fall through to home */ }
+    dashToast('That document could not be found — showing Desk instead');
+  }
+  showHome();
+}
+window.addEventListener('popstate', () => routeFromLocation());
+
+/* ==================== Home ==================== */
+function showHome() {
+  document.getElementById('screenEditor').classList.add('hidden');
+  document.getElementById('screenHome').classList.remove('hidden');
+  loadDocGrid();
+}
+async function loadDocGrid() {
+  const grid = document.getElementById('docGrid');
+  try {
+    const rows = await sbSelect('desk_documents', 'select=*&order=updated_at.desc&limit=24');
+    if (!rows.length) { grid.innerHTML = '<div class="empty-note">No documents yet — start a blank one, or write a piece from a BriefDesk brief.</div>'; return; }
+    grid.innerHTML = rows.map(d => `
+      <div class="dcard" data-doc="${d.id}">
+        <div class="dcard-top"><span class="dcard-dir">${(d.direction || 'ltr').toUpperCase()}</span>${d.brief_id ? '<span class="dcard-brief-tag">🧬 from brief</span>' : ''}</div>
+        <div class="dcard-title">${escapeHtml(d.title || 'Untitled document')}</div>
+        <div class="dcard-meta">Edited ${relTime(d.updated_at)}</div>
+      </div>`).join('');
+    grid.querySelectorAll('.dcard').forEach(el => el.addEventListener('click', async () => {
+      const doc = rows.find(r => r.id === el.getAttribute('data-doc'));
+      if (doc) { goDoc(doc); await openDoc(doc); }
+    }));
+  } catch (e) {
+    grid.innerHTML = `<div class="empty-note">Couldn't load documents: ${escapeHtml(e.message)}. Have you run the desk_documents.sql setup in Supabase yet?</div>`;
+  }
+}
+function relTime(iso) {
+  if (!iso) return 'just now';
+  const s = (Date.now() - new Date(iso).getTime()) / 1000;
+  if (s < 60) return 'just now'; if (s < 3600) return Math.floor(s/60) + 'm ago';
+  if (s < 86400) return Math.floor(s/3600) + 'h ago'; return Math.floor(s/86400) + 'd ago';
+}
+async function createBlankDoc() {
+  try {
+    const created = await sbInsert('desk_documents', { title: 'Untitled document', body_html: '<p>Start writing…</p>', direction: 'ltr', status: 'draft' });
+    const doc = created[0];
+    goDoc(doc); await openDoc(doc);
+  } catch (e) { dashToast('Could not create document: ' + e.message); }
+}
+
+/* ==================== Editor ==================== */
+let CURRENT_DOC = null, CURRENT_BRIEF = null, MATERIAL_GROUPS = [], blocks = [], composing = true, matSidebarOpen = true;
+const canvas = document.getElementById('pageCanvas');
+
+async function openDoc(doc) {
+  CURRENT_DOC = doc; CURRENT_BRIEF = null; MATERIAL_GROUPS = []; blocks = [];
+  document.getElementById('screenHome').classList.add('hidden');
+  document.getElementById('screenEditor').classList.remove('hidden');
+  document.getElementById('docTitle').value = doc.title || '';
+  document.getElementById('crumbDocTitle').textContent = doc.title || 'Untitled';
+  canvas.innerHTML = doc.body_html || '<p></p>';
+  canvas.setAttribute('dir', doc.direction === 'rtl' ? 'rtl' : 'ltr');
+  document.getElementById('tbDirLbl').textContent = doc.direction === 'rtl' ? 'RTL' : 'LTR';
+  updateCounts();
+
+  if (doc.brief_id) {
+    document.getElementById('modeToggleWrap').classList.remove('hidden');
+    document.getElementById('colMat').classList.remove('hidden');
+    try {
+      const rows = await sbSelect('dna_agent_briefs', `id=eq.${doc.brief_id}&select=*&limit=1`);
+      if (rows.length) { CURRENT_BRIEF = rows[0]; buildMaterialGroups(); }
+    } catch (e) { dashToast('Could not load the linked brief: ' + e.message); }
+    setMode(true);
+  } else {
+    document.getElementById('modeToggleWrap').classList.add('hidden');
+    document.getElementById('colMat').classList.add('hidden');
+    document.getElementById('colComposer').classList.add('collapsed');
+  }
+  renderMatAccordions(); renderBlocks();
+  sbUpdate('desk_documents', doc.id, { view_count: (doc.view_count || 0) + 1 }).catch(() => {});
+}
+
+function buildMaterialGroups() {
+  const row = CURRENT_BRIEF; if (!row) return;
+  const groups = [];
+  const promoted = Array.isArray(row.promoted_items) ? row.promoted_items : [];
+  if (promoted.length) {
+    const CATEGORY_META = { angle: { label: 'Priority Angles', icon: '★' }, source: { label: 'Key Sources', icon: '🔗' }, person: { label: 'People to Watch', icon: '👤' }, keyword: { label: 'Keywords', icon: '🏷️' } };
+    const byCat = {};
+    promoted.forEach(p => { (byCat[p.category] = byCat[p.category] || []).push(p); });
+    Object.keys(byCat).forEach(cat => {
+      const meta = CATEGORY_META[cat] || { label: cat, icon: '📌' };
+      groups.push({ key: 'promo-' + cat, icon: meta.icon, label: meta.label, items: byCat[cat].map((p, i) => ({ id: 'p' + cat + i, icon: meta.icon, kind: meta.label.replace(/s$/, ''), text: p.text })) });
+    });
+  }
+  const sections = Array.isArray(row.parsed_sections) ? row.parsed_sections : [];
+  const searchNode = sections.find(n => n && n._editor === 'search');
+  if (searchNode && Array.isArray(searchNode.children)) {
+    const items = [];
+    searchNode.children.forEach(c => {
+      if (c.table && Array.isArray(c.table.rows)) c.table.rows.forEach((r, i) => { const kw = (r[0] || '').trim(); if (kw) items.push({ id: 'sq' + items.length, icon: '🔎', kind: 'Search data', text: kw }); });
+      (c.items || []).forEach((it, i) => items.push({ id: 'si' + items.length, icon: '📈', kind: 'Search data', text: it }));
+    });
+    if (items.length) groups.push({ key: 'search', icon: '🔎', label: 'Search Intelligence', items: items.slice(0, 20) });
+  }
+  MATERIAL_GROUPS = groups;
+}
+
+function draftedMatIds() { return new Set(blocks.filter(b => b.answer.trim()).map(b => b.matId)); }
+function inPieceMatIds() { return new Set(Array.from(canvas.querySelectorAll('.mat-trace[data-mat-id]')).map(s => s.getAttribute('data-mat-id'))); }
+
+function renderMatAccordions() {
+  document.getElementById('matBriefName').innerHTML = CURRENT_BRIEF ? `📌 ${escapeHtml(CURRENT_BRIEF.topic || '')}` : '';
+  const drafted = draftedMatIds(), inPiece = inPieceMatIds();
+  const wrap = document.getElementById('matAccordions');
+  if (!MATERIAL_GROUPS.length) { wrap.innerHTML = '<div class="cmp-empty-note">No promoted material or search data on this brief yet.</div>'; return; }
+  wrap.innerHTML = MATERIAL_GROUPS.map(g => `
+    <div class="acc open" data-key="${g.key}">
+      <div class="acc-head" data-toggle="1"><span>${g.icon} ${escapeHtml(g.label)}</span><span class="acc-count">${g.items.length}</span><span class="acc-chev">⌄</span></div>
+      <div class="acc-body">
+        ${g.items.map(it => `<div class="mat-row ${inPiece.has(it.id) ? 'inpiece' : ''}" draggable="true" data-mat="${it.id}">
+          <span class="mat-row-ico">${it.icon}</span><span class="mat-row-txt">${escapeHtml(it.text)}</span>
+          <span class="mat-badges">${inPiece.has(it.id) ? '<span class="mat-badge inpiece">● in piece</span>' : (drafted.has(it.id) ? '<span class="mat-badge drafted">✎ drafted</span>' : '')}</span>
+        </div>`).join('')}
+      </div>
+    </div>`).join('');
+  wrap.querySelectorAll('[data-toggle]').forEach(h => h.addEventListener('click', () => h.closest('.acc').classList.toggle('open')));
+  wrap.querySelectorAll('.mat-row').forEach(row => {
+    const matId = row.getAttribute('data-mat');
+    row.addEventListener('dragstart', e => e.dataTransfer.setData('text/mat-id', matId));
+    row.addEventListener('mouseenter', () => traceMaterial(matId, true));
+    row.addEventListener('mouseleave', () => traceMaterial(matId, false));
+    row.addEventListener('click', () => {
+      const span = canvas.querySelector(`.mat-trace[data-mat-id="${matId}"]`);
+      if (span) { span.scrollIntoView({ behavior: 'smooth', block: 'center' }); traceMaterial(matId, true); setTimeout(() => traceMaterial(matId, false), 1200); }
+    });
+  });
+}
+function findMat(id) { for (const g of MATERIAL_GROUPS) { const f = g.items.find(i => i.id === id); if (f) return f; } return null; }
+function traceMaterial(matId, on) { canvas.querySelectorAll(`.mat-trace[data-mat-id="${matId}"]`).forEach(s => s.classList.toggle('trace-glow', on)); }
+
+function renderBlocks() {
+  const list = document.getElementById('blockList');
+  if (!blocks.length) { list.innerHTML = `<div class="cmp-empty-note">Drag a material from the left to start drafting. Paste a line to Desk when it's ready.</div>`; return; }
+  list.innerHTML = blocks.map(b => `
+    <div class="blk" data-blk="${b.id}">
+      <div class="blk-toggle"><span class="blk-chip">${escapeHtml(b.kind)}</span><span class="blk-preview">${escapeHtml(b.src.slice(0, 46))}${b.src.length > 46 ? '…' : ''}</span></div>
+      <div class="blk-q">${escapeHtml(b.q)}</div>
+      <textarea class="blk-answer" data-blk-input="${b.id}" placeholder="Write this in your own words…">${escapeHtml(b.answer)}</textarea>
+      <div class="blk-paste-row"><button class="blk-paste-btn" data-paste="${b.id}" ${!b.answer.trim() ? 'disabled style="opacity:.4;cursor:default;"' : ''}>📋 Paste to Desk</button></div>
+    </div>`).join('');
+  list.querySelectorAll('[data-blk-input]').forEach(ta => ta.addEventListener('input', () => {
+    const id = ta.getAttribute('data-blk-input'); const b = blocks.find(x => x.id === id); b.answer = ta.value;
+    renderMatAccordions();
+    const btn = document.querySelector(`[data-paste="${id}"]`);
+    if (btn) { btn.disabled = !ta.value.trim(); btn.style.opacity = ta.value.trim() ? '1' : '.4'; btn.style.cursor = ta.value.trim() ? 'pointer' : 'default'; }
+    scheduleSave();
+  }));
+  list.querySelectorAll('[data-paste]').forEach(btn => btn.addEventListener('click', () => {
+    const id = btn.getAttribute('data-paste'); const b = blocks.find(x => x.id === id); if (!b || !b.answer.trim()) return;
+    pasteIntoCanvas(b.answer.trim(), b.matId);
+    btn.textContent = '✓ Pasted'; btn.classList.add('done');
+    setTimeout(() => { btn.textContent = '📋 Paste to Desk'; btn.classList.remove('done'); }, 1400);
+    renderMatAccordions();
+  }));
+}
+function addBlockFromMaterial(matId) {
+  const mat = findMat(matId); if (!mat) return;
+  const questions = { 'Priority Angle': 'How does this angle shape your story?', 'Key Source': 'What does this establish, and how will you attribute it?', 'People to Watch': "What's this person's role — will you seek comment?", 'Search data': 'How will you use this demand signal?' };
+  blocks.push({ id: 'b' + Date.now() + Math.floor(Math.random()*99), matId, kind: mat.kind, src: mat.text, q: questions[mat.kind] || 'How will you use this in your piece?', answer: '' });
+  renderBlocks(); renderMatAccordions();
+  const el = document.getElementById('colComposer'); if (el) el.scrollTop = el.scrollHeight;
+}
+document.getElementById('colComposer').addEventListener('dragover', e => e.preventDefault());
+document.getElementById('colComposer').addEventListener('drop', e => { e.preventDefault(); const id = e.dataTransfer.getData('text/mat-id'); if (id) addBlockFromMaterial(id); });
+canvas.addEventListener('dragover', e => e.preventDefault());
+canvas.addEventListener('drop', e => { e.preventDefault(); const id = e.dataTransfer.getData('text/mat-id'); if (id) addBlockFromMaterial(id); });
+
+/* ---- Cursor-tracked paste with material trace marker ---- */
+let savedRange = null;
+document.addEventListener('selectionchange', () => {
+  const sel = window.getSelection(); if (sel.rangeCount === 0) return;
+  const range = sel.getRangeAt(0);
+  if (canvas.contains(range.commonAncestorContainer)) savedRange = range.cloneRange();
+});
+function pasteIntoCanvas(text, matId) {
+  canvas.focus();
+  const sel = window.getSelection(); sel.removeAllRanges();
+  let range;
+  if (savedRange && canvas.contains(savedRange.commonAncestorContainer)) range = savedRange;
+  else { range = document.createRange(); range.selectNodeContents(canvas); range.collapse(false); }
+  range.deleteContents();
+  const span = document.createElement('span');
+  span.className = 'mat-trace'; span.setAttribute('data-mat-id', matId); span.textContent = text;
+  range.insertNode(span);
+  range.setStartAfter(span); range.setEndAfter(span); range.collapse(true);
+  sel.addRange(range); savedRange = range.cloneRange();
+  span.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  updateCounts(); scheduleSave();
+}
+
+/* ==================== Mode toggle ==================== */
+function setMode(toComposing) {
+  composing = toComposing;
+  document.getElementById('modeComposing').classList.toggle('active', composing);
+  document.getElementById('modeDesk').classList.toggle('active', !composing);
+  document.getElementById('colComposer').classList.toggle('collapsed', !composing);
+  matSidebarOpen = composing ? true : matSidebarOpen;
+  applyMatSidebarState();
+}
+function applyMatSidebarState() {
+  const colMat = document.getElementById('colMat');
+  colMat.classList.toggle('collapsed', !matSidebarOpen);
+  document.getElementById('matExpanded').style.display = matSidebarOpen ? 'block' : 'none';
+  let tab = document.getElementById('matEdgeTab');
+  if (!matSidebarOpen) {
+    if (!tab) { tab = document.createElement('div'); tab.id = 'matEdgeTab'; tab.className = 'mat-edge-tab'; tab.textContent = '📎 Materials'; tab.addEventListener('click', () => { matSidebarOpen = true; applyMatSidebarState(); }); colMat.appendChild(tab); }
+  } else if (tab) tab.remove();
+}
+document.getElementById('modeComposing').addEventListener('click', () => setMode(true));
+document.getElementById('modeDesk').addEventListener('click', () => setMode(false));
+document.getElementById('matCollapseBtn').addEventListener('click', () => { if (composing) setMode(false); else { matSidebarOpen = false; applyMatSidebarState(); } });
+
+/* ==================== Toolbar ==================== */
+document.querySelectorAll('.tb-btn[data-cmd]').forEach(btn => btn.addEventListener('click', () => { canvas.focus(); document.execCommand(btn.getAttribute('data-cmd'), false, null); }));
+document.getElementById('tbBlock').addEventListener('change', e => { canvas.focus(); document.execCommand('formatBlock', false, e.target.value); });
+document.getElementById('tbHighlight').addEventListener('input', e => { canvas.focus(); document.execCommand('hiliteColor', false, e.target.value); });
+document.getElementById('tbLink').addEventListener('click', () => { const url = prompt('Link URL:', 'https://'); if (url) { canvas.focus(); document.execCommand('createLink', false, url); } });
+document.getElementById('tbImage').addEventListener('click', () => { const url = prompt('Image URL:', 'https://'); if (url) { canvas.focus(); document.execCommand('insertHTML', false, `<img src="${url.replace(/"/g,'')}">`); } });
+document.getElementById('tbVideo').addEventListener('click', () => {
+  const url = prompt('Video URL (YouTube/Vimeo link, or direct .mp4):', 'https://');
+  if (!url) return; canvas.focus();
+  const yt = url.match(/(?:youtu\.be\/|youtube\.com\/watch\?v=)([\w-]+)/);
+  if (yt) document.execCommand('insertHTML', false, `<iframe width="480" height="270" src="https://www.youtube.com/embed/${yt[1]}" frameborder="0" allowfullscreen></iframe>`);
+  else document.execCommand('insertHTML', false, `<video controls src="${url.replace(/"/g,'')}"></video>`);
+});
+document.getElementById('tbDir').addEventListener('click', () => {
+  const rtl = canvas.getAttribute('dir') === 'rtl';
+  canvas.setAttribute('dir', rtl ? 'ltr' : 'rtl');
+  document.getElementById('tbDirLbl').textContent = rtl ? 'LTR' : 'RTL';
+  scheduleSave();
+});
+canvas.addEventListener('input', () => { updateCounts(); scheduleSave(); });
+document.getElementById('docTitle').addEventListener('input', e => {
+  document.getElementById('crumbDocTitle').textContent = e.target.value || 'Untitled'; scheduleSave();
+});
+
+/* Keyboard shortcuts */
+document.addEventListener('keydown', e => {
+  if (document.getElementById('screenEditor').classList.contains('hidden')) return;
+  const mod = e.ctrlKey || e.metaKey;
+  if (mod && e.key.toLowerCase() === 'k') { e.preventDefault(); document.getElementById('tbLink').click(); }
+  if (mod && e.key.toLowerCase() === 'f') { e.preventDefault(); openFind(); }
+  if (mod && e.key.toLowerCase() === 's') { e.preventDefault(); flushSave(); }
+});
+
+/* ==================== Counts ==================== */
+function updateCounts() {
+  const text = (canvas.innerText || '').trim();
+  const words = text ? text.split(/\s+/).filter(Boolean).length : 0;
+  document.getElementById('wordCount').textContent = words + ' words';
+  document.getElementById('charCount').textContent = text.length + ' characters';
+  document.getElementById('readTime').textContent = '~' + Math.max(1, Math.round(words / 200)) + ' min read';
+}
+
+/* ==================== Autosave ==================== */
+function scheduleSave() {
+  document.getElementById('saveState').textContent = 'Saving…';
+  clearTimeout(window._saveT);
+  window._saveT = setTimeout(flushSave, 800);
+}
+function flushSave() {
+  if (!CURRENT_DOC) return;
+  const patch = { title: document.getElementById('docTitle').value || 'Untitled document', body_html: canvas.innerHTML, direction: canvas.getAttribute('dir') || 'ltr' };
+  sbUpdate('desk_documents', CURRENT_DOC.id, patch)
+    .then(() => { CURRENT_DOC.title = patch.title; document.getElementById('saveState').textContent = 'Draft saved'; })
+    .catch(err => { document.getElementById('saveState').textContent = 'Save failed'; dashToast('Save failed: ' + err.message); });
+}
+
+/* ==================== Find & Replace ==================== */
+function openFind() { document.getElementById('findOverlay').classList.add('show'); document.getElementById('findInput').focus(); }
+document.getElementById('tbFind').addEventListener('click', openFind);
+document.getElementById('findClose').addEventListener('click', () => document.getElementById('findOverlay').classList.remove('show'));
+document.getElementById('findOverlay').addEventListener('click', e => { if (e.target.id === 'findOverlay') document.getElementById('findOverlay').classList.remove('show'); });
+document.getElementById('findReplaceAll').addEventListener('click', () => {
+  const find = document.getElementById('findInput').value, rep = document.getElementById('replaceInput').value;
+  if (!find) return;
+  const re = new RegExp(find.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
+  const before = canvas.innerText; const count = (before.match(re) || []).length;
+  canvas.innerHTML = canvas.innerHTML.split(find).join(escapeHtml(rep));
+  document.getElementById('findStatus').textContent = `Replaced ${count} occurrence${count===1?'':'s'}.`;
+  updateCounts(); scheduleSave();
+});
+document.getElementById('findReplaceOne').addEventListener('click', () => {
+  const find = document.getElementById('findInput').value, rep = document.getElementById('replaceInput').value;
+  if (!find) return;
+  const idx = canvas.innerHTML.indexOf(find);
+  if (idx === -1) { document.getElementById('findStatus').textContent = 'No more matches.'; return; }
+  canvas.innerHTML = canvas.innerHTML.slice(0, idx) + escapeHtml(rep) + canvas.innerHTML.slice(idx + find.length);
+  document.getElementById('findStatus').textContent = 'Replaced one occurrence.';
+  updateCounts(); scheduleSave();
+});
+
+/* ==================== Export / Share / Word ==================== */
+document.getElementById('btnShare').addEventListener('click', async () => {
+  const url = window.location.origin + docPath(CURRENT_DOC);
+  if (navigator.share) { try { await navigator.share({ title: CURRENT_DOC.title, url }); return; } catch (e) {} }
+  try { await navigator.clipboard.writeText(url); dashToast('Link copied — ' + url); } catch (e) { dashToast('Could not copy link'); }
+});
+document.getElementById('btnExportDoc').addEventListener('click', () => {
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${escapeHtml(CURRENT_DOC.title)}</title></head><body>${canvas.innerHTML}</body></html>`;
+  downloadBlob(html, (slugify(CURRENT_DOC.title) || 'document') + '.doc', 'application/msword');
+});
+document.getElementById('btnExportHtml').addEventListener('click', () => {
+  downloadBlob(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${escapeHtml(CURRENT_DOC.title)}</title></head><body>${canvas.innerHTML}</body></html>`, (slugify(CURRENT_DOC.title) || 'document') + '.html', 'text/html');
+});
+document.getElementById('btnExportMd').addEventListener('click', () => {
+  let md = canvas.innerHTML
+    .replace(/<h1[^>]*>(.*?)<\/h1>/gi, '# $1\n\n').replace(/<h2[^>]*>(.*?)<\/h2>/gi, '## $1\n\n')
+    .replace(/<b>(.*?)<\/b>|<strong>(.*?)<\/strong>/gi, (m,a,b) => `**${a||b}**`)
+    .replace(/<i>(.*?)<\/i>|<em>(.*?)<\/em>/gi, (m,a,b) => `*${a||b}*`)
+    .replace(/<a href="([^"]*)"[^>]*>(.*?)<\/a>/gi, '[$2]($1)')
+    .replace(/<li[^>]*>(.*?)<\/li>/gi, '- $1\n')
+    .replace(/<blockquote[^>]*>(.*?)<\/blockquote>/gi, '> $1\n\n')
+    .replace(/<p[^>]*>(.*?)<\/p>/gi, '$1\n\n')
+    .replace(/<[^>]+>/g, '').replace(/\n{3,}/g, '\n\n').trim();
+  downloadBlob(md, (slugify(CURRENT_DOC.title) || 'document') + '.md', 'text/markdown');
+});
+document.getElementById('btnExportPdf').addEventListener('click', () => window.print());
+document.getElementById('btnWord').addEventListener('click', () => {
+  navigator.clipboard.writeText(canvas.innerText).catch(() => {});
+  window.open('https://word.cloud.microsoft/', '_blank', 'noopener');
+  dashToast('Copied your piece — paste it into the new Word document');
+});
+document.getElementById('btnFinal').addEventListener('click', () => {
+  if (!CURRENT_DOC) return;
+  sbUpdate('desk_documents', CURRENT_DOC.id, { status: 'final' }).then(() => dashToast('Marked final')).catch(err => dashToast('Failed: ' + err.message));
+});
+function downloadBlob(content, filename, mime) {
+  const blob = new Blob(['\ufeff', content], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+}
+
+/* ==================== Dark mode ==================== */
+function toggleDark() { document.body.classList.toggle('dark'); localStorage.setItem('desk_dark', document.body.classList.contains('dark') ? '1' : '0'); }
+document.getElementById('darkToggleHome').addEventListener('click', toggleDark);
+document.getElementById('darkToggleEditor').addEventListener('click', toggleDark);
+if (localStorage.getItem('desk_dark') === '1') document.body.classList.add('dark');
+
+/* ==================== Onboarding ==================== */
+const AGENTMODE_PROMPT = `Please save the following workflow in your memory under the command:
+
+/agentmode
+
+Whenever I type:
+
+/agentmode [TOPIC]
+
+execute the following multi-agent newsroom intelligence workflow.
+
+(See BriefDesk's onboarding modal for the full text — identical prompt, kept in sync across both apps.)`;
+function openOnboarding() { document.getElementById('onbOverlay').classList.add('show'); }
+document.getElementById('helpPillHome').addEventListener('click', openOnboarding);
+document.getElementById('helpPillEditor').addEventListener('click', openOnboarding);
+document.getElementById('onbClose').addEventListener('click', () => document.getElementById('onbOverlay').classList.remove('show'));
+document.getElementById('onbOverlay').addEventListener('click', e => { if (e.target.id === 'onbOverlay') document.getElementById('onbOverlay').classList.remove('show'); });
+document.getElementById('onbCopyPrompt').addEventListener('click', async e => {
+  const btn = e.currentTarget;
+  try { await navigator.clipboard.writeText(AGENTMODE_PROMPT); } catch (err) {}
+  btn.textContent = '✓ Copied'; btn.classList.add('done');
+  setTimeout(() => { btn.textContent = '⧉ Copy prompt'; btn.classList.remove('done'); }, 1800);
+});
+
+/* ==================== Boot ==================== */
+routeFromLocation();
+</script>
+</body>
+</html>
