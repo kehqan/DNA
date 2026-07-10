@@ -831,6 +831,16 @@ mark.anno.pulse { animation: markPulse 1200ms var(--eo); }
 
 <div class="info-pop" id="deskInfoPop"></div>
 
+<div class="desk-overlay" id="piecePickerOverlay">
+  <div class="desk-modal" style="max-width:520px;">
+    <div class="desk-modal-head">
+      <div class="desk-modal-title"><span>✍</span> <span id="piecePickerTitle">Choose a piece</span></div>
+      <button class="desk-modal-close" id="piecePickerClose">✕</button>
+    </div>
+    <div class="desk-modal-body" id="piecePickerBody"></div>
+  </div>
+</div>
+
 <div class="desk-overlay" id="briefOverlay">
   <div class="desk-modal">
     <div class="desk-modal-head">
@@ -2304,8 +2314,7 @@ async function openDetail(row) {
   document.getElementById('backToLibrary').addEventListener('click', () => goToLibrary());
   document.getElementById('editBriefBtn').addEventListener('click', () => openEditor(row));
   const wp = document.getElementById('writePieceBtn');
-  if (pieceFromTree(row.parsed_sections)) wp.textContent = t('continue_piece');
-  wp.addEventListener('click', () => openInDesk(row, wp));
+  wp.addEventListener('click', () => openPiecePicker(row));
   document.getElementById('copyBriefBtn').addEventListener('click', () => copyBriefMarkdown(row, promoted, links));
   document.getElementById('copilotFromBrief').addEventListener('click', () => openCopilotPopup(briefToMarkdown(row, promoted, links)));
   document.getElementById('shareBrief').addEventListener('click', async () => {
@@ -2679,27 +2688,39 @@ function materialQuestion(kind) {
 }
 function regMat(m) { const id = 'm' + (matSeq++); COMPOSE_MATERIALS[id] = m; return id; }
 
-/* ---------- Handoff to the Desk product for writing ---------- */
+/* ---------- Handoff to the Desk product: pick among existing pieces, or start a new one ---------- */
 const DESK_BASE = '/desk';
-async function openInDesk(row, btn) {
-  const original = btn.textContent;
-  btn.disabled = true; btn.textContent = '↗ Opening in Desk…';
-  try {
-    const existing = await sbSelect('desk_documents', `brief_id=eq.${row.id}&select=id,title&order=created_at.desc&limit=1`);
-    let doc;
-    if (existing.length) {
-      doc = existing[0];
-    } else {
+function deskDocPath(doc) { return `${DESK_BASE}/doc/${slugify(doc.title)}--${String(doc.id).replace(/-/g, '').slice(0, 8)}`; }
+function navigateToDeskDoc(doc) { window.location.href = deskDocPath(doc); }
+
+async function openPiecePicker(row) {
+  const overlay = document.getElementById('piecePickerOverlay');
+  overlay.classList.add('show'); document.body.style.overflow = 'hidden';
+  document.getElementById('piecePickerTitle').textContent = `Pieces from "${row.topic || 'this brief'}"`;
+  const body = document.getElementById('piecePickerBody');
+  body.innerHTML = '<div class="promo-empty">Loading…</div>';
+  let docs = [];
+  try { docs = await sbSelect('desk_documents', `brief_id=eq.${row.id}&select=id,title,updated_at,direction,status&order=updated_at.desc`); }
+  catch (err) { body.innerHTML = `<div class="promo-empty">Couldn't load pieces: ${escapeHtml(err.message)}</div>`; return; }
+  body.innerHTML = `
+    ${docs.length ? docs.map(d => `<div class="dcard" data-open-doc="${d.id}" data-title="${escapeHtml(d.title || '')}" style="margin-bottom:10px;cursor:pointer;">
+      <div class="dc-top"><span class="dc-count">${(d.direction || 'ltr').toUpperCase()}</span></div>
+      <div class="dc-title">${escapeHtml(d.title || 'Untitled document')}</div>
+      <div class="dc-sub">Updated ${relTime(d.updated_at)} · ${escapeHtml(d.status || 'draft')}</div>
+    </div>`).join('') : '<div class="promo-empty">No pieces started from this brief yet.</div>'}
+    <button class="btn primary" id="piecePickerNew" style="width:100%;margin-top:6px;">＋ Start a new piece from this brief</button>`;
+  body.querySelectorAll('[data-open-doc]').forEach(el => el.addEventListener('click', () => navigateToDeskDoc({ id: el.getAttribute('data-open-doc'), title: el.getAttribute('data-title') })));
+  document.getElementById('piecePickerNew').addEventListener('click', async () => {
+    const btn = document.getElementById('piecePickerNew'); btn.disabled = true; btn.textContent = 'Creating…';
+    try {
       const created = await sbInsert('desk_documents', { title: row.topic || 'Untitled document', body_html: '<p>Start writing…</p>', direction: 'ltr', brief_id: row.id, status: 'draft' });
-      doc = created[0];
-    }
-    const slug = `${slugify(doc.title)}--${String(doc.id).replace(/-/g, '').slice(0, 8)}`;
-    window.location.href = `${DESK_BASE}/doc/${slug}`;
-  } catch (err) {
-    btn.disabled = false; btn.textContent = original;
-    dashToast('Could not open Desk: ' + err.message);
-  }
+      navigateToDeskDoc(created[0]);
+    } catch (err) { btn.disabled = false; btn.textContent = '＋ Start a new piece from this brief'; dashToast('Could not create piece: ' + err.message); }
+  });
 }
+function closePiecePicker() { document.getElementById('piecePickerOverlay').classList.remove('show'); document.body.style.overflow = ''; }
+document.getElementById('piecePickerClose').addEventListener('click', closePiecePicker);
+document.getElementById('piecePickerOverlay').addEventListener('click', e => { if (e.target.id === 'piecePickerOverlay') closePiecePicker(); });
 
 function enterCompose(row) {
   composeBriefId = row.id;
