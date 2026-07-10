@@ -171,6 +171,25 @@ body.dark .mat-row:hover { background: rgba(255,255,255,0.08); }
 .page-canvas a { color: var(--teal2); }
 .mat-trace { transition: background 200ms ease; border-radius: 3px; }
 .mat-trace.trace-glow { background: rgba(255,84,0,0.22); box-shadow: 0 0 0 2px rgba(255,84,0,0.3); }
+
+/* ---- Article embed block (WordPress-style related-article card) ---- */
+.article-embed { display: flex; align-items: stretch; gap: 0; border: 1px solid var(--border2); border-radius: 12px; overflow: hidden; margin: 4px 0 14px; background: var(--glass); position: relative; }
+.article-embed-link { display: flex; flex: 1; min-width: 0; text-decoration: none; color: inherit; }
+.article-embed-thumb { width: 84px; flex-shrink: 0; background-size: cover; background-position: center; background-color: rgba(var(--inkC),0.06); }
+.article-embed-thumb-empty { display: flex; align-items: center; justify-content: center; font-size: 22px; }
+.article-embed-body { padding: 10px 13px; display: flex; flex-direction: column; justify-content: center; gap: 4px; min-width: 0; }
+.article-embed-title { font-family: var(--serif); font-weight: 600; font-size: 13px; color: var(--teal); line-height: 1.4; }
+.article-embed-domain { font-size: 10px; color: var(--soft); font-family: var(--sans); }
+.article-embed-del { position: absolute; top: 6px; right: 6px; width: 20px; height: 20px; border-radius: 50%; border: none; background: rgba(0,0,0,0.45); color: #fff; font-size: 10px; cursor: pointer; opacity: 0; transition: opacity 150ms; z-index: 2; }
+.article-embed:hover .article-embed-del { opacity: 1; }
+.embed-field { width: 100%; font-size: 12.5px; padding: 9px 12px; border: 1px solid var(--border2); border-radius: 9px; background: var(--paper); color: var(--teal); outline: none; margin-bottom: 8px; }
+.embed-internal-row { display: flex; align-items: center; gap: 9px; padding: 8px 9px; border-radius: 9px; cursor: pointer; transition: background 130ms; }
+.embed-internal-row:hover { background: rgba(var(--inkC),0.05); }
+.embed-internal-row.selected { background: rgba(255,84,0,0.08); border: 1px solid rgba(255,84,0,0.2); }
+.blk-embed-btn { font-size: 10px; font-weight: 700; color: var(--teal2); background: rgba(36,80,106,0.08); border: 1px solid rgba(36,80,106,0.15); border-radius: 100px; padding: 6px 11px; cursor: pointer; }
+.blk-embed-btn:hover { background: var(--teal2); color: #fff; }
+.blk-embed-chip { font-size: 10px; color: var(--teal2); background: rgba(36,80,106,0.06); border-radius: 8px; padding: 5px 9px; margin-top: 6px; display: flex; align-items: center; gap: 6px; }
+.blk-embed-chip button { border: none; background: transparent; color: var(--soft); cursor: pointer; font-size: 10px; margin-left: auto; }
 .desk-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; flex-wrap: wrap; gap: 8px; }
 .footer-stats { display: flex; gap: 10px; font-size: 10.5px; color: var(--soft); flex-wrap: wrap; }
 .footer-actions { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -308,6 +327,7 @@ body.dark .mat-row:hover { background: rgba(255,255,255,0.08); }
         <button class="tb-btn" id="tbLink" title="Link (Ctrl+K)">🔗</button>
         <button class="tb-btn" id="tbImage" title="Insert image by URL">🖼️</button>
         <button class="tb-btn" id="tbVideo" title="Embed video by URL">🎬</button>
+        <button class="tb-btn" id="tbEmbedArticle" title="Embed a related article">📰</button>
         <input class="tb-color" type="color" id="tbHighlight" title="Highlight" value="#ffc047">
         <div class="tb-sep"></div>
         <button class="tb-btn" data-cmd="undo" title="Undo (Ctrl+Z)">↺</button>
@@ -340,6 +360,28 @@ body.dark .mat-row:hover { background: rgba(255,255,255,0.08); }
   <div class="onb-modal" style="max-width:640px;">
     <div class="onb-head"><div class="onb-title">📄 All documents</div><button class="onb-close" id="allDocsClose">✕</button></div>
     <div class="onb-body" id="allDocsBody"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="embedOverlay">
+  <div class="onb-modal" style="max-width:480px;">
+    <div class="onb-head"><div class="onb-title">📰 Embed a related article</div><button class="onb-close" id="embedClose">✕</button></div>
+    <div class="onb-body">
+      <div class="mode-toggle" style="margin-bottom:14px;">
+        <button class="mode-btn active" id="embedTabExternal">🔗 External link</button>
+        <button class="mode-btn" id="embedTabInternal">📄 From Desk library</button>
+      </div>
+      <div id="embedExternalForm">
+        <input class="embed-field" id="embedUrl" placeholder="Article URL">
+        <input class="embed-field" id="embedTitle" placeholder="Title">
+        <input class="embed-field" id="embedImage" placeholder="Image URL (optional)">
+      </div>
+      <div id="embedInternalForm" class="hidden">
+        <input class="embed-field" id="embedInternalSearch" placeholder="🔍 Search Desk documents…">
+        <div id="embedInternalList" style="max-height:220px;overflow-y:auto;"></div>
+      </div>
+      <button class="btn primary" id="embedInsertBtn" style="width:100%;margin-top:6px;">Insert embed</button>
+    </div>
   </div>
 </div>
 
@@ -561,6 +603,7 @@ async function openDoc(doc) {
   document.getElementById('docTitle').value = doc.title || '';
   document.getElementById('crumbDocTitle').textContent = doc.title || 'Untitled';
   canvas.innerHTML = doc.body_html || '<p></p>';
+  wireEmbedDeleteButtons();
   canvas.setAttribute('dir', doc.direction === 'rtl' ? 'rtl' : 'ltr');
   document.getElementById('tbDirLbl').textContent = doc.direction === 'rtl' ? 'RTL' : 'LTR';
   updateCounts();
@@ -703,6 +746,9 @@ function renderBlocks() {
       ${b.briefTopic ? `<div style="font-size:9.5px;color:var(--soft);margin:2px 0 4px;">from 📌 ${escapeHtml(b.briefTopic)}</div>` : ''}
       <div class="blk-q">${escapeHtml(b.q)}</div>
       <textarea class="blk-answer" data-blk-input="${b.id}" placeholder="Write this in your own words…">${escapeHtml(b.answer)}</textarea>
+      ${b.kind === 'Search data' ? (b.relatedArticle
+        ? `<div class="blk-embed-chip">🔗 ${escapeHtml(b.relatedArticle.title || b.relatedArticle.url)}<button data-unlink-embed="${b.id}" title="Remove">✕</button></div>`
+        : `<div class="blk-paste-row"><button class="blk-embed-btn" data-add-embed="${b.id}">📰 Add related article</button></div>`) : ''}
       <div class="blk-paste-row"><button class="blk-paste-btn" data-paste="${b.id}" ${!b.answer.trim() ? 'disabled style="opacity:.4;cursor:default;"' : ''}>📋 Paste to Desk</button></div>
     </div>`).join('');
   list.querySelectorAll('[data-blk-input]').forEach(ta => ta.addEventListener('input', () => {
@@ -712,9 +758,14 @@ function renderBlocks() {
     if (btn) { btn.disabled = !ta.value.trim(); btn.style.opacity = ta.value.trim() ? '1' : '.4'; btn.style.cursor = ta.value.trim() ? 'pointer' : 'default'; }
     scheduleSave();
   }));
+  list.querySelectorAll('[data-add-embed]').forEach(btn => btn.addEventListener('click', () => openEmbedModal(btn.getAttribute('data-add-embed'))));
+  list.querySelectorAll('[data-unlink-embed]').forEach(btn => btn.addEventListener('click', () => {
+    const b = blocks.find(x => x.id === btn.getAttribute('data-unlink-embed')); if (b) { b.relatedArticle = null; renderBlocks(); scheduleSave(); }
+  }));
   list.querySelectorAll('[data-paste]').forEach(btn => btn.addEventListener('click', () => {
     const id = btn.getAttribute('data-paste'); const b = blocks.find(x => x.id === id); if (!b || !b.answer.trim()) return;
     pasteIntoCanvas(b.answer.trim(), b.matId);
+    if (b.relatedArticle) insertEmbedIntoCanvas(b.relatedArticle);
     btn.textContent = '✓ Pasted'; btn.classList.add('done');
     setTimeout(() => { btn.textContent = '📋 Paste to Desk'; btn.classList.remove('done'); }, 1400);
     renderMatAccordions(); scheduleSave();
@@ -754,6 +805,103 @@ function pasteIntoCanvas(text, matId) {
   span.scrollIntoView({ behavior: 'smooth', block: 'center' });
   updateCounts(); scheduleSave();
 }
+
+/* ---- Article embed: WordPress-style related-article card, internal (Desk library) or external ---- */
+function buildEmbedHtml(data) {
+  const domainLabel = data.internal ? '📄 From Desk' : ('🔗 ' + escapeHtml(String(data.url || '').replace(/^https?:\/\//, '').split('/')[0]));
+  const thumb = data.image
+    ? `<div class="article-embed-thumb" style="background-image:url('${escapeHtml(data.image)}')"></div>`
+    : `<div class="article-embed-thumb article-embed-thumb-empty">${data.internal ? '📄' : '🔗'}</div>`;
+  return `<div class="article-embed" contenteditable="false" data-embed="1">
+    <button class="article-embed-del" contenteditable="false">✕</button>
+    <a href="${escapeHtml(data.url)}" target="_blank" rel="noopener noreferrer" class="article-embed-link">
+      ${thumb}
+      <div class="article-embed-body"><div class="article-embed-title">${escapeHtml(data.title || 'Untitled article')}</div><div class="article-embed-domain">${domainLabel}</div></div>
+    </a>
+  </div><p><br></p>`;
+}
+function insertEmbedIntoCanvas(data) {
+  canvas.focus();
+  const sel = window.getSelection(); sel.removeAllRanges();
+  let range;
+  if (savedRange && canvas.contains(savedRange.commonAncestorContainer)) range = savedRange;
+  else { range = document.createRange(); range.selectNodeContents(canvas); range.collapse(false); }
+  range.deleteContents();
+  const wrapper = document.createElement('div');
+  wrapper.innerHTML = buildEmbedHtml(data);
+  let lastNode = null;
+  while (wrapper.firstChild) { lastNode = wrapper.firstChild; range.insertNode(wrapper.firstChild); range.setStartAfter(wrapper.firstChild); range.collapse(true); }
+  if (lastNode) { range.setStartAfter(lastNode); range.setEndAfter(lastNode); range.collapse(true); sel.addRange(range); savedRange = range.cloneRange(); lastNode.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+  wireEmbedDeleteButtons();
+  updateCounts(); scheduleSave();
+}
+function wireEmbedDeleteButtons() {
+  canvas.querySelectorAll('.article-embed-del').forEach(btn => {
+    if (btn._wired) return; btn._wired = true;
+    btn.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); btn.closest('.article-embed').remove(); updateCounts(); scheduleSave(); });
+  });
+}
+
+let embedContext = null; // block id to attach the embed to, or null to insert straight into the canvas
+let embedInternalDocs = null, embedInternalSelected = null;
+function openEmbedModal(blockId) {
+  embedContext = blockId || null;
+  embedInternalSelected = null;
+  document.getElementById('embedUrl').value = ''; document.getElementById('embedTitle').value = ''; document.getElementById('embedImage').value = '';
+  document.getElementById('embedInternalSearch').value = '';
+  setEmbedTab('external');
+  document.getElementById('embedOverlay').classList.add('show');
+}
+function closeEmbedModal() { document.getElementById('embedOverlay').classList.remove('show'); embedContext = null; }
+function setEmbedTab(which) {
+  document.getElementById('embedTabExternal').classList.toggle('active', which === 'external');
+  document.getElementById('embedTabInternal').classList.toggle('active', which === 'internal');
+  document.getElementById('embedExternalForm').classList.toggle('hidden', which !== 'external');
+  document.getElementById('embedInternalForm').classList.toggle('hidden', which !== 'internal');
+  if (which === 'internal' && !embedInternalDocs) loadEmbedInternalDocs();
+}
+async function loadEmbedInternalDocs() {
+  document.getElementById('embedInternalList').innerHTML = '<div class="cmp-empty-note">Loading…</div>';
+  try { embedInternalDocs = await sbSelect('desk_documents', 'select=id,title,updated_at&order=updated_at.desc&limit=100'); renderEmbedInternalList(''); }
+  catch (e) { document.getElementById('embedInternalList').innerHTML = `<div class="cmp-empty-note">Couldn't load: ${escapeHtml(e.message)}</div>`; }
+}
+function renderEmbedInternalList(filter) {
+  const f = (filter || '').toLowerCase();
+  const rows = (embedInternalDocs || []).filter(d => (d.title || '').toLowerCase().includes(f));
+  document.getElementById('embedInternalList').innerHTML = rows.length ? rows.map(d => `
+    <div class="embed-internal-row ${embedInternalSelected && embedInternalSelected.id === d.id ? 'selected' : ''}" data-pick-doc="${d.id}">
+      <span class="mat-row-ico">📄</span><span class="mat-row-txt">${escapeHtml(d.title || 'Untitled document')}</span>
+    </div>`).join('') : '<div class="cmp-empty-note">No documents match.</div>';
+  document.querySelectorAll('[data-pick-doc]').forEach(el => el.addEventListener('click', () => {
+    embedInternalSelected = (embedInternalDocs || []).find(d => d.id === el.getAttribute('data-pick-doc'));
+    renderEmbedInternalList(document.getElementById('embedInternalSearch').value);
+  }));
+}
+document.getElementById('embedTabExternal').addEventListener('click', () => setEmbedTab('external'));
+document.getElementById('embedTabInternal').addEventListener('click', () => setEmbedTab('internal'));
+document.getElementById('embedInternalSearch').addEventListener('input', e => renderEmbedInternalList(e.target.value));
+document.getElementById('embedClose').addEventListener('click', closeEmbedModal);
+document.getElementById('embedOverlay').addEventListener('click', e => { if (e.target.id === 'embedOverlay') closeEmbedModal(); });
+document.getElementById('tbEmbedArticle').addEventListener('click', () => openEmbedModal(null));
+document.getElementById('embedInsertBtn').addEventListener('click', () => {
+  const internalTab = !document.getElementById('embedInternalForm').classList.contains('hidden');
+  let data;
+  if (internalTab) {
+    if (!embedInternalSelected) { dashToast('Pick a document first'); return; }
+    data = { internal: true, url: window.location.origin + docPath(embedInternalSelected), title: embedInternalSelected.title };
+  } else {
+    const url = document.getElementById('embedUrl').value.trim();
+    if (!url) { dashToast('Add a URL first'); return; }
+    data = { internal: false, url, title: document.getElementById('embedTitle').value.trim(), image: document.getElementById('embedImage').value.trim() };
+  }
+  if (embedContext) {
+    const b = blocks.find(x => x.id === embedContext);
+    if (b) { b.relatedArticle = data; renderBlocks(); scheduleSave(); }
+  } else {
+    insertEmbedIntoCanvas(data);
+  }
+  closeEmbedModal();
+});
 
 /* ==================== Mode toggle ==================== */
 function setMode(toComposing) {
