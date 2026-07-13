@@ -51,6 +51,17 @@ body.dark { background: #0F1B21; }
 .crumb-seg.here { background: var(--teal); color: var(--paper); }
 .crumb-sep { color: var(--soft); font-size: 10px; flex-shrink: 0; }
 .appbar-spacer { flex: 1; }
+
+/* ============ Home: floating liquid-glass nav pill ============ */
+.floating-nav-wrap { position: sticky; top: 18px; z-index: 60; display: flex; justify-content: center; padding: 0 20px; }
+.floating-nav {
+  display: flex; align-items: center; gap: 12px; width: 100%; max-width: 860px;
+  padding: 8px 14px 8px 8px; border-radius: 100px;
+  background: var(--glass); backdrop-filter: blur(26px) saturate(1.9); -webkit-backdrop-filter: blur(26px) saturate(1.9);
+  border: 1px solid var(--glass-b);
+  box-shadow: 0 16px 44px rgba(26,57,72,0.16), 0 2px 10px rgba(26,57,72,0.08), var(--gi), 0 0 0 1px var(--violet-soft);
+}
+@media (max-width: 700px) { .floating-nav-wrap { top: 10px; padding: 0 12px; } }
 .help-pill { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: var(--teal2); background: rgba(36,80,106,0.08); border: 1px solid rgba(36,80,106,0.16); border-radius: 100px; padding: 7px 12px; cursor: pointer; }
 .help-pill:hover { background: var(--teal2); color: #fff; }
 .icon-btn { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--border2); background: rgba(255,255,255,0.5); color: var(--muted); font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
@@ -329,11 +340,13 @@ body.dark .mat-row:hover { background: rgba(255,255,255,0.08); }
 
 <!-- ============ SCREEN: Home ============ -->
 <div id="screenHome">
-  <div class="appbar">
-    <div class="appbar-brand" onclick="goHome()"><div class="appbar-mark-wrap"><div class="brand-mark" data-desk-mark></div></div><div><div class="appbar-title">Desk</div><div style="font-size:9px;color:var(--soft);letter-spacing:0.04em;text-transform:uppercase;margin-top:1px;">Investigative writing</div></div></div>
-    <div class="crumb-pill"><span class="crumb-seg here">Desk</span></div>
-    <div class="appbar-spacer"></div>
-    <button class="icon-btn" id="darkToggleHome" title="Toggle dark mode">🌙</button>
+  <div class="floating-nav-wrap">
+    <div class="floating-nav">
+      <div class="appbar-brand" onclick="goHome()"><div class="appbar-mark-wrap"><div class="brand-mark" data-desk-mark></div></div><div><div class="appbar-title">Desk</div><div style="font-size:9px;color:var(--soft);letter-spacing:0.04em;text-transform:uppercase;margin-top:1px;">Investigative writing</div></div></div>
+      <div class="crumb-pill"><span class="crumb-seg here">Desk</span></div>
+      <div class="appbar-spacer"></div>
+      <button class="icon-btn" id="darkToggleHome" title="Toggle dark mode">🌙</button>
+    </div>
   </div>
   <div class="stage">
     <div class="hero-block">
