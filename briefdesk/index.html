@@ -864,6 +864,7 @@ mark.anno.pulse { animation: markPulse 1200ms var(--eo); }
 <button class="copilot-fab" id="copilotFab" title="Open Copilot">🤖</button>
 <div class="pop" id="promotePop"></div>
 <div class="pop anno-pop" id="annoPop"></div>
+<div class="pop" id="gscKwPop" style="width:320px;"></div>
 <div class="desk-overlay" id="seoLinkOverlay">
   <div class="desk-modal" style="max-width:460px;">
     <div class="desk-modal-head">
@@ -1959,21 +1960,110 @@ document.getElementById('scClearKw').addEventListener('click', () => { searchInt
 
 /* ---------- Google Search Console sync (via Apps Script web app) ---------- */
 const GSC_SYNC_URL = 'https://script.google.com/macros/s/AKfycbyijNimY56S9pRdVvCpXv4LmCtirWHTmLpASLzttJ-xRqUjSuXeBU-zvlhyBhD9MzEK/exec';
-document.getElementById('scSyncGsc').addEventListener('click', async () => {
+
+/* Keyword candidate extraction — no AI, just better heuristics than "first 3 words of the headline".
+   Priority: editor-promoted keywords > promoted angles/people > extracted entities > frequent n-grams from raw text. */
+const KW_STOP_EN = new Set(['the','a','an','and','or','of','to','in','on','for','with','is','are','was','were','by','at','as','this','that','it','its','from','be','has','have','had','will','would','could','should','not','but','if','than','then','so','also','about','into','over','after','before','during','between','more','most','some','such','can','may','their','they','he','she','we','you','your','our']);
+const KW_STOP_FA = new Set(['و','در','به','از','که','این','را','با','است','برای','آن','یک','تا','هم','یا','بر','شده','شد','می','های','ها','کرد','کند','خود','نیز','اما','هر','دو','باید','بود','بودند','چه','همه','بین','پس','دیگر']);
+function tokenizeForKeywords(text) {
+  return String(text || '').split(/[^\p{L}\p{N}]+/u).map(w => w.trim()).filter(Boolean);
+}
+function extractNgramCandidates(text, maxTerms) {
+  const words = tokenizeForKeywords(text).map(w => w.toLowerCase());
+  const isStop = w => KW_STOP_EN.has(w) || KW_STOP_FA.has(w) || w.length < 2;
+  const freq = new Map();
+  const bump = k => freq.set(k, (freq.get(k) || 0) + 1);
+  for (let i = 0; i < words.length; i++) {
+    if (isStop(words[i])) continue;
+    bump(words[i]);
+    if (i + 1 < words.length && !isStop(words[i+1])) bump(words[i] + ' ' + words[i+1]);
+    if (i + 2 < words.length && !isStop(words[i+1]) && !isStop(words[i+2])) bump(words[i] + ' ' + words[i+1] + ' ' + words[i+2]);
+  }
+  return Array.from(freq.entries()).filter(([,c]) => c >= 2).sort((a,b) => b[1]-a[1]).slice(0, maxTerms).map(([term]) => term);
+}
+function collectTreeText(nodes) {
+  const out = [];
+  (function walk(list) { (list || []).forEach(n => {
+    if (!n) return;
+    if (n.heading) out.push(n.heading);
+    if (n.paragraph) out.push(n.paragraph);
+    if (Array.isArray(n.items)) out.push(...n.items);
+    walk(n.children);
+  }); })(nodes);
+  return out.join(' \n ');
+}
+function gatherKeywordCandidates() {
+  const out = [], seen = new Set();
+  const add = (text, tag) => { const c = String(text||'').trim(); if (!c || seen.has(c.toLowerCase())) return; seen.add(c.toLowerCase()); out.push({ text: c, tag }); };
+  currentPromoted.filter(p => p.category === 'keyword').forEach(p => add(p.text, 'keyword'));
+  currentPromoted.filter(p => p.category === 'angle').forEach(p => add(p.text.split(/\s+/).slice(0,6).join(' '), 'angle'));
+  currentPromoted.filter(p => p.category === 'person').forEach(p => add(p.text, 'person'));
+  (function walkEnt(nodes) { (nodes||[]).forEach(n => { if (n.type === 'entities') (n.items||[]).forEach(it => add(it,'entity')); walkEnt(n.children); }); })(currentTree);
+  const rawText = (document.getElementById('pasteText').value || collectTreeText(currentTree));
+  extractNgramCandidates(rawText, 12).forEach(term => add(term, 'frequent'));
+  return out.slice(0, 20);
+}
+
+let gscPopSelected = new Set();
+function openGscKeywordPicker(anchorBtn) {
+  const candidates = gatherKeywordCandidates();
+  const tagRank = { keyword: 0, angle: 1, entity: 2, person: 3, frequent: 4 };
+  const tagIcon = { keyword: '🏷️', angle: '★', entity: '👤', person: '👤', frequent: '🔁' };
+  candidates.sort((a,b) => tagRank[a.tag] - tagRank[b.tag]);
+  gscPopSelected = new Set(candidates.slice(0, 5).map(c => c.text));
+
+  const pop = document.getElementById('gscKwPop');
+  pop.innerHTML = `
+    <div class="pop-label">Pick keywords to sync from Search Console</div>
+    <div class="pop-cats" id="gscKwChips">
+      ${candidates.map(c => `<button class="pop-cat${gscPopSelected.has(c.text)?' sel':''}" data-term="${escapeHtml(c.text)}">${tagIcon[c.tag]||''} ${escapeHtml(c.text)}</button>`).join('') || '<span class="ml-hint">No candidates found — type your own below.</span>'}
+    </div>
+    <input type="text" class="pop-note" id="gscKwCustom" placeholder="Add a custom term, press Enter" style="min-height:auto;">
+    <div class="pop-actions">
+      <button class="btn ghost sm" data-act="cancel">Cancel</button>
+      <button class="btn primary sm" data-act="go">Sync selected</button>
+    </div>`;
+  pop.classList.add('show');
+  const r = anchorBtn.getBoundingClientRect();
+  pop.style.left = Math.min(r.left + window.scrollX, window.innerWidth - 336) + 'px';
+  pop.style.top = (r.bottom + window.scrollY + 6) + 'px';
+
+  pop.querySelectorAll('[data-term]').forEach(b => b.addEventListener('click', () => {
+    const term = b.getAttribute('data-term');
+    if (gscPopSelected.has(term)) { gscPopSelected.delete(term); b.classList.remove('sel'); }
+    else { gscPopSelected.add(term); b.classList.add('sel'); }
+  }));
+  const customInput = pop.querySelector('#gscKwCustom');
+  customInput.addEventListener('keydown', e => {
+    if (e.key !== 'Enter') return; e.preventDefault();
+    const v = e.target.value.trim(); if (!v) return;
+    gscPopSelected.add(v); e.target.value = '';
+    const chip = document.createElement('button');
+    chip.className = 'pop-cat sel'; chip.setAttribute('data-term', v); chip.textContent = '✏️ ' + v;
+    chip.addEventListener('click', () => { if (gscPopSelected.has(v)) { gscPopSelected.delete(v); chip.classList.remove('sel'); } else { gscPopSelected.add(v); chip.classList.add('sel'); } });
+    document.getElementById('gscKwChips').appendChild(chip);
+  });
+  pop.querySelector('[data-act="cancel"]').addEventListener('click', closeGscKwPop);
+  pop.querySelector('[data-act="go"]').addEventListener('click', () => { closeGscKwPop(); runGscSync(Array.from(gscPopSelected)); });
+  setTimeout(() => document.addEventListener('mousedown', gscKwPopOutside), 0);
+}
+function gscKwPopOutside(e) { const pop = document.getElementById('gscKwPop'); if (!pop.contains(e.target)) closeGscKwPop(); }
+function closeGscKwPop() { document.getElementById('gscKwPop').classList.remove('show'); document.removeEventListener('mousedown', gscKwPopOutside); }
+
+async function runGscSync(terms) {
   const btn = document.getElementById('scSyncGsc'), status = document.getElementById('scSyncStatus');
-  const topic = (document.getElementById('reviewTitle').textContent || '').trim();
-  const q = topic.split(/\s+/).slice(0, 3).join(' '); // first few words of the topic as a relevance filter
+  const qParam = terms.join(',');
   btn.disabled = true; btn.textContent = '🔄 Syncing…';
-  if (status) status.textContent = `Pulling Search Console queries matching "${q}"…`;
+  if (status) status.textContent = terms.length ? `Pulling queries matching: ${terms.join(', ')}…` : 'Pulling recent queries…';
   try {
-    const url = `${GSC_SYNC_URL}?q=${encodeURIComponent(q)}&days=90`;
+    const url = `${GSC_SYNC_URL}?q=${encodeURIComponent(qParam)}&days=90`;
     const res = await fetch(url);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     if (!data.ok) throw new Error(data.error || 'Unknown error from Search Console script');
     const rows = Array.isArray(data.rows) ? data.rows : [];
     if (!rows.length) {
-      if (status) status.textContent = `No matching queries found for "${q}" in the last 90 days. Try broadening the topic title, or add rows manually.`;
+      if (status) status.textContent = `No matching queries for: ${terms.join(', ') || '(none)'}. Try different terms.`;
     } else {
       const existing = new Set(searchIntel.keywords.map(r => (r[0] || '').toLowerCase().trim()));
       let added = 0;
@@ -1985,7 +2075,7 @@ document.getElementById('scSyncGsc').addEventListener('click', async () => {
         existing.add(kw.toLowerCase()); added++;
       });
       renderScKwTable(); renderDeskRail();
-      if (status) status.textContent = `Synced ${added} new keyword${added === 1 ? '' : 's'} from Search Console (${rows.length} matched "${q}").`;
+      if (status) status.textContent = `Synced ${added} new keyword${added === 1 ? '' : 's'} from Search Console (${rows.length} matched).`;
       dashToast(`Synced ${added} keyword${added === 1 ? '' : 's'} from Search Console`);
     }
   } catch (err) {
@@ -1994,7 +2084,9 @@ document.getElementById('scSyncGsc').addEventListener('click', async () => {
   } finally {
     btn.disabled = false; btn.textContent = '🔄 Sync from Search Console';
   }
-});
+}
+
+document.getElementById('scSyncGsc').addEventListener('click', e => openGscKeywordPicker(e.currentTarget));
 document.getElementById('scPaste').addEventListener('click', async () => {
   try {
     const text = await navigator.clipboard.readText();
