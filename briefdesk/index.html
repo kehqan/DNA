@@ -1958,7 +1958,7 @@ document.getElementById('scAddRow').addEventListener('click', () => { searchInte
 document.getElementById('scClearKw').addEventListener('click', () => { searchIntel.keywords = []; renderScKwTable(); renderDeskRail(); });
 
 /* ---------- Google Search Console sync (via Apps Script web app) ---------- */
-const GSC_SYNC_URL = 'https://script.google.com/macros/s/AKfycbwJ86LCOG73cqSp5_17rH4925v1NQabzeEg-jE2XZpV7Sq1AvD0ZIwvjTsJbQoAFxQa/exec';
+const GSC_SYNC_URL = 'https://script.google.com/macros/s/AKfycbyijNimY56S9pRdVvCpXv4LmCtirWHTmLpASLzttJ-xRqUjSuXeBU-zvlhyBhD9MzEK/exec';
 document.getElementById('scSyncGsc').addEventListener('click', async () => {
   const btn = document.getElementById('scSyncGsc'), status = document.getElementById('scSyncStatus');
   const topic = (document.getElementById('reviewTitle').textContent || '').trim();
