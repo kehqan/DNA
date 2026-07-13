@@ -122,6 +122,32 @@ body.dark .hero-block-fade { background: linear-gradient(90deg, var(--ivory) 0%,
 .carousel-row { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 2px 2px 10px; scroll-behavior: smooth; }
 .carousel-row::-webkit-scrollbar { height: 6px; }
 .carousel-row .dcard, .carousel-row .bcard-mini { scroll-snap-align: start; flex: 0 0 230px; }
+.carousel-row .folder-card { scroll-snap-align: start; flex: 0 0 200px; cursor: pointer; }
+.folder-visual { position: relative; height: 112px; margin-bottom: 8px; transition: transform 200ms var(--eo); }
+.folder-card:hover .folder-visual { transform: translateY(-3px) rotate(-1deg); }
+.folder-tab { position: absolute; top: 0; left: 12px; width: 68px; height: 22px; border-radius: 8px 10px 0 0; opacity: 0.88; }
+.folder-body { position: absolute; left: 0; right: 0; bottom: 0; top: 13px; border-radius: 4px 14px 14px 14px; box-shadow: 0 14px 30px rgba(26,57,72,0.20), var(--gi); display: flex; flex-direction: column; justify-content: flex-end; padding: 12px 14px; overflow: hidden; }
+.folder-body::after { content: ''; position: absolute; inset: 0; background: linear-gradient(160deg, rgba(255,255,255,0.25), transparent 55%); pointer-events: none; }
+.folder-count { position: relative; z-index: 1; font-size: 9.5px; font-weight: 700; color: rgba(255,255,255,0.95); background: rgba(0,0,0,0.2); align-self: flex-start; padding: 3px 9px; border-radius: 100px; margin-bottom: 7px; }
+.folder-title { font-family: var(--serif); font-size: 13.5px; font-weight: 600; line-height: 1.35; }
+.folder-desc { font-size: 10.5px; color: var(--soft); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.folder-color-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.folder-color-swatch { width: 30px; height: 30px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: all 140ms; }
+.folder-color-swatch.selected { border-color: var(--teal); transform: scale(1.1); }
+
+/* ============ Folder detail screen ============ */
+.folder-header { display: flex; align-items: flex-start; gap: 16px; padding: 20px; border-radius: 18px; background: var(--glass); border: 1px solid var(--glass-b); box-shadow: var(--gs), var(--gi); margin-bottom: 20px; }
+.folder-header-icon { width: 54px; height: 54px; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; box-shadow: 0 8px 20px rgba(0,0,0,0.18); }
+.folder-title-input { width: 100%; font-family: var(--serif); font-size: 21px; font-weight: 700; border: none; background: transparent; outline: none; color: var(--teal); margin-bottom: 4px; }
+.folder-desc-input { width: 100%; font-size: 12.5px; color: var(--muted); border: none; background: transparent; outline: none; resize: vertical; min-height: 20px; font-family: var(--sans); line-height: 1.6; }
+.kb-item { display: flex; gap: 12px; background: var(--glass); border: 1px solid var(--glass-b); box-shadow: var(--gs), var(--gi); border-radius: 14px; padding: 14px 16px; margin-bottom: 10px; }
+.kb-item-mark { width: 4px; border-radius: 4px; background: var(--honey); flex-shrink: 0; }
+.kb-item-body { flex: 1; min-width: 0; }
+.kb-quote { font-size: 12.5px; color: var(--muted); font-style: italic; line-height: 1.6; margin-bottom: 6px; }
+.kb-comment { font-size: 12.5px; color: var(--teal); line-height: 1.6; }
+.kb-meta { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+.kb-source-tag { font-size: 10px; font-weight: 700; color: var(--teal2); background: rgba(36,80,106,0.08); padding: 3px 9px; border-radius: 100px; cursor: pointer; }
+.kb-source-tag:hover { background: var(--teal2); color: #fff; }
 .bcard-mini { border-radius: 16px; padding: 16px 17px; cursor: pointer; background: var(--glass); backdrop-filter: blur(16px) saturate(1.7); border: 1px solid var(--glass-b); box-shadow: var(--gs), var(--gi); transition: transform 180ms var(--eo); display: flex; flex-direction: column; gap: 9px; min-height: 110px; }
 .bcard-mini:hover { transform: translateY(-2px); }
 .bcard-mini-title { font-family: var(--serif); font-size: 14px; font-weight: 600; line-height: 1.35; }
@@ -384,6 +410,9 @@ body.dark .mat-row:hover { background: rgba(255,255,255,0.08); }
         <div class="wcard-open">See what's in motion →</div>
       </div>
     </div>
+    <div class="sdiv"><h2>Cases</h2><div class="rule"></div><button class="see-all-btn" id="newFolderBtn">＋ New case</button></div>
+    <div class="carousel-row" id="folderCarousel"><div class="empty-note">Loading…</div></div>
+
     <div class="sdiv"><h2>Open investigations</h2><div class="rule"></div><button class="see-all-btn" id="seeAllDocsBtn">See all →</button></div>
     <div class="carousel-row" id="docCarousel"><div class="empty-note">Loading…</div></div>
 
@@ -507,6 +536,61 @@ body.dark .mat-row:hover { background: rgba(255,255,255,0.08); }
   </div>
 </div>
 
+<!-- ============ SCREEN: Folder (case) detail ============ -->
+<div id="screenFolder" class="hidden">
+  <div class="appbar">
+    <div class="appbar-brand" onclick="goHome()"><div class="appbar-mark-wrap"><div class="brand-mark" data-desk-mark></div></div><div><div class="appbar-title">Desk</div></div></div>
+    <div class="crumb-pill">
+      <span class="crumb-seg" onclick="goHome()">Desk</span><span class="crumb-sep">/</span>
+      <span class="crumb-seg here" id="folderCrumbTitle">Case</span>
+    </div>
+    <div class="appbar-spacer"></div>
+    <button class="icon-btn" id="darkToggleFolder" title="Toggle dark mode">🌙</button>
+  </div>
+  <div class="stage">
+    <div class="folder-header" id="folderHeaderBar">
+      <div class="folder-header-icon" id="folderHeaderIcon">📁</div>
+      <div style="flex:1;min-width:0;">
+        <input class="folder-title-input" id="folderTitleInput" placeholder="Untitled case">
+        <textarea class="folder-desc-input" id="folderDescInput" placeholder="What is this case about?"></textarea>
+      </div>
+      <button class="btn" id="folderDeleteBtn">🗑 Delete case</button>
+    </div>
+
+    <div class="asn-stat-row" id="folderStatRow"></div>
+
+    <div class="asn-view-toggle" style="margin-bottom:18px;">
+      <button class="asn-view-btn active" data-fview="contents">📄 Contents</button>
+      <button class="asn-view-btn" data-fview="people">👥 People</button>
+      <button class="asn-view-btn" data-fview="knowledge">🖍 Knowledge base</button>
+    </div>
+
+    <div id="folderViewContents">
+      <div class="sdiv"><h2>In this case</h2><div class="rule"></div><button class="see-all-btn" id="folderAddItemBtn">＋ Add brief or piece</button></div>
+      <div class="doc-grid" id="folderContentsGrid"><div class="empty-note">Loading…</div></div>
+    </div>
+    <div id="folderViewPeople" class="hidden">
+      <div class="sdiv"><h2>Working this case</h2><div class="rule"></div></div>
+      <div class="asn-team-grid" id="folderPeopleGrid"><div class="empty-note">Loading…</div></div>
+    </div>
+    <div id="folderViewKnowledge" class="hidden">
+      <div class="sdiv"><h2>Highlights &amp; comments across every brief in this case</h2><div class="rule"></div></div>
+      <div id="folderKnowledgeList"><div class="empty-note">Loading…</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- Add existing brief/doc to a folder -->
+<div class="modal-overlay" id="folderAddItemOverlay">
+  <div class="onb-modal" style="max-width:480px;">
+    <div class="onb-head"><div class="onb-title" style="font-size:15px;">＋ Add to this case</div><button class="onb-close" id="folderAddItemClose">✕</button></div>
+    <div class="onb-body">
+      <input class="field-input" id="folderAddItemSearch" placeholder="🔍 Search briefs and pieces not yet in a case…" style="margin-bottom:10px;">
+      <div id="folderAddItemList" style="max-height:340px;overflow-y:auto;"></div>
+    </div>
+  </div>
+</div>
+
 <!-- User switch (mock auth preview) -->
 <div class="modal-overlay" id="asnUserSwitchOverlay">
   <div class="onb-modal" style="max-width:360px;">
@@ -564,6 +648,19 @@ body.dark .mat-row:hover { background: rgba(255,255,255,0.08); }
     </div>
   </div>
 </div>
+<div class="modal-overlay" id="newFolderOverlay">
+  <div class="onb-modal" style="max-width:420px;">
+    <div class="onb-head"><div class="onb-title" style="font-size:15px;">📁 New case</div><button class="onb-close" id="newFolderClose">✕</button></div>
+    <div class="onb-body">
+      <input class="field-input" id="newFolderTitle" placeholder="Case name — e.g. Water rights in Sistan" style="margin-bottom:10px;">
+      <textarea class="field-input" id="newFolderDesc" placeholder="What is this case about? (optional)" style="margin-bottom:12px;min-height:64px;resize:vertical;font-family:inherit;"></textarea>
+      <div style="font-size:10.5px;font-weight:700;color:var(--soft);text-transform:uppercase;letter-spacing:.03em;margin-bottom:8px;">Color</div>
+      <div class="folder-color-row" id="folderColorRow"></div>
+      <button class="btn primary" id="newFolderSaveBtn" style="width:100%;margin-top:16px;">Create case</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="allDocsOverlay">
   <div class="onb-modal" style="max-width:640px;">
     <div class="onb-head"><div class="onb-title">📄 All documents</div><button class="onb-close" id="allDocsClose">✕</button></div>
@@ -692,12 +789,25 @@ function slugify(s) { return String(s || 'untitled').toLowerCase().normalize('NF
 function shortId(id) { return String(id || '').replace(/-/g, '').slice(0, 8); }
 function docSlug(doc) { return `${slugify(doc.title)}--${shortId(doc.id)}`; }
 function docPath(doc) { return `/desk/doc/${docSlug(doc)}`; }
+function folderPath(folder) { return `/desk/library/${slugify(folder.title)}--${shortId(folder.id)}`; }
 function goHome() { if (location.pathname.replace(/\/+$/, '') !== '/desk') history.pushState(null, '', '/desk'); showHome(); }
 function goAssign() { if (location.pathname.replace(/\/+$/, '') !== '/desk/assign') history.pushState(null, '', '/desk/assign'); showAssign(); }
 function goDoc(doc) { const p = docPath(doc); if (location.pathname !== p) history.pushState({ docId: doc.id }, '', p); }
+function goFolder(folder) { const p = folderPath(folder); if (location.pathname !== p) history.pushState({ folderId: folder.id }, '', p); }
 async function routeFromLocation() {
   const path = location.pathname.replace(/\/+$/, '');
   if (path === '/desk/assign') { showAssign(); return; }
+  const fm = path.match(/^\/desk\/library\/(.+)--([a-f0-9]{6,10})$/i);
+  if (fm) {
+    const sid = fm[2].toLowerCase();
+    try {
+      const rows = await sbSelect('folders', 'select=*&order=created_at.desc&limit=200');
+      const folder = rows.find(r => shortId(r.id) === sid);
+      if (folder) { await openFolder(folder); return; }
+    } catch (e) {}
+    dashToast('That case could not be found — showing Desk instead');
+    showHome(); return;
+  }
   const m = path.match(/^\/desk\/doc\/(.+)--([a-f0-9]{6,10})$/i);
   if (m) {
     const sid = m[2].toLowerCase();
@@ -716,9 +826,11 @@ window.addEventListener('popstate', () => routeFromLocation());
 function showHome() {
   document.getElementById('screenEditor').classList.add('hidden');
   document.getElementById('screenAssign').classList.add('hidden');
+  const sf = document.getElementById('screenFolder'); if (sf) sf.classList.add('hidden');
   document.getElementById('screenHome').classList.remove('hidden');
   loadRecentDocs();
   loadRecentBriefs();
+  loadFolderCarousel();
 }
 function docCardHtml(d) {
   return `<div class="dcard" data-doc="${d.id}">
@@ -814,6 +926,67 @@ function relTime(iso) {
   if (s < 60) return 'just now'; if (s < 3600) return Math.floor(s/60) + 'm ago';
   if (s < 86400) return Math.floor(s/3600) + 'h ago'; return Math.floor(s/86400) + 'd ago';
 }
+
+/* ==================== Folders (cases) ==================== */
+const FOLDER_COLORS = ['#979DF7', '#FF5400', '#2CA9BC', '#FFC047', '#9B6B43', '#6A4C93'];
+function folderCardHtml(f, count) {
+  return `<div class="folder-card" data-folder="${f.id}" data-title="${escapeHtml(f.title)}">
+    <div class="folder-visual">
+      <div class="folder-tab" style="background:${f.color}"></div>
+      <div class="folder-body" style="background:linear-gradient(160deg, ${f.color}, ${f.color}cc);">
+        <span class="folder-count">${count} item${count === 1 ? '' : 's'}</span>
+      </div>
+    </div>
+    <div class="folder-title">${escapeHtml(f.title || 'Untitled case')}</div>
+    ${f.description ? `<div class="folder-desc">${escapeHtml(f.description)}</div>` : ''}
+  </div>`;
+}
+async function loadFolderCarousel() {
+  const row = document.getElementById('folderCarousel'); if (!row) return;
+  try {
+    const folders = await sbSelect('folders', 'select=*&order=updated_at.desc&limit=5');
+    if (!folders.length) { row.innerHTML = '<div class="empty-note" style="flex:1;">No cases yet — group related briefs and pieces together once an investigation grows past a single story.</div>'; return; }
+    const [briefs, docs] = await Promise.all([
+      sbSelect('dna_agent_briefs', 'select=id,folder_id&folder_id=not.is.null'),
+      sbSelect('desk_documents', 'select=id,folder_id&folder_id=not.is.null'),
+    ]);
+    row.innerHTML = folders.map(f => {
+      const count = briefs.filter(b => b.folder_id === f.id).length + docs.filter(d => d.folder_id === f.id).length;
+      return folderCardHtml(f, count);
+    }).join('');
+    row.querySelectorAll('.folder-card').forEach(el => el.addEventListener('click', async () => {
+      const f = folders.find(x => x.id === el.getAttribute('data-folder'));
+      if (f) { goFolder(f); await openFolder(f); }
+    }));
+  } catch (e) {
+    row.innerHTML = `<div class="empty-note" style="flex:1;">Couldn't load cases: ${escapeHtml(e.message)}. Have you run folders.sql in Supabase yet?</div>`;
+  }
+}
+let _folderColorPick = FOLDER_COLORS[0];
+function renderFolderColorRow() {
+  document.getElementById('folderColorRow').innerHTML = FOLDER_COLORS.map(c => `<div class="folder-color-swatch ${c === _folderColorPick ? 'selected' : ''}" style="background:${c}" data-color="${c}"></div>`).join('');
+  document.querySelectorAll('.folder-color-swatch').forEach(sw => sw.addEventListener('click', () => { _folderColorPick = sw.getAttribute('data-color'); renderFolderColorRow(); }));
+}
+document.getElementById('newFolderBtn').addEventListener('click', () => {
+  document.getElementById('newFolderTitle').value = ''; document.getElementById('newFolderDesc').value = '';
+  _folderColorPick = FOLDER_COLORS[Math.floor(Math.random() * FOLDER_COLORS.length)];
+  renderFolderColorRow();
+  document.getElementById('newFolderOverlay').classList.add('show');
+});
+document.getElementById('newFolderClose').addEventListener('click', () => document.getElementById('newFolderOverlay').classList.remove('show'));
+document.getElementById('newFolderOverlay').addEventListener('click', e => { if (e.target.id === 'newFolderOverlay') document.getElementById('newFolderOverlay').classList.remove('show'); });
+document.getElementById('newFolderSaveBtn').addEventListener('click', async () => {
+  const title = document.getElementById('newFolderTitle').value.trim();
+  if (!title) { dashToast('Give the case a name first'); return; }
+  const btn = document.getElementById('newFolderSaveBtn'); btn.disabled = true; btn.textContent = 'Creating…';
+  try {
+    const created = await sbInsert('folders', { title, description: document.getElementById('newFolderDesc').value.trim() || null, color: _folderColorPick });
+    document.getElementById('newFolderOverlay').classList.remove('show');
+    goFolder(created[0]); await openFolder(created[0]);
+  } catch (e) { dashToast('Could not create case: ' + e.message); }
+  finally { btn.disabled = false; btn.textContent = 'Create case'; }
+});
+
 async function createBlankDoc() {
   try {
     const created = await sbInsert('desk_documents', { title: 'Untitled document', body_html: '<p>Start writing…</p>', direction: 'ltr', status: 'draft' });
@@ -831,6 +1004,7 @@ async function openDoc(doc) {
   blocks = Array.isArray(doc.blocks) ? doc.blocks : []; // drafted material persists for the life of the document, independent of which brief is currently attached
   document.getElementById('screenHome').classList.add('hidden');
   document.getElementById('screenAssign').classList.add('hidden');
+  { const sf = document.getElementById('screenFolder'); if (sf) sf.classList.add('hidden'); }
   document.getElementById('screenEditor').classList.remove('hidden');
   document.getElementById('docTitle').value = doc.title || '';
   document.getElementById('crumbDocTitle').textContent = doc.title || 'Untitled';
@@ -861,26 +1035,211 @@ async function openDoc(doc) {
   sbUpdate('desk_documents', doc.id, { view_count: (doc.view_count || 0) + 1 }).catch(() => {});
 }
 
+/* ==================== Folder (case) detail ==================== */
+let CURRENT_FOLDER = null, folderBriefs = [], folderDocs = [];
+async function openFolder(folder) {
+  CURRENT_FOLDER = folder;
+  document.getElementById('screenHome').classList.add('hidden');
+  document.getElementById('screenEditor').classList.add('hidden');
+  document.getElementById('screenAssign').classList.add('hidden');
+  document.getElementById('screenFolder').classList.remove('hidden');
+
+  document.getElementById('folderCrumbTitle').textContent = folder.title || 'Case';
+  document.getElementById('folderTitleInput').value = folder.title || '';
+  document.getElementById('folderDescInput').value = folder.description || '';
+  document.getElementById('folderHeaderIcon').style.background = folder.color;
+  document.getElementById('folderHeaderIcon').style.boxShadow = `0 8px 20px ${folder.color}55`;
+
+  try {
+    [folderBriefs, folderDocs] = await Promise.all([
+      sbSelect('dna_agent_briefs', `folder_id=eq.${folder.id}&select=*&order=created_at.desc`),
+      sbSelect('desk_documents', `folder_id=eq.${folder.id}&select=*&order=updated_at.desc`),
+    ]);
+  } catch (e) { dashToast('Could not load this case: ' + e.message); folderBriefs = []; folderDocs = []; }
+
+  renderFolderStats();
+  renderFolderContents();
+  renderFolderPeople();
+  renderFolderKnowledge();
+  setFolderView('contents');
+}
+function renderFolderStats() {
+  const annCount = folderBriefs.reduce((sum, b) => {
+    const ann = (Array.isArray(b.parsed_sections) ? b.parsed_sections : []).find(n => n && n._editor === 'annotations');
+    return sum + (ann && Array.isArray(ann.annotations) ? ann.annotations.length : 0);
+  }, 0);
+  const peopleCount = new Set(); // filled in renderFolderPeople; stat shown after that resolves — placeholder now
+  document.getElementById('folderStatRow').innerHTML = `
+    <div class="asn-stat-pill"><span class="asn-stat-n">${folderBriefs.length}</span><span class="asn-stat-l">briefs</span></div>
+    <div class="asn-stat-pill"><span class="asn-stat-n">${folderDocs.length}</span><span class="asn-stat-l">pieces</span></div>
+    <div class="asn-stat-pill"><span class="asn-stat-n">${annCount}</span><span class="asn-stat-l">highlights</span></div>
+    <div class="asn-stat-pill" id="folderPeopleStat"><span class="asn-stat-n">…</span><span class="asn-stat-l">people</span></div>`;
+}
+function renderFolderContents() {
+  const grid = document.getElementById('folderContentsGrid');
+  const items = [
+    ...folderBriefs.map(b => ({ type: 'brief', id: b.id, title: b.topic || 'Untitled brief', meta: `${(b.promoted_items || []).length} promoted`, created: b.created_at })),
+    ...folderDocs.map(d => ({ type: 'piece', id: d.id, title: d.title || 'Untitled document', meta: (d.direction || 'ltr').toUpperCase(), created: d.updated_at })),
+  ];
+  if (!items.length) { grid.innerHTML = '<div class="empty-note">Nothing in this case yet. Add an existing brief or piece, or start a new one from the case.</div>'; return; }
+  grid.innerHTML = items.map(it => `
+    <div class="dcard" data-item-type="${it.type}" data-item-id="${it.id}" data-item-title="${escapeHtml(it.title)}">
+      <div class="dcard-top"><span class="${it.type === 'brief' ? 'dcard-brief-tag' : 'dcard-dir'}">${it.type === 'brief' ? '🧬 Brief' : '🖋️ Piece'}</span></div>
+      <div class="dcard-title">${escapeHtml(it.title)}</div>
+      <div class="dcard-meta">${escapeHtml(it.meta)} · ${relTime(it.created)}</div>
+    </div>`).join('');
+  grid.querySelectorAll('[data-item-type]').forEach(el => el.addEventListener('click', () => {
+    const type = el.getAttribute('data-item-type'), id = el.getAttribute('data-item-id'), title = el.getAttribute('data-item-title');
+    if (type === 'brief') window.location.href = briefPath(title, id);
+    else { const doc = folderDocs.find(d => d.id === id); if (doc) { goDoc(doc); openDoc(doc); } }
+  }));
+}
+async function renderFolderPeople() {
+  const grid = document.getElementById('folderPeopleGrid');
+  const briefIds = folderBriefs.map(b => b.id), docIds = folderDocs.map(d => d.id);
+  if (!briefIds.length && !docIds.length) { grid.innerHTML = '<div class="empty-note">Add briefs or pieces to this case to see who\'s working it.</div>'; const stat = document.getElementById('folderPeopleStat'); if (stat) stat.querySelector('.asn-stat-n').textContent = '0'; return; }
+  try {
+    const orParts = [];
+    if (briefIds.length) orParts.push(`brief_id.in.(${briefIds.join(',')})`);
+    if (docIds.length) orParts.push(`doc_id.in.(${docIds.join(',')})`);
+    const assigns = await sbSelect('assignments', `or=(${orParts.join(',')})&select=assignee_id`);
+    const ids = Array.from(new Set(assigns.map(a => a.assignee_id).filter(Boolean)));
+    const stat = document.getElementById('folderPeopleStat'); if (stat) stat.querySelector('.asn-stat-n').textContent = ids.length;
+    if (!ids.length) { grid.innerHTML = '<div class="empty-note">No one is assigned to anything in this case yet — assign work from the Newsroom board.</div>'; return; }
+    const people = await sbSelect('team_members', `id=in.(${ids.join(',')})&select=*`);
+    grid.innerHTML = people.map(p => `<div class="asn-team-card">
+        <div class="asn-team-head"><div class="asn-avatar" style="background:${p.color}">${escapeHtml((p.name||'?')[0])}</div>
+        <div><div class="asn-team-name">${escapeHtml(p.name)}</div><div class="asn-team-role">${escapeHtml(p.role)}</div></div></div>
+        <div class="asn-empty" style="padding:6px 0;text-align:left;">Working this case</div>
+      </div>`).join('');
+  } catch (e) {
+    grid.innerHTML = `<div class="empty-note">Couldn't load the people on this case: ${escapeHtml(e.message)}</div>`;
+  }
+}
+function renderFolderKnowledge() {
+  const list = document.getElementById('folderKnowledgeList');
+  const entries = [];
+  folderBriefs.forEach(b => {
+    const annNode = (Array.isArray(b.parsed_sections) ? b.parsed_sections : []).find(n => n && n._editor === 'annotations');
+    (annNode && Array.isArray(annNode.annotations) ? annNode.annotations : []).forEach(a => entries.push({ ...a, briefTopic: b.topic, briefId: b.id }));
+  });
+  if (!entries.length) { list.innerHTML = '<div class="empty-note">Nothing highlighted yet. Annotations made while reading any brief in this case will collect here automatically.</div>'; return; }
+  list.innerHTML = entries.map(e => `
+    <div class="kb-item">
+      <div class="kb-item-mark"></div>
+      <div class="kb-item-body">
+        <div class="kb-quote">"${escapeHtml(e.quote || '')}"</div>
+        ${e.comment ? `<div class="kb-comment">${escapeHtml(e.comment)}</div>` : ''}
+        <div class="kb-meta"><span class="kb-source-tag" data-goto-brief="${e.briefId}" data-goto-title="${escapeHtml(e.briefTopic || '')}">📌 ${escapeHtml(e.briefTopic || 'Untitled brief')}</span></div>
+      </div>
+    </div>`).join('');
+  list.querySelectorAll('[data-goto-brief]').forEach(el => el.addEventListener('click', () => {
+    window.location.href = briefPath(el.getAttribute('data-goto-title'), el.getAttribute('data-goto-brief'));
+  }));
+}
+function setFolderView(view) {
+  document.querySelectorAll('[data-fview]').forEach(b => b.classList.toggle('active', b.getAttribute('data-fview') === view));
+  document.getElementById('folderViewContents').classList.toggle('hidden', view !== 'contents');
+  document.getElementById('folderViewPeople').classList.toggle('hidden', view !== 'people');
+  document.getElementById('folderViewKnowledge').classList.toggle('hidden', view !== 'knowledge');
+}
+document.querySelectorAll('[data-fview]').forEach(b => b.addEventListener('click', () => setFolderView(b.getAttribute('data-fview'))));
+
+let _folderSaveT = null;
+function scheduleFolderSave() {
+  clearTimeout(_folderSaveT);
+  _folderSaveT = setTimeout(async () => {
+    if (!CURRENT_FOLDER) return;
+    const patch = { title: document.getElementById('folderTitleInput').value.trim() || 'Untitled case', description: document.getElementById('folderDescInput').value.trim() || null };
+    try { await sbUpdate('folders', CURRENT_FOLDER.id, patch); CURRENT_FOLDER.title = patch.title; CURRENT_FOLDER.description = patch.description; document.getElementById('folderCrumbTitle').textContent = patch.title; }
+    catch (e) { dashToast('Could not save case: ' + e.message); }
+  }, 700);
+}
+document.getElementById('folderTitleInput').addEventListener('input', scheduleFolderSave);
+document.getElementById('folderDescInput').addEventListener('input', scheduleFolderSave);
+document.getElementById('folderDeleteBtn').addEventListener('click', async () => {
+  if (!CURRENT_FOLDER) return;
+  if (!confirm(`Delete "${CURRENT_FOLDER.title}"? Briefs and pieces inside it are not deleted — they just won't belong to a case anymore.`)) return;
+  try { await sbDelete('folders', CURRENT_FOLDER.id); dashToast('Case deleted'); goHome(); }
+  catch (e) { dashToast('Could not delete case: ' + e.message); }
+});
+document.getElementById('darkToggleFolder').addEventListener('click', toggleDark);
+
+/* ---------- Add an existing brief/piece to this folder ---------- */
+document.getElementById('folderAddItemBtn').addEventListener('click', async () => {
+  document.getElementById('folderAddItemOverlay').classList.add('show');
+  document.getElementById('folderAddItemSearch').value = '';
+  const list = document.getElementById('folderAddItemList');
+  list.innerHTML = '<div class="empty-note">Loading…</div>';
+  let briefs = [], docs = [];
+  try {
+    [briefs, docs] = await Promise.all([
+      sbSelect('dna_agent_briefs', 'select=id,topic&folder_id=is.null&order=created_at.desc&limit=100'),
+      sbSelect('desk_documents', 'select=id,title&folder_id=is.null&order=updated_at.desc&limit=100'),
+    ]);
+  } catch (e) { list.innerHTML = `<div class="empty-note">Couldn't load: ${escapeHtml(e.message)}</div>`; return; }
+  const renderList = filter => {
+    const f = (filter || '').toLowerCase();
+    const items = [
+      ...briefs.filter(b => (b.topic || '').toLowerCase().includes(f)).map(b => ({ type: 'brief', id: b.id, title: b.topic || 'Untitled brief' })),
+      ...docs.filter(d => (d.title || '').toLowerCase().includes(f)).map(d => ({ type: 'piece', id: d.id, title: d.title || 'Untitled document' })),
+    ];
+    list.innerHTML = items.length ? items.map(it => `<div class="list-row" data-add-type="${it.type}" data-add-id="${it.id}"><div class="list-row-body"><div class="list-row-title">${it.type === 'brief' ? '🧬' : '🖋️'} ${escapeHtml(it.title)}</div></div></div>`).join('') : '<div class="empty-note">Nothing unassigned matches.</div>';
+    list.querySelectorAll('[data-add-type]').forEach(row => row.addEventListener('click', async () => {
+      const type = row.getAttribute('data-add-type'), id = row.getAttribute('data-add-id');
+      try {
+        if (type === 'brief') await sbUpdate('dna_agent_briefs', id, { folder_id: CURRENT_FOLDER.id });
+        else await sbUpdate('desk_documents', id, { folder_id: CURRENT_FOLDER.id });
+        document.getElementById('folderAddItemOverlay').classList.remove('show');
+        dashToast('Added to case'); await openFolder(CURRENT_FOLDER);
+      } catch (e) { dashToast('Could not add: ' + e.message); }
+    }));
+  };
+  renderList('');
+  document.getElementById('folderAddItemSearch').oninput = e => renderList(e.target.value);
+});
+document.getElementById('folderAddItemClose').addEventListener('click', () => document.getElementById('folderAddItemOverlay').classList.remove('show'));
+document.getElementById('folderAddItemOverlay').addEventListener('click', e => { if (e.target.id === 'folderAddItemOverlay') document.getElementById('folderAddItemOverlay').classList.remove('show'); });
+
 /* ---------- Brief Library: pick or switch which brief feeds the materials sidebar ---------- */
 async function renderBriefPickerUI() {
   document.getElementById('matBriefName').innerHTML = '📚 Brief Library';
   const wrap = document.getElementById('matAccordions');
-  wrap.innerHTML = `<input class="bsb-search" id="briefPickSearch" placeholder="🔍 Search BriefDesk…"><div id="briefPickList" style="margin-top:8px;"></div>`;
-  let allBriefs = [];
-  try { allBriefs = await sbSelect('dna_agent_briefs', 'select=id,topic,promoted_items&order=created_at.desc&limit=100'); }
-  catch (e) { document.getElementById('briefPickList').innerHTML = `<div class="cmp-empty-note">Couldn't load BriefDesk: ${escapeHtml(e.message)}</div>`; return; }
+  wrap.innerHTML = `<input class="bsb-search" id="briefPickSearch" placeholder="🔍 Search BriefDesk…">
+    <div id="briefPickFolderRow" style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0;"></div>
+    <div id="briefPickList" style="margin-top:4px;"></div>`;
+  let allBriefs = [], allFolders = [];
+  try {
+    [allBriefs, allFolders] = await Promise.all([
+      sbSelect('dna_agent_briefs', 'select=id,topic,promoted_items,folder_id&order=created_at.desc&limit=100'),
+      sbSelect('folders', 'select=id,title,color&order=title.asc'),
+    ]);
+  } catch (e) { document.getElementById('briefPickList').innerHTML = `<div class="cmp-empty-note">Couldn't load BriefDesk: ${escapeHtml(e.message)}</div>`; return; }
+  let activeFolderFilter = 'all';
+  const foldersInUse = allFolders.filter(f => allBriefs.some(b => b.folder_id === f.id));
+  document.getElementById('briefPickFolderRow').innerHTML = foldersInUse.length ? [
+    `<span class="mat-badge drafted" data-folder-filter="all" style="cursor:pointer;padding:4px 10px;border-radius:100px;background:var(--teal);color:#fff;">All</span>`,
+    ...foldersInUse.map(f => `<span class="mat-badge drafted" data-folder-filter="${f.id}" style="cursor:pointer;padding:4px 10px;border-radius:100px;background:${f.color}22;color:${f.color};">📁 ${escapeHtml(f.title)}</span>`)
+  ].join('') : '';
   const renderList = filter => {
     const f = (filter || '').toLowerCase();
-    const filtered = allBriefs.filter(b => (b.topic || '').toLowerCase().includes(f));
-    document.getElementById('briefPickList').innerHTML = filtered.length ? filtered.map(b => `
-      <div class="mat-row" data-brief-pick="${b.id}">
-        <span class="mat-row-ico">📌</span><span class="mat-row-txt">${escapeHtml(b.topic || 'Untitled brief')}</span>
+    const filtered = allBriefs.filter(b => (b.topic || '').toLowerCase().includes(f) && (activeFolderFilter === 'all' || b.folder_id === activeFolderFilter));
+    document.getElementById('briefPickList').innerHTML = filtered.length ? filtered.map(b => {
+      const folder = allFolders.find(x => x.id === b.folder_id);
+      return `<div class="mat-row" data-brief-pick="${b.id}">
+        <span class="mat-row-ico">📌</span>
+        <span class="mat-row-txt">${escapeHtml(b.topic || 'Untitled brief')}${folder ? `<span style="display:block;font-size:9.5px;color:${folder.color};margin-top:2px;">📁 ${escapeHtml(folder.title)}</span>` : ''}</span>
         <span class="mat-badges"><span class="mat-badge drafted">${(b.promoted_items || []).length} promoted</span></span>
-      </div>`).join('') : '<div class="cmp-empty-note">No briefs match.</div>';
+      </div>`;
+    }).join('') : '<div class="cmp-empty-note">No briefs match.</div>';
     document.querySelectorAll('[data-brief-pick]').forEach(el => el.addEventListener('click', () => attachBriefToDoc(el.getAttribute('data-brief-pick'))));
   };
   renderList('');
   document.getElementById('briefPickSearch').addEventListener('input', e => renderList(e.target.value));
+  document.querySelectorAll('[data-folder-filter]').forEach(chip => chip.addEventListener('click', () => {
+    activeFolderFilter = chip.getAttribute('data-folder-filter');
+    renderList(document.getElementById('briefPickSearch').value);
+  }));
 }
 async function attachBriefToDoc(briefId) {
   if (!CURRENT_DOC) return;
@@ -1344,6 +1703,7 @@ function itemPath(a) { return a.item_type === 'brief' ? briefPath(a.title, a.bri
 async function showAssign() {
   document.getElementById('screenHome').classList.add('hidden');
   document.getElementById('screenEditor').classList.add('hidden');
+  { const sf = document.getElementById('screenFolder'); if (sf) sf.classList.add('hidden'); }
   document.getElementById('screenAssign').classList.remove('hidden');
   await loadAssignData();
 }
