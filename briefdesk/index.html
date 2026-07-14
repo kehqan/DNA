@@ -872,6 +872,10 @@ mark.anno.pulse { animation: markPulse 1200ms var(--eo); }
             <input type="text" id="scArtUrl" placeholder="https://…">
             <button class="mini-icon-btn" id="scAddArt" style="align-self:flex-start;">＋ Add article</button>
           </div>
+          <div class="sc-tools" style="margin-top:6px;">
+            <button class="mini-icon-btn" id="scCheckLive">🔴 Check live readers right now</button>
+          </div>
+          <div class="meter-hint" id="scLiveStatus" style="margin-top:6px;"></div>
           <div class="sc-sub" style="margin-top:14px;">Google Trends</div>
           <div class="trends-lookup-bar">
             <input type="text" id="trendsLookupKw" placeholder="Look up term(s), comma-separated — e.g. 'Strait of Hormuz, IRGC'">
@@ -2003,16 +2007,47 @@ function applyScKwFilter() {
   });
   const meta = document.getElementById('scKwFilterMeta'); if (meta) meta.textContent = `${visible} / ${total} rows`;
 }
+let ARTICLE_LIVE_STATUS = {}; // normalized path -> { visitors, avgEngagedSeconds }
+function normalizeFardaPath(url) {
+  return String(url || '').replace(/^https?:\/\/(www\.)?radiofarda\.com/i, '').replace(/\/+$/, '').split('?')[0];
+}
 function renderScArticles() {
   const wrap = document.getElementById('scArtList'); if (!wrap) return;
-  wrap.innerHTML = searchIntel.articles.length ? searchIntel.articles.map((a, i) => `
+  wrap.innerHTML = searchIntel.articles.length ? searchIntel.articles.map((a, i) => {
+    const live = ARTICLE_LIVE_STATUS[normalizeFardaPath(a.url)];
+    return `
     <div class="link-item"><div class="link-item-top">
       <span style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(a.title || a.url)}</span>
       <button class="mini-icon-btn danger" data-artdel="${i}">✕</button></div>
       ${a.url ? `<div class="ledger-url" style="margin-top:3px">${escapeHtml(domainOf(a.url))}</div>` : ''}
-    </div>`).join('') : '';
+      ${live ? `<div class="live-readers" style="font-size:11px;margin-top:4px;">🔴 ${live.visitors} reading right now${live.avgEngagedSeconds != null ? ` · ${liveFormatEngaged(live.avgEngagedSeconds)}` : ''}</div>` : ''}
+    </div>`;
+  }).join('') : '';
   wrap.querySelectorAll('[data-artdel]').forEach(b => b.addEventListener('click', () => { searchIntel.articles.splice(+b.getAttribute('data-artdel'), 1); renderScArticles(); renderDeskRail(); }));
 }
+async function checkArticlesLive() {
+  const btn = document.getElementById('scCheckLive'), status = document.getElementById('scLiveStatus');
+  const urls = searchIntel.articles.filter(a => a.url);
+  if (!urls.length) { if (status) status.textContent = 'Add a winning article with a URL first.'; return; }
+  btn.disabled = true; btn.textContent = '🔴 Checking…';
+  try {
+    const res = await fetch(`${CHARTBEAT_LIVE_URL}?limit=50`);
+    const data = await res.json();
+    if (!res.ok || !data.ok) throw new Error(data.error || `HTTP ${res.status}`);
+    ARTICLE_LIVE_STATUS = {};
+    (data.rows || []).forEach(r => { if (r.path) ARTICLE_LIVE_STATUS[normalizeFardaPath(r.path)] = r; });
+    const matched = urls.filter(a => ARTICLE_LIVE_STATUS[normalizeFardaPath(a.url)]).length;
+    renderScArticles();
+    if (status) status.textContent = matched
+      ? `${matched} of ${urls.length} winning article${urls.length === 1 ? '' : 's'} ${matched === 1 ? 'is' : 'are'} being read right now.`
+      : `None of your ${urls.length} winning article${urls.length === 1 ? '' : 's'} ${urls.length === 1 ? 'is' : 'are'} in the current top ${data.rows.length} live pages.`;
+  } catch (err) {
+    if (status) status.textContent = `Couldn't check live status: ${err.message}`;
+  } finally {
+    btn.disabled = false; btn.textContent = '🔴 Check live readers right now';
+  }
+}
+document.getElementById('scCheckLive').addEventListener('click', checkArticlesLive);
 function renderScTrends() {
   renderTrendsChipsBar();
   renderActiveTrendsResult();
