@@ -482,13 +482,17 @@ html[dir="rtl"] .blk-note { border-left: none; border-right: 2px solid var(--hon
 .sc-tools { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 7px; }
 .sc-chips { display: flex; flex-wrap: wrap; gap: 4px; }
 
-/* Google Trends chart */
-.trend-chart-wrap { background: var(--paper); border: 1px solid var(--border2); border-radius: 12px; padding: 10px 12px 4px; margin-bottom: 8px; }
-.trend-legend { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 4px; }
-.trend-legend-item { font-size: 10.5px; font-weight: 600; color: var(--teal2); display: inline-flex; align-items: center; gap: 5px; }
-.trend-legend-item b { color: var(--flame); font-weight: 700; }
-.trend-legend-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
-.trend-chart-wrap svg { display: block; }
+/* Google Trends lookup */
+.trends-lookup-bar { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.trends-lookup-bar input[type="text"] { flex: 1 1 200px; font-size: 11.5px; padding: 8px 10px; border: 1px solid var(--border2); border-radius: 8px; background: var(--paper); outline: none; color: var(--teal); }
+.trends-lookup-bar select { font-size: 11.5px; padding: 8px 8px; border: 1px solid var(--border2); border-radius: 8px; background: var(--paper); color: var(--teal); outline: none; }
+.trends-lookup-bar input[type="text"]:focus, .trends-lookup-bar select:focus { border-color: var(--flame); }
+.trends-embed-card { background: var(--paper); border: 1px solid var(--border2); border-radius: 12px; padding: 10px 12px; margin-top: 8px; }
+.trends-embed-card .trend-kw-label { font-size: 12px; font-weight: 700; color: var(--teal); margin-bottom: 6px; }
+.gtrends-mount { min-height: 34px; }
+.gtrends-mount .gtrends-loading, .gtrends-mount .gtrends-fallback { font-size: 11.5px; color: var(--soft); padding: 6px 0; }
+.gtrends-mount .gtrends-fallback a { color: var(--flame); }
+.trends-embed-actions { display: flex; gap: 6px; margin-top: 8px; }
 
 /* Library card delete */
 .card-del { position: absolute; top: 12px; right: 12px; z-index: 3; width: 26px; height: 26px; border-radius: 8px; border: 1px solid var(--border2);
@@ -833,13 +837,20 @@ mark.anno.pulse { animation: markPulse 1200ms var(--eo); }
             <button class="mini-icon-btn" id="scAddArt" style="align-self:flex-start;">＋ Add article</button>
           </div>
           <div class="sc-sub" style="margin-top:14px;">Google Trends</div>
-          <div id="scTrendChart" class="trend-chart-wrap"></div>
-          <div id="scTrendChips" class="sc-chips"></div>
-          <input type="text" id="scTrendInput" placeholder="Type a term, press Enter" style="font-size:11.5px;padding:8px 10px;border:1px solid var(--border2);border-radius:8px;background:var(--paper);outline:none;width:100%;margin-top:6px;">
-          <div class="sc-tools" style="margin-top:8px;">
-            <button class="mini-icon-btn primary-ish" id="scSyncTrends">🔄 Sync from Google Trends</button>
-            <button class="mini-icon-btn danger" id="scClearTrends">Clear</button>
+          <div class="trends-lookup-bar">
+            <input type="text" id="trendsLookupKw" placeholder="Look up a keyword — e.g. 'Strait of Hormuz'">
+            <select id="trendsLookupRange">
+              <option value="now 1-d">Past day</option>
+              <option value="now 7-d" selected>Past 7 days</option>
+              <option value="today 1-m">Past 30 days</option>
+              <option value="today 3-m">Past 90 days</option>
+              <option value="today 12-m">Past 12 months</option>
+            </select>
+            <button class="mini-icon-btn primary-ish" id="trendsLookupBtn">Show trend</button>
           </div>
+          <div id="trendsLookupResult"></div>
+          <div class="sc-sub" style="margin-top:14px;">Saved to brief</div>
+          <div id="scTrendChips" class="sc-chips"></div>
           <div class="meter-hint" id="scTrendStatus" style="margin-top:6px;"></div>
           <button class="small-btn" id="scApply" style="margin-top:12px;">Add to brief</button>
           <div id="searchIntelStatus" class="meter-hint" style="margin-top:8px;"></div>
@@ -1262,12 +1273,12 @@ function searchIntelLedgerHtml(searchNode) {
     } else if (c.type === 'entities' && Array.isArray(c.items) && c.items.length) {
       inner += `<div class="ledger-title" style="margin-top:${inner ? '18px' : '0'}">📈 ${escapeHtml(c.heading || 'Trends')}</div>
         <div style="display:flex;flex-wrap:wrap;gap:6px;">${c.items.map(it => `<span class="entity-chip" style="cursor:default">${escapeHtml(it)}</span>`).join('')}</div>`;
-    } else if (c.type === 'trendschart') {
-      let series = []; try { series = JSON.parse(c.paragraph || '[]'); } catch (err) { series = []; }
-      series = series.filter(s => s && s.keyword && Array.isArray(s.points) && s.points.length);
-      if (series.length) {
-        inner += `<div class="ledger-title" style="margin-top:${inner ? '18px' : '0'}">📊 ${escapeHtml(c.heading || 'Google Trends — interest over time')}</div>
-          <div class="trend-chart-wrap" style="margin-bottom:0;">${trendLegendHtml(series)}${buildTrendSvg(series)}</div>`;
+    } else if (c.type === 'trendslookup') {
+      let lookup = null; try { lookup = JSON.parse(c.paragraph || 'null'); } catch (err) { lookup = null; }
+      if (lookup && lookup.keyword) {
+        const teid = registerTrendEmbed(lookup);
+        inner += `<div class="ledger-title" style="margin-top:${inner ? '18px' : '0'}">📊 ${escapeHtml(c.heading || 'Google Trends')}</div>
+          <div class="gtrends-embed-mount" id="${teid}" data-teid="${teid}"></div>`;
       }
     } else if (Array.isArray(c.items) && c.items.length) {
       inner += `<div class="ledger-title" style="margin-top:${inner ? '18px' : '0'}">📰 ${escapeHtml(c.heading || 'Articles')}</div>
@@ -1347,7 +1358,8 @@ document.getElementById('pipeline').addEventListener('click', (e) => {
   else dashToast(s === 'review' ? 'Parse an answer first' : s === 'detail' ? 'Open a brief first' : '');
 });
 function clearDeskInputs() {
-  ['newPersonName','newPersonRole','newPersonUrl','newPersonNote','scArtTitle','scArtUrl','scTrendInput'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  ['newPersonName','newPersonRole','newPersonUrl','newPersonNote','scArtTitle','scArtUrl','trendsLookupKw'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  const trWrap = document.getElementById('trendsLookupResult'); if (trWrap) trWrap.innerHTML = '';
   const st = document.getElementById('searchIntelStatus'); if (st) st.textContent = '';
   renderSearchIntel();
 }
@@ -1855,10 +1867,10 @@ document.getElementById('addPersonBtn').addEventListener('click', () => {
 });
 
 /* ---------- Search intelligence (cumulative, editable) ---------- */
-let searchIntel = { keywords: [], articles: [], trends: [], trendsSeries: [] };
+let searchIntel = { keywords: [], articles: [], trends: [], trendsLookup: null };
 const SC_HEADERS = ['Keyword', 'Clicks', 'Impressions', 'CTR', 'Position'];
 
-function resetSearchIntel() { searchIntel = { keywords: [], articles: [], trends: [], trendsSeries: [] }; }
+function resetSearchIntel() { searchIntel = { keywords: [], articles: [], trends: [], trendsLookup: null }; }
 function migrateKwRow(r) {
   r = Array.isArray(r) ? r : [];
   if (r.length >= 5) return [r[0]||'', r[1]||'', r[2]||'', r[3]||'', r[4]||''];
@@ -1873,7 +1885,7 @@ function loadSearchIntelFromTree() {
   (node.children || []).forEach(c => {
     if (c.type === 'table' && c.table && Array.isArray(c.table.rows)) searchIntel.keywords = c.table.rows.map(r => migrateKwRow(r));
     else if (c.type === 'entities') searchIntel.trends = (c.items || []).slice();
-    else if (c.type === 'trendschart') { try { searchIntel.trendsSeries = JSON.parse(c.paragraph || '[]'); } catch (err) { searchIntel.trendsSeries = []; } }
+    else if (c.type === 'trendslookup') { try { searchIntel.trendsLookup = JSON.parse(c.paragraph || 'null'); } catch (err) { searchIntel.trendsLookup = null; } }
     else if (Array.isArray(c.items)) {
       searchIntel.articles = c.items.map(it => {
         const m = String(it).match(/^\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)$/);
@@ -1887,13 +1899,13 @@ function syncSearchNode() {
   const kw = searchIntel.keywords.filter(r => r.some(c => String(c).trim()));
   const arts = searchIntel.articles.filter(a => a.title || a.url);
   const trends = searchIntel.trends.filter(Boolean);
-  const trendsSeries = (searchIntel.trendsSeries || []).filter(s => s && s.keyword);
-  if (!kw.length && !arts.length && !trends.length && !trendsSeries.length) return;
+  const lookup = (searchIntel.trendsLookup && searchIntel.trendsLookup.keyword) ? searchIntel.trendsLookup : null;
+  if (!kw.length && !arts.length && !trends.length && !lookup) return;
   const children = [];
   if (kw.length) children.push({ heading: 'Top keywords — Search Console', level: 2, type: 'table', table: { headers: SC_HEADERS, rows: kw }, children: [], items: [], paragraph: '' });
   if (arts.length) children.push({ heading: 'Winning articles', level: 2, type: 'text', items: arts.map(a => a.url ? `[${a.title || a.url}](${a.url})` : a.title), children: [], table: null, paragraph: '' });
   if (trends.length) children.push({ heading: 'Google Trends — rising terms', level: 2, type: 'entities', items: trends, children: [], table: null, paragraph: '' });
-  if (trendsSeries.length) children.push({ heading: 'Google Trends — interest over time', level: 2, type: 'trendschart', paragraph: JSON.stringify(trendsSeries), children: [], items: [], table: null });
+  if (lookup) children.push({ heading: 'Google Trends — saved lookup', level: 2, type: 'trendslookup', paragraph: JSON.stringify(lookup), children: [], items: [], table: null });
   currentTree.push({ heading: 'Search intelligence (editor)', level: 1, type: 'summary', _editor: 'search', children, items: [], table: null, paragraph: '' });
 }
 
@@ -1956,52 +1968,114 @@ function renderScTrends() {
   const wrap = document.getElementById('scTrendChips'); if (!wrap) return;
   wrap.innerHTML = searchIntel.trends.map((t, i) => `<span class="entity-chip" style="cursor:default">${escapeHtml(t)} <b data-trenddel="${i}" style="cursor:pointer;color:var(--flame)">×</b></span>`).join('');
   wrap.querySelectorAll('[data-trenddel]').forEach(b => b.addEventListener('click', () => {
-    const removed = searchIntel.trends.splice(+b.getAttribute('data-trenddel'), 1)[0];
-    searchIntel.trendsSeries = (searchIntel.trendsSeries || []).filter(s => s.keyword !== removed);
+    searchIntel.trends.splice(+b.getAttribute('data-trenddel'), 1);
     renderScTrends(); renderDeskRail();
   }));
-  renderTrendChart();
+  renderTrendsLookupUI();
 }
 
-/* ---------- Google Trends chart (inline SVG, no external chart lib) ---------- */
-const TREND_COLORS = ['#FF5400', '#1A3948', '#979DF7', '#FFC047', '#24506A'];
-function buildTrendSvg(series, w, h) {
-  w = w || 560; h = h || 170;
-  const withPoints = (series || []).filter(s => Array.isArray(s.points) && s.points.length);
-  if (!withPoints.length) return '';
-  const n = Math.max(...withPoints.map(s => s.points.length));
-  const allVals = withPoints.flatMap(s => s.points.map(p => Number(p.value) || 0));
-  const maxV = Math.max(10, ...allVals);
-  const padL = 30, padR = 8, padT = 10, padB = 20;
-  const iw = w - padL - padR, ih = h - padT - padB;
-  const x = i => padL + (n <= 1 ? 0 : (iw * i / (n - 1)));
-  const y = v => padT + ih - (ih * (v / maxV));
-  let svg = `<svg viewBox="0 0 ${w} ${h}" width="100%" height="${h}" xmlns="http://www.w3.org/2000/svg">`;
-  [0, 0.5, 1].forEach(f => {
-    const gy = padT + ih * (1 - f);
-    svg += `<line x1="${padL}" y1="${gy.toFixed(1)}" x2="${w - padR}" y2="${gy.toFixed(1)}" stroke="rgba(26,57,72,0.08)" stroke-width="1"/>`;
-    svg += `<text x="${padL - 5}" y="${(gy + 3).toFixed(1)}" font-size="8" text-anchor="end" fill="rgba(26,57,72,0.4)" font-family="sans-serif">${Math.round(maxV * f)}</text>`;
+/* ---------- Google Trends keyword lookup (Google's own embeddable widget — no scraping, no backend) ---------- */
+let gTrendsLoaderPromise = null;
+function loadGoogleTrendsScript() {
+  if (gTrendsLoaderPromise) return gTrendsLoaderPromise;
+  gTrendsLoaderPromise = new Promise((resolve, reject) => {
+    if (window.trends && window.trends.embed) return resolve();
+    const s = document.createElement('script');
+    s.src = 'https://ssl.gstatic.com/trends_nrtr/2213_RC01/embed_loader.js';
+    s.onload = () => resolve();
+    s.onerror = () => reject(new Error('script failed to load'));
+    document.head.appendChild(s);
+    setTimeout(() => reject(new Error('timeout')), 6000);
   });
-  withPoints.forEach((s, si) => {
-    const pts = s.points.map((p, i) => `${x(i).toFixed(1)},${y(Number(p.value) || 0).toFixed(1)}`).join(' ');
-    svg += `<polyline points="${pts}" fill="none" stroke="${TREND_COLORS[si % TREND_COLORS.length]}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`;
+  return gTrendsLoaderPromise;
+}
+function gtrendsFallbackHtml(keyword) {
+  return `<div class="gtrends-fallback">Couldn't load the inline chart. <a href="https://trends.google.com/trends/explore?q=${encodeURIComponent(keyword)}" target="_blank" rel="noopener noreferrer">View on Google Trends ↗</a></div>`;
+}
+function mountGoogleTrendsWidget(container, widgetType, keyword, range) {
+  if (!container) return;
+  container.innerHTML = '<div class="gtrends-loading">Loading…</div>';
+  loadGoogleTrendsScript().then(() => {
+    container.innerHTML = '';
+    try {
+      window.trends.embed.renderExploreWidgetTo(container, widgetType, {
+        comparisonItem: [{ keyword: keyword, geo: '', time: range }],
+        category: 0,
+        property: '',
+      }, {
+        exploreQuery: `q=${encodeURIComponent(keyword)}`,
+        guestPath: 'https://trends.google.com:443/trends/embed/',
+      });
+    } catch (e) {
+      container.innerHTML = gtrendsFallbackHtml(keyword);
+    }
+    setTimeout(() => {
+      if (!container.querySelector('iframe') && !container.querySelector('svg') && !container.querySelector('.gtrends-fallback')) {
+        container.innerHTML = gtrendsFallbackHtml(keyword);
+      }
+    }, 4000);
+  }).catch(() => { container.innerHTML = gtrendsFallbackHtml(keyword); });
+}
+function renderTrendsLookupResult(keyword, range) {
+  const wrap = document.getElementById('trendsLookupResult'); if (!wrap) return;
+  const alreadySaved = searchIntel.trends.includes(keyword);
+  wrap.innerHTML = `
+    <div class="trends-embed-card">
+      <div class="trend-kw-label">${escapeHtml(keyword)}</div>
+      <div class="gtrends-mount" id="gtLookupTimeseries"></div>
+      <div class="sc-sub" style="margin-top:10px;">Related queries</div>
+      <div class="gtrends-mount" id="gtLookupRelated"></div>
+      <div class="trends-embed-actions">
+        <button class="mini-icon-btn${alreadySaved ? '' : ' primary-ish'}" id="trendsLookupSave" ${alreadySaved ? 'disabled' : ''}>${alreadySaved ? '✓ Saved to brief' : '＋ Save to brief'}</button>
+      </div>
+    </div>`;
+  mountGoogleTrendsWidget(document.getElementById('gtLookupTimeseries'), 'TIMESERIES', keyword, range);
+  mountGoogleTrendsWidget(document.getElementById('gtLookupRelated'), 'RELATED_QUERIES', keyword, range);
+  const saveBtn = document.getElementById('trendsLookupSave');
+  if (saveBtn && !alreadySaved) saveBtn.addEventListener('click', () => {
+    if (!searchIntel.trends.includes(keyword)) searchIntel.trends.push(keyword);
+    renderScTrends(); renderDeskRail();
+    dashToast(`Saved "${keyword}" to brief`);
   });
-  const dates = withPoints[0].points.map(p => p.date || '');
-  if (dates.length) {
-    svg += `<text x="${padL}" y="${h - 6}" font-size="8" fill="rgba(26,57,72,0.4)" font-family="sans-serif">${escapeHtml(dates[0])}</text>`;
-    svg += `<text x="${w - padR}" y="${h - 6}" font-size="8" text-anchor="end" fill="rgba(26,57,72,0.4)" font-family="sans-serif">${escapeHtml(dates[dates.length - 1])}</text>`;
+}
+function renderTrendsLookupUI() {
+  const kwInput = document.getElementById('trendsLookupKw');
+  const rangeSel = document.getElementById('trendsLookupRange');
+  if (!kwInput || !rangeSel) return;
+  const saved = searchIntel.trendsLookup;
+  if (saved && saved.keyword) {
+    if (!kwInput.value) kwInput.value = saved.keyword;
+    if (saved.range) rangeSel.value = saved.range;
+    renderTrendsLookupResult(saved.keyword, saved.range || rangeSel.value);
   }
-  svg += `</svg>`;
-  return svg;
 }
-function trendLegendHtml(series) {
-  return `<div class="trend-legend">${series.map((s, i) => `<span class="trend-legend-item"><span class="trend-legend-dot" style="background:${TREND_COLORS[i % TREND_COLORS.length]}"></span>${escapeHtml(s.keyword)} <b>${s.avg != null ? Math.round(s.avg) : ''}</b></span>`).join('')}</div>`;
+function runTrendsLookup() {
+  const kwInput = document.getElementById('trendsLookupKw');
+  const rangeSel = document.getElementById('trendsLookupRange');
+  const keyword = (kwInput.value || '').trim();
+  if (!keyword) { dashToast('Type a keyword to look up first'); return; }
+  const range = rangeSel.value;
+  searchIntel.trendsLookup = { keyword, range };
+  renderTrendsLookupResult(keyword, range);
 }
-function renderTrendChart() {
-  const wrap = document.getElementById('scTrendChart'); if (!wrap) return;
-  const series = (searchIntel.trendsSeries || []).filter(s => s && s.keyword);
-  if (!series.length) { wrap.innerHTML = `<div class="meter-hint" style="padding:6px 0;">No trend data yet — add terms below, then sync.</div>`; return; }
-  wrap.innerHTML = trendLegendHtml(series) + buildTrendSvg(series);
+document.getElementById('trendsLookupBtn').addEventListener('click', runTrendsLookup);
+document.getElementById('trendsLookupKw').addEventListener('keydown', e => { if (e.key === 'Enter') runTrendsLookup(); });
+document.getElementById('trendsLookupRange').addEventListener('change', () => {
+  const kw = (document.getElementById('trendsLookupKw').value || '').trim();
+  if (kw) runTrendsLookup();
+});
+
+/* ---------- Ledger (read-only) embed hydration — mirrors hydrateTables' mount pattern ---------- */
+let TREND_EMBEDS = {}, trendEmbedSeq = 0;
+function registerTrendEmbed(lookup) { const id = 'gte' + (trendEmbedSeq++); TREND_EMBEDS[id] = lookup; return id; }
+function hydrateTrendEmbeds(root) {
+  root.querySelectorAll('.gtrends-embed-mount').forEach(mount => {
+    const lookup = TREND_EMBEDS[mount.getAttribute('data-teid')]; if (!lookup || !lookup.keyword) { mount.remove(); return; }
+    const wrap = document.createElement('div'); wrap.className = 'trends-embed-card';
+    wrap.innerHTML = `<div class="trend-kw-label">${escapeHtml(lookup.keyword)}</div><div class="gtrends-mount" id="${mount.id}-ts"></div>`;
+    mount.replaceWith(wrap);
+    mountGoogleTrendsWidget(wrap.querySelector(`#${mount.id}-ts`), 'TIMESERIES', lookup.keyword, lookup.range || 'today 3-m');
+  });
 }
 function renderSearchIntel() { renderScKwTable(); renderScArticles(); renderScTrends(); }
 
@@ -2158,54 +2232,6 @@ async function runGscSync(terms) {
 
 document.getElementById('scSyncGsc').addEventListener('click', e => openGscKeywordPicker(e.currentTarget));
 
-/* ---------- Google Trends sync (via Apps Script web app) ---------- */
-// Paste the /exec URL from deploying trends-bridge.gs (Web App, Execute as: Me, Access: Anyone).
-// Paste the /exec URL from deploying trends-bridge.gs (Web App, Execute as: Me, Access: Anyone)
-// OR the Vercel /api/trends URL if using the Vercel bridge instead.
-const GTRENDS_SYNC_URL = 'https://trend-kehqans-projects.vercel.app/api/trends';
-
-async function runTrendsSync(terms) {
-  const btn = document.getElementById('scSyncTrends'), status = document.getElementById('scTrendStatus');
-  terms = (terms || []).filter(Boolean).slice(0, 5); // Google Trends' own compare-terms limit
-  if (!terms.length) { if (status) status.textContent = 'Add at least one term above first, then sync.'; return; }
-  if (!GTRENDS_SYNC_URL || GTRENDS_SYNC_URL.indexOf('PASTE_YOUR') === 0) {
-    if (status) status.textContent = 'Set GTRENDS_SYNC_URL to your deployed Trends bridge URL first.';
-    return;
-  }
-  btn.disabled = true; btn.textContent = '🔄 Syncing…';
-  if (status) status.textContent = `Pulling interest over time for: ${terms.join(', ')}…`;
-  try {
-    const url = `${GTRENDS_SYNC_URL}?q=${encodeURIComponent(terms.join(','))}&days=90`;
-    const res = await fetch(url);
-    let data;
-    try { data = await res.json(); } catch (parseErr) { data = null; }
-    if (!res.ok || !data || !data.ok) {
-      const detail = data && data.error ? data.error : `HTTP ${res.status}`;
-      const rateLimited = /429|rate.?limit/i.test(detail);
-      throw new Error(rateLimited
-        ? 'Google Trends is rate-limiting this server right now — wait a bit and try again.'
-        : detail);
-    }
-    const rows = Array.isArray(data.rows) ? data.rows : [];
-    if (!rows.length) {
-      if (status) status.textContent = `No trend data returned for: ${terms.join(', ')}.`;
-    } else {
-      const existingSeries = (searchIntel.trendsSeries || []).filter(s => !terms.includes(s.keyword));
-      searchIntel.trendsSeries = existingSeries.concat(rows);
-      terms.forEach(term => { if (!searchIntel.trends.includes(term)) searchIntel.trends.push(term); });
-      renderScTrends(); renderDeskRail();
-      if (status) status.textContent = `Synced Google Trends for ${rows.length} term${rows.length === 1 ? '' : 's'} (last 90 days).`;
-      dashToast(`Synced Google Trends for ${rows.length} term${rows.length === 1 ? '' : 's'}`);
-    }
-  } catch (err) {
-    if (status) status.textContent = `Sync failed: ${err.message}. Check the Trends bridge deployment is active and GTRENDS_SYNC_URL is set.`;
-    dashToast('Google Trends sync failed — see the note under the button');
-  } finally {
-    btn.disabled = false; btn.textContent = '🔄 Sync from Google Trends';
-  }
-}
-document.getElementById('scSyncTrends').addEventListener('click', () => runTrendsSync(searchIntel.trends.slice()));
-document.getElementById('scClearTrends').addEventListener('click', () => { searchIntel.trends = []; searchIntel.trendsSeries = []; renderScTrends(); renderDeskRail(); });
 document.getElementById('scPaste').addEventListener('click', async () => {
   try {
     const text = await navigator.clipboard.readText();
@@ -2224,12 +2250,6 @@ document.getElementById('scAddArt').addEventListener('click', () => {
   const title = document.getElementById('scArtTitle').value.trim(), url = document.getElementById('scArtUrl').value.trim();
   if (!title && !url) return dashToast('Add a title or URL');
   searchIntel.articles.push({ title, url }); document.getElementById('scArtTitle').value = ''; document.getElementById('scArtUrl').value = ''; renderScArticles(); renderDeskRail();
-});
-document.getElementById('scTrendInput').addEventListener('keydown', e => {
-  if (e.key !== 'Enter') return; e.preventDefault();
-  const v = e.target.value.trim(); if (!v) return;
-  v.split(',').map(s => s.trim()).filter(Boolean).forEach(t => { if (!searchIntel.trends.includes(t)) searchIntel.trends.push(t); });
-  e.target.value = ''; renderScTrends(); renderDeskRail();
 });
 document.getElementById('scApply').addEventListener('click', () => {
   syncSearchNode(); renderReview();
@@ -2522,6 +2542,7 @@ async function openDetail(row) {
 
   hydrateTables(sectionsWrap); // table cells now register their citations too
   hydrateTables(el); // also hydrate the Search Intelligence table mount on the main detail page
+  hydrateTrendEmbeds(el); // mount any saved Google Trends lookup for this brief
   wireTreeListeners(sectionsWrap);
 
   // Sources ledger (after tables hydrated so table sources are numbered)
