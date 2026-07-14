@@ -492,32 +492,12 @@ html[dir="rtl"] .blk-note { border-left: none; border-right: 2px solid var(--hon
 .gtrends-mount { min-height: 34px; }
 .gtrends-mount .gtrends-loading, .gtrends-mount .gtrends-fallback { font-size: 11.5px; color: var(--soft); padding: 6px 0; }
 .gtrends-mount .gtrends-fallback a { color: var(--flame); }
-.trends-embed-actions { display: flex; gap: 6px; margin-top: 8px; }
-
-/* Beat Radar (news-volume discovery) */
-.radar-panel { background: var(--glass); border: 1px solid var(--border2); border-radius: 16px; padding: 16px 18px; margin: 18px 0; }
-.radar-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 6px; }
-.radar-head-title { font-weight: 700; font-size: 15px; color: var(--teal); display: flex; align-items: center; gap: 6px; }
-.radar-sub { font-size: 11.5px; color: var(--soft); margin-bottom: 10px; }
-.radar-terms-bar { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-bottom: 10px; }
-.radar-terms-bar input[type="text"] { font-size: 11.5px; padding: 7px 10px; border: 1px solid var(--border2); border-radius: 8px; background: var(--paper); outline: none; color: var(--teal); flex: 1 1 160px; }
-.radar-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px; }
-.radar-card { background: var(--paper); border: 1px solid var(--border2); border-radius: 12px; padding: 10px 12px; }
-.radar-card.hot { border-color: var(--flame); box-shadow: 0 0 0 1px var(--flame) inset; }
-.radar-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
-.radar-kw { font-weight: 700; font-size: 12.5px; color: var(--teal); }
-.radar-vol { font-size: 10.5px; color: var(--soft); margin-top: 2px; }
-.radar-pct { font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 20px; white-space: nowrap; }
-.radar-pct.up { background: rgba(26,122,61,0.12); color: #1a7a3d; }
-.radar-pct.down { background: rgba(154,59,59,0.10); color: #9a3b3b; }
-.radar-pct.flat { background: rgba(26,57,72,0.08); color: var(--teal2); }
-.radar-headlines { margin-top: 8px; display: flex; flex-direction: column; gap: 4px; }
-.radar-headline-row { font-size: 10.5px; line-height: 1.35; }
-.radar-headline-row a { color: var(--teal); text-decoration: none; }
-.radar-headline-row a:hover { color: var(--flame); }
-.radar-headline-src { color: var(--soft); }
-.radar-card-actions { display: flex; gap: 6px; margin-top: 8px; }
-.radar-empty { font-size: 11.5px; color: var(--soft); padding: 6px 0; }
+.trends-embed-cols { display: grid; grid-template-columns: 1.6fr 1fr; gap: 14px; margin-top: 4px; }
+@media (max-width: 720px) { .trends-embed-cols { grid-template-columns: 1fr; } }
+.gtrends-col-related { border-left: 1px solid var(--border2); padding-left: 14px; }
+@media (max-width: 720px) { .gtrends-col-related { border-left: none; border-top: 1px solid var(--border2); padding-left: 0; padding-top: 10px; } }
+.entity-chip.active-chip { background: var(--flame); color: #fff; }
+.entity-chip.active-chip b { color: #fff !important; }
 
 /* Library card delete */
 .card-del { position: absolute; top: 12px; right: 12px; z-index: 3; width: 26px; height: 26px; border-radius: 8px; border: 1px solid var(--border2);
@@ -715,18 +695,6 @@ mark.anno.pulse { animation: markPulse 1200ms var(--eo); }
         <span class="lib-count" id="libCount"></span>
       </div>
     </div>
-    <div class="radar-panel" id="radarPanel">
-      <div class="radar-head">
-        <span class="radar-head-title">📡 Beat Radar</span>
-        <button class="mini-icon-btn primary-ish" id="radarRefreshBtn">Refresh</button>
-      </div>
-      <div class="radar-sub">News coverage volume (last 24h vs. the 24h before) for your tracked beat terms — a more direct "is this suddenly a story" signal than raw search interest.</div>
-      <div class="radar-terms-bar">
-        <div class="sc-chips" id="radarTermChips"></div>
-        <input type="text" id="radarTermInput" placeholder="Add a term to track — press Enter">
-      </div>
-      <div class="radar-grid" id="radarGrid"></div>
-    </div>
     <div class="brief-grid" id="briefGrid"></div>
   </div>
 
@@ -875,7 +843,7 @@ mark.anno.pulse { animation: markPulse 1200ms var(--eo); }
           </div>
           <div class="sc-sub" style="margin-top:14px;">Google Trends</div>
           <div class="trends-lookup-bar">
-            <input type="text" id="trendsLookupKw" placeholder="Look up a keyword — e.g. 'Strait of Hormuz'">
+            <input type="text" id="trendsLookupKw" placeholder="Look up term(s), comma-separated — e.g. 'Strait of Hormuz, IRGC'">
             <select id="trendsLookupRange">
               <option value="now 1-d">Past day</option>
               <option value="now 7-d" selected>Past 7 days</option>
@@ -884,15 +852,10 @@ mark.anno.pulse { animation: markPulse 1200ms var(--eo); }
               <option value="today 12-m">Past 12 months</option>
             </select>
             <button class="mini-icon-btn primary-ish" id="trendsLookupBtn">Show trend</button>
+            <button class="mini-icon-btn" id="trendsSuggestBtn">✨ Suggest from brief</button>
           </div>
+          <div id="trendsChipsBar" class="sc-chips" style="margin-top:8px;"></div>
           <div id="trendsLookupResult"></div>
-          <div class="sc-sub" style="margin-top:14px;">Saved to brief</div>
-          <div id="scTrendChips" class="sc-chips"></div>
-          <div class="meter-hint" id="scTrendStatus" style="margin-top:6px;"></div>
-          <div class="sc-tools" style="margin-top:10px;">
-            <button class="mini-icon-btn" id="briefRadarBtn">📡 Check news volume for saved terms</button>
-          </div>
-          <div id="briefRadarResult"></div>
           <button class="small-btn" id="scApply" style="margin-top:12px;">Add to brief</button>
           <div id="searchIntelStatus" class="meter-hint" style="margin-top:8px;"></div>
         </div>
@@ -931,6 +894,7 @@ mark.anno.pulse { animation: markPulse 1200ms var(--eo); }
 <div class="pop" id="promotePop"></div>
 <div class="pop anno-pop" id="annoPop"></div>
 <div class="pop" id="gscKwPop" style="width:320px;"></div>
+<div class="pop" id="trendsKwPop" style="width:320px;"></div>
 <div class="desk-overlay" id="seoLinkOverlay">
   <div class="desk-modal" style="max-width:460px;">
     <div class="desk-modal-head">
@@ -1315,9 +1279,13 @@ function searchIntelLedgerHtml(searchNode) {
       inner += `<div class="ledger-title" style="margin-top:${inner ? '18px' : '0'}">📈 ${escapeHtml(c.heading || 'Trends')}</div>
         <div style="display:flex;flex-wrap:wrap;gap:6px;">${c.items.map(it => `<span class="entity-chip" style="cursor:default">${escapeHtml(it)}</span>`).join('')}</div>`;
     } else if (c.type === 'trendslookup') {
-      let lookup = null; try { lookup = JSON.parse(c.paragraph || 'null'); } catch (err) { lookup = null; }
-      if (lookup && lookup.keyword) {
-        const teid = registerTrendEmbed(lookup);
+      let lookups = [];
+      try {
+        const parsed = JSON.parse(c.paragraph || 'null');
+        lookups = Array.isArray(parsed) ? parsed.filter(l => l && l.keyword) : (parsed && parsed.keyword ? [parsed] : []);
+      } catch (err) { lookups = []; }
+      if (lookups.length) {
+        const teid = registerTrendEmbed(lookups);
         inner += `<div class="ledger-title" style="margin-top:${inner ? '18px' : '0'}">📊 ${escapeHtml(c.heading || 'Google Trends')}</div>
           <div class="gtrends-embed-mount" id="${teid}" data-teid="${teid}"></div>`;
       }
@@ -1561,7 +1529,7 @@ function renderDeskRail() {
     priorities: currentPromoted.length,
     resources: currentLinks.length,
     people: currentPromoted.filter(p => p.category === 'person' && p.manual).length,
-    search: (searchIntel.keywords.filter(r => r.some(c => String(c).trim())).length) + searchIntel.articles.length + searchIntel.trends.length,
+    search: (searchIntel.keywords.filter(r => r.some(c => String(c).trim())).length) + searchIntel.articles.length + searchIntel.trendsLookups.length,
   };
   rail.innerHTML = Object.keys(DESK_RAIL_META).map(key => {
     const m = DESK_RAIL_META[key];
@@ -1908,10 +1876,11 @@ document.getElementById('addPersonBtn').addEventListener('click', () => {
 });
 
 /* ---------- Search intelligence (cumulative, editable) ---------- */
-let searchIntel = { keywords: [], articles: [], trends: [], trendsLookup: null };
+let searchIntel = { keywords: [], articles: [], trendsLookups: [] };
 const SC_HEADERS = ['Keyword', 'Clicks', 'Impressions', 'CTR', 'Position'];
+let activeTrendsIdx = 0;
 
-function resetSearchIntel() { searchIntel = { keywords: [], articles: [], trends: [], trendsLookup: null }; }
+function resetSearchIntel() { searchIntel = { keywords: [], articles: [], trendsLookups: [] }; activeTrendsIdx = 0; }
 function migrateKwRow(r) {
   r = Array.isArray(r) ? r : [];
   if (r.length >= 5) return [r[0]||'', r[1]||'', r[2]||'', r[3]||'', r[4]||''];
@@ -1925,8 +1894,17 @@ function loadSearchIntelFromTree() {
   if (!node) return;
   (node.children || []).forEach(c => {
     if (c.type === 'table' && c.table && Array.isArray(c.table.rows)) searchIntel.keywords = c.table.rows.map(r => migrateKwRow(r));
-    else if (c.type === 'entities') searchIntel.trends = (c.items || []).slice();
-    else if (c.type === 'trendslookup') { try { searchIntel.trendsLookup = JSON.parse(c.paragraph || 'null'); } catch (err) { searchIntel.trendsLookup = null; } }
+    else if (c.type === 'entities') {
+      // Legacy plain-string "rising terms" chip list — migrate into trendsLookups.
+      (c.items || []).forEach(term => addTrendsLookup(term, 'today 3-m'));
+    }
+    else if (c.type === 'trendslookup') {
+      try {
+        const parsed = JSON.parse(c.paragraph || 'null');
+        if (Array.isArray(parsed)) parsed.forEach(l => { if (l && l.keyword) addTrendsLookup(l.keyword, l.range); });
+        else if (parsed && parsed.keyword) addTrendsLookup(parsed.keyword, parsed.range); // legacy single-object format
+      } catch (err) {}
+    }
     else if (Array.isArray(c.items)) {
       searchIntel.articles = c.items.map(it => {
         const m = String(it).match(/^\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)$/);
@@ -1934,19 +1912,18 @@ function loadSearchIntelFromTree() {
       });
     }
   });
+  activeTrendsIdx = 0;
 }
 function syncSearchNode() {
   currentTree = (currentTree || []).filter(n => n._editor !== 'search');
   const kw = searchIntel.keywords.filter(r => r.some(c => String(c).trim()));
   const arts = searchIntel.articles.filter(a => a.title || a.url);
-  const trends = searchIntel.trends.filter(Boolean);
-  const lookup = (searchIntel.trendsLookup && searchIntel.trendsLookup.keyword) ? searchIntel.trendsLookup : null;
-  if (!kw.length && !arts.length && !trends.length && !lookup) return;
+  const lookups = (searchIntel.trendsLookups || []).filter(l => l && l.keyword);
+  if (!kw.length && !arts.length && !lookups.length) return;
   const children = [];
   if (kw.length) children.push({ heading: 'Top keywords — Search Console', level: 2, type: 'table', table: { headers: SC_HEADERS, rows: kw }, children: [], items: [], paragraph: '' });
   if (arts.length) children.push({ heading: 'Winning articles', level: 2, type: 'text', items: arts.map(a => a.url ? `[${a.title || a.url}](${a.url})` : a.title), children: [], table: null, paragraph: '' });
-  if (trends.length) children.push({ heading: 'Google Trends — rising terms', level: 2, type: 'entities', items: trends, children: [], table: null, paragraph: '' });
-  if (lookup) children.push({ heading: 'Google Trends — saved lookup', level: 2, type: 'trendslookup', paragraph: JSON.stringify(lookup), children: [], items: [], table: null });
+  if (lookups.length) children.push({ heading: 'Google Trends — saved lookups', level: 2, type: 'trendslookup', paragraph: JSON.stringify(lookups), children: [], items: [], table: null });
   currentTree.push({ heading: 'Search intelligence (editor)', level: 1, type: 'summary', _editor: 'search', children, items: [], table: null, paragraph: '' });
 }
 
@@ -2006,13 +1983,8 @@ function renderScArticles() {
   wrap.querySelectorAll('[data-artdel]').forEach(b => b.addEventListener('click', () => { searchIntel.articles.splice(+b.getAttribute('data-artdel'), 1); renderScArticles(); renderDeskRail(); }));
 }
 function renderScTrends() {
-  const wrap = document.getElementById('scTrendChips'); if (!wrap) return;
-  wrap.innerHTML = searchIntel.trends.map((t, i) => `<span class="entity-chip" style="cursor:default">${escapeHtml(t)} <b data-trenddel="${i}" style="cursor:pointer;color:var(--flame)">×</b></span>`).join('');
-  wrap.querySelectorAll('[data-trenddel]').forEach(b => b.addEventListener('click', () => {
-    searchIntel.trends.splice(+b.getAttribute('data-trenddel'), 1);
-    renderScTrends(); renderDeskRail();
-  }));
-  renderTrendsLookupUI();
+  renderTrendsChipsBar();
+  renderActiveTrendsResult();
 }
 
 /* ---------- Google Trends keyword lookup (Google's own embeddable widget — no scraping, no backend) ---------- */
@@ -2057,179 +2029,164 @@ function mountGoogleTrendsWidget(container, widgetType, keyword, range) {
     }, 4000);
   }).catch(() => { container.innerHTML = gtrendsFallbackHtml(keyword); });
 }
-function renderTrendsLookupResult(keyword, range) {
-  const wrap = document.getElementById('trendsLookupResult'); if (!wrap) return;
-  const alreadySaved = searchIntel.trends.includes(keyword);
-  wrap.innerHTML = `
+function trendsEmbedCardHtml(keyword, idSuffix) {
+  return `
     <div class="trends-embed-card">
       <div class="trend-kw-label">${escapeHtml(keyword)}</div>
-      <div class="gtrends-mount" id="gtLookupTimeseries"></div>
-      <div class="sc-sub" style="margin-top:10px;">Related queries</div>
-      <div class="gtrends-mount" id="gtLookupRelated"></div>
-      <div class="trends-embed-actions">
-        <button class="mini-icon-btn${alreadySaved ? '' : ' primary-ish'}" id="trendsLookupSave" ${alreadySaved ? 'disabled' : ''}>${alreadySaved ? '✓ Saved to brief' : '＋ Save to brief'}</button>
+      <div class="trends-embed-cols">
+        <div class="gtrends-col"><div class="gtrends-mount" id="gtTs${idSuffix}"></div></div>
+        <div class="gtrends-col gtrends-col-related"><div class="sc-sub" style="margin:0 0 6px;">Related queries</div><div class="gtrends-mount" id="gtRel${idSuffix}"></div></div>
       </div>
     </div>`;
-  mountGoogleTrendsWidget(document.getElementById('gtLookupTimeseries'), 'TIMESERIES', keyword, range);
-  mountGoogleTrendsWidget(document.getElementById('gtLookupRelated'), 'RELATED_QUERIES', keyword, range);
-  const saveBtn = document.getElementById('trendsLookupSave');
-  if (saveBtn && !alreadySaved) saveBtn.addEventListener('click', () => {
-    if (!searchIntel.trends.includes(keyword)) searchIntel.trends.push(keyword);
-    renderScTrends(); renderDeskRail();
-    dashToast(`Saved "${keyword}" to brief`);
-  });
 }
-function renderTrendsLookupUI() {
-  const kwInput = document.getElementById('trendsLookupKw');
-  const rangeSel = document.getElementById('trendsLookupRange');
-  if (!kwInput || !rangeSel) return;
-  const saved = searchIntel.trendsLookup;
-  if (saved && saved.keyword) {
-    if (!kwInput.value) kwInput.value = saved.keyword;
-    if (saved.range) rangeSel.value = saved.range;
-    renderTrendsLookupResult(saved.keyword, saved.range || rangeSel.value);
-  }
+
+/* ---- Data model: searchIntel.trendsLookups = [{keyword, range}, ...], activeTrendsIdx = which chip is shown ---- */
+function findTrendsLookupIndex(keyword) {
+  return searchIntel.trendsLookups.findIndex(l => l.keyword.toLowerCase() === keyword.toLowerCase());
+}
+function addTrendsLookup(keyword, range) {
+  keyword = String(keyword || '').trim(); if (!keyword) return -1;
+  range = range || 'today 3-m';
+  const idx = findTrendsLookupIndex(keyword);
+  if (idx >= 0) { searchIntel.trendsLookups[idx].range = range; return idx; }
+  searchIntel.trendsLookups.push({ keyword, range });
+  return searchIntel.trendsLookups.length - 1;
+}
+function removeTrendsLookup(idx) {
+  searchIntel.trendsLookups.splice(idx, 1);
+  if (activeTrendsIdx >= searchIntel.trendsLookups.length) activeTrendsIdx = Math.max(0, searchIntel.trendsLookups.length - 1);
+}
+function setActiveTrendsLookup(idx) {
+  activeTrendsIdx = idx;
+  renderTrendsChipsBar();
+  renderActiveTrendsResult();
+}
+function renderTrendsChipsBar() {
+  const wrap = document.getElementById('trendsChipsBar'); if (!wrap) return;
+  wrap.innerHTML = searchIntel.trendsLookups.map((l, i) =>
+    `<span class="entity-chip${i === activeTrendsIdx ? ' active-chip' : ''}" data-trendsel="${i}" style="cursor:pointer;">${escapeHtml(l.keyword)} <b data-trenddel="${i}" style="cursor:pointer;color:var(--flame)">×</b></span>`
+  ).join('');
+  wrap.querySelectorAll('[data-trendsel]').forEach(chip => chip.addEventListener('click', e => {
+    if (e.target.hasAttribute('data-trenddel')) return;
+    setActiveTrendsLookup(+chip.getAttribute('data-trendsel'));
+  }));
+  wrap.querySelectorAll('[data-trenddel]').forEach(b => b.addEventListener('click', e => {
+    e.stopPropagation();
+    removeTrendsLookup(+b.getAttribute('data-trenddel'));
+    renderTrendsChipsBar(); renderActiveTrendsResult(); renderDeskRail();
+  }));
+}
+function renderActiveTrendsResult() {
+  const wrap = document.getElementById('trendsLookupResult'); if (!wrap) return;
+  const lookup = searchIntel.trendsLookups[activeTrendsIdx];
+  if (!lookup) { wrap.innerHTML = '<div class="meter-hint" style="padding:6px 0;">No terms yet — look one up, or use "Suggest from brief" for candidates pulled from this brief\'s text.</div>'; return; }
+  const rangeSel = document.getElementById('trendsLookupRange'); if (rangeSel) rangeSel.value = lookup.range;
+  wrap.innerHTML = trendsEmbedCardHtml(lookup.keyword, 'Active');
+  mountGoogleTrendsWidget(document.getElementById('gtTsActive'), 'TIMESERIES', lookup.keyword, lookup.range);
+  mountGoogleTrendsWidget(document.getElementById('gtRelActive'), 'RELATED_QUERIES', lookup.keyword, lookup.range);
 }
 function runTrendsLookup() {
   const kwInput = document.getElementById('trendsLookupKw');
   const rangeSel = document.getElementById('trendsLookupRange');
-  const keyword = (kwInput.value || '').trim();
-  if (!keyword) { dashToast('Type a keyword to look up first'); return; }
+  const raw = (kwInput.value || '').trim();
+  if (!raw) { dashToast('Type one or more terms to look up first'); return; }
+  const terms = raw.split(',').map(s => s.trim()).filter(Boolean);
   const range = rangeSel.value;
-  searchIntel.trendsLookup = { keyword, range };
-  renderTrendsLookupResult(keyword, range);
+  let firstIdx = -1;
+  terms.forEach(term => { const idx = addTrendsLookup(term, range); if (firstIdx === -1) firstIdx = idx; });
+  kwInput.value = '';
+  setActiveTrendsLookup(firstIdx);
+  renderDeskRail();
+  if (terms.length > 1) dashToast(`Added ${terms.length} terms to Google Trends`);
 }
 document.getElementById('trendsLookupBtn').addEventListener('click', runTrendsLookup);
 document.getElementById('trendsLookupKw').addEventListener('keydown', e => { if (e.key === 'Enter') runTrendsLookup(); });
 document.getElementById('trendsLookupRange').addEventListener('change', () => {
-  const kw = (document.getElementById('trendsLookupKw').value || '').trim();
-  if (kw) runTrendsLookup();
+  const lookup = searchIntel.trendsLookups[activeTrendsIdx]; if (!lookup) return;
+  lookup.range = document.getElementById('trendsLookupRange').value;
+  renderActiveTrendsResult();
 });
 
-/* ---------- Ledger (read-only) embed hydration — mirrors hydrateTables' mount pattern ---------- */
+/* ---- Suggest terms from the brief's own text (mirrors the Search Console keyword picker) ---- */
+let trendsPopSelected = new Set();
+function openTrendsSuggestPicker(anchorBtn) {
+  const candidates = gatherKeywordCandidates();
+  const tagRank = { keyword: 0, angle: 1, entity: 2, person: 3, frequent: 4 };
+  const tagIcon = { keyword: '🏷️', angle: '★', entity: '👤', person: '👤', frequent: '🔁' };
+  candidates.sort((a, b) => tagRank[a.tag] - tagRank[b.tag]);
+  trendsPopSelected = new Set(candidates.slice(0, 5).map(c => c.text));
+
+  const pop = document.getElementById('trendsKwPop');
+  pop.innerHTML = `
+    <div class="pop-label">Pick terms to check on Google Trends</div>
+    <div class="pop-cats" id="trendsKwChips">
+      ${candidates.map(c => `<button class="pop-cat${trendsPopSelected.has(c.text) ? ' sel' : ''}" data-term="${escapeHtml(c.text)}">${tagIcon[c.tag] || ''} ${escapeHtml(c.text)}</button>`).join('') || '<span class="ml-hint">No candidates found — type your own below.</span>'}
+    </div>
+    <input type="text" class="pop-note" id="trendsKwCustom" placeholder="Add a custom term, press Enter" style="min-height:auto;">
+    <div class="pop-actions">
+      <button class="btn ghost sm" data-act="cancel">Cancel</button>
+      <button class="btn primary sm" data-act="go">Add selected</button>
+    </div>`;
+  pop.classList.add('show');
+  const r = anchorBtn.getBoundingClientRect();
+  pop.style.left = Math.min(r.left + window.scrollX, window.innerWidth - 336) + 'px';
+  pop.style.top = (r.bottom + window.scrollY + 6) + 'px';
+
+  pop.querySelectorAll('[data-term]').forEach(b => b.addEventListener('click', () => {
+    const term = b.getAttribute('data-term');
+    if (trendsPopSelected.has(term)) { trendsPopSelected.delete(term); b.classList.remove('sel'); }
+    else { trendsPopSelected.add(term); b.classList.add('sel'); }
+  }));
+  const customInput = pop.querySelector('#trendsKwCustom');
+  customInput.addEventListener('keydown', e => {
+    if (e.key !== 'Enter') return; e.preventDefault();
+    const v = e.target.value.trim(); if (!v) return;
+    trendsPopSelected.add(v); e.target.value = '';
+    const chip = document.createElement('button');
+    chip.className = 'pop-cat sel'; chip.setAttribute('data-term', v); chip.textContent = '✏️ ' + v;
+    chip.addEventListener('click', () => { if (trendsPopSelected.has(v)) { trendsPopSelected.delete(v); chip.classList.remove('sel'); } else { trendsPopSelected.add(v); chip.classList.add('sel'); } });
+    document.getElementById('trendsKwChips').appendChild(chip);
+  });
+  pop.querySelector('[data-act="cancel"]').addEventListener('click', closeTrendsKwPop);
+  pop.querySelector('[data-act="go"]').addEventListener('click', () => {
+    closeTrendsKwPop();
+    const terms = Array.from(trendsPopSelected); if (!terms.length) return;
+    const range = document.getElementById('trendsLookupRange').value;
+    let firstIdx = -1;
+    terms.forEach(term => { const idx = addTrendsLookup(term, range); if (firstIdx === -1) firstIdx = idx; });
+    setActiveTrendsLookup(firstIdx);
+    renderDeskRail();
+    dashToast(`Added ${terms.length} term${terms.length === 1 ? '' : 's'} to Google Trends`);
+  });
+  setTimeout(() => document.addEventListener('mousedown', trendsKwPopOutside), 0);
+}
+function trendsKwPopOutside(e) { const pop = document.getElementById('trendsKwPop'); if (!pop.contains(e.target)) closeTrendsKwPop(); }
+function closeTrendsKwPop() { document.getElementById('trendsKwPop').classList.remove('show'); document.removeEventListener('mousedown', trendsKwPopOutside); }
+document.getElementById('trendsSuggestBtn').addEventListener('click', e => openTrendsSuggestPicker(e.currentTarget));
+
+/* ---------- Ledger (read-only) embed hydration — mirrors hydrateTables' mount pattern, with the same clickable-chip switcher ---------- */
 let TREND_EMBEDS = {}, trendEmbedSeq = 0;
-function registerTrendEmbed(lookup) { const id = 'gte' + (trendEmbedSeq++); TREND_EMBEDS[id] = lookup; return id; }
+function registerTrendEmbed(lookups) { const id = 'gte' + (trendEmbedSeq++); TREND_EMBEDS[id] = lookups; return id; }
 function hydrateTrendEmbeds(root) {
   root.querySelectorAll('.gtrends-embed-mount').forEach(mount => {
-    const lookup = TREND_EMBEDS[mount.getAttribute('data-teid')]; if (!lookup || !lookup.keyword) { mount.remove(); return; }
-    const wrap = document.createElement('div'); wrap.className = 'trends-embed-card';
-    wrap.innerHTML = `<div class="trend-kw-label">${escapeHtml(lookup.keyword)}</div><div class="gtrends-mount" id="${mount.id}-ts"></div>`;
+    const lookups = TREND_EMBEDS[mount.getAttribute('data-teid')]; if (!lookups || !lookups.length) { mount.remove(); return; }
+    let active = 0;
+    const wrap = document.createElement('div');
+    const mid = mount.id;
+    function paint() {
+      const lk = lookups[active];
+      wrap.innerHTML = `
+        ${lookups.length > 1 ? `<div class="sc-chips" style="margin-bottom:8px;">${lookups.map((l, i) => `<span class="entity-chip${i === active ? ' active-chip' : ''}" data-tswitch="${i}" style="cursor:pointer;">${escapeHtml(l.keyword)}</span>`).join('')}</div>` : ''}
+        ${trendsEmbedCardHtml(lk.keyword, mid)}`;
+      mountGoogleTrendsWidget(wrap.querySelector(`#gtTs${mid}`), 'TIMESERIES', lk.keyword, lk.range || 'today 3-m');
+      mountGoogleTrendsWidget(wrap.querySelector(`#gtRel${mid}`), 'RELATED_QUERIES', lk.keyword, lk.range || 'today 3-m');
+      wrap.querySelectorAll('[data-tswitch]').forEach(chip => chip.addEventListener('click', () => { active = +chip.getAttribute('data-tswitch'); paint(); }));
+    }
     mount.replaceWith(wrap);
-    mountGoogleTrendsWidget(wrap.querySelector(`#${mount.id}-ts`), 'TIMESERIES', lookup.keyword, lookup.range || 'today 3-m');
+    paint();
   });
 }
 function renderSearchIntel() { renderScKwTable(); renderScArticles(); renderScTrends(); }
-
-/* ==================== Beat Radar (news-volume discovery) ==================== */
-const NEWS_VOLUME_URL = 'https://trend-kehqans-projects.vercel.app/api/news-volume';
-const RADAR_TERMS_KEY = 'briefdesk_radar_terms_v1';
-const RADAR_DEFAULT_TERMS = ['Iran', 'Strait of Hormuz', 'Iran sanctions', 'IRGC', 'Iran nuclear talks'];
-
-async function fetchNewsVolume(terms) {
-  terms = (terms || []).filter(Boolean).slice(0, 8);
-  if (!terms.length) return [];
-  const url = `${NEWS_VOLUME_URL}?q=${encodeURIComponent(terms.join(','))}`;
-  const res = await fetch(url);
-  let data; try { data = await res.json(); } catch (e) { data = null; }
-  if (!res.ok || !data || !data.ok) throw new Error((data && data.error) || `HTTP ${res.status}`);
-  return Array.isArray(data.rows) ? data.rows : [];
-}
-function radarPctClass(pct) { return pct > 20 ? 'up' : (pct < -20 ? 'down' : 'flat'); }
-function radarPctLabel(pct) { const s = pct > 0 ? '+' : ''; return `${s}${pct}%`; }
-function radarNewsAge(pubDate) {
-  const t = new Date(pubDate).getTime(); if (isNaN(t)) return '';
-  const mins = Math.max(0, Math.round((Date.now() - t) / 60000));
-  if (mins < 60) return `${mins}m ago`;
-  const hrs = Math.round(mins / 60);
-  return hrs < 24 ? `${hrs}h ago` : `${Math.round(hrs / 24)}d ago`;
-}
-function radarCardHtml(row, opts) {
-  opts = opts || {};
-  const pctClass = radarPctClass(row.pctChange || 0);
-  const isHot = (row.pctChange || 0) > 100;
-  const headlinesHtml = (row.headlines || []).slice(0, 3).map(h =>
-    `<div class="radar-headline-row"><span class="radar-headline-src">${escapeHtml(h.source || '')} · ${radarNewsAge(h.pubDate)}</span><br><a href="${escapeHtml(h.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml((h.title || '').slice(0, 90))}</a></div>`
-  ).join('');
-  return `
-    <div class="radar-card${isHot ? ' hot' : ''}">
-      <div class="radar-card-top">
-        <div><div class="radar-kw">${escapeHtml(row.keyword)}</div><div class="radar-vol">${row.vol24 ?? 0} articles today vs ${row.volPrev ?? 0} yesterday</div></div>
-        <span class="radar-pct ${pctClass}">${radarPctLabel(row.pctChange || 0)}</span>
-      </div>
-      ${headlinesHtml ? `<div class="radar-headlines">${headlinesHtml}</div>` : (row.error ? `<div class="radar-empty">Couldn't load (${escapeHtml(row.error)})</div>` : '<div class="radar-empty">No recent coverage found.</div>')}
-      <div class="radar-card-actions" data-kw="${escapeHtml(row.keyword)}">
-        ${opts.startBrief ? `<button class="mini-icon-btn primary-ish" data-radar-start="${escapeHtml(row.keyword)}">＋ Start a brief</button>` : ''}
-        ${opts.saveToBrief ? `<button class="mini-icon-btn" data-radar-save="${escapeHtml(row.keyword)}">＋ Save to brief</button>` : ''}
-      </div>
-    </div>`;
-}
-function wireRadarCardActions(container) {
-  container.querySelectorAll('[data-radar-start]').forEach(b => b.addEventListener('click', () => startBriefFromRadar(b.getAttribute('data-radar-start'))));
-  container.querySelectorAll('[data-radar-save]').forEach(b => b.addEventListener('click', () => {
-    const kw = b.getAttribute('data-radar-save');
-    if (!searchIntel.trends.includes(kw)) searchIntel.trends.push(kw);
-    renderScTrends(); renderDeskRail();
-    dashToast(`Saved "${kw}" to brief`);
-  }));
-}
-function startBriefFromRadar(keyword) {
-  openIntake();
-  document.getElementById('pasteTopic').value = keyword;
-  const ta = document.getElementById('pasteText'); if (ta) ta.focus();
-  dashToast(`New brief started for "${keyword}"`);
-}
-
-/* ---- Global radar (library view) ---- */
-function radarLoadTerms() {
-  try { const s = localStorage.getItem(RADAR_TERMS_KEY); const arr = s ? JSON.parse(s) : null; return Array.isArray(arr) && arr.length ? arr : RADAR_DEFAULT_TERMS.slice(); }
-  catch (e) { return RADAR_DEFAULT_TERMS.slice(); }
-}
-function radarSaveTerms(terms) { try { localStorage.setItem(RADAR_TERMS_KEY, JSON.stringify(terms)); } catch (e) {} }
-let radarTerms = radarLoadTerms();
-function renderRadarChips() {
-  const wrap = document.getElementById('radarTermChips'); if (!wrap) return;
-  wrap.innerHTML = radarTerms.map((t, i) => `<span class="entity-chip" style="cursor:default">${escapeHtml(t)} <b data-radardel="${i}" style="cursor:pointer;color:var(--flame)">×</b></span>`).join('');
-  wrap.querySelectorAll('[data-radardel]').forEach(b => b.addEventListener('click', () => {
-    radarTerms.splice(+b.getAttribute('data-radardel'), 1); radarSaveTerms(radarTerms); renderRadarChips(); loadRadarPanel();
-  }));
-}
-async function loadRadarPanel() {
-  const grid = document.getElementById('radarGrid'); if (!grid) return;
-  if (!radarTerms.length) { grid.innerHTML = '<div class="radar-empty">Add a term above to start tracking your beat.</div>'; return; }
-  grid.innerHTML = '<div class="radar-empty">Loading live coverage volume…</div>';
-  try {
-    const rows = await fetchNewsVolume(radarTerms);
-    const sorted = rows.slice().sort((a, b) => (b.pctChange || 0) - (a.pctChange || 0));
-    grid.innerHTML = sorted.map(r => radarCardHtml(r, { startBrief: true })).join('') || '<div class="radar-empty">No data yet.</div>';
-    wireRadarCardActions(grid);
-  } catch (err) {
-    grid.innerHTML = `<div class="radar-empty">Couldn't load Beat Radar (${escapeHtml(err.message)}). <button class="mini-icon-btn" onclick="loadRadarPanel()">Retry</button></div>`;
-  }
-}
-document.getElementById('radarRefreshBtn').addEventListener('click', loadRadarPanel);
-document.getElementById('radarTermInput').addEventListener('keydown', e => {
-  if (e.key !== 'Enter') return; e.preventDefault();
-  const v = e.target.value.trim(); if (!v) return;
-  if (!radarTerms.includes(v)) radarTerms.push(v);
-  radarSaveTerms(radarTerms); e.target.value = ''; renderRadarChips(); loadRadarPanel();
-});
-renderRadarChips();
-
-/* ---- Per-brief radar (Search Intelligence panel) ---- */
-async function loadBriefRadar() {
-  const wrap = document.getElementById('briefRadarResult'); if (!wrap) return;
-  const terms = searchIntel.trends.filter(Boolean);
-  if (!terms.length) { wrap.innerHTML = '<div class="radar-empty">Save a term above first, then check its news volume.</div>'; return; }
-  wrap.innerHTML = '<div class="radar-empty">Loading…</div>';
-  try {
-    const rows = await fetchNewsVolume(terms);
-    wrap.innerHTML = `<div class="radar-grid" style="margin-top:8px;">${rows.map(r => radarCardHtml(r, { saveToBrief: false })).join('')}</div>`;
-  } catch (err) {
-    wrap.innerHTML = `<div class="radar-empty">Couldn't load (${escapeHtml(err.message)}).</div>`;
-  }
-}
-const briefRadarBtnEl = document.getElementById('briefRadarBtn');
-if (briefRadarBtnEl) briefRadarBtnEl.addEventListener('click', loadBriefRadar);
 
 function parseKeywordRows(text) {
   const lines = text.replace(/\r/g, '').split('\n').map(l => l.trimEnd()).filter(l => l.trim());
@@ -2408,7 +2365,7 @@ document.getElementById('scApply').addEventListener('click', () => {
   const parts = [];
   if (searchIntel.keywords.some(r => r[0])) parts.push(`${searchIntel.keywords.filter(r=>r[0]).length} keywords`);
   if (searchIntel.articles.length) parts.push(`${searchIntel.articles.length} articles`);
-  if (searchIntel.trends.length) parts.push(`${searchIntel.trends.length} trends`);
+  if (searchIntel.trendsLookups.length) parts.push(`${searchIntel.trendsLookups.length} trends`);
   document.getElementById('searchIntelStatus').textContent = parts.length ? 'In brief: ' + parts.join(' · ') : 'Nothing added yet';
   dashToast('Search intelligence added to the brief');
 });
@@ -2481,7 +2438,6 @@ function briefSnippet(row) {
 async function loadLibrary() {
   const grid = document.getElementById('briefGrid');
   grid.innerHTML = Array.from({length:6}).map(() => `<div class="skel-card"></div>`).join('');
-  loadRadarPanel();
   try {
     LIBRARY_CACHE = await sbSelect('dna_agent_briefs', 'select=*&order=created_at.desc&limit=100');
     renderLlmFilters(); applyLibraryFilter();
