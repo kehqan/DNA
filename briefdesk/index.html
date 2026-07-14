@@ -494,6 +494,31 @@ html[dir="rtl"] .blk-note { border-left: none; border-right: 2px solid var(--hon
 .gtrends-mount .gtrends-fallback a { color: var(--flame); }
 .trends-embed-actions { display: flex; gap: 6px; margin-top: 8px; }
 
+/* Beat Radar (news-volume discovery) */
+.radar-panel { background: var(--glass); border: 1px solid var(--border2); border-radius: 16px; padding: 16px 18px; margin: 18px 0; }
+.radar-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 6px; }
+.radar-head-title { font-weight: 700; font-size: 15px; color: var(--teal); display: flex; align-items: center; gap: 6px; }
+.radar-sub { font-size: 11.5px; color: var(--soft); margin-bottom: 10px; }
+.radar-terms-bar { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-bottom: 10px; }
+.radar-terms-bar input[type="text"] { font-size: 11.5px; padding: 7px 10px; border: 1px solid var(--border2); border-radius: 8px; background: var(--paper); outline: none; color: var(--teal); flex: 1 1 160px; }
+.radar-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px; }
+.radar-card { background: var(--paper); border: 1px solid var(--border2); border-radius: 12px; padding: 10px 12px; }
+.radar-card.hot { border-color: var(--flame); box-shadow: 0 0 0 1px var(--flame) inset; }
+.radar-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.radar-kw { font-weight: 700; font-size: 12.5px; color: var(--teal); }
+.radar-vol { font-size: 10.5px; color: var(--soft); margin-top: 2px; }
+.radar-pct { font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 20px; white-space: nowrap; }
+.radar-pct.up { background: rgba(26,122,61,0.12); color: #1a7a3d; }
+.radar-pct.down { background: rgba(154,59,59,0.10); color: #9a3b3b; }
+.radar-pct.flat { background: rgba(26,57,72,0.08); color: var(--teal2); }
+.radar-headlines { margin-top: 8px; display: flex; flex-direction: column; gap: 4px; }
+.radar-headline-row { font-size: 10.5px; line-height: 1.35; }
+.radar-headline-row a { color: var(--teal); text-decoration: none; }
+.radar-headline-row a:hover { color: var(--flame); }
+.radar-headline-src { color: var(--soft); }
+.radar-card-actions { display: flex; gap: 6px; margin-top: 8px; }
+.radar-empty { font-size: 11.5px; color: var(--soft); padding: 6px 0; }
+
 /* Library card delete */
 .card-del { position: absolute; top: 12px; right: 12px; z-index: 3; width: 26px; height: 26px; border-radius: 8px; border: 1px solid var(--border2);
   background: var(--paper); color: var(--soft); cursor: pointer; font-size: 12px; display: none; align-items: center; justify-content: center; padding: 0; }
@@ -690,6 +715,18 @@ mark.anno.pulse { animation: markPulse 1200ms var(--eo); }
         <span class="lib-count" id="libCount"></span>
       </div>
     </div>
+    <div class="radar-panel" id="radarPanel">
+      <div class="radar-head">
+        <span class="radar-head-title">📡 Beat Radar</span>
+        <button class="mini-icon-btn primary-ish" id="radarRefreshBtn">Refresh</button>
+      </div>
+      <div class="radar-sub">News coverage volume (last 24h vs. the 24h before) for your tracked beat terms — a more direct "is this suddenly a story" signal than raw search interest.</div>
+      <div class="radar-terms-bar">
+        <div class="sc-chips" id="radarTermChips"></div>
+        <input type="text" id="radarTermInput" placeholder="Add a term to track — press Enter">
+      </div>
+      <div class="radar-grid" id="radarGrid"></div>
+    </div>
     <div class="brief-grid" id="briefGrid"></div>
   </div>
 
@@ -852,6 +889,10 @@ mark.anno.pulse { animation: markPulse 1200ms var(--eo); }
           <div class="sc-sub" style="margin-top:14px;">Saved to brief</div>
           <div id="scTrendChips" class="sc-chips"></div>
           <div class="meter-hint" id="scTrendStatus" style="margin-top:6px;"></div>
+          <div class="sc-tools" style="margin-top:10px;">
+            <button class="mini-icon-btn" id="briefRadarBtn">📡 Check news volume for saved terms</button>
+          </div>
+          <div id="briefRadarResult"></div>
           <button class="small-btn" id="scApply" style="margin-top:12px;">Add to brief</button>
           <div id="searchIntelStatus" class="meter-hint" style="margin-top:8px;"></div>
         </div>
@@ -2079,6 +2120,117 @@ function hydrateTrendEmbeds(root) {
 }
 function renderSearchIntel() { renderScKwTable(); renderScArticles(); renderScTrends(); }
 
+/* ==================== Beat Radar (news-volume discovery) ==================== */
+const NEWS_VOLUME_URL = 'https://trend-kehqans-projects.vercel.app/api/news-volume';
+const RADAR_TERMS_KEY = 'briefdesk_radar_terms_v1';
+const RADAR_DEFAULT_TERMS = ['Iran', 'Strait of Hormuz', 'Iran sanctions', 'IRGC', 'Iran nuclear talks'];
+
+async function fetchNewsVolume(terms) {
+  terms = (terms || []).filter(Boolean).slice(0, 8);
+  if (!terms.length) return [];
+  const url = `${NEWS_VOLUME_URL}?q=${encodeURIComponent(terms.join(','))}`;
+  const res = await fetch(url);
+  let data; try { data = await res.json(); } catch (e) { data = null; }
+  if (!res.ok || !data || !data.ok) throw new Error((data && data.error) || `HTTP ${res.status}`);
+  return Array.isArray(data.rows) ? data.rows : [];
+}
+function radarPctClass(pct) { return pct > 20 ? 'up' : (pct < -20 ? 'down' : 'flat'); }
+function radarPctLabel(pct) { const s = pct > 0 ? '+' : ''; return `${s}${pct}%`; }
+function radarNewsAge(pubDate) {
+  const t = new Date(pubDate).getTime(); if (isNaN(t)) return '';
+  const mins = Math.max(0, Math.round((Date.now() - t) / 60000));
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.round(mins / 60);
+  return hrs < 24 ? `${hrs}h ago` : `${Math.round(hrs / 24)}d ago`;
+}
+function radarCardHtml(row, opts) {
+  opts = opts || {};
+  const pctClass = radarPctClass(row.pctChange || 0);
+  const isHot = (row.pctChange || 0) > 100;
+  const headlinesHtml = (row.headlines || []).slice(0, 3).map(h =>
+    `<div class="radar-headline-row"><span class="radar-headline-src">${escapeHtml(h.source || '')} · ${radarNewsAge(h.pubDate)}</span><br><a href="${escapeHtml(h.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml((h.title || '').slice(0, 90))}</a></div>`
+  ).join('');
+  return `
+    <div class="radar-card${isHot ? ' hot' : ''}">
+      <div class="radar-card-top">
+        <div><div class="radar-kw">${escapeHtml(row.keyword)}</div><div class="radar-vol">${row.vol24 ?? 0} articles today vs ${row.volPrev ?? 0} yesterday</div></div>
+        <span class="radar-pct ${pctClass}">${radarPctLabel(row.pctChange || 0)}</span>
+      </div>
+      ${headlinesHtml ? `<div class="radar-headlines">${headlinesHtml}</div>` : (row.error ? `<div class="radar-empty">Couldn't load (${escapeHtml(row.error)})</div>` : '<div class="radar-empty">No recent coverage found.</div>')}
+      <div class="radar-card-actions" data-kw="${escapeHtml(row.keyword)}">
+        ${opts.startBrief ? `<button class="mini-icon-btn primary-ish" data-radar-start="${escapeHtml(row.keyword)}">＋ Start a brief</button>` : ''}
+        ${opts.saveToBrief ? `<button class="mini-icon-btn" data-radar-save="${escapeHtml(row.keyword)}">＋ Save to brief</button>` : ''}
+      </div>
+    </div>`;
+}
+function wireRadarCardActions(container) {
+  container.querySelectorAll('[data-radar-start]').forEach(b => b.addEventListener('click', () => startBriefFromRadar(b.getAttribute('data-radar-start'))));
+  container.querySelectorAll('[data-radar-save]').forEach(b => b.addEventListener('click', () => {
+    const kw = b.getAttribute('data-radar-save');
+    if (!searchIntel.trends.includes(kw)) searchIntel.trends.push(kw);
+    renderScTrends(); renderDeskRail();
+    dashToast(`Saved "${kw}" to brief`);
+  }));
+}
+function startBriefFromRadar(keyword) {
+  openIntake();
+  document.getElementById('pasteTopic').value = keyword;
+  const ta = document.getElementById('pasteText'); if (ta) ta.focus();
+  dashToast(`New brief started for "${keyword}"`);
+}
+
+/* ---- Global radar (library view) ---- */
+function radarLoadTerms() {
+  try { const s = localStorage.getItem(RADAR_TERMS_KEY); const arr = s ? JSON.parse(s) : null; return Array.isArray(arr) && arr.length ? arr : RADAR_DEFAULT_TERMS.slice(); }
+  catch (e) { return RADAR_DEFAULT_TERMS.slice(); }
+}
+function radarSaveTerms(terms) { try { localStorage.setItem(RADAR_TERMS_KEY, JSON.stringify(terms)); } catch (e) {} }
+let radarTerms = radarLoadTerms();
+function renderRadarChips() {
+  const wrap = document.getElementById('radarTermChips'); if (!wrap) return;
+  wrap.innerHTML = radarTerms.map((t, i) => `<span class="entity-chip" style="cursor:default">${escapeHtml(t)} <b data-radardel="${i}" style="cursor:pointer;color:var(--flame)">×</b></span>`).join('');
+  wrap.querySelectorAll('[data-radardel]').forEach(b => b.addEventListener('click', () => {
+    radarTerms.splice(+b.getAttribute('data-radardel'), 1); radarSaveTerms(radarTerms); renderRadarChips(); loadRadarPanel();
+  }));
+}
+async function loadRadarPanel() {
+  const grid = document.getElementById('radarGrid'); if (!grid) return;
+  if (!radarTerms.length) { grid.innerHTML = '<div class="radar-empty">Add a term above to start tracking your beat.</div>'; return; }
+  grid.innerHTML = '<div class="radar-empty">Loading live coverage volume…</div>';
+  try {
+    const rows = await fetchNewsVolume(radarTerms);
+    const sorted = rows.slice().sort((a, b) => (b.pctChange || 0) - (a.pctChange || 0));
+    grid.innerHTML = sorted.map(r => radarCardHtml(r, { startBrief: true })).join('') || '<div class="radar-empty">No data yet.</div>';
+    wireRadarCardActions(grid);
+  } catch (err) {
+    grid.innerHTML = `<div class="radar-empty">Couldn't load Beat Radar (${escapeHtml(err.message)}). <button class="mini-icon-btn" onclick="loadRadarPanel()">Retry</button></div>`;
+  }
+}
+document.getElementById('radarRefreshBtn').addEventListener('click', loadRadarPanel);
+document.getElementById('radarTermInput').addEventListener('keydown', e => {
+  if (e.key !== 'Enter') return; e.preventDefault();
+  const v = e.target.value.trim(); if (!v) return;
+  if (!radarTerms.includes(v)) radarTerms.push(v);
+  radarSaveTerms(radarTerms); e.target.value = ''; renderRadarChips(); loadRadarPanel();
+});
+renderRadarChips();
+
+/* ---- Per-brief radar (Search Intelligence panel) ---- */
+async function loadBriefRadar() {
+  const wrap = document.getElementById('briefRadarResult'); if (!wrap) return;
+  const terms = searchIntel.trends.filter(Boolean);
+  if (!terms.length) { wrap.innerHTML = '<div class="radar-empty">Save a term above first, then check its news volume.</div>'; return; }
+  wrap.innerHTML = '<div class="radar-empty">Loading…</div>';
+  try {
+    const rows = await fetchNewsVolume(terms);
+    wrap.innerHTML = `<div class="radar-grid" style="margin-top:8px;">${rows.map(r => radarCardHtml(r, { saveToBrief: false })).join('')}</div>`;
+  } catch (err) {
+    wrap.innerHTML = `<div class="radar-empty">Couldn't load (${escapeHtml(err.message)}).</div>`;
+  }
+}
+const briefRadarBtnEl = document.getElementById('briefRadarBtn');
+if (briefRadarBtnEl) briefRadarBtnEl.addEventListener('click', loadBriefRadar);
+
 function parseKeywordRows(text) {
   const lines = text.replace(/\r/g, '').split('\n').map(l => l.trimEnd()).filter(l => l.trim());
   if (!lines.length) return [];
@@ -2329,6 +2481,7 @@ function briefSnippet(row) {
 async function loadLibrary() {
   const grid = document.getElementById('briefGrid');
   grid.innerHTML = Array.from({length:6}).map(() => `<div class="skel-card"></div>`).join('');
+  loadRadarPanel();
   try {
     LIBRARY_CACHE = await sbSelect('dna_agent_briefs', 'select=*&order=created_at.desc&limit=100');
     renderLlmFilters(); applyLibraryFilter();
