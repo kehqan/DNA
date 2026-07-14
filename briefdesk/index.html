@@ -2177,9 +2177,15 @@ async function runTrendsSync(terms) {
   try {
     const url = `${GTRENDS_SYNC_URL}?q=${encodeURIComponent(terms.join(','))}&days=90`;
     const res = await fetch(url);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-    if (!data.ok) throw new Error(data.error || 'Unknown error from Google Trends script');
+    let data;
+    try { data = await res.json(); } catch (parseErr) { data = null; }
+    if (!res.ok || !data || !data.ok) {
+      const detail = data && data.error ? data.error : `HTTP ${res.status}`;
+      const rateLimited = /429|rate.?limit/i.test(detail);
+      throw new Error(rateLimited
+        ? 'Google Trends is rate-limiting this server right now — wait a bit and try again.'
+        : detail);
+    }
     const rows = Array.isArray(data.rows) ? data.rows : [];
     if (!rows.length) {
       if (status) status.textContent = `No trend data returned for: ${terms.join(', ')}.`;
