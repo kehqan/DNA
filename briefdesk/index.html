@@ -499,6 +499,25 @@ html[dir="rtl"] .blk-note { border-left: none; border-right: 2px solid var(--hon
 .entity-chip.active-chip { background: var(--flame); color: #fff; }
 .entity-chip.active-chip b { color: #fff !important; }
 
+/* Live on Radio Farda (Chartbeat real-time) */
+.live-panel { background: var(--glass); border: 1px solid var(--border2); border-radius: 16px; padding: 16px 18px; margin: 20px 0 8px; }
+.live-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 4px; }
+.live-head-title { font-weight: 700; font-size: 15px; color: var(--teal); display: flex; align-items: center; gap: 8px; }
+.live-head-right { display: flex; align-items: center; gap: 10px; }
+.live-dot { width: 9px; height: 9px; border-radius: 50%; background: #e0403f; display: inline-block; box-shadow: 0 0 0 0 rgba(224,64,63,0.55); animation: liveDotPulse 1.8s infinite; }
+@keyframes liveDotPulse { 0% { box-shadow: 0 0 0 0 rgba(224,64,63,0.55); } 70% { box-shadow: 0 0 0 7px rgba(224,64,63,0); } 100% { box-shadow: 0 0 0 0 rgba(224,64,63,0); } }
+.live-sub { font-size: 11.5px; color: var(--soft); margin-bottom: 10px; }
+.live-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
+.live-card { background: var(--paper); border: 1px solid var(--border2); border-radius: 12px; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; }
+.live-card-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.live-readers { font-size: 13px; font-weight: 800; color: var(--flame); white-space: nowrap; }
+.live-readers small { font-weight: 600; color: var(--soft); font-size: 9.5px; text-transform: uppercase; letter-spacing: .04em; }
+.live-title { font-size: 12px; font-weight: 700; color: var(--teal); line-height: 1.4; }
+.live-title a { color: inherit; text-decoration: none; }
+.live-title a:hover { color: var(--flame); }
+.live-meta { font-size: 10px; color: var(--soft); display: flex; gap: 10px; flex-wrap: wrap; }
+.live-empty { font-size: 11.5px; color: var(--soft); padding: 6px 0; }
+
 /* Library card delete */
 .card-del { position: absolute; top: 12px; right: 12px; z-index: 3; width: 26px; height: 26px; border-radius: 8px; border: 1px solid var(--border2);
   background: var(--paper); color: var(--soft); cursor: pointer; font-size: 12px; display: none; align-items: center; justify-content: center; padding: 0; }
@@ -696,6 +715,18 @@ mark.anno.pulse { animation: markPulse 1200ms var(--eo); }
       </div>
     </div>
     <div class="brief-grid" id="briefGrid"></div>
+
+    <div class="live-panel" id="livePanel">
+      <div class="live-head">
+        <span class="live-head-title"><span class="live-dot"></span> Live on Radio Farda</span>
+        <div class="live-head-right">
+          <span class="meter-hint" id="liveUpdatedAt"></span>
+          <button class="mini-icon-btn" id="liveRefreshBtn">Refresh</button>
+        </div>
+      </div>
+      <div class="live-sub">Real-time reader activity from Chartbeat — who's on the site right now, and what they're reading.</div>
+      <div class="live-grid" id="liveGrid"></div>
+    </div>
   </div>
 
   <!-- INTAKE -->
@@ -2188,6 +2219,56 @@ function hydrateTrendEmbeds(root) {
 }
 function renderSearchIntel() { renderScKwTable(); renderScArticles(); renderScTrends(); }
 
+/* ==================== Live on Radio Farda (Chartbeat real-time) ==================== */
+const CHARTBEAT_LIVE_URL = 'https://trend-kehqans-projects.vercel.app/api/chartbeat-live';
+const RADIOFARDA_BASE = 'https://www.radiofarda.com';
+
+function liveFormatEngaged(seconds) {
+  if (seconds == null) return null;
+  const s = Math.round(seconds);
+  return s < 60 ? `${s}s engaged` : `${Math.round(s / 60)}m engaged`;
+}
+function liveArticleUrl(path) {
+  if (!path) return RADIOFARDA_BASE;
+  if (/^https?:\/\//i.test(path)) return path;
+  return `https://${path.replace(/^\/+/, '')}`;
+}
+function liveCardHtml(row) {
+  const url = liveArticleUrl(row.path);
+  const engaged = liveFormatEngaged(row.avgEngagedSeconds);
+  return `
+    <div class="live-card">
+      <div class="live-card-top">
+        <div class="live-title"><a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${escapeHtml((row.title || row.path || 'Untitled').slice(0, 90))}</a></div>
+        <span class="live-readers">${row.visitors ?? 0}<br><small>readers</small></span>
+      </div>
+      <div class="live-meta">
+        ${engaged ? `<span>⏱ ${escapeHtml(engaged)}</span>` : ''}
+        ${row.topRef ? `<span>↗ via ${escapeHtml(row.topRef)}</span>` : ''}
+      </div>
+    </div>`;
+}
+async function loadLivePanel() {
+  const grid = document.getElementById('liveGrid'); if (!grid) return;
+  const updatedEl = document.getElementById('liveUpdatedAt');
+  try {
+    const res = await fetch(`${CHARTBEAT_LIVE_URL}?limit=8`);
+    let data; try { data = await res.json(); } catch (e) { data = null; }
+    if (!res.ok || !data || !data.ok) throw new Error((data && data.error) || `HTTP ${res.status}`);
+    const rows = (data.rows || []).filter(r => (r.visitors || 0) > 0);
+    grid.innerHTML = rows.length ? rows.map(liveCardHtml).join('') : '<div class="live-empty">No active readers detected right now.</div>';
+    if (updatedEl) updatedEl.textContent = `Updated ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+  } catch (err) {
+    grid.innerHTML = `<div class="live-empty">Couldn't load live data (${escapeHtml(err.message)}).</div>`;
+    if (updatedEl) updatedEl.textContent = '';
+  }
+}
+document.getElementById('liveRefreshBtn').addEventListener('click', loadLivePanel);
+setInterval(() => {
+  const lib = document.getElementById('viewLibrary');
+  if (lib && lib.classList.contains('show')) loadLivePanel();
+}, 20000);
+
 function parseKeywordRows(text) {
   const lines = text.replace(/\r/g, '').split('\n').map(l => l.trimEnd()).filter(l => l.trim());
   if (!lines.length) return [];
@@ -2438,6 +2519,7 @@ function briefSnippet(row) {
 async function loadLibrary() {
   const grid = document.getElementById('briefGrid');
   grid.innerHTML = Array.from({length:6}).map(() => `<div class="skel-card"></div>`).join('');
+  loadLivePanel();
   try {
     LIBRARY_CACHE = await sbSelect('dna_agent_briefs', 'select=*&order=created_at.desc&limit=100');
     renderLlmFilters(); applyLibraryFilter();
