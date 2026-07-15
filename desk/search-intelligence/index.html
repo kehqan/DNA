@@ -1188,12 +1188,42 @@ async function fetchTrendsSummaryForPrompt() {
     const res = await fetch(`${TRENDS_API_URL}?q=${encodeURIComponent(terms.join(','))}&days=90`);
     const data = await res.json();
     if (!res.ok || !data.ok) return [];
-    return (data.rows || []).map(r => ({ keyword: r.keyword, avg: r.avg }));
+    return (data.rows || []).map(r => ({
+      keyword: r.keyword,
+      avg: r.avg,
+      points: Array.isArray(r.points) ? r.points : [],
+      related: (r.related && (r.related.top || r.related.rising)) ? r.related : { top: [], rising: [] }
+    }));
   } catch (e) { return []; }
 }
 function truncateForPrompt(text, max) {
   const t = String(text || '').trim();
   return t.length > max ? t.slice(0, max) + '\n\n[…truncated…]' : t;
+}
+// Downsamples a long interest-over-time series to a manageable number of
+// "date: value" points for the prompt, always keeping the most recent point.
+function summarizeTimeSeries(points, maxPoints) {
+  if (!points || !points.length) return '';
+  let sampled = points;
+  if (points.length > maxPoints) {
+    const step = Math.ceil(points.length / maxPoints);
+    sampled = points.filter((_, i) => i % step === 0);
+    const last = points[points.length - 1];
+    if (sampled[sampled.length - 1] !== last) sampled.push(last);
+  }
+  return sampled.map(p => `${p.date}: ${p.value}`).join('; ');
+}
+// Compares the first half of the period's average interest to the second
+// half's, so the prompt can say "rising" / "falling" in plain language
+// instead of making the LLM infer it from a raw number list.
+function trendDirection(points) {
+  if (!points || points.length < 4) return '';
+  const mid = Math.floor(points.length / 2);
+  const firstAvg = points.slice(0, mid).reduce((a, p) => a + p.value, 0) / mid;
+  const secondAvg = points.slice(mid).reduce((a, p) => a + p.value, 0) / (points.length - mid);
+  const diff = secondAvg - firstAvg;
+  if (Math.abs(diff) < 5) return 'roughly steady';
+  return diff > 0 ? 'rising' : 'falling';
 }
 async function buildHeadlinePrompt() {
   const headline = (document.getElementById('articleHeadline').value || '').trim();
@@ -1215,7 +1245,16 @@ async function buildHeadlinePrompt() {
   }
   if (trendSummary.length) {
     lines.push('GOOGLE TRENDS SIGNAL (search interest, 0-100 scale, past 90 days):');
-    trendSummary.forEach(t => lines.push(`- "${t.keyword}": average interest ${t.avg}/100`));
+    trendSummary.forEach(t => {
+      lines.push(`- "${t.keyword}": average interest ${t.avg}/100, ${trendDirection(t.points) || 'trend unclear'} over the period`);
+      const series = summarizeTimeSeries(t.points, 14);
+      if (series) lines.push(`  Interest over time: ${series}`);
+      if (t.related.top && t.related.top.length) lines.push(`  Related queries (top): ${t.related.top.join(', ')}`);
+      if (t.related.rising && t.related.rising.length) {
+        const risingStr = t.related.rising.map(r => r.breakout ? `${r.query} (breakout)` : `${r.query} (+${r.pctGrowth}%)`).join(', ');
+        lines.push(`  Related queries (rising): ${risingStr}`);
+      }
+    });
     lines.push('');
   }
   if (articles.length) {
