@@ -684,6 +684,13 @@ mark.anno.pulse { animation: markPulse 1200ms var(--eo); }
 .si-article-body { width: 100%; font-size: 13px; padding: 13px; border: 1px solid var(--border2); border-radius: 10px; background: var(--paper); outline: none; resize: vertical; font-family: inherit; color: var(--teal); line-height: 1.65; }
 .si-article-body:focus { border-color: var(--flame); }
 .si-goal-box { background: linear-gradient(135deg, rgba(255,84,0,0.06), rgba(151,157,247,0.06)); border: 1px solid var(--border2); }
+.trends-summary-box { margin-top: 10px; padding: 14px 16px; }
+.trends-summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 8px; }
+.trends-summary-grid label { font-size: 11px; color: var(--muted); display: flex; flex-direction: column; gap: 4px; }
+.trends-summary-grid input, .trends-summary-grid select { font-size: 12.5px; padding: 8px 10px; border: 1px solid var(--border2); border-radius: 8px; background: var(--paper); outline: none; color: var(--teal); font-family: inherit; }
+.trends-summary-grid input:focus, .trends-summary-grid select:focus { border-color: var(--flame); }
+.trends-summary-input { width: 100%; font-size: 12.5px; padding: 8px 10px; border: 1px solid var(--border2); border-radius: 8px; background: var(--paper); outline: none; color: var(--teal); font-family: inherit; margin-top: 8px; box-sizing: border-box; }
+.trends-summary-input:focus { border-color: var(--flame); }
 </style>
 <body>
 <div class="si-topbar">
@@ -764,7 +771,6 @@ mark.anno.pulse { animation: markPulse 1200ms var(--eo); }
 <script>
 /* ==================== Search Intelligence — standalone page ==================== */
 const CHARTBEAT_LIVE_URL = 'https://trend-kehqans-projects.vercel.app/api/chartbeat-live';
-const TRENDS_API_URL = 'https://trend-kehqans-projects.vercel.app/api/trends';
 const GSC_SYNC_URL = 'https://script.google.com/macros/s/AKfycbyijNimY56S9pRdVvCpXv4LmCtirWHTmLpASLzttJ-xRqUjSuXeBU-zvlhyBhD9MzEK/exec';
 
 function escapeHtml(s) {
@@ -994,7 +1000,7 @@ function addTrendsLookup(keyword, range) {
   range = range || 'today 3-m';
   const idx = findTrendsLookupIndex(keyword);
   if (idx >= 0) { searchIntel.trendsLookups[idx].range = range; return idx; }
-  searchIntel.trendsLookups.push({ keyword, range });
+  searchIntel.trendsLookups.push({ keyword, range, summary: null });
   return searchIntel.trendsLookups.length - 1;
 }
 function removeTrendsLookup(idx) {
@@ -1009,7 +1015,7 @@ function setActiveTrendsLookup(idx) {
 function renderTrendsChipsBar() {
   const wrap = document.getElementById('trendsChipsBar'); if (!wrap) return;
   wrap.innerHTML = searchIntel.trendsLookups.map((l, i) =>
-    `<span class="entity-chip${i === activeTrendsIdx ? ' active-chip' : ''}" data-trendsel="${i}" style="cursor:pointer;">${escapeHtml(l.keyword)} <b data-trenddel="${i}" style="cursor:pointer;color:var(--flame)">×</b></span>`
+    `<span class="entity-chip${i === activeTrendsIdx ? ' active-chip' : ''}" data-trendsel="${i}" style="cursor:pointer;">${l.summary ? '✅ ' : ''}${escapeHtml(l.keyword)} <b data-trenddel="${i}" style="cursor:pointer;color:var(--flame)">×</b></span>`
   ).join('');
   wrap.querySelectorAll('[data-trendsel]').forEach(chip => chip.addEventListener('click', e => {
     if (e.target.hasAttribute('data-trenddel')) return;
@@ -1021,14 +1027,71 @@ function renderTrendsChipsBar() {
     renderTrendsChipsBar(); renderActiveTrendsResult();
   }));
 }
+// Manual save-what-you-see form: the visual Google Trends widget doesn't
+// hand data back to our JS (it's Google's own embed), and calling our own
+// /api/trends for the numbers hits Google's undocumented-API rate limit too
+// easily. So instead: the user reads the chart/related-queries panel above
+// and jots down what they see, which we store per term and use verbatim in
+// the headline prompt — no background fetch, no 429 risk, ever.
+const TREND_DIRECTION_LABELS = { rising: 'rising', falling: 'falling', steady: 'roughly steady', spiking: 'spiking / breakout' };
+function trendsSummaryFormHtml(lookup, idSuffix) {
+  const s = lookup.summary || {};
+  const relatedVal = Array.isArray(s.related) ? s.related.join(', ') : '';
+  return `
+    <div class="resources-box trends-summary-box">
+      <div class="sc-sub" style="margin-top:0;">📝 Save what you see for "${escapeHtml(lookup.keyword)}"</div>
+      <div class="meter-hint" style="margin-bottom:8px;">Read the chart and related queries above, then note what you see below — this gets saved and used in the headline prompt.</div>
+      <div class="trends-summary-grid">
+        <label>Avg interest (0-100)
+          <input type="number" min="0" max="100" id="tsAvg${idSuffix}" value="${s.avg ?? ''}" placeholder="e.g. 62">
+        </label>
+        <label>Direction
+          <select id="tsDir${idSuffix}">
+            <option value="">— choose —</option>
+            <option value="rising" ${s.direction === 'rising' ? 'selected' : ''}>Rising</option>
+            <option value="falling" ${s.direction === 'falling' ? 'selected' : ''}>Falling</option>
+            <option value="steady" ${s.direction === 'steady' ? 'selected' : ''}>Roughly steady</option>
+            <option value="spiking" ${s.direction === 'spiking' ? 'selected' : ''}>Spiking / breakout</option>
+          </select>
+        </label>
+      </div>
+      <input type="text" id="tsRelated${idSuffix}" class="trends-summary-input" placeholder="Related queries you noticed, comma-separated" value="${escapeHtml(relatedVal)}">
+      <input type="text" id="tsNotes${idSuffix}" class="trends-summary-input" placeholder="Any other notes (optional)" value="${escapeHtml(s.notes || '')}">
+      <div class="sc-tools" style="margin-top:8px;">
+        <button class="mini-icon-btn primary-ish" id="tsSaveBtn${idSuffix}">💾 Save summary</button>
+        ${lookup.summary ? `<button class="mini-icon-btn danger" id="tsClearBtn${idSuffix}">Clear</button>` : ''}
+      </div>
+      <div class="meter-hint" id="tsStatus${idSuffix}" style="margin-top:6px;">${lookup.summary ? '✅ Saved — included in the headline prompt.' : ''}</div>
+    </div>`;
+}
+function wireTrendsSummaryForm(lookup, idSuffix) {
+  const saveBtn = document.getElementById(`tsSaveBtn${idSuffix}`);
+  if (saveBtn) saveBtn.addEventListener('click', () => {
+    const avgRaw = document.getElementById(`tsAvg${idSuffix}`).value.trim();
+    const direction = document.getElementById(`tsDir${idSuffix}`).value;
+    const related = document.getElementById(`tsRelated${idSuffix}`).value.split(',').map(s => s.trim()).filter(Boolean);
+    const notes = document.getElementById(`tsNotes${idSuffix}`).value.trim();
+    lookup.summary = { avg: avgRaw ? Number(avgRaw) : null, direction, related, notes };
+    renderTrendsChipsBar();
+    renderActiveTrendsResult();
+    dashToast(`Saved trend summary for "${lookup.keyword}"`);
+  });
+  const clearBtn = document.getElementById(`tsClearBtn${idSuffix}`);
+  if (clearBtn) clearBtn.addEventListener('click', () => {
+    lookup.summary = null;
+    renderTrendsChipsBar();
+    renderActiveTrendsResult();
+  });
+}
 function renderActiveTrendsResult() {
   const wrap = document.getElementById('trendsLookupResult'); if (!wrap) return;
   const lookup = searchIntel.trendsLookups[activeTrendsIdx];
   if (!lookup) { wrap.innerHTML = '<div class="meter-hint" style="padding:6px 0;">No terms yet — look one up, or use "Suggest from pasted text" for candidates pulled from your article.</div>'; return; }
   const rangeSel = document.getElementById('trendsLookupRange'); if (rangeSel) rangeSel.value = lookup.range;
-  wrap.innerHTML = trendsEmbedCardHtml(lookup.keyword, 'Active');
+  wrap.innerHTML = trendsEmbedCardHtml(lookup.keyword, 'Active') + trendsSummaryFormHtml(lookup, 'Active');
   mountGoogleTrendsWidget(document.getElementById('gtTsActive'), 'TIMESERIES', lookup.keyword, lookup.range);
   mountGoogleTrendsWidget(document.getElementById('gtRelActive'), 'RELATED_QUERIES', lookup.keyword, lookup.range);
+  wireTrendsSummaryForm(lookup, 'Active');
 }
 function runTrendsLookup() {
   const kwInput = document.getElementById('trendsLookupKw');
@@ -1181,82 +1244,21 @@ async function runGscSync(terms) {
 document.getElementById('scSyncGsc').addEventListener('click', e => openGscKeywordPicker(e.currentTarget));
 
 /* ==================== Smart headline suggestions — prompt builder ==================== */
-// Google Trends normalizes interest scores across whatever terms are queried
-// together ("compare mode") — joining keywords into one comma request would
-// silently change what the 0-100 numbers mean. So each added keyword is
-// fetched on its own, using the date range it was actually looked up with.
-const TRENDS_RANGE_TO_DAYS = { 'now 1-d': 1, 'now 7-d': 7, 'today 1-m': 30, 'today 3-m': 90, 'today 12-m': 365 };
-async function fetchTrendsSummaryForPrompt() {
-  const lookups = searchIntel.trendsLookups.slice(0, 5);
-  if (!lookups.length) return { summaries: [], errors: [] };
-  const results = await Promise.all(lookups.map(async (l) => {
-    const days = TRENDS_RANGE_TO_DAYS[l.range] || 90;
-    try {
-      const res = await fetch(`${TRENDS_API_URL}?q=${encodeURIComponent(l.keyword)}&days=${days}&range=${encodeURIComponent(l.range)}`);
-      const data = await res.json().catch(() => null);
-      if (!res.ok || !data || !data.ok) {
-        console.warn('[trends→prompt] fetch failed for', l.keyword, res.status, data);
-        return { error: `"${l.keyword}" (HTTP ${res.status}${data && data.error ? ': ' + data.error : ''})` };
-      }
-      const row = (Array.isArray(data.rows) && data.rows[0]) || data.row || null;
-      if (!row || (row.avg == null && !Array.isArray(row.points))) {
-        console.warn('[trends→prompt] unexpected response shape for', l.keyword, data);
-        return { error: `"${l.keyword}" (unexpected response shape — check console)` };
-      }
-      return {
-        summary: {
-          keyword: row.keyword || l.keyword,
-          range: l.range,
-          avg: row.avg,
-          points: Array.isArray(row.points) ? row.points : [],
-          related: (row.related && (row.related.top || row.related.rising)) ? row.related : { top: [], rising: [] }
-        }
-      };
-    } catch (e) {
-      console.warn('[trends→prompt] request error for', l.keyword, e);
-      return { error: `"${l.keyword}" (${e.message})` };
-    }
-  }));
-  return {
-    summaries: results.filter(r => r.summary).map(r => r.summary),
-    errors: results.filter(r => r.error).map(r => r.error)
-  };
-}
-const TRENDS_RANGE_LABEL = { 'now 1-d': 'past day', 'now 7-d': 'past 7 days', 'today 1-m': 'past 30 days', 'today 3-m': 'past 90 days', 'today 12-m': 'past 12 months' };
 function truncateForPrompt(text, max) {
   const t = String(text || '').trim();
   return t.length > max ? t.slice(0, max) + '\n\n[…truncated…]' : t;
 }
-// Downsamples a long interest-over-time series to a manageable number of
-// "date: value" points for the prompt, always keeping the most recent point.
-function summarizeTimeSeries(points, maxPoints) {
-  if (!points || !points.length) return '';
-  let sampled = points;
-  if (points.length > maxPoints) {
-    const step = Math.ceil(points.length / maxPoints);
-    sampled = points.filter((_, i) => i % step === 0);
-    const last = points[points.length - 1];
-    if (sampled[sampled.length - 1] !== last) sampled.push(last);
-  }
-  return sampled.map(p => `${p.date}: ${p.value}`).join('; ');
-}
-// Compares the first half of the period's average interest to the second
-// half's, so the prompt can say "rising" / "falling" in plain language
-// instead of making the LLM infer it from a raw number list.
-function trendDirection(points) {
-  if (!points || points.length < 4) return '';
-  const mid = Math.floor(points.length / 2);
-  const firstAvg = points.slice(0, mid).reduce((a, p) => a + p.value, 0) / mid;
-  const secondAvg = points.slice(mid).reduce((a, p) => a + p.value, 0) / (points.length - mid);
-  const diff = secondAvg - firstAvg;
-  if (Math.abs(diff) < 5) return 'roughly steady';
-  return diff > 0 ? 'rising' : 'falling';
+// Reads the manually-saved trend summaries straight out of the data model —
+// no network call, so no dependency on Google Trends' rate-limited internal
+// API. Works whether one term or several have been saved.
+function gatherSavedTrendsSummaries() {
+  return searchIntel.trendsLookups.filter(l => l.summary).map(l => ({ keyword: l.keyword, ...l.summary }));
 }
 async function buildHeadlinePrompt() {
   const headline = (document.getElementById('articleHeadline').value || '').trim();
   const body = truncateForPrompt(document.getElementById('articleText').value, 8000);
   const keywords = searchIntel.keywords.map(r => (r[0] || '').trim()).filter(Boolean);
-  const { summaries: trendSummary, errors: trendErrors } = await fetchTrendsSummaryForPrompt();
+  const trendSummaries = gatherSavedTrendsSummaries();
   const articles = searchIntel.articles.filter(a => a.title || a.url);
 
   const lines = [];
@@ -1270,18 +1272,19 @@ async function buildHeadlinePrompt() {
     keywords.forEach(k => lines.push(`- ${k}`));
     lines.push('');
   }
-  if (trendSummary.length) {
-    lines.push('GOOGLE TRENDS SIGNAL (search interest, 0-100 scale, each keyword scored independently):');
-    trendSummary.forEach(t => {
-      lines.push(`- "${t.keyword}" (${TRENDS_RANGE_LABEL[t.range] || 'recent period'}): average interest ${t.avg}/100, ${trendDirection(t.points) || 'trend unclear'}`);
-      const series = summarizeTimeSeries(t.points, 14);
-      if (series) lines.push(`  Interest over time: ${series}`);
-      if (t.related.top && t.related.top.length) lines.push(`  Related queries (top): ${t.related.top.join(', ')}`);
-      if (t.related.rising && t.related.rising.length) {
-        const risingStr = t.related.rising.map(r => r.breakout ? `${r.query} (breakout)` : `${r.query} (+${r.pctGrowth}%)`).join(', ');
-        lines.push(`  Related queries (rising): ${risingStr}`);
-      }
+  if (trendSummaries.length) {
+    lines.push('GOOGLE TRENDS SIGNAL (manually noted from the Google Trends panel — search interest, 0-100 scale):');
+    trendSummaries.forEach(t => {
+      const bits = [];
+      if (t.avg != null) bits.push(`avg interest ${t.avg}/100`);
+      if (t.direction) bits.push(TREND_DIRECTION_LABELS[t.direction] || t.direction);
+      lines.push(`- "${t.keyword}"${bits.length ? ': ' + bits.join(', ') : ' (no numbers noted)'}`);
+      if (t.related && t.related.length) lines.push(`  Related queries noticed: ${t.related.join(', ')}`);
+      if (t.notes) lines.push(`  Notes: ${t.notes}`);
     });
+    lines.push('');
+  } else if (searchIntel.trendsLookups.length) {
+    lines.push('GOOGLE TRENDS: terms were looked up but no summary saved yet — open the Google Trends panel above, note what the chart shows, and click "Save summary" to include it here.');
     lines.push('');
   }
   if (articles.length) {
@@ -1292,7 +1295,7 @@ async function buildHeadlinePrompt() {
   lines.push("CURRENT CONTEXT: if you have live web search available, briefly check what else is currently being said about this topic before suggesting headlines. If you don't have search, rely on the material above.");
   lines.push('');
   lines.push('TASK: Suggest 6 headline options for this piece, ranked best to worst. For each one, give one sentence of reasoning — SEO relevance to the keywords/trends above, click-through appeal, and accuracy to the article. Output only the ranked headline list with reasoning. Nothing else.');
-  return { prompt: lines.join('\n'), trendErrors };
+  return lines.join('\n');
 }
 async function copyHeadlinePrompt() {
   const btn = document.getElementById('genHeadlinePromptBtn');
@@ -1301,16 +1304,10 @@ async function copyHeadlinePrompt() {
   if (!body) { if (status) status.textContent = 'Paste the article text first.'; return; }
   btn.disabled = true; btn.textContent = '📋 Building…';
   try {
-    const { prompt, trendErrors } = await buildHeadlinePrompt();
+    const prompt = await buildHeadlinePrompt();
     await navigator.clipboard.writeText(prompt);
     dashToast('Copied headline prompt — paste into ChatGPT, Claude, or Copilot');
-    if (status) {
-      if (trendErrors && trendErrors.length) {
-        status.textContent = `Copied — but Google Trends data failed for ${trendErrors.join('; ')}. The prompt was built without it; open devtools console for the raw response, or check ${TRENDS_API_URL}.`;
-      } else {
-        status.textContent = "Copied. The prompt includes your article, target keywords, trends signal (with related queries), and related coverage — the LLM's only job is to return ranked headline options with reasoning.";
-      }
-    }
+    if (status) status.textContent = "Copied. The prompt includes your article, target keywords, trends signal, and related coverage — the LLM's only job is to return ranked headline options with reasoning.";
   } catch (err) {
     if (status) status.textContent = `Couldn't build/copy the prompt: ${err.message}`;
   } finally {
