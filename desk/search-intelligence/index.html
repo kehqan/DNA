@@ -445,11 +445,16 @@ function renderArts(){
   const max = Math.max(...S.articles.map(a=>a.clicks),1);
   list.innerHTML = S.articles.slice(0,6).map((a,i)=>{
     const s = a.clicks>max*0.6?'sf':a.clicks>max*0.25?'sh':'st';
+    const hasUrl = /^https?:\/\//i.test(a.url || '');
+    const titleText = esc(a.title && a.title.trim() ? a.title : (hasUrl ? a.url : 'Untitled page'));
+    const titleHtml = hasUrl
+      ? `<a href="${esc(a.url)}" target="_blank" rel="noopener">${titleText}</a>`
+      : `<span style="color:var(--soft)">${titleText}</span>`;
     return `<div class="art" style="animation-delay:${i*30}ms">
       <div class="stripe ${s}"></div>
       <div style="min-width:0">
-        <div class="art-src">${esc(a.source)}</div>
-        <div class="art-title"><a href="${esc(a.url)}" target="_blank" rel="noopener">${esc(a.title)}</a></div>
+        <div class="art-src">${esc(a.source)}${hasUrl?'':' · no URL returned'}</div>
+        <div class="art-title">${titleHtml}</div>
         <div class="art-meta"><span>${a.impressions.toLocaleString()} impr</span><span>${(a.ctr*100).toFixed(1)}% CTR</span></div>
       </div>
       <div class="art-right"><div class="art-clicks">${a.clicks.toLocaleString()}<small>clicks</small></div></div>
