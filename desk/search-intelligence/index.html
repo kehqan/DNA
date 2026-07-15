@@ -771,7 +771,6 @@ mark.anno.pulse { animation: markPulse 1200ms var(--eo); }
 <script>
 /* ==================== Search Intelligence — standalone page ==================== */
 const CHARTBEAT_LIVE_URL = 'https://trend-kehqans-projects.vercel.app/api/chartbeat-live';
-const TRENDS_API_URL = 'https://trend-kehqans-projects.vercel.app/api/trends';
 const GSC_SYNC_URL = 'https://script.google.com/macros/s/AKfycbyijNimY56S9pRdVvCpXv4LmCtirWHTmLpASLzttJ-xRqUjSuXeBU-zvlhyBhD9MzEK/exec';
 
 function escapeHtml(s) {
@@ -790,6 +789,7 @@ function dashToast(msg) {
 /* ---------- Data model ---------- */
 let searchIntel = { keywords: [], articles: [], trendsLookups: [] };
 const SC_HEADERS = ['Keyword', 'Clicks', 'Impressions', 'CTR', 'Position'];
+let activeTrendsIdx = 0;
 
 /* ---------- Search queries / keywords table ---------- */
 let scKwFilterQuery = '';
@@ -995,258 +995,103 @@ function trendsEmbedCardHtml(keyword, idSuffix) {
 function findTrendsLookupIndex(keyword) {
   return searchIntel.trendsLookups.findIndex(l => l.keyword.toLowerCase() === keyword.toLowerCase());
 }
-function removeSavedTrend(idx) {
-  searchIntel.trendsLookups.splice(idx, 1);
-  viewingSavedIdx = null;
-  renderTrendsChipsBar();
-  renderActiveTrendsResult();
+function addTrendsLookup(keyword, range) {
+  keyword = String(keyword || '').trim(); if (!keyword) return -1;
+  range = range || 'today 3-m';
+  const idx = findTrendsLookupIndex(keyword);
+  if (idx >= 0) { searchIntel.trendsLookups[idx].range = range; return idx; }
+  searchIntel.trendsLookups.push({ keyword, range, summary: null });
+  return searchIntel.trendsLookups.length - 1;
 }
-function setViewingSaved(idx) {
-  currentPreview = null; trendsPreviewQueue = [];
-  viewingSavedIdx = idx;
+function removeTrendsLookup(idx) {
+  searchIntel.trendsLookups.splice(idx, 1);
+  if (activeTrendsIdx >= searchIntel.trendsLookups.length) activeTrendsIdx = Math.max(0, searchIntel.trendsLookups.length - 1);
+}
+function setActiveTrendsLookup(idx) {
+  activeTrendsIdx = idx;
   renderTrendsChipsBar();
   renderActiveTrendsResult();
 }
 function renderTrendsChipsBar() {
   const wrap = document.getElementById('trendsChipsBar'); if (!wrap) return;
-  const savedChips = searchIntel.trendsLookups.map((l, i) =>
-    `<span class="entity-chip${viewingSavedIdx === i ? ' active-chip' : ''}" data-savedsel="${i}" style="cursor:pointer;">✅ ${escapeHtml(l.keyword)} <b data-saveddel="${i}" style="cursor:pointer;color:var(--flame)">×</b></span>`
+  wrap.innerHTML = searchIntel.trendsLookups.map((l, i) =>
+    `<span class="entity-chip${i === activeTrendsIdx ? ' active-chip' : ''}" data-trendsel="${i}" style="cursor:pointer;">${l.summary ? '✅ ' : ''}${escapeHtml(l.keyword)} <b data-trenddel="${i}" style="cursor:pointer;color:var(--flame)">×</b></span>`
   ).join('');
-  const currentChip = (currentPreview && viewingSavedIdx == null)
-    ? `<span class="entity-chip active-chip">${currentPreview.status === 'loading' ? '🔄' : currentPreview.status === 'error' ? '⚠️' : '👁'} ${escapeHtml(currentPreview.keyword)}</span>` : '';
-  const pendingChips = trendsPreviewQueue.map(p => `<span class="entity-chip" style="opacity:0.55;">⏳ ${escapeHtml(p.keyword)}</span>`).join('');
-  wrap.innerHTML = savedChips + currentChip + pendingChips;
-  wrap.querySelectorAll('[data-savedsel]').forEach(chip => chip.addEventListener('click', e => {
-    if (e.target.hasAttribute('data-saveddel')) return;
-    setViewingSaved(+chip.getAttribute('data-savedsel'));
+  wrap.querySelectorAll('[data-trendsel]').forEach(chip => chip.addEventListener('click', e => {
+    if (e.target.hasAttribute('data-trenddel')) return;
+    setActiveTrendsLookup(+chip.getAttribute('data-trendsel'));
   }));
-  wrap.querySelectorAll('[data-saveddel]').forEach(b => b.addEventListener('click', e => {
+  wrap.querySelectorAll('[data-trenddel]').forEach(b => b.addEventListener('click', e => {
     e.stopPropagation();
-    removeSavedTrend(+b.getAttribute('data-saveddel'));
+    removeTrendsLookup(+b.getAttribute('data-trenddel'));
+    renderTrendsChipsBar(); renderActiveTrendsResult();
   }));
 }
-
-/* ---- Auto-fetch → preview → approve/discard workflow ----
-   Adding a term no longer requires typing in the numbers by hand: we call
-   our own /api/trends (interest-over-time + related queries) automatically,
-   show the result, and the user just approves or discards it.
-
-   Reliability, since Google's underlying API is an undocumented, rate-
-   limited one:
-   - One fetch in flight at a time (a queue, not parallel calls) — bursts of
-     simultaneous requests are what triggers 429s, not occasional single ones.
-   - A session-local cache per "keyword|range" so re-adding the same term, or
-     switching back and forth, never re-hits the network.
-   - The server side (api/trends.js) already retries with backoff on 429.
-   - If it still fails, we don't dead-end — the chart above still renders
-     (that's Google's own client-side embed, unrelated to our backend), and
-     a one-time manual "enter what you see" fallback appears so the workflow
-     always completes either way. */
+// Manual save-what-you-see form: the visual Google Trends widget doesn't
+// hand data back to our JS (it's Google's own embed), and calling our own
+// /api/trends for the numbers hits Google's undocumented-API rate limit too
+// easily. So instead: the user reads the chart/related-queries panel above
+// and jots down what they see, which we store per term and use verbatim in
+// the headline prompt — no background fetch, no 429 risk, ever.
 const TREND_DIRECTION_LABELS = { rising: 'rising', falling: 'falling', steady: 'roughly steady', spiking: 'spiking / breakout' };
-let trendsPreviewQueue = [];
-let currentPreview = null; // {keyword, range, status: 'loading'|'ready'|'error'|'manual', avg, direction, points, relatedTop, relatedRising, error}
-let viewingSavedIdx = null;
-const trendsFetchCache = new Map(); // "keyword|range" -> fetched data
-
-function trendsCacheKey(keyword, range) { return keyword.toLowerCase() + '|' + range; }
-function rangeToDays(range) {
-  const map = { 'now 1-d': 1, 'now 7-d': 7, 'today 1-m': 30, 'today 3-m': 90, 'today 12-m': 365 };
-  return map[range] || 90;
+function trendsSummaryFormHtml(lookup, idSuffix) {
+  const s = lookup.summary || {};
+  const relatedVal = Array.isArray(s.related) ? s.related.join(', ') : '';
+  return `
+    <div class="resources-box trends-summary-box">
+      <div class="sc-sub" style="margin-top:0;">📝 Save what you see for "${escapeHtml(lookup.keyword)}"</div>
+      <div class="meter-hint" style="margin-bottom:8px;">Read the chart and related queries above, then note what you see below — this gets saved and used in the headline prompt.</div>
+      <div class="trends-summary-grid">
+        <label>Avg interest (0-100)
+          <input type="number" min="0" max="100" id="tsAvg${idSuffix}" value="${s.avg ?? ''}" placeholder="e.g. 62">
+        </label>
+        <label>Direction
+          <select id="tsDir${idSuffix}">
+            <option value="">— choose —</option>
+            <option value="rising" ${s.direction === 'rising' ? 'selected' : ''}>Rising</option>
+            <option value="falling" ${s.direction === 'falling' ? 'selected' : ''}>Falling</option>
+            <option value="steady" ${s.direction === 'steady' ? 'selected' : ''}>Roughly steady</option>
+            <option value="spiking" ${s.direction === 'spiking' ? 'selected' : ''}>Spiking / breakout</option>
+          </select>
+        </label>
+      </div>
+      <input type="text" id="tsRelated${idSuffix}" class="trends-summary-input" placeholder="Related queries you noticed, comma-separated" value="${escapeHtml(relatedVal)}">
+      <input type="text" id="tsNotes${idSuffix}" class="trends-summary-input" placeholder="Any other notes (optional)" value="${escapeHtml(s.notes || '')}">
+      <div class="sc-tools" style="margin-top:8px;">
+        <button class="mini-icon-btn primary-ish" id="tsSaveBtn${idSuffix}">💾 Save summary</button>
+        ${lookup.summary ? `<button class="mini-icon-btn danger" id="tsClearBtn${idSuffix}">Clear</button>` : ''}
+      </div>
+      <div class="meter-hint" id="tsStatus${idSuffix}" style="margin-top:6px;">${lookup.summary ? '✅ Saved — included in the headline prompt.' : ''}</div>
+    </div>`;
 }
-function summarizeTimeSeries(points, maxPoints) {
-  if (!points || !points.length) return '';
-  let sampled = points;
-  if (points.length > maxPoints) {
-    const step = Math.ceil(points.length / maxPoints);
-    sampled = points.filter((_, i) => i % step === 0);
-    const last = points[points.length - 1];
-    if (sampled[sampled.length - 1] !== last) sampled.push(last);
-  }
-  return sampled.map(p => `${p.date}: ${p.value}`).join('; ');
-}
-function trendDirection(points) {
-  if (!points || points.length < 4) return '';
-  const mid = Math.floor(points.length / 2);
-  const firstAvg = points.slice(0, mid).reduce((a, p) => a + p.value, 0) / mid;
-  const secondAvg = points.slice(mid).reduce((a, p) => a + p.value, 0) / (points.length - mid);
-  const diff = secondAvg - firstAvg;
-  if (Math.abs(diff) < 5) return 'steady';
-  return diff > 0 ? 'rising' : 'falling';
-}
-
-function enqueueTrendsPreview(keyword, range) {
-  keyword = String(keyword || '').trim(); if (!keyword) return;
-  range = range || document.getElementById('trendsLookupRange').value || 'today 3-m';
-  const existingIdx = findTrendsLookupIndex(keyword);
-  if (existingIdx >= 0 && searchIntel.trendsLookups[existingIdx].range === range) {
-    setViewingSaved(existingIdx);
-    dashToast(`"${keyword}" is already saved — showing it`);
-    return;
-  }
-  trendsPreviewQueue.push({ keyword, range });
-  renderTrendsChipsBar();
-  if (!currentPreview || (currentPreview.status !== 'loading')) processNextTrendsPreview();
-}
-async function processNextTrendsPreview() {
-  viewingSavedIdx = null;
-  if (!trendsPreviewQueue.length) { renderTrendsChipsBar(); renderActiveTrendsResult(); return; }
-  const next = trendsPreviewQueue.shift();
-  currentPreview = { keyword: next.keyword, range: next.range, status: 'loading' };
-  renderTrendsChipsBar(); renderActiveTrendsResult();
-
-  const cacheKey = trendsCacheKey(next.keyword, next.range);
-  if (trendsFetchCache.has(cacheKey)) {
-    currentPreview = { keyword: next.keyword, range: next.range, status: 'ready', ...trendsFetchCache.get(cacheKey) };
-    renderTrendsChipsBar(); renderActiveTrendsResult();
-    return;
-  }
-  try {
-    const res = await fetch(`${TRENDS_API_URL}?q=${encodeURIComponent(next.keyword)}&days=${rangeToDays(next.range)}`);
-    const data = await res.json();
-    if (!res.ok || !data.ok) throw new Error(data.error || `HTTP ${res.status}`);
-    const row = (data.rows && data.rows[0]) || {};
-    const points = Array.isArray(row.points) ? row.points : [];
-    const fetched = {
-      avg: row.avg != null ? row.avg : null,
-      points,
-      direction: trendDirection(points),
-      relatedTop: (row.related && row.related.top) || [],
-      relatedRising: (row.related && row.related.rising) || [],
-    };
-    trendsFetchCache.set(cacheKey, fetched);
-    currentPreview = { keyword: next.keyword, range: next.range, status: 'ready', ...fetched };
-  } catch (err) {
-    currentPreview = { keyword: next.keyword, range: next.range, status: 'error', error: err.message };
-  }
-  renderTrendsChipsBar(); renderActiveTrendsResult();
-}
-function saveCurrentPreview() {
-  if (!currentPreview || currentPreview.status !== 'ready') return;
-  commitPreview({ avg: currentPreview.avg, direction: currentPreview.direction, points: currentPreview.points, relatedTop: currentPreview.relatedTop, relatedRising: currentPreview.relatedRising });
-}
-function saveManualPreview() {
-  const avgRaw = document.getElementById('mpAvg').value.trim();
-  const direction = document.getElementById('mpDir').value;
-  const related = document.getElementById('mpRelated').value.split(',').map(s => s.trim()).filter(Boolean);
-  commitPreview({ avg: avgRaw ? Number(avgRaw) : null, direction, points: [], relatedTop: related, relatedRising: [], manual: true });
-}
-function commitPreview(data) {
-  const idx = findTrendsLookupIndex(currentPreview.keyword);
-  const record = { keyword: currentPreview.keyword, range: currentPreview.range, data };
-  if (idx >= 0) searchIntel.trendsLookups[idx] = record; else searchIntel.trendsLookups.push(record);
-  dashToast(`Saved "${currentPreview.keyword}" to Search Intelligence`);
-  processNextTrendsPreview();
-}
-function discardCurrentPreview() {
-  if (currentPreview) dashToast(`Discarded "${currentPreview.keyword}"`);
-  processNextTrendsPreview();
-}
-function switchCurrentPreviewToManual() {
-  if (!currentPreview) return;
-  currentPreview = { keyword: currentPreview.keyword, range: currentPreview.range, status: 'manual' };
-  renderActiveTrendsResult();
-}
-function trendDataSummaryHtml(d) {
-  const bits = [];
-  if (d.avg != null) bits.push(`Avg interest: <b>${d.avg}/100</b>`);
-  if (d.direction) bits.push(TREND_DIRECTION_LABELS[d.direction] || d.direction);
-  let html = `<div class="meter-hint" style="margin:8px 0;">${bits.join(' · ') || 'No summary numbers'}${d.manual ? ' (entered manually)' : ''}</div>`;
-  if (d.relatedTop && d.relatedTop.length) html += `<div class="meter-hint"><b>Related (top):</b> ${escapeHtml(d.relatedTop.join(', '))}</div>`;
-  if (d.relatedRising && d.relatedRising.length) {
-    const risingStr = d.relatedRising.map(r => r.breakout ? `${r.query} (breakout)` : `${r.query} (+${r.pctGrowth}%)`).join(', ');
-    html += `<div class="meter-hint"><b>Related (rising):</b> ${escapeHtml(risingStr)}</div>`;
-  }
-  return html;
+function wireTrendsSummaryForm(lookup, idSuffix) {
+  const saveBtn = document.getElementById(`tsSaveBtn${idSuffix}`);
+  if (saveBtn) saveBtn.addEventListener('click', () => {
+    const avgRaw = document.getElementById(`tsAvg${idSuffix}`).value.trim();
+    const direction = document.getElementById(`tsDir${idSuffix}`).value;
+    const related = document.getElementById(`tsRelated${idSuffix}`).value.split(',').map(s => s.trim()).filter(Boolean);
+    const notes = document.getElementById(`tsNotes${idSuffix}`).value.trim();
+    lookup.summary = { avg: avgRaw ? Number(avgRaw) : null, direction, related, notes };
+    renderTrendsChipsBar();
+    renderActiveTrendsResult();
+    dashToast(`Saved trend summary for "${lookup.keyword}"`);
+  });
+  const clearBtn = document.getElementById(`tsClearBtn${idSuffix}`);
+  if (clearBtn) clearBtn.addEventListener('click', () => {
+    lookup.summary = null;
+    renderTrendsChipsBar();
+    renderActiveTrendsResult();
+  });
 }
 function renderActiveTrendsResult() {
   const wrap = document.getElementById('trendsLookupResult'); if (!wrap) return;
-
-  if (viewingSavedIdx != null && searchIntel.trendsLookups[viewingSavedIdx]) {
-    const lookup = searchIntel.trendsLookups[viewingSavedIdx];
-    const rangeSel = document.getElementById('trendsLookupRange'); if (rangeSel) rangeSel.value = lookup.range;
-    wrap.innerHTML = trendsEmbedCardHtml(lookup.keyword, 'Active') + `
-      <div class="resources-box trends-summary-box">
-        <div class="sc-sub" style="margin-top:0;">✅ Saved</div>
-        ${trendDataSummaryHtml(lookup.data)}
-        <div class="sc-tools" style="margin-top:8px;"><button class="mini-icon-btn danger" id="tsRemoveBtn">🗑 Remove</button></div>
-      </div>`;
-    mountGoogleTrendsWidget(document.getElementById('gtTsActive'), 'TIMESERIES', lookup.keyword, lookup.range);
-    mountGoogleTrendsWidget(document.getElementById('gtRelActive'), 'RELATED_QUERIES', lookup.keyword, lookup.range);
-    document.getElementById('tsRemoveBtn').addEventListener('click', () => removeSavedTrend(viewingSavedIdx));
-    return;
-  }
-  if (!currentPreview) {
-    wrap.innerHTML = '<div class="meter-hint" style="padding:6px 0;">No terms yet — add one above, or use "Suggest from pasted text" for candidates pulled from your article. Data is fetched automatically; you just approve or discard it.</div>';
-    return;
-  }
-  const queueNote = trendsPreviewQueue.length ? `<div class="meter-hint" style="margin-bottom:6px;">${trendsPreviewQueue.length} more term${trendsPreviewQueue.length === 1 ? '' : 's'} waiting for review.</div>` : '';
-
-  if (currentPreview.status === 'loading') {
-    wrap.innerHTML = queueNote + `<div class="meter-hint" style="padding:6px 0;">🔄 Fetching Google Trends data for "${escapeHtml(currentPreview.keyword)}"…</div>`;
-    return;
-  }
-  if (currentPreview.status === 'error') {
-    wrap.innerHTML = queueNote + trendsEmbedCardHtml(currentPreview.keyword, 'Active') + `
-      <div class="resources-box trends-summary-box">
-        <div class="sc-sub" style="margin-top:0;color:var(--flame);">Couldn't auto-fetch data</div>
-        <div class="meter-hint" style="margin-bottom:8px;">${escapeHtml(currentPreview.error || 'Google Trends is rate-limiting requests right now.')} The chart above still works (that's Google's own widget, unrelated to this). You can retry, enter what you see manually, or discard.</div>
-        <div class="sc-tools">
-          <button class="mini-icon-btn" id="tsRetryBtn">🔄 Retry</button>
-          <button class="mini-icon-btn" id="tsManualBtn">✍️ Enter manually</button>
-          <button class="mini-icon-btn danger" id="tsDiscardBtn">✕ Discard</button>
-        </div>
-      </div>`;
-    mountGoogleTrendsWidget(document.getElementById('gtTsActive'), 'TIMESERIES', currentPreview.keyword, currentPreview.range);
-    mountGoogleTrendsWidget(document.getElementById('gtRelActive'), 'RELATED_QUERIES', currentPreview.keyword, currentPreview.range);
-    document.getElementById('tsRetryBtn').addEventListener('click', () => {
-      trendsFetchCache.delete(trendsCacheKey(currentPreview.keyword, currentPreview.range));
-      trendsPreviewQueue.unshift({ keyword: currentPreview.keyword, range: currentPreview.range });
-      processNextTrendsPreview();
-    });
-    document.getElementById('tsManualBtn').addEventListener('click', switchCurrentPreviewToManual);
-    document.getElementById('tsDiscardBtn').addEventListener('click', discardCurrentPreview);
-    return;
-  }
-  if (currentPreview.status === 'manual') {
-    wrap.innerHTML = queueNote + trendsEmbedCardHtml(currentPreview.keyword, 'Active') + `
-      <div class="resources-box trends-summary-box">
-        <div class="sc-sub" style="margin-top:0;">✍️ Enter manually for "${escapeHtml(currentPreview.keyword)}"</div>
-        <div class="trends-summary-grid">
-          <label>Avg interest (0-100)<input type="number" min="0" max="100" id="mpAvg" placeholder="e.g. 62"></label>
-          <label>Direction<select id="mpDir">
-            <option value="">— choose —</option>
-            <option value="rising">Rising</option>
-            <option value="falling">Falling</option>
-            <option value="steady">Roughly steady</option>
-            <option value="spiking">Spiking / breakout</option>
-          </select></label>
-        </div>
-        <input type="text" id="mpRelated" class="trends-summary-input" placeholder="Related queries you noticed, comma-separated">
-        <div class="sc-tools" style="margin-top:8px;">
-          <button class="mini-icon-btn primary-ish" id="tsSaveManualBtn">💾 Save</button>
-          <button class="mini-icon-btn danger" id="tsDiscardBtn">✕ Discard</button>
-        </div>
-      </div>`;
-    mountGoogleTrendsWidget(document.getElementById('gtTsActive'), 'TIMESERIES', currentPreview.keyword, currentPreview.range);
-    mountGoogleTrendsWidget(document.getElementById('gtRelActive'), 'RELATED_QUERIES', currentPreview.keyword, currentPreview.range);
-    document.getElementById('tsSaveManualBtn').addEventListener('click', saveManualPreview);
-    document.getElementById('tsDiscardBtn').addEventListener('click', discardCurrentPreview);
-    return;
-  }
-  // status === 'ready'
-  wrap.innerHTML = queueNote + trendsEmbedCardHtml(currentPreview.keyword, 'Active') + `
-    <div class="resources-box trends-summary-box">
-      <div class="sc-sub" style="margin-top:0;">Auto-fetched summary — approve or discard</div>
-      ${trendDataSummaryHtml(currentPreview)}
-      <div class="sc-tools" style="margin-top:8px;">
-        <button class="mini-icon-btn primary-ish" id="tsSaveBtn">✅ Save this trend</button>
-        <button class="mini-icon-btn danger" id="tsDiscardBtn">✕ Discard</button>
-      </div>
-    </div>`;
-  mountGoogleTrendsWidget(document.getElementById('gtTsActive'), 'TIMESERIES', currentPreview.keyword, currentPreview.range);
-  mountGoogleTrendsWidget(document.getElementById('gtRelActive'), 'RELATED_QUERIES', currentPreview.keyword, currentPreview.range);
-  document.getElementById('tsSaveBtn').addEventListener('click', saveCurrentPreview);
-  document.getElementById('tsDiscardBtn').addEventListener('click', discardCurrentPreview);
+  const lookup = searchIntel.trendsLookups[activeTrendsIdx];
+  if (!lookup) { wrap.innerHTML = '<div class="meter-hint" style="padding:6px 0;">No terms yet — look one up, or use "Suggest from pasted text" for candidates pulled from your article.</div>'; return; }
+  const rangeSel = document.getElementById('trendsLookupRange'); if (rangeSel) rangeSel.value = lookup.range;
+  wrap.innerHTML = trendsEmbedCardHtml(lookup.keyword, 'Active') + trendsSummaryFormHtml(lookup, 'Active');
+  mountGoogleTrendsWidget(document.getElementById('gtTsActive'), 'TIMESERIES', lookup.keyword, lookup.range);
+  mountGoogleTrendsWidget(document.getElementById('gtRelActive'), 'RELATED_QUERIES', lookup.keyword, lookup.range);
+  wireTrendsSummaryForm(lookup, 'Active');
 }
 function runTrendsLookup() {
   const kwInput = document.getElementById('trendsLookupKw');
@@ -1255,16 +1100,18 @@ function runTrendsLookup() {
   if (!raw) { dashToast('Type one or more terms to look up first'); return; }
   const terms = raw.split(',').map(s => s.trim()).filter(Boolean);
   const range = rangeSel.value;
-  terms.forEach(term => enqueueTrendsPreview(term, range));
+  let firstIdx = -1;
+  terms.forEach(term => { const idx = addTrendsLookup(term, range); if (firstIdx === -1) firstIdx = idx; });
   kwInput.value = '';
+  setActiveTrendsLookup(firstIdx);
+  if (terms.length > 1) dashToast(`Added ${terms.length} terms to Google Trends`);
 }
 document.getElementById('trendsLookupBtn').addEventListener('click', runTrendsLookup);
 document.getElementById('trendsLookupKw').addEventListener('keydown', e => { if (e.key === 'Enter') runTrendsLookup(); });
 document.getElementById('trendsLookupRange').addEventListener('change', () => {
-  if (viewingSavedIdx != null && searchIntel.trendsLookups[viewingSavedIdx]) {
-    searchIntel.trendsLookups[viewingSavedIdx].range = document.getElementById('trendsLookupRange').value;
-    renderActiveTrendsResult();
-  }
+  const lookup = searchIntel.trendsLookups[activeTrendsIdx]; if (!lookup) return;
+  lookup.range = document.getElementById('trendsLookupRange').value;
+  renderActiveTrendsResult();
 });
 
 /* ---- Suggest terms from the pasted article text (mirrors the Search Console keyword picker) ---- */
@@ -1307,8 +1154,10 @@ function openTrendsSuggestPicker(anchorBtn) {
     closeTrendsKwPop();
     const terms = Array.from(trendsPopSelected); if (!terms.length) return;
     const range = document.getElementById('trendsLookupRange').value;
-    terms.forEach(term => enqueueTrendsPreview(term, range));
-    dashToast(`Queued ${terms.length} term${terms.length === 1 ? '' : 's'} for Trends review`);
+    let firstIdx = -1;
+    terms.forEach(term => { const idx = addTrendsLookup(term, range); if (firstIdx === -1) firstIdx = idx; });
+    setActiveTrendsLookup(firstIdx);
+    dashToast(`Added ${terms.length} term${terms.length === 1 ? '' : 's'} to Google Trends`);
   });
   setTimeout(() => document.addEventListener('mousedown', trendsKwPopOutside), 0);
 }
@@ -1400,12 +1249,10 @@ function truncateForPrompt(text, max) {
   return t.length > max ? t.slice(0, max) + '\n\n[…truncated…]' : t;
 }
 // Reads the manually-saved trend summaries straight out of the data model —
-// Reads the saved trend records straight out of the data model — no
-// network call, so no dependency on Google Trends' rate-limited internal
-// API at prompt-build time (the fetch already happened, and was approved,
-// back when the term was added). Works whether one term or several were saved.
+// no network call, so no dependency on Google Trends' rate-limited internal
+// API. Works whether one term or several have been saved.
 function gatherSavedTrendsSummaries() {
-  return searchIntel.trendsLookups.map(l => ({ keyword: l.keyword, ...l.data }));
+  return searchIntel.trendsLookups.filter(l => l.summary).map(l => ({ keyword: l.keyword, ...l.summary }));
 }
 async function buildHeadlinePrompt() {
   const headline = (document.getElementById('articleHeadline').value || '').trim();
@@ -1426,20 +1273,18 @@ async function buildHeadlinePrompt() {
     lines.push('');
   }
   if (trendSummaries.length) {
-    lines.push('GOOGLE TRENDS SIGNAL (search interest, 0-100 scale):');
+    lines.push('GOOGLE TRENDS SIGNAL (manually noted from the Google Trends panel — search interest, 0-100 scale):');
     trendSummaries.forEach(t => {
       const bits = [];
       if (t.avg != null) bits.push(`avg interest ${t.avg}/100`);
       if (t.direction) bits.push(TREND_DIRECTION_LABELS[t.direction] || t.direction);
-      lines.push(`- "${t.keyword}"${bits.length ? ': ' + bits.join(', ') : ''}${t.manual ? ' (entered manually)' : ''}`);
-      const series = summarizeTimeSeries(t.points, 14);
-      if (series) lines.push(`  Interest over time: ${series}`);
-      if (t.relatedTop && t.relatedTop.length) lines.push(`  Related queries (top): ${t.relatedTop.join(', ')}`);
-      if (t.relatedRising && t.relatedRising.length) {
-        const risingStr = t.relatedRising.map(r => r.breakout ? `${r.query} (breakout)` : `${r.query} (+${r.pctGrowth}%)`).join(', ');
-        lines.push(`  Related queries (rising): ${risingStr}`);
-      }
+      lines.push(`- "${t.keyword}"${bits.length ? ': ' + bits.join(', ') : ' (no numbers noted)'}`);
+      if (t.related && t.related.length) lines.push(`  Related queries noticed: ${t.related.join(', ')}`);
+      if (t.notes) lines.push(`  Notes: ${t.notes}`);
     });
+    lines.push('');
+  } else if (searchIntel.trendsLookups.length) {
+    lines.push('GOOGLE TRENDS: terms were looked up but no summary saved yet — open the Google Trends panel above, note what the chart shows, and click "Save summary" to include it here.');
     lines.push('');
   }
   if (articles.length) {
