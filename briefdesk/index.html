@@ -518,16 +518,6 @@ html[dir="rtl"] .blk-note { border-left: none; border-right: 2px solid var(--hon
 .live-meta { font-size: 10px; color: var(--soft); display: flex; gap: 10px; flex-wrap: wrap; }
 .live-empty { font-size: 11.5px; color: var(--soft); padding: 6px 0; }
 
-/* Investigate a topic — Radio Farda coverage search results */
-.farda-result-row { display: flex; gap: 8px; align-items: flex-start; padding: 8px 0; border-bottom: 1px solid var(--border2); }
-.farda-result-row:last-child { border-bottom: none; }
-.farda-result-row input[type="checkbox"] { margin-top: 3px; flex-shrink: 0; }
-.farda-result-body { flex: 1; min-width: 0; }
-.farda-result-title { font-size: 12px; font-weight: 700; color: var(--teal); text-decoration: none; }
-.farda-result-title:hover { color: var(--flame); }
-.farda-result-meta { font-size: 10px; color: var(--soft); margin-top: 1px; }
-.farda-result-snippet { font-size: 10.5px; color: var(--teal2); margin-top: 3px; line-height: 1.4; }
-.farda-result-add { flex-shrink: 0; }
 
 /* Library card delete */
 .card-del { position: absolute; top: 12px; right: 12px; z-index: 3; width: 26px; height: 26px; border-radius: 8px; border: 1px solid var(--border2);
@@ -865,18 +855,7 @@ mark.anno.pulse { animation: markPulse 1200ms var(--eo); }
       <div id="deskPanelSearch" class="desk-panel" style="display:none">
         <div class="resources-box">
           <div class="meter-hint" style="margin-bottom:10px;">Fill the table, paste rows, or upload a Search Console CSV. New data accumulates — nothing is replaced.</div>
-          <div class="sc-sub" style="margin-top:0;">🔎 Investigate a topic</div>
-          <div class="meter-hint" style="margin-bottom:8px;">Search Radio Farda's own past coverage of a topic, then copy a ready-made prompt into any LLM (ChatGPT, Claude, Copilot) to turn it into a real briefing — timeline, key entities, what's already been covered, and the gaps.</div>
-          <div class="trends-lookup-bar">
-            <input type="text" id="fardaSearchTopic" placeholder="Topic — e.g. 'IRGC sanctions' or 'تحریم سپاه'">
-            <button class="mini-icon-btn primary-ish" id="fardaSearchBtn">🔎 Search Radio Farda</button>
-          </div>
-          <div class="meter-hint" id="fardaSearchStatus" style="margin-top:6px;"></div>
-          <div id="fardaSearchResults"></div>
-          <div class="sc-tools" id="fardaSearchActions" style="margin-top:8px;display:none;">
-            <button class="mini-icon-btn primary-ish" id="fardaCopyPromptBtn">📋 Copy digest prompt</button>
-          </div>
-          <div class="sc-sub" style="margin-top:14px;">Search Console keywords</div>
+          <div class="sc-sub" style="margin-top:0;">Search Console keywords</div>
           <div id="scKwTable"></div>
           <div class="sc-tools">
             <button class="mini-icon-btn primary-ish" id="scSyncGsc">🔄 Sync from Search Console</button>
@@ -2070,103 +2049,6 @@ async function checkArticlesLive() {
   }
 }
 document.getElementById('scCheckLive').addEventListener('click', checkArticlesLive);
-
-/* ==================== Investigate a topic — search + copyable LLM digest prompt ==================== */
-const FARDA_SEARCH_URL = 'https://trend-kehqans-projects.vercel.app/api/farda-search';
-let fardaSearchState = { topic: '', rows: [] }; // rows: [{title,url,pubDate,source,snippet,selected}]
-
-function fardaFormatDate(pubDate) {
-  const t = new Date(pubDate).getTime();
-  if (isNaN(t)) return '';
-  return new Date(t).toLocaleDateString([], { year: 'numeric', month: 'short', day: 'numeric' });
-}
-function renderFardaSearchResults() {
-  const wrap = document.getElementById('fardaSearchResults'); if (!wrap) return;
-  const actions = document.getElementById('fardaSearchActions');
-  if (!fardaSearchState.rows.length) { wrap.innerHTML = ''; if (actions) actions.style.display = 'none'; return; }
-  if (actions) actions.style.display = 'flex';
-  wrap.innerHTML = fardaSearchState.rows.map((r, i) => `
-    <div class="farda-result-row">
-      <input type="checkbox" data-fardasel="${i}" ${r.selected ? 'checked' : ''}>
-      <div class="farda-result-body">
-        <a class="farda-result-title" href="${escapeHtml(r.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(r.title)}</a>
-        <div class="farda-result-meta">${escapeHtml(fardaFormatDate(r.pubDate))}${r.source ? ' · ' + escapeHtml(r.source) : ''}</div>
-        ${r.snippet ? `<div class="farda-result-snippet">${escapeHtml(r.snippet)}</div>` : ''}
-      </div>
-      <button class="mini-icon-btn farda-result-add" data-fardaadd="${i}" title="Add to Winning articles">＋</button>
-    </div>`).join('');
-  wrap.querySelectorAll('[data-fardasel]').forEach(cb => cb.addEventListener('change', () => {
-    fardaSearchState.rows[+cb.getAttribute('data-fardasel')].selected = cb.checked;
-  }));
-  wrap.querySelectorAll('[data-fardaadd]').forEach(b => b.addEventListener('click', () => {
-    const r = fardaSearchState.rows[+b.getAttribute('data-fardaadd')];
-    searchIntel.articles.push({ title: r.title, url: r.url });
-    renderScArticles(); renderDeskRail();
-    dashToast(`Added "${r.title.slice(0, 40)}…" to Winning articles`);
-  }));
-}
-async function runFardaSearch() {
-  const input = document.getElementById('fardaSearchTopic');
-  const btn = document.getElementById('fardaSearchBtn');
-  const status = document.getElementById('fardaSearchStatus');
-  const topic = (input.value || '').trim();
-  if (!topic) { if (status) status.textContent = 'Type a topic to search first.'; return; }
-  btn.disabled = true; btn.textContent = '🔎 Searching…';
-  if (status) status.textContent = `Searching Radio Farda's coverage of "${topic}"…`;
-  try {
-    const url = `${FARDA_SEARCH_URL}?q=${encodeURIComponent(topic)}&num=20`;
-    const res = await fetch(url);
-    const data = await res.json();
-    if (!res.ok || !data.ok) throw new Error(data.error || `HTTP ${res.status}`);
-    fardaSearchState.topic = topic;
-    fardaSearchState.rows = (data.rows || []).map(r => ({ ...r, selected: true }));
-    renderFardaSearchResults();
-    if (status) status.textContent = fardaSearchState.rows.length
-      ? `Found ${fardaSearchState.rows.length} related piece${fardaSearchState.rows.length === 1 ? '' : 's'}. Uncheck any that aren't relevant, then copy the digest prompt.`
-      : `No indexed coverage found for "${topic}" — try a broader or differently-worded term.`;
-  } catch (err) {
-    if (status) status.textContent = `Search failed: ${err.message}`;
-  } finally {
-    btn.disabled = false; btn.textContent = '🔎 Search Radio Farda';
-  }
-}
-function buildFardaDigestPrompt() {
-  const selected = fardaSearchState.rows.filter(r => r.selected);
-  const list = selected.map((r, i) =>
-    `${i + 1}. [${fardaFormatDate(r.pubDate) || 'undated'}] ${r.title}\n   ${r.snippet ? r.snippet + '\n   ' : ''}${r.url}`
-  ).join('\n\n');
-  return `You are helping a journalist at Radio Farda prepare to write about the following topic.
-
-TOPIC: ${fardaSearchState.topic}
-
-Below is a list of Radio Farda's own past coverage related to this topic, found via a site-scoped search. Some entries may be only tangentially related — use judgment, and note if any seem off-topic.
-
-${list}
-
-Based on this material, produce a structured briefing with:
-1. Timeline — how has coverage of this topic evolved over time (group by rough period if a pattern emerges)
-2. Key entities — people, organizations, and places that recur across these pieces
-3. Narrative threads already covered — the distinct angles/storylines already published
-4. Open questions / coverage gaps — what hasn't been addressed yet, or where the story may have moved since the most recent piece listed
-5. Suggested new angle — one specific, non-redundant angle for a new piece, given what's already been covered
-
-Write the briefing in Persian, since that is the audience and source language, unless told otherwise.`;
-}
-async function copyFardaDigestPrompt() {
-  const status = document.getElementById('fardaSearchStatus');
-  const selected = fardaSearchState.rows.filter(r => r.selected);
-  if (!selected.length) { if (status) status.textContent = 'Select at least one result first.'; return; }
-  const prompt = buildFardaDigestPrompt();
-  try {
-    await navigator.clipboard.writeText(prompt);
-    dashToast(`Copied digest prompt (${selected.length} source${selected.length === 1 ? '' : 's'}) — paste into ChatGPT, Claude, or Copilot`);
-  } catch (err) {
-    if (status) status.textContent = 'Clipboard blocked — select and copy the prompt manually.';
-  }
-}
-document.getElementById('fardaSearchBtn').addEventListener('click', runFardaSearch);
-document.getElementById('fardaSearchTopic').addEventListener('keydown', e => { if (e.key === 'Enter') runFardaSearch(); });
-document.getElementById('fardaCopyPromptBtn').addEventListener('click', copyFardaDigestPrompt);
 
 function renderScTrends() {
   renderTrendsChipsBar();
