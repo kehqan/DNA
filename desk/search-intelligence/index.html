@@ -1181,21 +1181,48 @@ async function runGscSync(terms) {
 document.getElementById('scSyncGsc').addEventListener('click', e => openGscKeywordPicker(e.currentTarget));
 
 /* ==================== Smart headline suggestions — prompt builder ==================== */
+// Google Trends normalizes interest scores across whatever terms are queried
+// together ("compare mode") — joining keywords into one comma request would
+// silently change what the 0-100 numbers mean. So each added keyword is
+// fetched on its own, using the date range it was actually looked up with.
+const TRENDS_RANGE_TO_DAYS = { 'now 1-d': 1, 'now 7-d': 7, 'today 1-m': 30, 'today 3-m': 90, 'today 12-m': 365 };
 async function fetchTrendsSummaryForPrompt() {
-  const terms = searchIntel.trendsLookups.map(l => l.keyword).slice(0, 5);
-  if (!terms.length) return [];
-  try {
-    const res = await fetch(`${TRENDS_API_URL}?q=${encodeURIComponent(terms.join(','))}&days=90`);
-    const data = await res.json();
-    if (!res.ok || !data.ok) return [];
-    return (data.rows || []).map(r => ({
-      keyword: r.keyword,
-      avg: r.avg,
-      points: Array.isArray(r.points) ? r.points : [],
-      related: (r.related && (r.related.top || r.related.rising)) ? r.related : { top: [], rising: [] }
-    }));
-  } catch (e) { return []; }
+  const lookups = searchIntel.trendsLookups.slice(0, 5);
+  if (!lookups.length) return { summaries: [], errors: [] };
+  const results = await Promise.all(lookups.map(async (l) => {
+    const days = TRENDS_RANGE_TO_DAYS[l.range] || 90;
+    try {
+      const res = await fetch(`${TRENDS_API_URL}?q=${encodeURIComponent(l.keyword)}&days=${days}&range=${encodeURIComponent(l.range)}`);
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data || !data.ok) {
+        console.warn('[trends→prompt] fetch failed for', l.keyword, res.status, data);
+        return { error: `"${l.keyword}" (HTTP ${res.status}${data && data.error ? ': ' + data.error : ''})` };
+      }
+      const row = (Array.isArray(data.rows) && data.rows[0]) || data.row || null;
+      if (!row || (row.avg == null && !Array.isArray(row.points))) {
+        console.warn('[trends→prompt] unexpected response shape for', l.keyword, data);
+        return { error: `"${l.keyword}" (unexpected response shape — check console)` };
+      }
+      return {
+        summary: {
+          keyword: row.keyword || l.keyword,
+          range: l.range,
+          avg: row.avg,
+          points: Array.isArray(row.points) ? row.points : [],
+          related: (row.related && (row.related.top || row.related.rising)) ? row.related : { top: [], rising: [] }
+        }
+      };
+    } catch (e) {
+      console.warn('[trends→prompt] request error for', l.keyword, e);
+      return { error: `"${l.keyword}" (${e.message})` };
+    }
+  }));
+  return {
+    summaries: results.filter(r => r.summary).map(r => r.summary),
+    errors: results.filter(r => r.error).map(r => r.error)
+  };
 }
+const TRENDS_RANGE_LABEL = { 'now 1-d': 'past day', 'now 7-d': 'past 7 days', 'today 1-m': 'past 30 days', 'today 3-m': 'past 90 days', 'today 12-m': 'past 12 months' };
 function truncateForPrompt(text, max) {
   const t = String(text || '').trim();
   return t.length > max ? t.slice(0, max) + '\n\n[…truncated…]' : t;
@@ -1229,7 +1256,7 @@ async function buildHeadlinePrompt() {
   const headline = (document.getElementById('articleHeadline').value || '').trim();
   const body = truncateForPrompt(document.getElementById('articleText').value, 8000);
   const keywords = searchIntel.keywords.map(r => (r[0] || '').trim()).filter(Boolean);
-  const trendSummary = await fetchTrendsSummaryForPrompt();
+  const { summaries: trendSummary, errors: trendErrors } = await fetchTrendsSummaryForPrompt();
   const articles = searchIntel.articles.filter(a => a.title || a.url);
 
   const lines = [];
@@ -1244,9 +1271,9 @@ async function buildHeadlinePrompt() {
     lines.push('');
   }
   if (trendSummary.length) {
-    lines.push('GOOGLE TRENDS SIGNAL (search interest, 0-100 scale, past 90 days):');
+    lines.push('GOOGLE TRENDS SIGNAL (search interest, 0-100 scale, each keyword scored independently):');
     trendSummary.forEach(t => {
-      lines.push(`- "${t.keyword}": average interest ${t.avg}/100, ${trendDirection(t.points) || 'trend unclear'} over the period`);
+      lines.push(`- "${t.keyword}" (${TRENDS_RANGE_LABEL[t.range] || 'recent period'}): average interest ${t.avg}/100, ${trendDirection(t.points) || 'trend unclear'}`);
       const series = summarizeTimeSeries(t.points, 14);
       if (series) lines.push(`  Interest over time: ${series}`);
       if (t.related.top && t.related.top.length) lines.push(`  Related queries (top): ${t.related.top.join(', ')}`);
@@ -1265,7 +1292,7 @@ async function buildHeadlinePrompt() {
   lines.push("CURRENT CONTEXT: if you have live web search available, briefly check what else is currently being said about this topic before suggesting headlines. If you don't have search, rely on the material above.");
   lines.push('');
   lines.push('TASK: Suggest 6 headline options for this piece, ranked best to worst. For each one, give one sentence of reasoning — SEO relevance to the keywords/trends above, click-through appeal, and accuracy to the article. Output only the ranked headline list with reasoning. Nothing else.');
-  return lines.join('\n');
+  return { prompt: lines.join('\n'), trendErrors };
 }
 async function copyHeadlinePrompt() {
   const btn = document.getElementById('genHeadlinePromptBtn');
@@ -1274,10 +1301,16 @@ async function copyHeadlinePrompt() {
   if (!body) { if (status) status.textContent = 'Paste the article text first.'; return; }
   btn.disabled = true; btn.textContent = '📋 Building…';
   try {
-    const prompt = await buildHeadlinePrompt();
+    const { prompt, trendErrors } = await buildHeadlinePrompt();
     await navigator.clipboard.writeText(prompt);
     dashToast('Copied headline prompt — paste into ChatGPT, Claude, or Copilot');
-    if (status) status.textContent = "Copied. The prompt includes your article, target keywords, trends signal, and related coverage — the LLM's only job is to return ranked headline options with reasoning.";
+    if (status) {
+      if (trendErrors && trendErrors.length) {
+        status.textContent = `Copied — but Google Trends data failed for ${trendErrors.join('; ')}. The prompt was built without it; open devtools console for the raw response, or check ${TRENDS_API_URL}.`;
+      } else {
+        status.textContent = "Copied. The prompt includes your article, target keywords, trends signal (with related queries), and related coverage — the LLM's only job is to return ranked headline options with reasoning.";
+      }
+    }
   } catch (err) {
     if (status) status.textContent = `Couldn't build/copy the prompt: ${err.message}`;
   } finally {
