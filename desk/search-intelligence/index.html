@@ -421,7 +421,7 @@ function renderKw(){
       : '<div class="tag t-t">—</div>';
     return `<div class="kwrow" style="animation-delay:${i*22}ms">
       <div class="kw-main"><div class="kw-term">${esc(k.term)}</div>
-      <div class="kw-src">via ${esc(k.seed)} · pos ${k.position?k.position.toFixed(1):'—'}</div></div>
+      <div class="kw-src">pos ${k.position?k.position.toFixed(1):'—'}${k.page?` · ranked by <span style="color:var(--flame)">${esc(k.page.replace(/^https?:\/\/(www\.)?radiofarda\.com/,''))}</span>`:' · no ranking page'}</div></div>
       <div class="kw-bar"><div class="bbg"><i class="bfill" data-w="${Math.round(k.clicks/max*100)}"></i></div></div>
       <div class="kw-num">${k.clicks.toLocaleString()}<small>clicks</small></div>${tag}</div>`;
   }).join('');
