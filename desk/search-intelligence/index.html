@@ -308,6 +308,7 @@ details.dd[open] summary .chev{transform:rotate(90deg)}
         <button class="btn-flame" id="cmpRun" style="margin-left:auto">Compare</button>
       </div>
 
+      <div style="display:none;font-size:9.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--soft);margin-bottom:6px" id="cmpOwnLabel">Already on your site</div>
       <div id="cmpOwnStats" style="display:none;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px"></div>
 
       <div id="cmpWidgetWrap"></div>
@@ -673,18 +674,47 @@ async function ownStatsFor(term){
   try{
     const rows = await fetchQueries(term);
     if (!rows.length) return null;
-    const best = rows.sort((a,b)=>b.clicks-a.clicks)[0];
-    const clicks = rows.reduce((s,r)=>s+r.clicks,0);
-    return { clicks, position: best.position, page: best.page };
+    const norm = s => String(s||'').trim().toLowerCase();
+    const exact = rows.filter(r => norm(r.term) === norm(term));
+    const use = exact.length ? exact : rows;   // fall back to partial matches only if no exact query exists
+
+    const byPage = new Map();
+    use.forEach(r => {
+      const key = r.page || '(no page)';
+      if (!byPage.has(key)) byPage.set(key, { page:r.page, term:r.term, clicks:0, impressions:0, position:r.position });
+      const o = byPage.get(key);
+      o.clicks += r.clicks; o.impressions += r.impressions;
+      if (r.position && r.position < o.position) o.position = r.position;
+    });
+    const pages = [...byPage.values()].sort((a,b)=>b.clicks-a.clicks);
+    return { totalClicks: pages.reduce((s,p)=>s+p.clicks,0), exact: exact.length>0, pages };
   }catch(e){ return null; }
 }
+
+function pageRow(p){
+  const hasUrl = /^https?:\/\//i.test(p.page||'');
+  const short = hasUrl ? p.page.replace(/^https?:\/\/(www\.)?radiofarda\.com/,'') : '(no URL)';
+  const inner = `<span style="font-size:12px">pos ${p.position?p.position.toFixed(1):'—'} · ${p.clicks.toLocaleString()} clicks</span><br><span style="font-size:10.5px;color:var(--soft)">${esc(short)}</span>`;
+  return hasUrl
+    ? `<a href="${esc(p.page)}" target="_blank" rel="noopener" style="display:block;padding:6px 0;color:inherit;text-decoration:none;border-top:1px solid var(--border)" onmouseover="this.style.color='var(--flame)'" onmouseout="this.style.color='inherit'">${inner}</a>`
+    : `<div style="padding:6px 0;border-top:1px solid var(--border)">${inner}</div>`;
+}
+
 function ownStatCard(term, stat){
   if (!term) return '';
   if (!stat) return `<div class="art" style="grid-template-columns:1fr"><div><div class="art-src">${esc(term)}</div><div style="font-size:12px;color:var(--soft)">No history on your site for this term</div></div></div>`;
-  return `<div class="art" style="grid-template-columns:1fr"><div>
-    <div class="art-src">${esc(term)}</div>
-    <div style="font-size:13px;font-family:var(--serif)">pos ${stat.position.toFixed(1)} · ${stat.clicks.toLocaleString()} clicks on your site</div>
-    ${stat.page?`<div style="font-size:10.5px;color:var(--soft);margin-top:2px">${esc(stat.page.replace(/^https?:\/\/(www\.)?radiofarda\.com/,''))}</div>`:''}
+
+  const headline = `<div class="art-src">${esc(term)}${stat.exact?'':' · closest matches'}</div>
+    <div style="font-size:13px;font-family:var(--serif)">${stat.totalClicks.toLocaleString()} clicks across ${stat.pages.length} page${stat.pages.length===1?'':'s'} on your site</div>`;
+
+  if (stat.pages.length === 1){
+    return `<div class="art" style="grid-template-columns:1fr"><div>${headline}<div style="margin-top:4px">${pageRow(stat.pages[0]).replace('border-top:1px solid var(--border);','')}</div></div></div>`;
+  }
+  return `<div class="art" style="grid-template-columns:1fr"><div>${headline}
+    <details style="margin-top:4px">
+      <summary style="cursor:pointer;font-size:11px;color:var(--flame);font-weight:600;list-style:none">▾ Show all ${stat.pages.length} ranking pages</summary>
+      ${stat.pages.map(pageRow).join('')}
+    </details>
   </div></div>`;
 }
 
@@ -739,6 +769,7 @@ $('cmpRun').addEventListener('click', async ()=>{
   if (!a && !b) return toast('Enter at least one term');
 
   $('cmpEmpty').style.display = 'none';
+  $('cmpOwnLabel').style.display = 'block';
   $('cmpOwnStats').style.display = 'grid';
   $('cmpOwnStats').innerHTML = '<div class="sk" style="height:50px"></div><div class="sk" style="height:50px"></div>';
 
