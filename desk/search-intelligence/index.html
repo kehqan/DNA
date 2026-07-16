@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Search Intelligence — Desk</title>
-<link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&family=Noto+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&family=Noto+Sans:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
   --ivory:#F8F7F6; --teal:#1A3948; --teal2:#24506A; --flame:#FF5400;
@@ -16,8 +16,10 @@
   --eo:cubic-bezier(0.25,0.46,0.45,0.94);
   --serif:'Lora',Georgia,serif; --sans:'Noto Sans',system-ui,sans-serif;
 }
+html[dir="rtl"]{ --serif:'Vazirmatn','Noto Sans',sans-serif; --sans:'Vazirmatn','Noto Sans',sans-serif; }
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:var(--sans);color:var(--teal);min-height:100vh;-webkit-font-smoothing:antialiased}
+html[dir="rtl"] .kw-num,html[dir="rtl"] .art-clicks,html[dir="rtl"] .sn{direction:ltr;text-align:right}
 
 .scene{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;background:#F0EFED}
 .orb{position:absolute;border-radius:50%;filter:blur(90px);transition:opacity 700ms var(--eo),transform 700ms var(--eo)}
@@ -30,6 +32,7 @@ body{font-family:var(--sans);color:var(--teal);min-height:100vh;-webkit-font-smo
 .nav-wrap{position:sticky;top:0;z-index:50;display:flex;justify-content:center;padding:12px 24px 0;pointer-events:none}
 .nav-pill{display:inline-flex;align-items:center;gap:2px;background:rgba(26,57,72,0.80);backdrop-filter:blur(28px) saturate(2);-webkit-backdrop-filter:blur(28px) saturate(2);border:1px solid rgba(255,255,255,0.12);border-radius:100px;padding:5px;box-shadow:0 8px 32px rgba(0,0,0,0.22),0 2px 8px rgba(0,0,0,0.14),inset 0 1px 0 rgba(255,255,255,0.14),inset 0 -1px 0 rgba(0,0,0,0.18);pointer-events:all}
 .wordmark{font-family:var(--serif);font-size:17px;color:rgba(248,247,246,0.92);padding:6px 16px 6px 12px;border-right:1px solid rgba(255,255,255,0.10);margin-right:4px}
+html[dir="rtl"] .wordmark{border-right:none;border-left:1px solid rgba(255,255,255,0.10);margin-right:0;margin-left:4px}
 .wordmark em{font-style:normal;color:var(--flame);font-weight:600}
 .ntab{font-size:13px;font-weight:500;color:rgba(185,204,204,0.72);padding:7px 16px;border-radius:100px;cursor:pointer;text-decoration:none;transition:color 180ms,background 180ms}
 .ntab:hover{color:rgba(248,247,246,0.95)}
@@ -40,12 +43,17 @@ body{font-family:var(--sans);color:var(--teal);min-height:100vh;-webkit-font-smo
 .gen-ntab:active{transform:scale(.97)}
 .gen-ntab.idle{background:rgba(255,255,255,0.10);color:rgba(185,204,204,0.55);box-shadow:none;cursor:default}
 .gen-ntab.idle:hover{transform:none}
+.langtoggle{display:flex;background:rgba(255,255,255,0.08);border-radius:100px;padding:3px;gap:2px}
+.lt-opt{font-size:11px;font-weight:700;padding:5px 11px;border-radius:100px;color:rgba(185,204,204,.62);cursor:pointer;transition:all 150ms;user-select:none}
+.lt-opt.on{background:var(--flame);color:#fff}
+.lt-opt:hover:not(.on){color:rgba(248,247,246,.9)}
 
 .wrap{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:26px 24px 90px}
 .hero{margin:18px 0 18px}
 .hero h1{font-family:var(--serif);font-size:38px;font-weight:400;letter-spacing:-0.02em;line-height:1.1}
-.hero p{font-size:13px;color:var(--muted);margin-top:6px;max-width:560px}
+.hero p{font-size:13px;color:var(--muted);margin-top:6px;max-width:580px;line-height:1.6}
 .eyebrow{font-size:10px;font-weight:600;letter-spacing:.10em;text-transform:uppercase;color:var(--soft);display:flex;align-items:center;gap:7px;margin-bottom:12px}
+html[dir="rtl"] .eyebrow{letter-spacing:0}
 .pdot{width:6px;height:6px;border-radius:50%;background:var(--flame);animation:pring 2.5s ease-in-out infinite;flex-shrink:0}
 @keyframes pring{0%,100%{box-shadow:0 0 0 0 rgba(255,84,0,0.4)}50%{box-shadow:0 0 0 5px rgba(255,84,0,0)}}
 
@@ -60,6 +68,7 @@ body{font-family:var(--sans);color:var(--teal);min-height:100vh;-webkit-font-smo
 .hl-in::placeholder{color:var(--soft)}
 
 .syncbar{display:flex;align-items:center;gap:12px;background:var(--glass);backdrop-filter:blur(18px) saturate(1.6);-webkit-backdrop-filter:blur(18px) saturate(1.6);border:1px solid var(--glass-b);box-shadow:var(--gs),var(--gi);border-radius:100px;padding:8px 8px 8px 18px;margin:14px 0;animation:rise 420ms var(--eo) both}
+html[dir="rtl"] .syncbar{padding:8px 18px 8px 8px}
 .sb-text{flex:1;font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:9px;min-width:0}
 .sb-text b{color:var(--teal);font-weight:600}
 .spin{width:13px;height:13px;border-radius:50%;border:2px solid rgba(26,57,72,0.14);border-top-color:var(--flame);animation:sp .7s linear infinite;flex-shrink:0}
@@ -93,6 +102,7 @@ details.dd summary::-webkit-details-marker{display:none}
 details.dd summary:hover{color:var(--teal)}
 details.dd summary .chev{transition:transform 220ms var(--eo);font-size:9px;color:var(--soft)}
 details.dd[open] summary .chev{transform:rotate(90deg)}
+html[dir="rtl"] details.dd[open] summary .chev{transform:rotate(-90deg)}
 .dd-body{padding-top:12px;animation:rise 300ms var(--eo) both}
 
 .kwlist{display:flex;flex-direction:column;gap:2px}
@@ -101,12 +111,14 @@ details.dd[open] summary .chev{transform:rotate(90deg)}
 .kw-main{min-width:0}
 .kw-term{font-family:var(--serif);font-size:13.5px;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .kw-src{font-size:9.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--soft);margin-top:2px}
+html[dir="rtl"] .kw-src{letter-spacing:0;text-transform:none}
 .kw-bar{width:70px;display:flex;align-items:center}
 .bbg{flex:1;height:4px;background:rgba(26,57,72,0.09);border-radius:100px;overflow:hidden}
 .bfill{display:block;height:100%;border-radius:100px;background:linear-gradient(90deg,var(--flame) 0%,#ff7a40 100%);width:0;transition:width 620ms var(--eo)}
 .kw-num{font-size:12px;font-weight:700;text-align:right;min-width:42px;font-variant-numeric:tabular-nums}
 .kw-num small{display:block;font-size:9px;font-weight:600;color:var(--soft);letter-spacing:.04em}
 .tag{font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:3px 9px;border-radius:100px;white-space:nowrap}
+html[dir="rtl"] .tag{letter-spacing:0;text-transform:none}
 .t-f{background:rgba(255,84,0,0.10);color:var(--flame);border:1px solid rgba(255,84,0,0.20)}
 .t-h{background:rgba(255,192,71,0.14);color:#8a5e00;border:1px solid rgba(255,192,71,0.28)}
 .t-t{background:rgba(26,57,72,0.08);color:var(--teal2);border:1px solid rgba(26,57,72,0.14)}
@@ -121,6 +133,7 @@ details.dd[open] summary .chev{transform:rotate(90deg)}
 .stripe{border-radius:100px;align-self:stretch;min-height:38px;width:4px}
 .sf{background:var(--flame)}.sh{background:var(--honey)}.st{background:var(--teal)}
 .art-src{font-size:9.5px;font-weight:700;letter-spacing:.10em;text-transform:uppercase;color:var(--soft);margin-bottom:4px}
+html[dir="rtl"] .art-src{letter-spacing:0;text-transform:none}
 .art-title{font-family:var(--serif);font-size:13.5px;line-height:1.4;margin-bottom:4px}
 .art-title a{color:inherit;text-decoration:none}
 .art-title a:hover{color:var(--flame)}
@@ -128,6 +141,7 @@ details.dd[open] summary .chev{transform:rotate(90deg)}
 .art-right{text-align:right;flex-shrink:0}
 .art-clicks{font-family:var(--serif);font-size:18px;color:var(--flame);line-height:1;font-variant-numeric:tabular-nums}
 .art-clicks small{display:block;font-family:var(--sans);font-size:8.5px;font-weight:600;color:var(--soft);text-transform:uppercase;letter-spacing:.05em;margin-top:2px}
+html[dir="rtl"] .art-clicks small{letter-spacing:0;text-transform:none}
 
 .chips{display:flex;flex-wrap:wrap;gap:6px}
 .fc{padding:6px 14px;border-radius:100px;font-size:11.5px;font-weight:500;border:1px solid var(--border);background:rgba(255,255,255,0.60);backdrop-filter:blur(8px);color:var(--muted);cursor:pointer;transition:all 150ms}
@@ -148,7 +162,7 @@ details.dd[open] summary .chev{transform:rotate(90deg)}
 .sheet-in{width:100%;max-width:820px;max-height:86vh;display:flex;flex-direction:column;border-radius:22px;background:rgba(255,255,255,0.84);backdrop-filter:blur(30px) saturate(1.8);-webkit-backdrop-filter:blur(30px) saturate(1.8);border:1px solid var(--glass-b);box-shadow:0 24px 70px rgba(26,57,72,0.26),var(--gi);animation:rise 320ms var(--eo) both;overflow:hidden}
 .sheet-head{display:flex;align-items:center;gap:12px;padding:18px 22px;border-bottom:1px solid var(--border)}
 .sheet-head h3{font-family:var(--serif);font-size:19px;font-weight:400;flex:1}
-.prompt-pre{flex:1;overflow:auto;margin:0;padding:18px 22px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11.5px;line-height:1.65;color:var(--teal2);white-space:pre-wrap;word-break:break-word}
+.prompt-pre{flex:1;overflow:auto;margin:0;padding:18px 22px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11.5px;line-height:1.65;color:var(--teal2);white-space:pre-wrap;word-break:break-word;direction:ltr;text-align:left}
 .sheet-foot{display:flex;align-items:center;gap:10px;padding:14px 22px;border-top:1px solid var(--border);background:rgba(255,255,255,0.4)}
 .sheet-foot .meta{flex:1;font-size:11.5px;color:var(--soft)}
 .btn-flame{font-size:13px;font-weight:600;color:#fff;background:var(--flame);border:none;padding:9px 20px;border-radius:100px;cursor:pointer;box-shadow:0 2px 10px rgba(255,84,0,.42),inset 0 1px 0 rgba(255,255,255,.22);transition:transform 150ms var(--eo),opacity 200ms}
@@ -167,29 +181,34 @@ details.dd[open] summary .chev{transform:rotate(90deg)}
 <div class="nav-wrap">
   <div class="nav-pill">
     <div class="wordmark">Desk<em>.</em></div>
-    <div class="ntab">Briefs</div>
-    <div class="ntab on">Search Intelligence</div>
-    <div class="ntab">Library</div>
+    <div class="ntab" data-i18n="nav.briefs">Briefs</div>
+    <div class="ntab on" data-i18n="nav.searchIntel">Search Intelligence</div>
+    <div class="ntab" data-i18n="nav.library">Library</div>
     <div class="nav-sep"></div>
-    <a href="/desk/search-intelligence/admin/" style="text-decoration:none" class="ntab" title="Edit the prompt template">⚙ Admin</a>
-    <div class="ntab" id="compareBtn" title="Compare two keywords">⇄ Compare</div>
+    <a href="/desk/search-intelligence/admin/" style="text-decoration:none" class="ntab" data-i18n="nav.admin" data-i18n-title="nav.adminTitle" title="Edit the prompt template">⚙ Admin</a>
+    <div class="ntab" id="compareBtn" data-i18n="nav.compare" data-i18n-title="nav.compareTitle" title="Compare two keywords">⇄ Compare</div>
     <div class="nav-sep"></div>
-    <div class="gen-ntab idle" id="genBtn">◆ Prompt</div>
+    <div class="gen-ntab idle" id="genBtn" data-i18n="nav.promptBtn">◆ Prompt</div>
+    <div class="nav-sep"></div>
+    <div class="langtoggle" id="langToggle">
+      <div class="lt-opt on" data-lang="en">EN</div>
+      <div class="lt-opt" data-lang="fa">فا</div>
+    </div>
   </div>
 </div>
 
 <div class="wrap">
 
   <div class="hero">
-    <div class="eyebrow"><span class="pdot"></span> Live · Search Console · radiofarda.com</div>
-    <h1>Search Intelligence</h1>
-    <p>Paste an article. Terms extract, queries sync, Discover loads, the headline prompt assembles — all on its own.</p>
+    <div class="eyebrow"><span class="pdot"></span> <span data-i18n="hero.eyebrow">Live · Search Console · radiofarda.com</span></div>
+    <h1 data-i18n="hero.title">Search Intelligence</h1>
+    <p data-i18n="hero.sub">Paste an article. Terms extract, queries sync, Discover loads, the headline prompt assembles — all on its own.</p>
   </div>
 
   <div class="intake" id="intake">
-    <textarea class="intake-in" id="articleText" placeholder="Paste the article text here — everything starts on its own…"></textarea>
+    <textarea class="intake-in" id="articleText" data-i18n-ph="intake.placeholder" placeholder="Paste the article text here — everything starts on its own…"></textarea>
     <div class="intake-foot hide" id="intakeFoot">
-      <input class="hl-in" id="articleHl" placeholder="Current headline (optional — sharpens the prompt)">
+      <input class="hl-in" id="articleHl" data-i18n-ph="intake.headlinePlaceholder" placeholder="Current headline (optional — sharpens the prompt)">
       <span id="wordCount"></span>
     </div>
   </div>
@@ -197,43 +216,43 @@ details.dd[open] summary .chev{transform:rotate(90deg)}
   <div class="syncbar" id="syncbar">
     <div class="sb-text"><span class="spin" id="sbSpin" style="display:none"></span><span id="sbMsg">Loading Discover…</span></div>
     <div class="sb-prog"><i id="sbProg"></i></div>
-    <button class="ghost-sm" id="sbRefresh">↻ Resync</button>
+    <button class="ghost-sm" id="sbRefresh" data-i18n="sync.refresh">↻ Resync</button>
   </div>
 
   <div class="stats">
-    <div class="card stat" style="animation-delay:55ms"><div class="sn pending" id="stKw">—</div><div class="sl">Queries you own</div><div class="sup" id="stKwD"></div></div>
-    <div class="card stat" style="animation-delay:80ms"><div class="sn pending" id="stClicks">—</div><div class="sl">Clicks · 28d</div><div class="sup" id="stClicksD"></div></div>
-    <div class="card stat" style="animation-delay:105ms"><div class="sn pending" id="stPos">—</div><div class="sl">Avg. position</div><div class="sup" id="stPosD"></div></div>
-    <div class="card stat" style="animation-delay:130ms"><div class="sn pending" id="stDisc">—</div><div class="sl">Discover clicks</div><div class="sdn" id="stDiscD"></div></div>
+    <div class="card stat" style="animation-delay:55ms"><div class="sn pending" id="stKw">—</div><div class="sl" data-i18n="stat.queriesOwn">Queries you own</div><div class="sup" id="stKwD"></div></div>
+    <div class="card stat" style="animation-delay:80ms"><div class="sn pending" id="stClicks">—</div><div class="sl" data-i18n="stat.clicks28">Clicks · 28d</div><div class="sup" id="stClicksD"></div></div>
+    <div class="card stat" style="animation-delay:105ms"><div class="sn pending" id="stPos">—</div><div class="sl" data-i18n="stat.avgPos">Avg. position</div><div class="sup" id="stPosD"></div></div>
+    <div class="card stat" style="animation-delay:130ms"><div class="sn pending" id="stDisc">—</div><div class="sl" data-i18n="stat.discClicks">Discover clicks</div><div class="sdn" id="stDiscD"></div></div>
   </div>
 
   <div class="cols">
 
     <div class="card" style="animation-delay:150ms">
-      <div class="chead"><h2>Live queries</h2><div class="rule"></div><div class="uchip" id="kwCount">idle</div></div>
+      <div class="chead"><h2 data-i18n="q.header">Live queries</h2><div class="rule"></div><div class="uchip" id="kwCount" data-i18n="q.idle">idle</div></div>
       <div class="kwlist" id="kwList">
-        <div class="empty">Paste an article above.<br>Terms extract, then check against Search Console one at a time.</div>
+        <div class="empty" data-i18n="q.emptyBefore">Paste an article above.<br>Terms extract, then check against Search Console one at a time.</div>
       </div>
 
       <details class="dd">
-        <summary><span class="chev">▶</span> Terms pulled from your article <span style="margin-left:auto;font-weight:400" id="seedCount"></span></summary>
-        <div class="dd-body"><div class="chips" id="seedChips"><span class="empty">Nothing extracted yet.</span></div></div>
+        <summary><span class="chev">▶</span> <span data-i18n="q.seedsHeader">Terms pulled from your article</span> <span style="margin-left:auto;font-weight:400" id="seedCount"></span></summary>
+        <div class="dd-body"><div class="chips" id="seedChips"><span class="empty" data-i18n="q.seedsEmpty">Nothing extracted yet.</span></div></div>
       </details>
 
       <details class="dd">
-        <summary><span class="chev">▶</span> Sync log <span style="margin-left:auto;font-weight:400" id="logCount"></span></summary>
-        <div class="dd-body"><div class="kwlist" id="syncLog"><span class="empty">No syncs yet.</span></div></div>
+        <summary><span class="chev">▶</span> <span data-i18n="q.logHeader">Sync log</span> <span style="margin-left:auto;font-weight:400" id="logCount"></span></summary>
+        <div class="dd-body"><div class="kwlist" id="syncLog"><span class="empty" data-i18n="q.logEmpty">No syncs yet.</span></div></div>
       </details>
 
       <details class="dd">
-        <summary><span class="chev">▶</span> Add a term or import manually</summary>
+        <summary><span class="chev">▶</span> <span data-i18n="q.addHeader">Add a term or import manually</span></summary>
         <div class="dd-body">
-          <div class="row-in"><input class="mini-in" id="addKw" placeholder="Type a term, press Enter — syncs immediately"></div>
+          <div class="row-in"><input class="mini-in" id="addKw" data-i18n-ph="q.addPlaceholder" placeholder="Type a term, press Enter — syncs immediately"></div>
           <div class="row-in">
-            <button class="ghost-sm" id="btnPaste">⧉ Paste rows</button>
-            <label class="ghost-sm" for="fileIn" style="cursor:pointer">⭱ CSV</label>
+            <button class="ghost-sm" id="btnPaste" data-i18n="q.pasteRows">⧉ Paste rows</button>
+            <label class="ghost-sm" for="fileIn" style="cursor:pointer" data-i18n="q.csv">⭱ CSV</label>
             <input type="file" id="fileIn" accept=".csv,.tsv,.txt" hidden>
-            <button class="ghost-sm" id="btnClear" style="margin-left:auto">Clear</button>
+            <button class="ghost-sm" id="btnClear" style="margin-left:auto" data-i18n="q.clear">Clear</button>
           </div>
         </div>
       </details>
@@ -241,27 +260,27 @@ details.dd[open] summary .chev{transform:rotate(90deg)}
 
     <div style="display:flex;flex-direction:column;gap:14px">
       <div class="card" style="animation-delay:175ms">
-        <div class="chead"><h2>Discover winners</h2><div class="rule"></div><div class="uchip" id="artCount">…</div></div>
+        <div class="chead"><h2 data-i18n="d.header">Discover winners</h2><div class="rule"></div><div class="uchip" id="artCount">…</div></div>
         <div class="chips" style="margin-bottom:12px">
-          <div class="fc on" data-win="day">Last 3d</div>
-          <div class="fc" data-win="week">This week</div>
+          <div class="fc on" data-win="day" data-i18n="d.last3d">Last 3d</div>
+          <div class="fc" data-win="week" data-i18n="d.thisWeek">This week</div>
         </div>
-        <div class="artlist" id="artList"><div class="empty">Loading Discover…</div></div>
+        <div class="artlist" id="artList"><div class="empty" data-i18n="sync.loadingDiscover">Loading Discover…</div></div>
         <details class="dd">
-          <summary><span class="chev">▶</span> Add an article by hand</summary>
+          <summary><span class="chev">▶</span> <span data-i18n="d.addHeader">Add an article by hand</span></summary>
           <div class="dd-body">
-            <div class="row-in"><input class="mini-in" id="artTitle" placeholder="Article title"></div>
+            <div class="row-in"><input class="mini-in" id="artTitle" data-i18n-ph="d.titlePlaceholder" placeholder="Article title"></div>
             <div class="row-in"><input class="mini-in" id="artUrl" placeholder="https://…"><button class="ghost-sm" id="btnAddArt">＋</button></div>
           </div>
         </details>
       </div>
 
       <div class="card" style="animation-delay:200ms">
-        <div class="chead"><h2>Headline prompt</h2><div class="rule"></div><div class="uchip" id="promptState">waiting</div></div>
-        <div style="font-size:12px;color:var(--muted);line-height:1.6" id="promptSummary">
+        <div class="chead"><h2 data-i18n="p.header">Headline prompt</h2><div class="rule"></div><div class="uchip" id="promptState" data-i18n="p.waiting">waiting</div></div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.6" id="promptSummary" data-i18n="p.summaryDefault">
           Assembles from the article, your live queries, and Discover winners. Ready the moment syncing lands.
         </div>
-        <button class="btn-flame" id="genBtn2" style="width:100%;margin-top:14px;opacity:.35;pointer-events:none">◆ Generate prompt</button>
+        <button class="btn-flame" id="genBtn2" style="width:100%;margin-top:14px;opacity:.35;pointer-events:none" data-i18n="p.genBtn">◆ Generate prompt</button>
       </div>
     </div>
   </div>
@@ -270,14 +289,14 @@ details.dd[open] summary .chev{transform:rotate(90deg)}
 <div class="sheet" id="sheet">
   <div class="sheet-in">
     <div class="sheet-head">
-      <h3>Headline prompt</h3>
-      <button class="ghost-sm" id="sheetClose">Close</button>
+      <h3 data-i18n="p.sheetTitle">Headline prompt</h3>
+      <button class="ghost-sm" id="sheetClose" data-i18n="p.close">Close</button>
     </div>
     <pre class="prompt-pre" id="promptPre"></pre>
     <div class="sheet-foot">
       <div class="meta" id="promptMeta"></div>
-      <button class="ghost-sm" id="btnDownload">⭳ .txt</button>
-      <button class="btn-flame" id="btnCopy">⧉ Copy prompt</button>
+      <button class="ghost-sm" id="btnDownload" data-i18n="p.download">⭳ .txt</button>
+      <button class="btn-flame" id="btnCopy" data-i18n="p.copy">⧉ Copy prompt</button>
     </div>
   </div>
 </div>
@@ -285,35 +304,35 @@ details.dd[open] summary .chev{transform:rotate(90deg)}
 <div class="sheet" id="cmpSheet">
   <div class="sheet-in" style="max-width:900px">
     <div class="sheet-head">
-      <h3>Compare two keywords</h3>
-      <button class="ghost-sm" id="cmpClose">Close</button>
+      <h3 data-i18n="c.title">Compare two keywords</h3>
+      <button class="ghost-sm" id="cmpClose" data-i18n="c.close">Close</button>
     </div>
     <div style="padding:18px 22px;overflow:auto">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
-        <input class="mini-in" id="cmpA" placeholder="Term A" style="border-radius:12px">
-        <input class="mini-in" id="cmpB" placeholder="Term B" style="border-radius:12px">
+        <input class="mini-in" id="cmpA" data-i18n-ph="c.termA" placeholder="Term A" style="border-radius:12px">
+        <input class="mini-in" id="cmpB" data-i18n-ph="c.termB" placeholder="Term B" style="border-radius:12px">
       </div>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px">
         <select class="mini-in" id="cmpGeo" style="border-radius:12px;width:auto;flex:none">
-          <option value="IR">Iran</option>
-          <option value="">Worldwide</option>
-          <option value="US">United States</option>
+          <option value="IR" data-i18n="c.geoIran">Iran</option>
+          <option value="" data-i18n="c.geoWorld">Worldwide</option>
+          <option value="US" data-i18n="c.geoUS">United States</option>
         </select>
         <select class="mini-in" id="cmpTime" style="border-radius:12px;width:auto;flex:none">
-          <option value="now 7-d">Past 7 days</option>
-          <option value="today 1-m" selected>Past 30 days</option>
-          <option value="today 3-m">Past 90 days</option>
-          <option value="today 12-m">Past 12 months</option>
+          <option value="now 7-d" data-i18n="c.time7">Past 7 days</option>
+          <option value="today 1-m" selected data-i18n="c.time30">Past 30 days</option>
+          <option value="today 3-m" data-i18n="c.time90">Past 90 days</option>
+          <option value="today 12-m" data-i18n="c.time12m">Past 12 months</option>
         </select>
-        <button class="btn-flame" id="cmpRun" style="margin-left:auto">Compare</button>
+        <button class="btn-flame" id="cmpRun" style="margin-left:auto" data-i18n="c.compareBtn">Compare</button>
       </div>
 
-      <div style="display:none;font-size:9.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--soft);margin-bottom:6px" id="cmpOwnLabel">Already on your site</div>
+      <div style="display:none;font-size:9.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--soft);margin-bottom:6px" id="cmpOwnLabel" data-i18n="c.ownLabel">Already on your site</div>
       <div id="cmpOwnStats" style="display:none;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px"></div>
 
       <div id="cmpWidgetWrap"></div>
-      <div id="cmpEmpty" class="empty">Enter one or two terms and click Compare. Term A is pre-filled from your extracted terms when available.</div>
-      <div class="meta-note" style="font-size:10.5px;color:var(--soft);margin-top:10px;line-height:1.5">
+      <div id="cmpEmpty" class="empty" data-i18n="c.emptyState">Enter one or two terms and click Compare. Term A is pre-filled from your extracted terms when available.</div>
+      <div class="meta-note" style="font-size:10.5px;color:var(--soft);margin-top:10px;line-height:1.5" data-i18n="c.footerNote">
         Chart is Google's own public interest data (relative search volume, not tied to your site). Stats above the chart are your own Search Console history for these exact terms.
       </div>
     </div>
@@ -329,19 +348,198 @@ details.dd[open] summary .chev{transform:rotate(90deg)}
 </script>
 <script src="/desk/search-intelligence/prompt-engine.js" onerror="promptEngineLoadFailed()"></script>
 <script>
+/* ==================== i18n ==================== */
+const I18N = {
+en: {
+  'nav.briefs':'Briefs', 'nav.searchIntel':'Search Intelligence', 'nav.library':'Library',
+  'nav.admin':'⚙ Admin', 'nav.adminTitle':'Edit the prompt template',
+  'nav.compare':'⇄ Compare', 'nav.compareTitle':'Compare two keywords',
+  'nav.promptBtn':'◆ Prompt',
+  'hero.eyebrow':'Live · Search Console · radiofarda.com',
+  'hero.title':'Search Intelligence',
+  'hero.sub':'Paste an article. Terms extract, queries sync, Discover loads, the headline prompt assembles — all on its own.',
+  'intake.placeholder':'Paste the article text here — everything starts on its own…',
+  'intake.headlinePlaceholder':'Current headline (optional — sharpens the prompt)',
+  'intake.wordsSuffix':'{n} words',
+  'sync.loadingDiscover':'Loading Discover…', 'sync.waitPaste':'Paste an article to begin',
+  'sync.reading':'Reading the article…', 'sync.notEnough':'Not enough text yet to extract terms.',
+  'sync.checking':'Checking <b>{t}</b> — {i} of {n}', 'sync.pullingDiscover':'Pulling Discover winners…',
+  'sync.summary':'<b>{n}</b> queries from {hit} term{hitS} {dry}{bad} · Discover {d} · {time}',
+  'sync.dryPart':' · {n} no data', 'sync.badPart':' · <b style="color:var(--flame)">{n} failed</b>',
+  'sync.refresh':'↻ Resync', 'sync.checkingSingle':'Checking <b>{t}</b>…',
+  'sync.updatedNow':'<b>{n}</b> queries · updated just now',
+  'sync.discoverLive':'Discover live · <b>{n}</b> pages · paste an article to begin',
+  'sync.discoverUnreachable':'Discover unreachable — check the Apps Script deployment',
+  'sync.discoverFailedInline':'Discover failed: {msg}',
+  'stat.queriesOwn':'Queries you own', 'stat.clicks28':'Clicks · 28d', 'stat.avgPos':'Avg. position',
+  'stat.discClicks':'Discover clicks', 'stat.hitTerms':'{hit} of {n} terms hit',
+  'stat.gscWeb':'Search Console · web', 'stat.page1':'page 1', 'stat.page2':'page 2+',
+  'stat.topPages':'top {n} pages',
+  'q.header':'Live queries', 'q.idle':'idle', 'q.syncing':'syncing', 'q.count':'{n} queries',
+  'q.emptyBefore':'Paste an article above.<br>Terms extract, then check against Search Console one at a time.',
+  'q.emptyAfter':'No Search Console history matched these terms.<br>The story may be genuinely new — that\'s a signal, not an error.',
+  'q.rankedBy':'pos {p} · ranked by {page}', 'q.noPage':' · no ranking page', 'q.clicksSmall':'clicks',
+  'q.tagTop3':'Top 3', 'q.tagHighCtr':'High CTR', 'q.tagPage2':'Page 2',
+  'q.seedsHeader':'Terms pulled from your article', 'q.seedsCount':'{n} terms', 'q.seedsEmpty':'Nothing extracted yet.',
+  'q.logHeader':'Sync log', 'q.logCount':'{n} checked', 'q.logEmpty':'No syncs yet.',
+  'q.logReturned':'{n} quer{s} returned', 'q.logNone':'none', 'q.logError':'error',
+  'q.addHeader':'Add a term or import manually', 'q.addPlaceholder':'Type a term, press Enter — syncs immediately',
+  'q.pasteRows':'⧉ Paste rows', 'q.csv':'⭱ CSV', 'q.clear':'Clear',
+  'd.header':'Discover winners', 'd.last3d':'Last 3d', 'd.thisWeek':'This week',
+  'd.loadingShort':'Loading…', 'd.empty':'No Discover rows for this window.', 'd.noUrl':' · no URL returned',
+  'd.untitled':'Untitled page', 'd.impr':'impr', 'd.count':'{n} pages',
+  'd.addHeader':'Add an article by hand', 'd.titlePlaceholder':'Article title', 'd.added':'Added',
+  'd.addTitleOrUrl':'Add a title or URL',
+  'd.discoverFailedFull':'<b>Discover endpoint failed.</b><br>{msg}<br><br>Redeploy the Apps Script as a <b>new version</b>, access set to Anyone.',
+  'p.header':'Headline prompt', 'p.waiting':'waiting', 'p.building':'building', 'p.ready':'ready',
+  'p.summaryDefault':'Assembles from the article, your live queries, and Discover winners. Ready the moment syncing lands.',
+  'p.summaryReady':'Article <b>{w}</b> words · <b>{q}</b> live queries · <b>{d}</b> Discover winners · <b>{c}</b> chars assembled.',
+  'p.genBtn':'◆ Generate prompt', 'p.sheetTitle':'Headline prompt', 'p.close':'Close',
+  'p.download':'⭳ .txt', 'p.copy':'⧉ Copy prompt',
+  'p.meta':'{c} chars · ~{t} tokens · {q} queries · {d} Discover',
+  'p.copiedToast':'Prompt copied — paste into any LLM', 'p.copyBlockedToast':'Copy blocked — select manually',
+  'p.pasteFirstToast':'Paste an article first',
+  'c.title':'Compare two keywords', 'c.close':'Close', 'c.termA':'Term A', 'c.termB':'Term B',
+  'c.geoIran':'Iran', 'c.geoWorld':'Worldwide', 'c.geoUS':'United States',
+  'c.time7':'Past 7 days', 'c.time30':'Past 30 days', 'c.time90':'Past 90 days', 'c.time12m':'Past 12 months',
+  'c.compareBtn':'Compare', 'c.ownLabel':'Already on your site',
+  'c.noHistory':'No history on your site for this term',
+  'c.pagesSummary':'{n} clicks across {m} page{ms} on your site', 'c.closestMatches':' · closest matches',
+  'c.showAllPages':'▾ Show all {n} ranking pages',
+  'c.emptyState':'Enter one or two terms and click Compare. Term A is pre-filled from your extracted terms when available.',
+  'c.footerNote':'Chart is Google\'s own public interest data (relative search volume, not tied to your site). Stats above the chart are your own Search Console history for these exact terms.',
+  'c.openInTrends':'Open this comparison in Google Trends ↗', 'c.enterTermToast':'Enter at least one term',
+  'c.pos':'pos', 'c.clicks':'clicks', 'c.noUrlPage':'(no URL)',
+  'misc.noDataFor':'No data for "{v}"', 'misc.failed':'Failed: {msg}', 'misc.cleared':'Cleared',
+  'misc.clipboardBlocked':'Clipboard blocked', 'misc.imported':'Imported {n} rows',
+  'misc.nothingToImport':'Nothing to import', 'misc.promptTplFailed':'Prompt template failed to load — using built-in fallback'
+},
+fa: {
+  'nav.briefs':'بریف‌ها', 'nav.searchIntel':'سرمقاله‌گزین', 'nav.library':'کتابخانه',
+  'nav.admin':'⚙ مدیریت', 'nav.adminTitle':'ویرایش قالب پرامپت هوش مصنوعی',
+  'nav.compare':'⇄ مقایسه', 'nav.compareTitle':'مقایسهٔ دو کلیدواژه',
+  'nav.promptBtn':'◆ پرامپت',
+  'hero.eyebrow':'به‌روزرسانی زنده · گزارش جست‌وجوی گوگل · radiofarda.com',
+  'hero.title':'سرمقاله‌گزین',
+  'hero.sub':'متن خبر را اینجا بنویسید. کلیدواژه‌های اصلی به‌طور خودکار استخراج و عملکرد واقعی آن‌ها در جست‌وجوی گوگل بررسی می‌شود، برترین مطالب آرشیو نمایش داده می‌شوند و پیشنهاد سرتیتر بر پایهٔ دادهٔ واقعی آماده می‌شود — هدف: سرتیترهایی که هم در گوگل دیده می‌شوند و هم به متن خبر وفادار می‌مانند.',
+  'intake.placeholder':'متن خبر را اینجا بچسبانید — همه‌چیز خودش شروع می‌شود…',
+  'intake.headlinePlaceholder':'سرتیتر فعلی (اختیاری — پرامپت را دقیق‌تر می‌کند)',
+  'intake.wordsSuffix':'{n} کلمه',
+  'sync.loadingDiscover':'در حال بارگذاری آرشیو…', 'sync.waitPaste':'برای شروع، متن خبر را بچسبانید',
+  'sync.reading':'در حال خواندن متن خبر…', 'sync.notEnough':'متن هنوز برای استخراج کلیدواژه کافی نیست.',
+  'sync.checking':'در حال بررسی <b>{t}</b> — {i} از {n}', 'sync.pullingDiscover':'در حال دریافت برترین‌های آرشیو…',
+  'sync.summary':'<b>{n}</b> عبارت از {hit} کلیدواژه{hitS} {dry}{bad} · آرشیو {d} مطلب · {time}',
+  'sync.dryPart':' · {n} بدون داده', 'sync.badPart':' · <b style="color:var(--flame)">{n} ناموفق</b>',
+  'sync.refresh':'↻ همگام‌سازی مجدد', 'sync.checkingSingle':'در حال بررسی <b>{t}</b>…',
+  'sync.updatedNow':'<b>{n}</b> عبارت · اکنون به‌روزرسانی شد',
+  'sync.discoverLive':'آرشیو فعال است · <b>{n}</b> صفحه · برای شروع، متن خبر را بچسبانید',
+  'sync.discoverUnreachable':'دسترسی به آرشیو ممکن نیست — استقرار Apps Script را بررسی کنید',
+  'sync.discoverFailedInline':'خطا در آرشیو: {msg}',
+  'stat.queriesOwn':'کلیدواژه‌هایی که رتبه دارید', 'stat.clicks28':'کلیک · 28 روز', 'stat.avgPos':'میانگین رتبه',
+  'stat.discClicks':'کلیک آرشیو', 'stat.hitTerms':'{hit} از {n} کلیدواژه نتیجه داد',
+  'stat.gscWeb':'گزارش جست‌وجوی گوگل · وب', 'stat.page1':'صفحهٔ اول', 'stat.page2':'صفحهٔ دوم به بعد',
+  'stat.topPages':'{n} صفحهٔ برتر',
+  'q.header':'کلیدواژه‌های فعال', 'q.idle':'بدون فعالیت', 'q.syncing':'در حال همگام‌سازی', 'q.count':'{n} عبارت',
+  'q.emptyBefore':'متن خبر را در بالا بچسبانید.<br>کلیدواژه‌ها استخراج و به‌ترتیب در گزارش جست‌وجوی گوگل بررسی می‌شوند.',
+  'q.emptyAfter':'برای این کلیدواژه‌ها سابقه‌ای در گزارش جست‌وجوی گوگل یافت نشد.<br>شاید این خبر واقعاً تازه باشد — این خودش یک نشانه است، نه خطا.',
+  'q.rankedBy':'رتبه {p} · صفحهٔ رتبه‌دار: {page}', 'q.noPage':' · بدون صفحهٔ رتبه‌دار', 'q.clicksSmall':'کلیک',
+  'q.tagTop3':'سه رتبهٔ برتر', 'q.tagHighCtr':'نرخ کلیک بالا', 'q.tagPage2':'صفحهٔ دوم',
+  'q.seedsHeader':'کلیدواژه‌های استخراج‌شده از متن خبر', 'q.seedsCount':'{n} کلیدواژه', 'q.seedsEmpty':'هنوز چیزی استخراج نشده است.',
+  'q.logHeader':'گزارش همگام‌سازی', 'q.logCount':'{n} بررسی‌شده', 'q.logEmpty':'هنوز همگام‌سازی‌ای انجام نشده.',
+  'q.logReturned':'{n} عبارت یافت شد', 'q.logNone':'بدون نتیجه', 'q.logError':'خطا',
+  'q.addHeader':'افزودن کلیدواژه یا وارد کردن دستی', 'q.addPlaceholder':'کلیدواژه را بنویسید و اینتر بزنید — بلافاصله همگام می‌شود',
+  'q.pasteRows':'⧉ چسباندن ردیف‌ها', 'q.csv':'⭱ CSV', 'q.clear':'پاک کردن',
+  'd.header':'برترین‌های آرشیو', 'd.last3d':'3 روز اخیر', 'd.thisWeek':'این هفته',
+  'd.loadingShort':'در حال بارگذاری…', 'd.empty':'برای این بازهٔ زمانی مطلبی در آرشیو یافت نشد.', 'd.noUrl':' · بدون لینک',
+  'd.untitled':'بدون عنوان', 'd.impr':'نمایش', 'd.count':'{n} صفحه',
+  'd.addHeader':'افزودن دستی یک مطلب', 'd.titlePlaceholder':'عنوان مطلب', 'd.added':'افزوده شد',
+  'd.addTitleOrUrl':'عنوان یا لینک را وارد کنید',
+  'd.discoverFailedFull':'<b>اتصال به آرشیو ناموفق بود.</b><br>{msg}<br><br>اسکریپت Apps Script را به‌صورت نسخهٔ جدید (New version) و با دسترسی Anyone دوباره منتشر کنید.',
+  'p.header':'پرامپت سرتیتر', 'p.waiting':'در انتظار', 'p.building':'در حال آماده‌سازی', 'p.ready':'آماده',
+  'p.summaryDefault':'از متن خبر، کلیدواژه‌های زنده و برترین‌های آرشیو ساخته می‌شود؛ به‌محض پایان همگام‌سازی آماده است.',
+  'p.summaryReady':'متن خبر <b>{w}</b> کلمه · <b>{q}</b> کلیدواژهٔ زنده · <b>{d}</b> مطلب برتر آرشیو · <b>{c}</b> نویسه آماده شد.',
+  'p.genBtn':'◆ ساخت پرامپت', 'p.sheetTitle':'پرامپت سرتیتر', 'p.close':'بستن',
+  'p.download':'⭳ .txt', 'p.copy':'⧉ کپی پرامپت',
+  'p.meta':'{c} نویسه · حدود {t} توکن · {q} عبارت · {d} آرشیو',
+  'p.copiedToast':'پرامپت کپی شد — در هر ابزار هوش مصنوعی بچسبانید', 'p.copyBlockedToast':'کپی مسدود شد — متن را دستی انتخاب کنید',
+  'p.pasteFirstToast':'ابتدا متن خبر را بچسبانید',
+  'c.title':'مقایسهٔ دو کلیدواژه', 'c.close':'بستن', 'c.termA':'کلیدواژهٔ اول', 'c.termB':'کلیدواژهٔ دوم',
+  'c.geoIran':'ایران', 'c.geoWorld':'جهانی', 'c.geoUS':'ایالات متحده',
+  'c.time7':'7 روز اخیر', 'c.time30':'30 روز اخیر', 'c.time90':'90 روز اخیر', 'c.time12m':'12 ماه اخیر',
+  'c.compareBtn':'مقایسه', 'c.ownLabel':'پیش‌تر در سایت شما',
+  'c.noHistory':'برای این کلیدواژه سابقه‌ای در سایت شما نیست',
+  'c.pagesSummary':'{n} کلیک از {m} صفحه در سایت شما', 'c.closestMatches':' · نزدیک‌ترین تطابق‌ها',
+  'c.showAllPages':'▾ نمایش همهٔ {n} صفحهٔ رتبه‌دار',
+  'c.emptyState':'یک یا دو کلیدواژه وارد کنید و روی «مقایسه» بزنید. کلیدواژهٔ اول در صورت امکان از عبارت‌های استخراج‌شده پر می‌شود.',
+  'c.footerNote':'نمودار، دادهٔ عمومی Google Trends است (میزان علاقهٔ نسبی، بدون ارتباط با سایت شما). آمار بالای نمودار، سابقهٔ واقعی همین کلیدواژه‌ها در گزارش جست‌وجوی گوگل برای سایت شماست.',
+  'c.openInTrends':'مشاهدهٔ این مقایسه در Google Trends ↗', 'c.enterTermToast':'دست‌کم یک کلیدواژه وارد کنید',
+  'c.pos':'رتبه', 'c.clicks':'کلیک', 'c.noUrlPage':'(بدون لینک)',
+  'misc.noDataFor':'برای «{v}» داده‌ای یافت نشد', 'misc.failed':'ناموفق: {msg}', 'misc.cleared':'پاک شد',
+  'misc.clipboardBlocked':'کلیپ‌بورد مسدود است', 'misc.imported':'{n} ردیف وارد شد',
+  'misc.nothingToImport':'چیزی برای وارد کردن نیست', 'misc.promptTplFailed':'بارگذاری قالب پرامپت ناموفق بود — از نسخهٔ پیش‌فرض استفاده می‌شود'
+}
+};
+let LANG = localStorage.getItem('desk.si.lang') || 'en';
+function t(key, vars){
+  let s = (I18N[LANG] && I18N[LANG][key]) || I18N.en[key] || key;
+  if (vars) Object.keys(vars).forEach(k => { s = s.split('{'+k+'}').join(vars[k]); });
+  return s;
+}
+function applyStaticI18n(){
+  document.documentElement.dir = LANG==='fa' ? 'rtl' : 'ltr';
+  document.documentElement.lang = LANG;
+  document.querySelectorAll('[data-i18n]').forEach(el => { el.innerHTML = t(el.dataset.i18n); });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el => { el.placeholder = t(el.dataset.i18nPh); });
+  document.querySelectorAll('[data-i18n-title]').forEach(el => { el.title = t(el.dataset.i18nTitle); });
+  document.querySelectorAll('.lt-opt').forEach(el => el.classList.toggle('on', el.dataset.lang===LANG));
+}
+function setLang(l){
+  LANG = l;
+  try{ localStorage.setItem('desk.si.lang', l); }catch(e){}
+  applyStaticI18n();
+  renderAll();
+  renderSyncStatus();
+}
+document.getElementById('langToggle').addEventListener('click', e=>{
+  const el = e.target.closest('.lt-opt'); if(!el) return;
+  setLang(el.dataset.lang);
+});
+
 /* ==================== CONFIG ==================== */
 const GSC_URL = 'https://script.google.com/macros/s/AKfycbyijNimY56S9pRdVvCpXv4LmCtirWHTmLpASLzttJ-xRqUjSuXeBU-zvlhyBhD9MzEK/exec';
 const DAYS = 28;
 const MAX_SEEDS = 7;
 
 /* ==================== State ==================== */
-const S = { article:'', headline:'', seeds:[], keywords:[], articles:[], log:[], window:'day', syncing:false };
+const S = { article:'', headline:'', seeds:[], keywords:[], articles:[], log:[], window:'day', syncing:false, phase:'idle', lastSyncTime:'' };
 let TPL_BLOCKS = [];   // loaded from PromptEngine at boot
 const $ = id => document.getElementById(id);
 const esc = s => String(s??'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const num = n => Number(n||0).toLocaleString('en-US');
 let toastT;
 function toast(m){ const t=$('toast'); t.textContent=m; t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),2800); }
 function sbSet(msg,pct,done){ $('sbMsg').innerHTML=msg; $('sbProg').style.width=pct+'%'; $('sbSpin').style.display=done?'none':''; $('scene').classList.toggle('working',!done); }
+
+function renderSyncStatus(){
+  if (S.phase==='synced'){
+    const hit = S.log.filter(l=>l.ok&&l.added).length;
+    const dry = S.log.filter(l=>l.ok&&!l.added).length;
+    const bad = S.log.filter(l=>!l.ok).length;
+    sbSet(t('sync.summary', {
+      n:num(S.keywords.length), hit, hitS: hit===1?'':(LANG==='fa'?'':'s'),
+      dry: dry?t('sync.dryPart',{n:dry}):'', bad: bad?t('sync.badPart',{n:bad}):'',
+      d:num(S.articles.length), time:S.lastSyncTime
+    }), 100, true);
+  } else if (S.phase==='discover'){
+    sbSet(t('sync.discoverLive',{n:num(S.articles.length)}), 0, true);
+  } else if (S.phase==='notEnough'){
+    sbSet(t('sync.notEnough'), 0, true);
+  } else if (S.phase==='discoverFailed'){
+    sbSet(t('sync.discoverUnreachable'), 0, true);
+  } else {
+    sbSet(t('sync.waitPaste'), 0, true);
+  }
+}
 
 /* ==================== Keyword extraction ==================== */
 const STOP_EN = new Set(['the','a','an','and','or','of','to','in','on','for','with','is','are','was','were','by','at','as','this','that','it','its','from','be','has','have','had','will','would','could','should','not','but','if','than','then','so','also','about','into','over','after','before','during','between','more','most','some','such','can','may','their','they','he','she','we','you','your','our','said','says','told','according','who','what','when','where','which','been','being','there','these','those','his','her','him','them','out','up','down','new','one','two','first','last']);
@@ -388,7 +586,7 @@ async function fetchDiscover(win){
   const d = await res.json();
   if (!d.ok) throw new Error(d.error || 'Discover error');
   return (d.rows||[]).map(r=>({
-    title:r.title||'(untitled)', url:r.url, clicks:+r.clicks||0,
+    title:r.title||'', url:r.url, clicks:+r.clicks||0,
     impressions:+r.impressions||0, ctr:+r.ctr||0, source:'Discover'
   }));
 }
@@ -401,7 +599,7 @@ async function runPipeline(){
   S.headline = $('articleHl').value.trim();
   S.seeds = extractSeeds(S.article, S.headline);
   renderSeeds();
-  if (!S.seeds.length){ sbSet('Not enough text yet to extract terms.',0,true); return; }
+  if (!S.seeds.length){ S.phase='notEnough'; renderSyncStatus(); return; }
 
   S.syncing = true;
   S.keywords = []; S.log = [];
@@ -409,29 +607,28 @@ async function runPipeline(){
 
   for (let i=0;i<S.seeds.length;i++){
     if (mine!==syncToken) return;
-    const t = S.seeds[i];
-    sbSet(`Checking <b>${esc(t)}</b> — ${i+1} of ${S.seeds.length}`, 8+Math.round(i/S.seeds.length*62));
+    const term = S.seeds[i];
+    sbSet(t('sync.checking',{t:esc(term), i:i+1, n:S.seeds.length}), 8+Math.round(i/S.seeds.length*62));
     try{
-      const rows = await fetchQueries(t);
+      const rows = await fetchQueries(term);
       const seen = new Set(S.keywords.map(k=>(k.term+'|'+k.page).toLowerCase()));
       let added=0;
       rows.forEach(r=>{ const key=(r.term+'|'+r.page).toLowerCase(); if(!seen.has(key)){ S.keywords.push(r); seen.add(key); added++; } });
-      S.log.push({term:t, added, ok:true});
-    }catch(e){ S.log.push({term:t, added:0, ok:false, err:e.message}); }
+      S.log.push({term, added, ok:true});
+    }catch(e){ S.log.push({term, added:0, ok:false, err:e.message}); }
     renderKw(); renderLog(); renderSeeds(); renderStats();
   }
   if (mine!==syncToken) return;
 
-  sbSet('Pulling Discover winners…', 84);
+  sbSet(t('sync.pullingDiscover'), 84);
   try{ S.articles = await fetchDiscover(S.window); }
-  catch(e){ S.articles=[]; $('artList').innerHTML=`<div class="errbox">Discover failed: ${esc(e.message)}</div>`; }
+  catch(e){ S.articles=[]; $('artList').innerHTML=`<div class="errbox">${t('sync.discoverFailedInline',{msg:esc(e.message)})}</div>`; }
 
   S.syncing = false;
+  S.phase = 'synced';
+  S.lastSyncTime = new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
   renderAll();
-  const hit = S.log.filter(l=>l.ok&&l.added).length;
-  const dry = S.log.filter(l=>l.ok&&!l.added).length;
-  const bad = S.log.filter(l=>!l.ok).length;
-  sbSet(`<b>${S.keywords.length}</b> queries from ${hit} term${hit===1?'':'s'}${dry?` · ${dry} no data`:''}${bad?` · <b style="color:var(--flame)">${bad} failed</b>`:''} · Discover ${S.articles.length} · ${new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}`, 100, true);
+  renderSyncStatus();
 }
 
 /* ==================== Render ==================== */
@@ -440,10 +637,10 @@ function renderSeeds(){
   $('seedChips').innerHTML = S.seeds.map(s=>{
     const l = done.get(s);
     const cls = !l ? 'pend' : (l.added ? '' : 'dead');
-    const n = l ? (l.added ? ` · ${l.added}` : ' · 0') : '';
+    const n = l ? (l.added ? ` · ${num(l.added)}` : ' · 0') : '';
     return `<span class="fc seed ${cls}">${esc(s)}${n}</span>`;
-  }).join('') || '<span class="empty">Nothing extracted yet.</span>';
-  $('seedCount').textContent = S.seeds.length ? `${S.seeds.length} terms` : '';
+  }).join('') || `<span class="empty">${t('q.seedsEmpty')}</span>`;
+  $('seedCount').textContent = S.seeds.length ? t('q.seedsCount',{n:num(S.seeds.length)}) : '';
 }
 
 function renderKw(){
@@ -451,62 +648,63 @@ function renderKw(){
   if (!S.keywords.length){
     list.innerHTML = S.syncing
       ? '<div class="kwrow"><div class="sk" style="width:60%"></div><div class="sk" style="width:70px"></div></div>'.repeat(3)
-      : (S.log.length
-          ? '<div class="empty">No Search Console history matched these terms.<br>The story may be genuinely new — that\'s a signal, not an error.</div>'
-          : '<div class="empty">Paste an article above.<br>Terms extract, then check against Search Console one at a time.</div>');
-    $('kwCount').textContent = S.syncing ? 'syncing' : (S.log.length ? '0' : 'idle');
+      : (S.log.length ? `<div class="empty">${t('q.emptyAfter')}</div>` : `<div class="empty">${t('q.emptyBefore')}</div>`);
+    $('kwCount').textContent = S.syncing ? t('q.syncing') : (S.log.length ? '0' : t('q.idle'));
     return;
   }
   const sorted = [...S.keywords].sort((a,b)=>b.clicks-a.clicks).slice(0,12);
   const max = Math.max(...sorted.map(k=>k.clicks),1);
   list.innerHTML = sorted.map((k,i)=>{
     const ctr = k.ctr*100;
-    const tag = k.position&&k.position<=3 ? '<div class="tag t-g">Top 3</div>'
-      : ctr>6 ? '<div class="tag t-f">High CTR</div>'
-      : k.position&&k.position>10 ? '<div class="tag t-h">Page 2</div>'
+    const tag = k.position&&k.position<=3 ? `<div class="tag t-g">${t('q.tagTop3')}</div>`
+      : ctr>6 ? `<div class="tag t-f">${t('q.tagHighCtr')}</div>`
+      : k.position&&k.position>10 ? `<div class="tag t-h">${t('q.tagPage2')}</div>`
       : '<div class="tag t-t">—</div>';
+    const pagePart = k.page
+      ? t('q.rankedBy',{p:k.position?k.position.toFixed(1):'—', page:`<span style="color:var(--flame)">${esc(k.page.replace(/^https?:\/\/(www\.)?radiofarda\.com/,''))}</span>`})
+      : `pos ${k.position?k.position.toFixed(1):'—'}${t('q.noPage')}`;
     return `<div class="kwrow" style="animation-delay:${i*22}ms">
       <div class="kw-main"><div class="kw-term">${esc(k.term)}</div>
-      <div class="kw-src">pos ${k.position?k.position.toFixed(1):'—'}${k.page?` · ranked by <span style="color:var(--flame)">${esc(k.page.replace(/^https?:\/\/(www\.)?radiofarda\.com/,''))}</span>`:' · no ranking page'}</div></div>
+      <div class="kw-src">${pagePart}</div></div>
       <div class="kw-bar"><div class="bbg"><i class="bfill" data-w="${Math.round(k.clicks/max*100)}"></i></div></div>
-      <div class="kw-num">${k.clicks.toLocaleString()}<small>clicks</small></div>${tag}</div>`;
+      <div class="kw-num">${num(k.clicks)}<small>${t('q.clicksSmall')}</small></div>${tag}</div>`;
   }).join('');
   requestAnimationFrame(()=>list.querySelectorAll('.bfill').forEach(b=>b.style.width=b.dataset.w+'%'));
-  $('kwCount').textContent = S.keywords.length+' queries';
+  $('kwCount').textContent = t('q.count',{n:num(S.keywords.length)});
 }
 
 function renderLog(){
   $('syncLog').innerHTML = S.log.length ? S.log.map(l=>`
     <div class="kwrow" style="grid-template-columns:1fr auto">
       <div class="kw-main"><div class="kw-term">${esc(l.term)}</div>
-      <div class="kw-src">${l.ok?`${l.added} quer${l.added===1?'y':'ies'} returned`:esc(l.err||'failed')}</div></div>
-      <div class="tag ${l.ok?(l.added?'t-g':'t-t'):'t-f'}">${l.ok?(l.added?'+'+l.added:'none'):'error'}</div>
-    </div>`).join('') : '<span class="empty">No syncs yet.</span>';
-  $('logCount').textContent = S.log.length ? `${S.log.length} checked` : '';
+      <div class="kw-src">${l.ok?t('q.logReturned',{n:num(l.added),s:l.added===1?'':(LANG==='fa'?'':'ies')}):esc(l.err||t('q.logError'))}</div></div>
+      <div class="tag ${l.ok?(l.added?'t-g':'t-t'):'t-f'}">${l.ok?(l.added?'+'+num(l.added):t('q.logNone')):t('q.logError')}</div>
+    </div>`).join('') : `<span class="empty">${t('q.logEmpty')}</span>`;
+  $('logCount').textContent = S.log.length ? t('q.logCount',{n:num(S.log.length)}) : '';
 }
 
 function renderArts(){
   const list = $('artList');
-  if (!S.articles.length){ list.innerHTML='<div class="empty">No Discover rows for this window.</div>'; $('artCount').textContent='0'; return; }
+  if (!S.articles.length){ list.innerHTML=`<div class="empty">${t('d.empty')}</div>`; $('artCount').textContent='0'; return; }
   const max = Math.max(...S.articles.map(a=>a.clicks),1);
   list.innerHTML = S.articles.slice(0,6).map((a,i)=>{
     const s = a.clicks>max*0.6?'sf':a.clicks>max*0.25?'sh':'st';
     const hasUrl = /^https?:\/\//i.test(a.url || '');
-    const titleText = esc(a.title && a.title.trim() ? a.title : (hasUrl ? a.url : 'Untitled page'));
+    const titleText = esc(a.title && a.title.trim() ? a.title : (hasUrl ? a.url : t('d.untitled')));
     const titleHtml = hasUrl
       ? `<a href="${esc(a.url)}" target="_blank" rel="noopener">${titleText}</a>`
       : `<span style="color:var(--soft)">${titleText}</span>`;
     return `<div class="art" style="animation-delay:${i*30}ms">
       <div class="stripe ${s}"></div>
       <div style="min-width:0">
-        <div class="art-src">${esc(a.source)}${hasUrl?'':' · no URL returned'}</div>
+        <div class="art-src">${esc(a.source)}${hasUrl?'':t('d.noUrl')}</div>
         <div class="art-title">${titleHtml}</div>
-        <div class="art-meta"><span>${a.impressions.toLocaleString()} impr</span><span>${(a.ctr*100).toFixed(1)}% CTR</span></div>
+        <div class="art-meta"><span>${num(a.impressions)} ${t('d.impr')}</span><span>${(a.ctr*100).toFixed(1)}% CTR</span></div>
       </div>
-      <div class="art-right"><div class="art-clicks">${a.clicks.toLocaleString()}<small>clicks</small></div></div>
+      <div class="art-right"><div class="art-clicks">${num(a.clicks)}<small>${t('q.clicksSmall')}</small></div></div>
     </div>`;
   }).join('');
-  $('artCount').textContent = S.articles.length+' pages';
+  $('artCount').textContent = t('d.count',{n:num(S.articles.length)});
 }
 
 function renderStats(){
@@ -514,10 +712,10 @@ function renderStats(){
   const wp = S.keywords.filter(k=>k.position>0);
   const avg = wp.length ? wp.reduce((s,k)=>s+k.position,0)/wp.length : 0;
   const disc = S.articles.reduce((s,a)=>s+a.clicks,0);
-  set('stKw',S.keywords.length); $('stKwD').textContent = S.seeds.length?`${S.log.filter(l=>l.ok&&l.added).length} of ${S.seeds.length} terms hit`:'';
-  set('stClicks',clicks.toLocaleString()); $('stClicksD').textContent='Search Console · web';
-  set('stPos',avg?avg.toFixed(1):'—'); $('stPosD').textContent=avg?(avg<10?'page 1':'page 2+'):'';
-  set('stDisc',disc.toLocaleString()); $('stDiscD').textContent=S.articles.length?`top ${S.articles.length} pages`:'';
+  set('stKw',num(S.keywords.length)); $('stKwD').textContent = S.seeds.length?t('stat.hitTerms',{hit:num(S.log.filter(l=>l.ok&&l.added).length),n:num(S.seeds.length)}):'';
+  set('stClicks',num(clicks)); $('stClicksD').textContent=t('stat.gscWeb');
+  set('stPos',avg?avg.toFixed(1):'—'); $('stPosD').textContent=avg?(avg<10?t('stat.page1'):t('stat.page2')):'';
+  set('stDisc',num(disc)); $('stDiscD').textContent=S.articles.length?t('stat.topPages',{n:num(S.articles.length)}):'';
 }
 function set(id,v){ const e=$(id); e.textContent=v; e.classList.remove('pending'); }
 function renderAll(){ renderSeeds(); renderKw(); renderLog(); renderArts(); renderStats(); updateGenState(); }
@@ -552,32 +750,34 @@ function updateGenState(){
   $('genBtn').classList.toggle('idle', !ready);
   $('genBtn2').style.opacity = ready?'1':'.35';
   $('genBtn2').style.pointerEvents = ready?'auto':'none';
-  $('promptState').textContent = ready?'ready':(S.syncing?'building':'waiting');
+  $('promptState').textContent = ready?t('p.ready'):(S.syncing?t('p.building'):t('p.waiting'));
   if (ready){
     const p = buildPrompt();
-    $('promptSummary').innerHTML = `Article <b>${S.article.split(/\s+/).length}</b> words · <b>${S.keywords.length}</b> live queries · <b>${S.articles.length}</b> Discover winners · <b>${p.length.toLocaleString()}</b> chars assembled.`;
+    $('promptSummary').innerHTML = t('p.summaryReady',{w:num(S.article.split(/\s+/).length), q:num(S.keywords.length), d:num(S.articles.length), c:num(p.length)});
+  } else {
+    $('promptSummary').innerHTML = t('p.summaryDefault');
   }
 }
 
 function openSheet(){
-  if (S.article.length<180) return toast('Paste an article first');
+  if (S.article.length<180) return toast(t('p.pasteFirstToast'));
   const p = buildPrompt();
   $('promptPre').textContent = p;
-  $('promptMeta').textContent = `${p.length.toLocaleString()} chars · ~${Math.round(p.length/4).toLocaleString()} tokens · ${S.keywords.length} queries · ${S.articles.length} Discover`;
+  $('promptMeta').textContent = t('p.meta',{c:num(p.length), t:num(Math.round(p.length/4)), q:num(S.keywords.length), d:num(S.articles.length)});
   $('sheet').classList.add('show');
 }
 $('genBtn').addEventListener('click', ()=>{ if(!$('genBtn').classList.contains('idle')) openSheet(); });
 $('genBtn2').addEventListener('click', openSheet);
 $('sheetClose').addEventListener('click', ()=>$('sheet').classList.remove('show'));
 $('sheet').addEventListener('click', e=>{ if(e.target===$('sheet')) $('sheet').classList.remove('show'); });
-document.addEventListener('keydown', e=>{ if(e.key==='Escape') $('sheet').classList.remove('show'); });
+document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ $('sheet').classList.remove('show'); $('cmpSheet').classList.remove('show'); } });
 
 $('btnCopy').addEventListener('click', async ()=>{
   const p = $('promptPre').textContent;
-  try{ await navigator.clipboard.writeText(p); toast('Prompt copied — paste into any LLM'); }
+  try{ await navigator.clipboard.writeText(p); toast(t('p.copiedToast')); }
   catch(e){
     const ta=document.createElement('textarea'); ta.value=p; document.body.appendChild(ta); ta.select();
-    try{ document.execCommand('copy'); toast('Prompt copied'); }catch(e2){ toast('Copy blocked — select manually'); }
+    try{ document.execCommand('copy'); toast(t('p.copiedToast')); }catch(e2){ toast(t('p.copyBlockedToast')); }
     ta.remove();
   }
 });
@@ -597,32 +797,32 @@ function onArticleInput(){
   $('intake').classList.toggle('open', words>0);
   $('intake').classList.toggle('hot', words>40);
   $('intakeFoot').classList.toggle('hide', words===0);
-  $('wordCount').textContent = words?`${words} words`:'';
+  $('wordCount').textContent = words?t('intake.wordsSuffix',{n:num(words)}):'';
   S.article = v.trim();
   updateGenState();
   clearTimeout(debounce);
-  if (words<40){ if(words===0) sbSet('Paste an article to begin',0,true); return; }
-  sbSet('Reading the article…',4);
+  if (words<40){ if(words===0){ S.phase = S.articles.length?'discover':'idle'; renderSyncStatus(); } return; }
+  sbSet(t('sync.reading'),4);
   debounce = setTimeout(runPipeline, 900);
 }
 $('articleText').addEventListener('input', onArticleInput);
 $('articleHl').addEventListener('input', ()=>{ S.headline=$('articleHl').value.trim(); clearTimeout(debounce); debounce=setTimeout(runPipeline,900); });
-$('sbRefresh').addEventListener('click', ()=>{ if(S.article.split(/\s+/).length>40) runPipeline(); else toast('Paste an article first'); });
+$('sbRefresh').addEventListener('click', ()=>{ if(S.article.split(/\s+/).length>40) runPipeline(); else toast(t('p.pasteFirstToast')); });
 
 /* ==================== Manual escape hatches ==================== */
 document.querySelectorAll('[data-win]').forEach(c=>c.addEventListener('click', async ()=>{
   document.querySelectorAll('[data-win]').forEach(x=>x.classList.remove('on'));
   c.classList.add('on'); S.window=c.dataset.win;
-  $('artList').innerHTML='<div class="empty">Loading…</div>';
+  $('artList').innerHTML=`<div class="empty">${t('d.loadingShort')}</div>`;
   try{ S.articles=await fetchDiscover(S.window); renderArts(); renderStats(); updateGenState(); }
-  catch(e){ $('artList').innerHTML=`<div class="errbox">Discover failed: ${esc(e.message)}</div>`; }
+  catch(e){ $('artList').innerHTML=`<div class="errbox">${t('sync.discoverFailedInline',{msg:esc(e.message)})}</div>`; }
 }));
 
 $('addKw').addEventListener('keydown', async e=>{
   if (e.key!=='Enter') return;
   const v=e.target.value.trim(); if(!v) return;
   e.target.value='';
-  sbSet(`Checking <b>${esc(v)}</b>…`,50);
+  sbSet(t('sync.checkingSingle',{t:esc(v)}),50);
   try{
     const rows = await fetchQueries(v);
     const seen = new Set(S.keywords.map(k=>(k.term+'|'+k.page).toLowerCase()));
@@ -630,26 +830,26 @@ $('addKw').addEventListener('keydown', async e=>{
     rows.forEach(r=>{ const key=(r.term+'|'+r.page).toLowerCase(); if(!seen.has(key)){ S.keywords.push(r); seen.add(key); added++; } });
     if(!S.seeds.includes(v)) S.seeds.push(v);
     S.log.push({term:v,added,ok:true});
-    renderAll(); toast(added?`+${added} quer${added===1?'y':'ies'}`:`No data for "${v}"`);
-  }catch(err){ S.log.push({term:v,added:0,ok:false,err:err.message}); renderLog(); toast('Failed: '+err.message); }
-  sbSet(`<b>${S.keywords.length}</b> queries · updated just now`,100,true);
+    renderAll(); toast(added?`+${num(added)}`:t('misc.noDataFor',{v}));
+  }catch(err){ S.log.push({term:v,added:0,ok:false,err:err.message}); renderLog(); toast(t('misc.failed',{msg:err.message})); }
+  sbSet(t('sync.updatedNow',{n:num(S.keywords.length)}),100,true);
 });
 
 $('btnAddArt').addEventListener('click', ()=>{
   const title=$('artTitle').value.trim(), url=$('artUrl').value.trim();
-  if(!title&&!url) return toast('Add a title or URL');
+  if(!title&&!url) return toast(t('d.addTitleOrUrl'));
   S.articles.unshift({title:title||url,url,clicks:0,impressions:0,ctr:0,source:'Manual'});
-  $('artTitle').value=''; $('artUrl').value=''; renderArts(); updateGenState(); toast('Added');
+  $('artTitle').value=''; $('artUrl').value=''; renderArts(); updateGenState(); toast(t('d.added'));
 });
-$('btnClear').addEventListener('click', ()=>{ S.keywords=[]; S.log=[]; renderAll(); toast('Cleared'); });
-$('btnPaste').addEventListener('click', async ()=>{ try{ ingestCsv(await navigator.clipboard.readText()); }catch(e){ toast('Clipboard blocked'); } });
+$('btnClear').addEventListener('click', ()=>{ S.keywords=[]; S.log=[]; renderAll(); toast(t('misc.cleared')); });
+$('btnPaste').addEventListener('click', async ()=>{ try{ ingestCsv(await navigator.clipboard.readText()); }catch(e){ toast(t('misc.clipboardBlocked')); } });
 $('fileIn').addEventListener('change', e=>{
   const f=e.target.files[0]; if(!f) return;
   const r=new FileReader(); r.onload=()=>ingestCsv(String(r.result)); r.readAsText(f); e.target.value='';
 });
 function ingestCsv(text){
   const lines=text.replace(/\r/g,'').split('\n').filter(l=>l.trim());
-  if(!lines.length) return toast('Nothing to import');
+  if(!lines.length) return toast(t('misc.nothingToImport'));
   const d=lines[0].includes('\t')?'\t':',';
   const hdr=/query|keyword|clicks/i.test(lines[0]);
   let n=0;
@@ -658,7 +858,7 @@ function ingestCsv(text){
     if(!c[0]) return;
     S.keywords.push({term:c[0],clicks:+c[1]||0,impressions:+c[2]||0,ctr:(parseFloat(c[3])||0)/100,position:+c[4]||0,page:'',seed:'import'}); n++;
   });
-  renderAll(); toast(`Imported ${n} rows`);
+  renderAll(); toast(t('misc.imported',{n:num(n)}));
 }
 
 /* ==================== Compare — two keywords, side by side ==================== */
@@ -676,7 +876,7 @@ async function ownStatsFor(term){
     if (!rows.length) return null;
     const norm = s => String(s||'').trim().toLowerCase();
     const exact = rows.filter(r => norm(r.term) === norm(term));
-    const use = exact.length ? exact : rows;   // fall back to partial matches only if no exact query exists
+    const use = exact.length ? exact : rows;
 
     const byPage = new Map();
     use.forEach(r => {
@@ -693,8 +893,8 @@ async function ownStatsFor(term){
 
 function pageRow(p){
   const hasUrl = /^https?:\/\//i.test(p.page||'');
-  const short = hasUrl ? p.page.replace(/^https?:\/\/(www\.)?radiofarda\.com/,'') : '(no URL)';
-  const inner = `<span style="font-size:12px">pos ${p.position?p.position.toFixed(1):'—'} · ${p.clicks.toLocaleString()} clicks</span><br><span style="font-size:10.5px;color:var(--soft)">${esc(short)}</span>`;
+  const short = hasUrl ? p.page.replace(/^https?:\/\/(www\.)?radiofarda\.com/,'') : t('c.noUrlPage');
+  const inner = `<span style="font-size:12px">${t('c.pos')} ${p.position?p.position.toFixed(1):'—'} · ${num(p.clicks)} ${t('c.clicks')}</span><br><span style="font-size:10.5px;color:var(--soft)">${esc(short)}</span>`;
   return hasUrl
     ? `<a href="${esc(p.page)}" target="_blank" rel="noopener" style="display:block;padding:6px 0;color:inherit;text-decoration:none;border-top:1px solid var(--border)" onmouseover="this.style.color='var(--flame)'" onmouseout="this.style.color='inherit'">${inner}</a>`
     : `<div style="padding:6px 0;border-top:1px solid var(--border)">${inner}</div>`;
@@ -702,24 +902,25 @@ function pageRow(p){
 
 function ownStatCard(term, stat){
   if (!term) return '';
-  if (!stat) return `<div class="art" style="grid-template-columns:1fr"><div><div class="art-src">${esc(term)}</div><div style="font-size:12px;color:var(--soft)">No history on your site for this term</div></div></div>`;
+  if (!stat) return `<div class="art" style="grid-template-columns:1fr"><div><div class="art-src">${esc(term)}</div><div style="font-size:12px;color:var(--soft)">${t('c.noHistory')}</div></div></div>`;
 
-  const headline = `<div class="art-src">${esc(term)}${stat.exact?'':' · closest matches'}</div>
-    <div style="font-size:13px;font-family:var(--serif)">${stat.totalClicks.toLocaleString()} clicks across ${stat.pages.length} page${stat.pages.length===1?'':'s'} on your site</div>`;
+  const headline = `<div class="art-src">${esc(term)}${stat.exact?'':t('c.closestMatches')}</div>
+    <div style="font-size:13px;font-family:var(--serif)">${t('c.pagesSummary',{n:num(stat.totalClicks), m:num(stat.pages.length), ms:stat.pages.length===1?'':(LANG==='fa'?'':'s')})}</div>`;
 
   if (stat.pages.length === 1){
     return `<div class="art" style="grid-template-columns:1fr"><div>${headline}<div style="margin-top:4px">${pageRow(stat.pages[0]).replace('border-top:1px solid var(--border);','')}</div></div></div>`;
   }
   return `<div class="art" style="grid-template-columns:1fr"><div>${headline}
     <details style="margin-top:4px">
-      <summary style="cursor:pointer;font-size:11px;color:var(--flame);font-weight:600;list-style:none">▾ Show all ${stat.pages.length} ranking pages</summary>
+      <summary style="cursor:pointer;font-size:11px;color:var(--flame);font-weight:600;list-style:none">${t('c.showAllPages',{n:num(stat.pages.length)})}</summary>
       ${stat.pages.map(pageRow).join('')}
     </details>
   </div></div>`;
 }
 
 /* One fun fact per search — no cycling, just something nice to read for a few seconds. */
-const FUN_FACTS = [
+const FUN_FACTS = {
+en: [
   "🐱 Cats can't taste sweetness — they're missing the taste receptor for sugar entirely.",
   "🏛️ The Great Wall of China isn't actually visible from space with the naked eye — that's a myth.",
   "⚽ A football match's ball travels an average of about 8–10 km over 90 minutes, just from being kicked around.",
@@ -735,8 +936,26 @@ const FUN_FACTS = [
   "🏒 The first hockey puck was reportedly a frozen cow dung patty, used because a ball kept bouncing out of the rink.",
   "🌍 It rains diamonds on Neptune and Uranus, thanks to extreme pressure crushing carbon in the atmosphere.",
   "🐢 Some tortoises can live over 150 years — one named Jonathan is believed to have hatched in the 1830s."
-];
-function pickFact(){ return FUN_FACTS[Math.floor(Math.random()*FUN_FACTS.length)]; }
+],
+fa: [
+  "🐱 گربه‌ها اصلاً نمی‌توانند طعم شیرینی را حس کنند — گیرندهٔ چشایی قند را ندارند.",
+  "🏛️ دیوار بزرگ چین را با چشم غیرمسلح از فضا نمی‌توان دید — این فقط یک افسانه است.",
+  "⚽ توپ فوتبال در یک بازی 90 دقیقه‌ای، فقط از شوت‌خوردن، به‌طور میانگین 8 تا 10 کیلومتر مسافت طی می‌کند.",
+  "🍯 عسل هرگز فاسد نمی‌شود؛ باستان‌شناسان در مقبره‌های مصر عسلی 3000ساله پیدا کرده‌اند که هنوز خوردنی است.",
+  "🎾 طولانی‌ترین بازی تنیس تاریخ 11 ساعت و 5 دقیقه طول کشید و در سه روز برگزار شد.",
+  "🐙 اختاپوس‌ها سه قلب دارند و وقتی شنا می‌کنند، دوتای آن‌ها از تپش می‌ایستد.",
+  "📜 کلئوپاترا از نظر زمانی به فرود انسان بر ماه نزدیک‌تر بود تا به ساخت اهرام بزرگ مصر.",
+  "🏀 اولین حلقه‌های بسکتبال واقعاً سبد هلو بودند — بعد از هر امتیاز، باید با نردبان توپ را بیرون می‌آوردند.",
+  "🐧 پنگوئن‌های امپراتور هنگام شکار زیر آب می‌توانند بیش از 20 دقیقه نفس خود را نگه دارند.",
+  "🚴 در برخی شهرهای قرن نوزدهم، دوچرخه به‌خاطر «سرعت خطرناک» 15 کیلومتر بر ساعت ممنوع شده بود.",
+  "🦖 استگوزاروس از نظر زمانی به ما نزدیک‌تر بود تا به تیرانوسوروس رکس.",
+  "🐘 فیل‌ها یکی از معدود جانورانی هستند که خودشان را در آینه می‌شناسند.",
+  "🏒 گفته می‌شود اولین پاک هاکی یک تکه سرگین گاو یخ‌زده بود، چون توپ همیشه از زمین بیرون می‌پرید.",
+  "🌍 روی نپتون و اورانوس الماس می‌بارد؛ فشار شدید جو، کربن را به الماس تبدیل می‌کند.",
+  "🐢 برخی لاک‌پشت‌ها بیش از 150 سال عمر می‌کنند — لاک‌پشتی به‌نام جاناتان گفته می‌شود در دههٔ 1830 میلادی متولد شده است."
+]
+};
+function pickFact(){ const arr = FUN_FACTS[LANG]||FUN_FACTS.en; return arr[Math.floor(Math.random()*arr.length)]; }
 function showFact(el){
   el.textContent = pickFact();
   el.style.opacity = '1';
@@ -766,7 +985,7 @@ function trendsExploreUrl(items, geo, time){
 
 $('cmpRun').addEventListener('click', async ()=>{
   const a = $('cmpA').value.trim(), b = $('cmpB').value.trim();
-  if (!a && !b) return toast('Enter at least one term');
+  if (!a && !b) return toast(t('c.enterTermToast'));
 
   $('cmpEmpty').style.display = 'none';
   $('cmpOwnLabel').style.display = 'block';
@@ -804,29 +1023,32 @@ $('cmpRun').addEventListener('click', async ()=>{
 
   const link = document.createElement('div');
   link.style.cssText = 'text-align:center;margin-top:10px';
-  link.innerHTML = `<a href="${esc(exploreUrl)}" target="_blank" rel="noopener" style="font-size:11.5px;color:var(--muted);text-decoration:none">Open this comparison in Google Trends ↗</a>`;
+  link.innerHTML = `<a href="${esc(exploreUrl)}" target="_blank" rel="noopener" style="font-size:11.5px;color:var(--muted);text-decoration:none">${t('c.openInTrends')}</a>`;
   wrap.appendChild(link);
 });
 
 /* ==================== Boot ==================== */
+applyStaticI18n();
 (async function boot(){
   try {
-    if (typeof PromptEngine === 'undefined') throw new Error('prompt-engine.js did not load — check the file exists at ' + new URL('prompt-engine.js', location.href).href);
+    if (typeof PromptEngine === 'undefined') throw new Error('prompt-engine.js did not load — check the file exists at /desk/search-intelligence/prompt-engine.js');
     const { blocks } = await PromptEngine.getBlocks();
     TPL_BLOCKS = blocks;
   } catch(e){
     console.error(e);
     TPL_BLOCKS = (typeof PromptEngine !== 'undefined') ? PromptEngine.DEFAULT_BLOCKS : [];
-    toast('Prompt template failed to load — using built-in fallback');
+    toast(t('misc.promptTplFailed'));
   }
 
   try{
     S.articles = await fetchDiscover('day');
     renderArts(); renderStats();
-    sbSet(`Discover live · <b>${S.articles.length}</b> pages · paste an article to begin`,0,true);
+    S.phase = 'discover';
+    renderSyncStatus();
   }catch(e){
-    $('artList').innerHTML = `<div class="errbox"><b>Discover endpoint failed.</b><br>${esc(e.message)}<br><br>Redeploy the Apps Script as a <b>new version</b>, access set to Anyone.</div>`;
-    sbSet('Discover unreachable — check the Apps Script deployment',0,true);
+    $('artList').innerHTML = `<div class="errbox">${t('d.discoverFailedFull',{msg:esc(e.message)})}</div>`;
+    S.phase = 'discoverFailed';
+    renderSyncStatus();
   }
 })();
 </script>
