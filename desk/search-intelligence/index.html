@@ -332,7 +332,7 @@ async function fetchQueries(term){
   const d = await res.json();
   if (!d.ok) throw new Error(d.error || 'Search Console error');
   return (d.rows||[]).map(r=>({
-    term:String(r.keyword||'').trim(), clicks:+r.clicks||0, impressions:+r.impressions||0,
+    term:String(r.keyword||'').trim(), page:String(r.page||''), clicks:+r.clicks||0, impressions:+r.impressions||0,
     ctr:+r.ctr||0, position:+r.position||0, seed:term
   })).filter(r=>r.term);
 }
@@ -367,9 +367,9 @@ async function runPipeline(){
     sbSet(`Checking <b>${esc(t)}</b> — ${i+1} of ${S.seeds.length}`, 8+Math.round(i/S.seeds.length*62));
     try{
       const rows = await fetchQueries(t);
-      const seen = new Set(S.keywords.map(k=>k.term.toLowerCase()));
+      const seen = new Set(S.keywords.map(k=>(k.term+'|'+k.page).toLowerCase()));
       let added=0;
-      rows.forEach(r=>{ if(!seen.has(r.term.toLowerCase())){ S.keywords.push(r); seen.add(r.term.toLowerCase()); added++; } });
+      rows.forEach(r=>{ const key=(r.term+'|'+r.page).toLowerCase(); if(!seen.has(key)){ S.keywords.push(r); seen.add(key); added++; } });
       S.log.push({term:t, added, ok:true});
     }catch(e){ S.log.push({term:t, added:0, ok:false, err:e.message}); }
     renderKw(); renderLog(); renderSeeds(); renderStats();
@@ -499,13 +499,21 @@ function buildPrompt(){
     L.push(`Live Google Search Console data for radiofarda.com — last ${DAYS} days.`);
     L.push('These are real queries this newsroom already ranks for. Position = current average rank.');
     L.push('');
-    L.push('QUERY | CLICKS | IMPRESSIONS | CTR | POSITION');
-    kw.forEach(k=>L.push(`${k.term} | ${k.clicks} | ${k.impressions} | ${(k.ctr*100).toFixed(1)}% | ${k.position.toFixed(1)}`));
+    L.push('QUERY | CLICKS | IMPRESSIONS | CTR | POSITION | RANKING PAGE');
+    kw.forEach(k=>L.push(`${k.term} | ${k.clicks} | ${k.impressions} | ${(k.ctr*100).toFixed(1)}% | ${k.position.toFixed(1)} | ${k.page||'—'}`));
     L.push('');
     const weak = kw.filter(k=>k.position>5 && k.impressions>500);
     if (weak.length){
       L.push('OPPORTUNITY — high impressions, ranking below position 5. A sharper headline could move these:');
       weak.slice(0,5).forEach(k=>L.push(`  · ${k.term} — pos ${k.position.toFixed(1)}, ${k.impressions} impressions, only ${k.clicks} clicks`));
+      L.push('');
+    }
+
+    const cannib = kw.filter(k => k.page && k.position <= 20);
+    if (cannib.length){
+      L.push('CANNIBALIZATION WARNING — an existing article already ranks for these terms.');
+      L.push('If the new article targets the same query, differentiate the headline from the archive piece below, or it competes with itself in search results:');
+      cannib.slice(0,6).forEach(k=>L.push(`  · "${k.term}" → already ranked (pos ${k.position.toFixed(1)}) by: ${k.page}`));
       L.push('');
     }
   } else {
@@ -621,9 +629,9 @@ $('addKw').addEventListener('keydown', async e=>{
   sbSet(`Checking <b>${esc(v)}</b>…`,50);
   try{
     const rows = await fetchQueries(v);
-    const seen = new Set(S.keywords.map(k=>k.term.toLowerCase()));
+    const seen = new Set(S.keywords.map(k=>(k.term+'|'+k.page).toLowerCase()));
     let added=0;
-    rows.forEach(r=>{ if(!seen.has(r.term.toLowerCase())){ S.keywords.push(r); seen.add(r.term.toLowerCase()); added++; } });
+    rows.forEach(r=>{ const key=(r.term+'|'+r.page).toLowerCase(); if(!seen.has(key)){ S.keywords.push(r); seen.add(key); added++; } });
     if(!S.seeds.includes(v)) S.seeds.push(v);
     S.log.push({term:v,added,ok:true});
     renderAll(); toast(added?`+${added} quer${added===1?'y':'ies'}`:`No data for "${v}"`);
