@@ -31,7 +31,7 @@ body{font-family:var(--sans);color:var(--teal);min-height:100vh;-webkit-font-smo
 .nav-pill{display:inline-flex;align-items:center;gap:2px;background:rgba(26,57,72,0.80);backdrop-filter:blur(28px) saturate(2);-webkit-backdrop-filter:blur(28px) saturate(2);border:1px solid rgba(255,255,255,0.12);border-radius:100px;padding:5px;box-shadow:0 8px 32px rgba(0,0,0,0.22),0 2px 8px rgba(0,0,0,0.14),inset 0 1px 0 rgba(255,255,255,0.14),inset 0 -1px 0 rgba(0,0,0,0.18);pointer-events:all}
 .wordmark{font-family:var(--serif);font-size:17px;color:rgba(248,247,246,0.92);padding:6px 16px 6px 12px;border-right:1px solid rgba(255,255,255,0.10);margin-right:4px}
 .wordmark em{font-style:normal;color:var(--flame);font-weight:600}
-.ntab{font-size:13px;font-weight:500;color:rgba(185,204,204,0.72);padding:7px 16px;border-radius:100px;cursor:pointer;transition:color 180ms,background 180ms}
+.ntab{font-size:13px;font-weight:500;color:rgba(185,204,204,0.72);padding:7px 16px;border-radius:100px;cursor:pointer;text-decoration:none;transition:color 180ms,background 180ms}
 .ntab:hover{color:rgba(248,247,246,0.95)}
 .ntab.on{background:rgba(255,255,255,0.13);color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,0.18),inset 0 -1px 0 rgba(0,0,0,0.12)}
 .nav-sep{width:1px;height:20px;background:rgba(255,255,255,0.08);margin:0 2px}
@@ -292,6 +292,7 @@ const MAX_SEEDS = 7;
 
 /* ==================== State ==================== */
 const S = { article:'', headline:'', seeds:[], keywords:[], articles:[], log:[], window:'day', syncing:false };
+let TPL_BLOCKS = [];   // loaded from PromptEngine at boot
 const $ = id => document.getElementById(id);
 const esc = s => String(s??'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let toastT;
@@ -309,20 +310,18 @@ function extractSeeds(text, headline){
   if (words.length < 25) return [];
   const freq = new Map();
   const bump = (k,n) => freq.set(k, (freq.get(k)||0)+n);
-
   for (const w of words) if (!isStop(w)) bump(w,1);
   for (let i=0;i<words.length-1;i++){
     if (isStop(words[i])||isStop(words[i+1])) continue;
-    bump(words[i]+' '+words[i+1], 2.6);          // bigrams: proper nouns, compound FA terms
+    bump(words[i]+' '+words[i+1], 2.6);
   }
   tokenize(headline).map(w=>w.toLowerCase()).forEach(w=>{ if(!isStop(w)) bump(w,4); });
-  tokenize(String(text).slice(0,420)).map(w=>w.toLowerCase()).forEach(w=>{ if(!isStop(w)) bump(w,1.8); }); // lede
-
+  tokenize(String(text).slice(0,420)).map(w=>w.toLowerCase()).forEach(w=>{ if(!isStop(w)) bump(w,1.8); });
   const ranked = [...freq.entries()].filter(([,v])=>v>=2).sort((a,b)=>b[1]-a[1]).map(([k])=>k);
   const out = [];
   for (const t of ranked){
     if (out.length>=MAX_SEEDS) break;
-    if (out.some(o=>o!==t && o.includes(t))) continue;   // drop unigrams inside a stronger bigram
+    if (out.some(o=>o!==t && o.includes(t))) continue;
     out.push(t);
   }
   return out;
@@ -365,7 +364,7 @@ async function runPipeline(){
   renderKw(); renderLog(); updateGenState();
 
   for (let i=0;i<S.seeds.length;i++){
-    if (mine!==syncToken) return;                      // superseded by a newer paste
+    if (mine!==syncToken) return;
     const t = S.seeds[i];
     sbSet(`Checking <b>${esc(t)}</b> — ${i+1} of ${S.seeds.length}`, 8+Math.round(i/S.seeds.length*62));
     try{
@@ -479,7 +478,7 @@ function renderStats(){
 function set(id,v){ const e=$(id); e.textContent=v; e.classList.remove('pending'); }
 function renderAll(){ renderSeeds(); renderKw(); renderLog(); renderArts(); renderStats(); updateGenState(); }
 
-/* ==================== PROMPT — assembled from the admin-edited template ==================== */
+/* ==================== PROMPT — assembled from admin-designed cards ==================== */
 const truncate = (t,max) => { const s=String(t||'').trim(); return s.length>max ? s.slice(0,max)+'\n\n[…truncated…]' : s; };
 
 function buildVars(){
@@ -502,7 +501,7 @@ function buildVars(){
     DISCOVER_WINDOW_LABEL:S.window==='week'?'last 7 days':'last 3 days'
   };
 }
-function buildPrompt(){ return PromptEngine.assemble(PromptEngine.loadTemplate(), buildVars()); }
+function buildPrompt(){ return PromptEngine.assembleBlocks(TPL_BLOCKS, buildVars()); }
 
 function updateGenState(){
   const ready = S.article.length>180 && !S.syncing;
@@ -613,13 +612,18 @@ function ingestCsv(text){
   lines.slice(hdr?1:0).forEach(l=>{
     const c=l.split(d).map(x=>x.trim().replace(/^"|"$/g,''));
     if(!c[0]) return;
-    S.keywords.push({term:c[0],clicks:+c[1]||0,impressions:+c[2]||0,ctr:(parseFloat(c[3])||0)/100,position:+c[4]||0,seed:'import'}); n++;
+    S.keywords.push({term:c[0],clicks:+c[1]||0,impressions:+c[2]||0,ctr:(parseFloat(c[3])||0)/100,position:+c[4]||0,page:'',seed:'import'}); n++;
   });
   renderAll(); toast(`Imported ${n} rows`);
 }
 
 /* ==================== Boot ==================== */
 (async function boot(){
+  try {
+    const { blocks } = await PromptEngine.getBlocks();
+    TPL_BLOCKS = blocks;
+  } catch(e){ TPL_BLOCKS = PromptEngine.DEFAULT_BLOCKS; }
+
   try{
     S.articles = await fetchDiscover('day');
     renderArts(); renderStats();
