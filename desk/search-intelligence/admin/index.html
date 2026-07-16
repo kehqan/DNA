@@ -112,7 +112,7 @@ pre#preview{white-space:pre-wrap;word-break:break-word;font-family:ui-monospace,
 <div class="nav-wrap">
   <div class="nav-pill">
     <div class="wordmark">Desk<em>.</em></div>
-    <a href="../" class="ntab">Search Intelligence</a>
+    <a href="/desk/search-intelligence/" class="ntab">Search Intelligence</a>
     <div class="ntab on">Prompt Admin</div>
   </div>
 </div>
@@ -159,8 +159,23 @@ pre#preview{white-space:pre-wrap;word-break:break-word;font-family:ui-monospace,
 
 <div class="toast" id="toast"></div>
 
-<script src="../prompt-engine.js"></script>
 <script>
+  function promptEngineLoadFailed(){
+    document.getElementById('statusLine').textContent = 'prompt-engine.js failed to load';
+    document.getElementById('statusDot').className = 'dot';
+    document.getElementById('errArea').innerHTML =
+      '<div class="errbox"><b>Could not load prompt-engine.js.</b><br>' +
+      'Expected it at exactly this URL — open it directly to check:<br>' +
+      '<code style="user-select:all">/desk/search-intelligence/prompt-engine.js</code><br><br>' +
+      'If that URL 404s or shows an HTML page instead of JavaScript, the file either isn\'t uploaded at that path, or your host is serving a catch-all page for unmatched routes instead of the real file. It must return the raw .js content, not your app\'s index.html.</div>';
+  }
+</script>
+<script src="/desk/search-intelligence/prompt-engine.js" onerror="promptEngineLoadFailed()"></script>
+<script>
+if (typeof PromptEngine === 'undefined') {
+  promptEngineLoadFailed();
+  throw new Error('PromptEngine missing — halting admin script');
+}
 const $ = id => document.getElementById(id);
 let toastT;
 function toast(m){ const t=$('toast'); t.textContent=m; t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),2800); }
@@ -339,9 +354,14 @@ async function boot(manual){
   }
 }
 
-renderTokens();
-renderScenarios();
-boot();
+try {
+  renderTokens();
+  renderScenarios();
+  boot();
+} catch(e){
+  $('errArea').innerHTML = `<div class="errbox"><b>Admin page crashed on startup.</b><br>${esc(e.message)}</div>`;
+  setStatus('warn','Startup error — see message above');
+}
 </script>
 </body>
 </html>
