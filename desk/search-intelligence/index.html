@@ -171,6 +171,8 @@ details.dd[open] summary .chev{transform:rotate(90deg)}
     <div class="ntab on">Search Intelligence</div>
     <div class="ntab">Library</div>
     <div class="nav-sep"></div>
+    <a href="admin/" style="text-decoration:none" class="ntab" title="Edit the prompt template">⚙ Admin</a>
+    <div class="nav-sep"></div>
     <div class="gen-ntab idle" id="genBtn">◆ Prompt</div>
   </div>
 </div>
@@ -281,6 +283,7 @@ details.dd[open] summary .chev{transform:rotate(90deg)}
 
 <div class="toast" id="toast"></div>
 
+<script src="prompt-engine.js"></script>
 <script>
 /* ==================== CONFIG ==================== */
 const GSC_URL = 'https://script.google.com/macros/s/AKfycbyijNimY56S9pRdVvCpXv4LmCtirWHTmLpASLzttJ-xRqUjSuXeBU-zvlhyBhD9MzEK/exec';
@@ -476,80 +479,30 @@ function renderStats(){
 function set(id,v){ const e=$(id); e.textContent=v; e.classList.remove('pending'); }
 function renderAll(){ renderSeeds(); renderKw(); renderLog(); renderArts(); renderStats(); updateGenState(); }
 
-/* ==================== PROMPT BUILDER ==================== */
+/* ==================== PROMPT — assembled from the admin-edited template ==================== */
 const truncate = (t,max) => { const s=String(t||'').trim(); return s.length>max ? s.slice(0,max)+'\n\n[…truncated…]' : s; };
 
-function buildPrompt(){
+function buildVars(){
   const kw = [...S.keywords].sort((a,b)=>b.clicks-a.clicks).slice(0,15);
   const arts = S.articles.slice(0,6);
-  const L = [];
-
-  L.push('You are a senior headline editor at Radio Farda (RFE/RL Persian Service).');
-  L.push('You write headlines that are accurate first, findable second, and never sensational.');
-  L.push('You do not invent facts, overstate what the reporting supports, or write bait.');
-  L.push('');
-  L.push('════════ THE ARTICLE ════════');
-  if (S.headline) L.push(`CURRENT HEADLINE: ${S.headline}`);
-  L.push('');
-  L.push(truncate(S.article, 6000));
-  L.push('');
-
-  if (kw.length){
-    L.push('════════ WHAT READERS ACTUALLY SEARCH ════════');
-    L.push(`Live Google Search Console data for radiofarda.com — last ${DAYS} days.`);
-    L.push('These are real queries this newsroom already ranks for. Position = current average rank.');
-    L.push('');
-    L.push('QUERY | CLICKS | IMPRESSIONS | CTR | POSITION | RANKING PAGE');
-    kw.forEach(k=>L.push(`${k.term} | ${k.clicks} | ${k.impressions} | ${(k.ctr*100).toFixed(1)}% | ${k.position.toFixed(1)} | ${k.page||'—'}`));
-    L.push('');
-    const weak = kw.filter(k=>k.position>5 && k.impressions>500);
-    if (weak.length){
-      L.push('OPPORTUNITY — high impressions, ranking below position 5. A sharper headline could move these:');
-      weak.slice(0,5).forEach(k=>L.push(`  · ${k.term} — pos ${k.position.toFixed(1)}, ${k.impressions} impressions, only ${k.clicks} clicks`));
-      L.push('');
-    }
-
-    const cannib = kw.filter(k => k.page && k.position <= 20);
-    if (cannib.length){
-      L.push('CANNIBALIZATION WARNING — an existing article already ranks for these terms.');
-      L.push('If the new article targets the same query, differentiate the headline from the archive piece below, or it competes with itself in search results:');
-      cannib.slice(0,6).forEach(k=>L.push(`  · "${k.term}" → already ranked (pos ${k.position.toFixed(1)}) by: ${k.page}`));
-      L.push('');
-    }
-  } else {
-    L.push('════════ SEARCH DATA ════════');
-    L.push('No Search Console history matched this story. It is likely breaking or genuinely novel.');
-    L.push('Do not chase established keywords — prioritise the plain words a reader would actually type.');
-    L.push('');
-  }
-
-  if (arts.length){
-    L.push('════════ WHAT IS WINNING ON DISCOVER RIGHT NOW ════════');
-    L.push(`Top radiofarda.com pages in Google Discover, ${S.window==='week'?'last 7 days':'last 3 days'}.`);
-    L.push('Study the HEADLINE PATTERNS — what earns the click here.');
-    L.push('');
-    arts.forEach(a=>L.push(`· "${a.title}" — ${a.clicks} clicks, ${a.impressions} impressions, ${(a.ctr*100).toFixed(1)}% CTR`));
-    L.push('');
-  }
-
-  L.push('════════ YOUR TASK ════════');
-  L.push('Write 6 headline options for the article above:');
-  L.push('  1–2  SEARCH-LED — built on the highest-value queries above. Front-load the term readers type.');
-  L.push('  3–4  DISCOVER-LED — echo the patterns winning above. Curiosity with substance, never bait.');
-  L.push('  5    STRAIGHT — the plain wire-service statement of what happened.');
-  L.push('  6    YOUR BEST — whatever genuinely serves this story best.');
-  L.push('');
-  L.push('For EACH option give:');
-  L.push('  · The headline — Persian, under 70 characters where possible');
-  L.push('  · The query or pattern it targets, and why');
-  L.push('  · One risk or tradeoff it carries');
-  L.push('');
-  L.push('Then name the single strongest option and defend it in two sentences.');
-  L.push('Finally flag anything the current headline misrepresents, buries, or overstates.');
-  L.push('');
-  L.push('CONSTRAINTS: Persian output. No invented facts. No question-mark headlines unless the article genuinely poses one. Nothing the reporting does not support.');
-  return L.join('\n');
+  const queryTable = kw.map(k=>`${k.term} | ${k.clicks} | ${k.impressions} | ${(k.ctr*100).toFixed(1)}% | ${k.position.toFixed(1)} | ${k.page||'—'}`).join('\n');
+  const weak = kw.filter(k=>k.position>5 && k.impressions>500).slice(0,5);
+  const opportunity = weak.map(k=>`  · ${k.term} — pos ${k.position.toFixed(1)}, ${k.impressions} impressions, only ${k.clicks} clicks`).join('\n');
+  const cannib = kw.filter(k=>k.page && k.position<=20).slice(0,6);
+  const cannibalization = cannib.map(k=>`  · "${k.term}" → already ranked (pos ${k.position.toFixed(1)}) by: ${k.page}`).join('\n');
+  const discover = arts.map(a=>`· "${a.title}" — ${a.clicks} clicks, ${a.impressions} impressions, ${(a.ctr*100).toFixed(1)}% CTR`).join('\n');
+  return {
+    SITE:'radiofarda.com', DAYS:DAYS,
+    HEADLINE:S.headline||'', ARTICLE:truncate(S.article,6000),
+    ARTICLE_WORDCOUNT:S.article?S.article.split(/\s+/).length:0,
+    QUERY_TABLE:queryTable, QUERY_COUNT:kw.length,
+    OPPORTUNITY:opportunity, CANNIBALIZATION:cannibalization,
+    NO_QUERY_DATA:kw.length?'':'1',
+    DISCOVER:discover, DISCOVER_COUNT:arts.length,
+    DISCOVER_WINDOW_LABEL:S.window==='week'?'last 7 days':'last 3 days'
+  };
 }
+function buildPrompt(){ return PromptEngine.assemble(PromptEngine.loadTemplate(), buildVars()); }
 
 function updateGenState(){
   const ready = S.article.length>180 && !S.syncing;
