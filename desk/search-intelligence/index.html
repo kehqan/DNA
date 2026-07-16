@@ -172,6 +172,7 @@ details.dd[open] summary .chev{transform:rotate(90deg)}
     <div class="ntab">Library</div>
     <div class="nav-sep"></div>
     <a href="/desk/search-intelligence/admin/" style="text-decoration:none" class="ntab" title="Edit the prompt template">⚙ Admin</a>
+    <div class="ntab" id="compareBtn" title="Compare two keywords">⇄ Compare</div>
     <div class="nav-sep"></div>
     <div class="gen-ntab idle" id="genBtn">◆ Prompt</div>
   </div>
@@ -277,6 +278,48 @@ details.dd[open] summary .chev{transform:rotate(90deg)}
       <div class="meta" id="promptMeta"></div>
       <button class="ghost-sm" id="btnDownload">⭳ .txt</button>
       <button class="btn-flame" id="btnCopy">⧉ Copy prompt</button>
+    </div>
+  </div>
+</div>
+
+<div class="sheet" id="cmpSheet">
+  <div class="sheet-in" style="max-width:900px">
+    <div class="sheet-head">
+      <h3>Compare two keywords</h3>
+      <button class="ghost-sm" id="cmpClose">Close</button>
+    </div>
+    <div style="padding:18px 22px;overflow:auto">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+        <input class="mini-in" id="cmpA" placeholder="Term A" style="border-radius:12px">
+        <input class="mini-in" id="cmpB" placeholder="Term B" style="border-radius:12px">
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px">
+        <select class="mini-in" id="cmpGeo" style="border-radius:12px;width:auto;flex:none">
+          <option value="IR">Iran</option>
+          <option value="">Worldwide</option>
+          <option value="US">United States</option>
+        </select>
+        <select class="mini-in" id="cmpTime" style="border-radius:12px;width:auto;flex:none">
+          <option value="now 7-d">Past 7 days</option>
+          <option value="today 1-m" selected>Past 30 days</option>
+          <option value="today 3-m">Past 90 days</option>
+          <option value="today 12-m">Past 12 months</option>
+        </select>
+        <button class="btn-flame" id="cmpRun" style="margin-left:auto">Compare</button>
+      </div>
+
+      <div id="cmpOwnStats" style="display:none;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px"></div>
+
+      <div class="chips" id="cmpTypeChips" style="display:none;margin-bottom:12px">
+        <div class="fc on" data-t="TIMESERIES">Interest over time</div>
+        <div class="fc" data-t="GEO_MAP">Interest by region</div>
+      </div>
+
+      <div id="cmpWidgetWrap"></div>
+      <div id="cmpEmpty" class="empty">Enter one or two terms and click Compare. Term A is pre-filled from your extracted terms when available.</div>
+      <div class="meta-note" style="font-size:10.5px;color:var(--soft);margin-top:10px;line-height:1.5">
+        Chart is Google's own public interest data (relative search volume, not tied to your site). Stats above the chart are your own Search Console history for these exact terms.
+      </div>
     </div>
   </div>
 </div>
@@ -620,6 +663,97 @@ function ingestCsv(text){
     S.keywords.push({term:c[0],clicks:+c[1]||0,impressions:+c[2]||0,ctr:(parseFloat(c[3])||0)/100,position:+c[4]||0,page:'',seed:'import'}); n++;
   });
   renderAll(); toast(`Imported ${n} rows`);
+}
+
+/* ==================== Compare — two keywords, side by side ==================== */
+let cmpType = 'TIMESERIES';
+
+function openCompare(){
+  if (!$('cmpA').value && S.seeds.length) $('cmpA').value = S.seeds[0];
+  $('cmpSheet').classList.add('show');
+}
+$('compareBtn').addEventListener('click', openCompare);
+$('cmpClose').addEventListener('click', ()=>$('cmpSheet').classList.remove('show'));
+$('cmpSheet').addEventListener('click', e=>{ if(e.target===$('cmpSheet')) $('cmpSheet').classList.remove('show'); });
+
+document.getElementById('cmpTypeChips').addEventListener('click', e=>{
+  const el = e.target.closest('.fc'); if(!el) return;
+  document.querySelectorAll('#cmpTypeChips .fc').forEach(c=>c.classList.remove('on'));
+  el.classList.add('on'); cmpType = el.dataset.t;
+  runTrendsWidget();
+});
+
+async function ownStatsFor(term){
+  try{
+    const rows = await fetchQueries(term);
+    if (!rows.length) return null;
+    const best = rows.sort((a,b)=>b.clicks-a.clicks)[0];
+    const clicks = rows.reduce((s,r)=>s+r.clicks,0);
+    return { clicks, position: best.position, page: best.page };
+  }catch(e){ return null; }
+}
+
+function ownStatCard(term, stat){
+  if (!term) return '';
+  if (!stat) return `<div class="art" style="grid-template-columns:1fr"><div><div class="art-src">${esc(term)}</div><div style="font-size:12px;color:var(--soft)">No history on your site for this term</div></div></div>`;
+  return `<div class="art" style="grid-template-columns:1fr"><div>
+    <div class="art-src">${esc(term)}</div>
+    <div style="font-size:13px;font-family:var(--serif)">pos ${stat.position.toFixed(1)} · ${stat.clicks.toLocaleString()} clicks on your site</div>
+    ${stat.page?`<div style="font-size:10.5px;color:var(--soft);margin-top:2px">${esc(stat.page.replace(/^https?:\/\/(www\.)?radiofarda\.com/,''))}</div>`:''}
+  </div></div>`;
+}
+
+$('cmpRun').addEventListener('click', async ()=>{
+  const a = $('cmpA').value.trim(), b = $('cmpB').value.trim();
+  if (!a && !b) return toast('Enter at least one term');
+  $('cmpEmpty').style.display = 'none';
+  $('cmpOwnStats').style.display = 'grid';
+  $('cmpOwnStats').innerHTML = '<div class="sk" style="height:50px"></div><div class="sk" style="height:50px"></div>';
+  $('cmpTypeChips').style.display = 'flex';
+
+  const [sa, sb] = await Promise.all([a?ownStatsFor(a):null, b?ownStatsFor(b):null]);
+  $('cmpOwnStats').innerHTML = ownStatCard(a,sa) + ownStatCard(b,sb);
+
+  runTrendsWidget();
+});
+
+function ensureTrendsScript(cb){
+  if (window.trends && window.trends.embed) return cb();
+  window.__trendsCbs = window.__trendsCbs || [];
+  window.__trendsCbs.push(cb);
+  if (document.getElementById('gtrends-loader')) return;
+  const s = document.createElement('script');
+  s.id = 'gtrends-loader';
+  s.src = 'https://ssl.gstatic.com/trends_nrtr/3098_RC01/embed_loader.js';
+  s.onload = () => { (window.__trendsCbs||[]).forEach(f=>f()); window.__trendsCbs = []; };
+  s.onerror = () => { $('cmpWidgetWrap').innerHTML = '<div class="errbox">Google Trends widget script failed to load — this may be blocked by an ad blocker or network policy.</div>'; };
+  document.head.appendChild(s);
+}
+
+function runTrendsWidget(){
+  const a = $('cmpA').value.trim(), b = $('cmpB').value.trim();
+  const geo = $('cmpGeo').value, time = $('cmpTime').value;
+  if (!a && !b) return;
+  const wrap = $('cmpWidgetWrap');
+  wrap.innerHTML = '<div class="sk" style="height:340px"></div>';
+
+  ensureTrendsScript(() => {
+    const div = document.createElement('div');
+    div.style.cssText = 'width:100%;height:360px;';
+    wrap.innerHTML = '';
+    wrap.appendChild(div);
+
+    const items = [];
+    if (a) items.push({ keyword:a, geo, time });
+    if (b) items.push({ keyword:b, geo, time });
+    const req = { comparisonItem: items, category: 0, property: '' };
+    const cfg = { exploreQuery: '', guestPath: 'https://trends.google.com:443/trends/embed/' };
+
+    const s = document.createElement('script');
+    s.type = 'text/javascript';
+    s.text = `trends.embed.renderExploreWidget(${JSON.stringify(cmpType)}, ${JSON.stringify(req)}, ${JSON.stringify(cfg)});`;
+    wrap.appendChild(s);
+  });
 }
 
 /* ==================== Boot ==================== */
