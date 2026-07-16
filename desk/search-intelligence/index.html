@@ -727,6 +727,13 @@ window.onload = function(){
 <\/script></body></html>`;
 }
 
+function trendsExploreUrl(items, geo, time){
+  const q = items.map(i => encodeURIComponent(i.keyword)).join(',');
+  let url = `https://trends.google.com/trends/explore?q=${q}&date=${encodeURIComponent(time)}`;
+  if (geo) url += `&geo=${geo}`;
+  return url;
+}
+
 $('cmpRun').addEventListener('click', async ()=>{
   const a = $('cmpA').value.trim(), b = $('cmpB').value.trim();
   if (!a && !b) return toast('Enter at least one term');
@@ -750,11 +757,12 @@ $('cmpRun').addEventListener('click', async ()=>{
   const items = [];
   if (a) items.push({ keyword:a, geo:$('cmpGeo').value, time:$('cmpTime').value });
   if (b) items.push({ keyword:b, geo:$('cmpGeo').value, time:$('cmpTime').value });
+  const exploreUrl = trendsExploreUrl(items, $('cmpGeo').value, $('cmpTime').value);
 
   const iframe = document.createElement('iframe');
   iframe.style.cssText = 'width:100%;height:380px;border:1px solid var(--border);border-radius:14px;background:#fff;display:none';
-  iframe.setAttribute('sandbox', 'allow-scripts');
-  wrap.appendChild(iframe);                       // attach BEFORE srcdoc, or onload never fires
+  iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-popups');
+  wrap.appendChild(iframe);
   const iframeLoaded = new Promise(res => { iframe.onload = () => setTimeout(res, 400); });
   iframe.srcdoc = trendsIframeHTML(items);
 
@@ -762,6 +770,11 @@ $('cmpRun').addEventListener('click', async ()=>{
   $('cmpOwnStats').innerHTML = ownStatCard(a,sa2) + ownStatCard(b,sb2);
   loadingCard.remove();
   iframe.style.display = 'block';
+
+  const link = document.createElement('div');
+  link.style.cssText = 'text-align:center;margin-top:10px';
+  link.innerHTML = `<a href="${esc(exploreUrl)}" target="_blank" rel="noopener" style="font-size:11.5px;color:var(--muted);text-decoration:none">Open this comparison in Google Trends ↗</a>`;
+  wrap.appendChild(link);
 });
 
 /* ==================== Boot ==================== */
