@@ -171,7 +171,7 @@ details.dd[open] summary .chev{transform:rotate(90deg)}
     <div class="ntab on">Search Intelligence</div>
     <div class="ntab">Library</div>
     <div class="nav-sep"></div>
-    <a href="admin/" style="text-decoration:none" class="ntab" title="Edit the prompt template">⚙ Admin</a>
+    <a href="/desk/search-intelligence/admin/" style="text-decoration:none" class="ntab" title="Edit the prompt template">⚙ Admin</a>
     <div class="nav-sep"></div>
     <div class="gen-ntab idle" id="genBtn">◆ Prompt</div>
   </div>
@@ -283,7 +283,12 @@ details.dd[open] summary .chev{transform:rotate(90deg)}
 
 <div class="toast" id="toast"></div>
 
-<script src="prompt-engine.js"></script>
+<script>
+  function promptEngineLoadFailed(){
+    console.error('prompt-engine.js failed to load from: /desk/search-intelligence/prompt-engine.js');
+  }
+</script>
+<script src="/desk/search-intelligence/prompt-engine.js" onerror="promptEngineLoadFailed()"></script>
 <script>
 /* ==================== CONFIG ==================== */
 const GSC_URL = 'https://script.google.com/macros/s/AKfycbyijNimY56S9pRdVvCpXv4LmCtirWHTmLpASLzttJ-xRqUjSuXeBU-zvlhyBhD9MzEK/exec';
@@ -620,9 +625,14 @@ function ingestCsv(text){
 /* ==================== Boot ==================== */
 (async function boot(){
   try {
+    if (typeof PromptEngine === 'undefined') throw new Error('prompt-engine.js did not load — check the file exists at ' + new URL('prompt-engine.js', location.href).href);
     const { blocks } = await PromptEngine.getBlocks();
     TPL_BLOCKS = blocks;
-  } catch(e){ TPL_BLOCKS = PromptEngine.DEFAULT_BLOCKS; }
+  } catch(e){
+    console.error(e);
+    TPL_BLOCKS = (typeof PromptEngine !== 'undefined') ? PromptEngine.DEFAULT_BLOCKS : [];
+    toast('Prompt template failed to load — using built-in fallback');
+  }
 
   try{
     S.articles = await fetchDiscover('day');
