@@ -310,11 +310,6 @@ details.dd[open] summary .chev{transform:rotate(90deg)}
 
       <div id="cmpOwnStats" style="display:none;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px"></div>
 
-      <div class="chips" id="cmpTypeChips" style="display:none;margin-bottom:12px">
-        <div class="fc on" data-t="TIMESERIES">Interest over time</div>
-        <div class="fc" data-t="GEO_MAP">Interest by region</div>
-      </div>
-
       <div id="cmpWidgetWrap"></div>
       <div id="cmpEmpty" class="empty">Enter one or two terms and click Compare. Term A is pre-filled from your extracted terms when available.</div>
       <div class="meta-note" style="font-size:10.5px;color:var(--soft);margin-top:10px;line-height:1.5">
@@ -666,8 +661,6 @@ function ingestCsv(text){
 }
 
 /* ==================== Compare — two keywords, side by side ==================== */
-let cmpType = 'TIMESERIES';
-
 function openCompare(){
   if (!$('cmpA').value && S.seeds.length) $('cmpA').value = S.seeds[0];
   $('cmpSheet').classList.add('show');
@@ -675,13 +668,6 @@ function openCompare(){
 $('compareBtn').addEventListener('click', openCompare);
 $('cmpClose').addEventListener('click', ()=>$('cmpSheet').classList.remove('show'));
 $('cmpSheet').addEventListener('click', e=>{ if(e.target===$('cmpSheet')) $('cmpSheet').classList.remove('show'); });
-
-document.getElementById('cmpTypeChips').addEventListener('click', e=>{
-  const el = e.target.closest('.fc'); if(!el) return;
-  document.querySelectorAll('#cmpTypeChips .fc').forEach(c=>c.classList.remove('on'));
-  el.classList.add('on'); cmpType = el.dataset.t;
-  runTrendsWidget();
-});
 
 async function ownStatsFor(term){
   try{
@@ -692,7 +678,6 @@ async function ownStatsFor(term){
     return { clicks, position: best.position, page: best.page };
   }catch(e){ return null; }
 }
-
 function ownStatCard(term, stat){
   if (!term) return '';
   if (!stat) return `<div class="art" style="grid-template-columns:1fr"><div><div class="art-src">${esc(term)}</div><div style="font-size:12px;color:var(--soft)">No history on your site for this term</div></div></div>`;
@@ -703,58 +688,78 @@ function ownStatCard(term, stat){
   </div></div>`;
 }
 
+/* One fun fact per search — no cycling, just something nice to read for a few seconds. */
+const FUN_FACTS = [
+  "🐱 Cats can't taste sweetness — they're missing the taste receptor for sugar entirely.",
+  "🏛️ The Great Wall of China isn't actually visible from space with the naked eye — that's a myth.",
+  "⚽ A football match's ball travels an average of about 8–10 km over 90 minutes, just from being kicked around.",
+  "🍯 Honey never spoils. Archaeologists have found 3,000-year-old honey in Egyptian tombs that's still edible.",
+  "🎾 The longest tennis match in history lasted 11 hours and 5 minutes, spread across three days.",
+  "🐙 Octopuses have three hearts, and two of them stop beating when they swim.",
+  "📜 Cleopatra lived closer in time to the Moon landing than to the building of the Great Pyramid of Giza.",
+  "🏀 The first basketball hoops were literally peach baskets — someone had to fetch the ball out by ladder after every score.",
+  "🐧 Emperor penguins can hold their breath for over 20 minutes while diving for food.",
+  "🚴 The bicycle was once banned in some 19th-century towns for being \"too fast and dangerous\" at 15 km/h.",
+  "🦖 The Stegosaurus lived closer in time to us than it did to the Tyrannosaurus rex.",
+  "🐘 Elephants are one of the only animals that can recognize themselves in a mirror.",
+  "🏒 The first hockey puck was reportedly a frozen cow dung patty, used because a ball kept bouncing out of the rink.",
+  "🌍 It rains diamonds on Neptune and Uranus, thanks to extreme pressure crushing carbon in the atmosphere.",
+  "🐢 Some tortoises can live over 150 years — one named Jonathan is believed to have hatched in the 1830s."
+];
+function pickFact(){ return FUN_FACTS[Math.floor(Math.random()*FUN_FACTS.length)]; }
+function showFact(el){
+  el.textContent = pickFact();
+  el.style.opacity = '1';
+}
+
+function trendsIframeHTML(items){
+  const req = { comparisonItem: items, category: 0, property: '' };
+  const cfg = { exploreQuery: '', guestPath: 'https://trends.google.com:443/trends/embed/' };
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>body{margin:0;font-family:'Noto Sans',system-ui,sans-serif}</style></head>
+<body><div style="width:100%;height:360px;"></div>
+<script src="https://ssl.gstatic.com/trends_nrtr/3098_RC01/embed_loader.js"><\/script>
+<script>
+window.onload = function(){
+  try{
+    trends.embed.renderExploreWidget("TIMESERIES", ${JSON.stringify(req)}, ${JSON.stringify(cfg)});
+  }catch(e){ document.body.innerHTML = '<p style="font-family:sans-serif;color:#FF5400;padding:16px">Widget failed to render: '+e.message+'</p>'; }
+};
+<\/script></body></html>`;
+}
+
 $('cmpRun').addEventListener('click', async ()=>{
   const a = $('cmpA').value.trim(), b = $('cmpB').value.trim();
   if (!a && !b) return toast('Enter at least one term');
+
   $('cmpEmpty').style.display = 'none';
   $('cmpOwnStats').style.display = 'grid';
   $('cmpOwnStats').innerHTML = '<div class="sk" style="height:50px"></div><div class="sk" style="height:50px"></div>';
-  $('cmpTypeChips').style.display = 'flex';
+
+  const wrap = $('cmpWidgetWrap');
+  wrap.innerHTML = `<div class="card" style="text-align:center;padding:30px 24px">
+    <div class="spin" style="margin:0 auto 16px;width:20px;height:20px"></div>
+    <div id="cmpFact" style="font-size:13px;color:var(--muted);line-height:1.7;max-width:420px;margin:0 auto;opacity:0;transition:opacity 400ms var(--eo)"></div>
+  </div>`;
+  showFact($('cmpFact'));
+  const minWait = new Promise(res => setTimeout(res, 6200));
 
   const [sa, sb] = await Promise.all([a?ownStatsFor(a):null, b?ownStatsFor(b):null]);
   $('cmpOwnStats').innerHTML = ownStatCard(a,sa) + ownStatCard(b,sb);
 
-  runTrendsWidget();
+  const items = [];
+  if (a) items.push({ keyword:a, geo:$('cmpGeo').value, time:$('cmpTime').value });
+  if (b) items.push({ keyword:b, geo:$('cmpGeo').value, time:$('cmpTime').value });
+
+  const iframe = document.createElement('iframe');
+  iframe.style.cssText = 'width:100%;height:380px;border:1px solid var(--border);border-radius:14px;background:#fff';
+  iframe.setAttribute('sandbox', 'allow-scripts');
+  const iframeLoaded = new Promise(res => { iframe.onload = () => setTimeout(res, 400); });
+  iframe.srcdoc = trendsIframeHTML(items);
+
+  await Promise.all([minWait, iframeLoaded]);
+  wrap.innerHTML = '';
+  wrap.appendChild(iframe);
 });
-
-function ensureTrendsScript(cb){
-  if (window.trends && window.trends.embed) return cb();
-  window.__trendsCbs = window.__trendsCbs || [];
-  window.__trendsCbs.push(cb);
-  if (document.getElementById('gtrends-loader')) return;
-  const s = document.createElement('script');
-  s.id = 'gtrends-loader';
-  s.src = 'https://ssl.gstatic.com/trends_nrtr/3098_RC01/embed_loader.js';
-  s.onload = () => { (window.__trendsCbs||[]).forEach(f=>f()); window.__trendsCbs = []; };
-  s.onerror = () => { $('cmpWidgetWrap').innerHTML = '<div class="errbox">Google Trends widget script failed to load — this may be blocked by an ad blocker or network policy.</div>'; };
-  document.head.appendChild(s);
-}
-
-function runTrendsWidget(){
-  const a = $('cmpA').value.trim(), b = $('cmpB').value.trim();
-  const geo = $('cmpGeo').value, time = $('cmpTime').value;
-  if (!a && !b) return;
-  const wrap = $('cmpWidgetWrap');
-  wrap.innerHTML = '<div class="sk" style="height:340px"></div>';
-
-  ensureTrendsScript(() => {
-    const div = document.createElement('div');
-    div.style.cssText = 'width:100%;height:360px;';
-    wrap.innerHTML = '';
-    wrap.appendChild(div);
-
-    const items = [];
-    if (a) items.push({ keyword:a, geo, time });
-    if (b) items.push({ keyword:b, geo, time });
-    const req = { comparisonItem: items, category: 0, property: '' };
-    const cfg = { exploreQuery: '', guestPath: 'https://trends.google.com:443/trends/embed/' };
-
-    const s = document.createElement('script');
-    s.type = 'text/javascript';
-    s.text = `trends.embed.renderExploreWidget(${JSON.stringify(cmpType)}, ${JSON.stringify(req)}, ${JSON.stringify(cfg)});`;
-    wrap.appendChild(s);
-  });
-}
 
 /* ==================== Boot ==================== */
 (async function boot(){
