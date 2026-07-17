@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Desk Headline</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&family=Noto+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ivory:#F8F7F6; --teal:#1A3948; --teal2:#24506A; --flame:#FF5400;
+  --stone:#B9CCCC; --honey:#FFC047;
+
+  /* Every panel on the page uses this ONE recipe — the nav pill's — so the
+     whole desk reads as one sheet of the same real glass, not a bright
+     card system with one honest exception. */
+  --glass:rgba(255,255,255,0.16);
+  --glass-filter: blur(38px) saturate(2.4) brightness(1.10);
+
+  /* Content sitting directly on the glass is light text over a scene that
+     shifts under it — contrast comes from weight + shadow, not from a
+     bright backing panel. Three tiers, same idea as the nav's own labels. */
+  --lt-1: #FFFFFF;                    /* headings, primary numbers */
+  --lt-2: rgba(255,255,255,0.92);   /* body / row text */
+  --lt-3: rgba(255,255,255,0.74);   /* meta, labels, captions */
+  --border: rgba(255,255,255,0.16);
+
+  /* Dual-layer shadow: a tight dark core (holds the letterform on bright
+     orb spots) plus a soft wide falloff (holds it on the dark base too). */
+  --ts: 0 1px 2px rgba(4,12,16,0.85), 0 2px 10px rgba(4,12,16,0.55);
+  --ts-lg: 0 1px 3px rgba(4,12,16,0.90), 0 3px 16px rgba(4,12,16,0.60), 0 1px 1px rgba(4,12,16,0.70);
+
+  /* Rim = the edge of the glass. The old version put a hard 3px solid white
+     line across the top — that's the "vivid stroke". Real liquid glass has
+     a SOFT, even, low-opacity frosted edge all the way around, plus a gentle
+     blurred top catch (blur > 0 so it glows instead of drawing a line). */
+  --rim:
+    inset 0 0 0 1px rgba(255,255,255,0.14),      /* even hairline, all sides */
+    inset 0 1.5px 2px rgba(255,255,255,0.34),    /* soft top catch — blurred */
+    inset 0 -2px 3px rgba(4,12,16,0.20),         /* soft underside */
+    inset 0 0 32px rgba(255,255,255,0.045);      /* faint body glow */
+  --rim-sm:
+    inset 0 0 0 1px rgba(255,255,255,0.11),
+    inset 0 1px 1.5px rgba(255,255,255,0.26),
+    inset 0 -1.5px 2px rgba(4,12,16,0.18);
+  --ambient:
+    0 1px 2px rgba(6,20,28,0.44),
+    0 10px 30px rgba(6,20,28,0.40),
+    0 30px 70px rgba(6,20,28,0.34);
+  --ambient-lg:
+    0 1px 2px rgba(6,20,28,0.46),
+    0 14px 36px rgba(6,20,28,0.40),
+    0 44px 90px rgba(6,20,28,0.38);
+  --ambient-hi:
+    0 1px 2px rgba(6,20,28,0.50),
+    0 20px 46px rgba(6,20,28,0.44),
+    0 56px 110px rgba(6,20,28,0.42);
+
+  /* Nested "chip" glass — the same idea one layer down (rows, the intake
+     well, the sync strip): thinner fill still, so it reads as a pane
+     inside the pane rather than a painted block. */
+  --chip: rgba(255,255,255,0.10);
+  --chip-hover: rgba(255,255,255,0.18);
+
+  --sunk:
+    inset 0 3px 6px rgba(4,12,16,0.30),
+    inset 0 1px 2px rgba(4,12,16,0.20),
+    inset 0 -1px 2px rgba(255,255,255,0.12),
+    inset 0 0 0 1px rgba(255,255,255,0.10);
+
+  --eo:cubic-bezier(0.25,0.46,0.45,0.94);
+  --serif:'Lora',Georgia,serif; --sans:'Noto Sans',system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{color-scheme:dark}
+body{font-family:var(--sans);color:var(--lt-2);min-height:100vh;-webkit-font-smoothing:antialiased;
+  background:linear-gradient(160deg,#0F1622 0%,#0B1016 45%,#0C0E14 75%,#120E18 100%)}
+
+/* ===== DARK SCENE — quiet, with a gentle dark-purple haze. All very low
+   alpha and heavily blurred: it tints the glass, never spotlights it, so
+   white text stays readable everywhere. ===== */
+.scene{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;
+  background:linear-gradient(160deg,#0F1622 0%,#0B1016 45%,#0C0E14 75%,#120E18 100%)}
+/* Low-opacity real photo behind everything. It gets blurred by each panel's
+   backdrop-filter, so it reads as soft color through the glass — while the
+   dark gradient + orbs stay underneath as a fallback if the image can't load.
+   A dark overlay keeps text that sits directly on the scene readable. */
+.bg-photo{position:absolute;inset:0;pointer-events:none;
+  background-image:url('https://images.pexels.com/photos/10464443/pexels-photo-10464443.jpeg');
+  background-size:cover;background-position:center;
+  opacity:0.22;                                   /* KNOB 1: image strength */
+  filter:saturate(0.85) contrast(1.02)}
+.bg-photo::after{content:'';position:absolute;inset:0;   /* KNOB 2: darkening for text safety */
+  background:linear-gradient(160deg,rgba(10,13,20,0.22),rgba(10,13,20,0.46))}
+.orb{position:absolute;border-radius:50%;filter:blur(100px)}
+.o1{width:660px;height:540px;top:-170px;left:-120px;
+  background:radial-gradient(ellipse,rgba(96,58,150,0.16) 0%,rgba(70,44,110,0.07) 46%,transparent 72%);animation:d1 34s ease-in-out infinite}
+.o2{width:640px;height:520px;top:20%;right:-170px;
+  background:radial-gradient(ellipse,rgba(118,72,176,0.18) 0%,rgba(80,52,128,0.08) 50%,transparent 76%);animation:d2 40s ease-in-out infinite}
+.o3{width:540px;height:440px;bottom:-2%;left:14%;
+  background:radial-gradient(ellipse,rgba(58,66,108,0.12) 0%,transparent 70%);animation:d3 37s ease-in-out infinite}
+@keyframes d1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(50px,35px) scale(1.08)}}
+@keyframes d2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-40px,-30px) scale(1.06)}}
+@keyframes d3{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(35px,-25px) scale(1.08)}}
+.wrap{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:0 24px 70px}
+
+/* NAV */
+.nav-wrap{position:sticky;top:0;z-index:50;display:flex;justify-content:center;padding:16px 24px 0;pointer-events:none}
+.nav-pill{display:inline-flex;align-items:center;gap:2px;background:var(--glass);
+  backdrop-filter:var(--glass-filter);-webkit-backdrop-filter:var(--glass-filter);
+  border-radius:100px;padding:5px;
+  box-shadow:var(--ambient),var(--rim);
+  pointer-events:all}
+.wordmark{font-family:var(--serif);font-size:17px;color:#fff;padding:6px 16px 6px 12px;border-right:1px solid rgba(255,255,255,0.24);margin-right:4px;text-shadow:0 1px 3px rgba(6,20,28,0.44)}
+.wordmark em{font-style:normal;color:#FFB07A;font-weight:600}
+.ntab{font-size:13px;font-weight:500;color:rgba(255,255,255,0.80);padding:7px 16px;border-radius:100px;cursor:pointer;transition:color 180ms,background 180ms;text-shadow:0 1px 2px rgba(6,20,28,0.34)}
+.ntab:hover{color:#fff}
+.ntab.on{background:rgba(255,255,255,0.30);color:#0E2531;text-shadow:none;font-weight:600;
+  box-shadow:inset 0 2px 0 rgba(255,255,255,0.88),inset 0 -2px 1px rgba(6,20,28,0.14)}
+.nav-sep{width:1px;height:20px;background:rgba(255,255,255,0.22);margin:0 2px}
+.lang{display:flex;gap:2px;margin-left:4px}
+.lang span{font-size:11px;font-weight:600;color:rgba(255,255,255,0.70);padding:5px 9px;border-radius:100px;cursor:pointer}
+.lang span.on{background:rgba(255,255,255,0.30);color:#0E2531;box-shadow:inset 0 1.5px 0 rgba(255,255,255,0.80)}
+
+/* HERO — on dark now */
+.hero{padding:48px 0 28px;max-width:660px}
+.eyebrow{font-size:10px;font-weight:600;letter-spacing:0.10em;text-transform:uppercase;color:rgba(255,255,255,0.86);margin-bottom:14px;display:flex;align-items:center;gap:7px;text-shadow:0 2px 10px rgba(6,20,28,0.90),0 1px 3px rgba(6,20,28,0.70)}
+.pdot{width:6px;height:6px;border-radius:50%;background:var(--flame);box-shadow:0 0 10px rgba(255,84,0,0.90);animation:pring 2.5s ease-in-out infinite}
+@keyframes pring{0%,100%{box-shadow:0 0 10px rgba(255,84,0,0.90),0 0 0 0 rgba(255,84,0,0.50)}50%{box-shadow:0 0 10px rgba(255,84,0,0.90),0 0 0 6px rgba(255,84,0,0)}}
+h1{font-family:var(--serif);font-size:46px;font-weight:400;letter-spacing:-0.02em;line-height:1.1;margin-bottom:13px;color:#fff;text-shadow:var(--ts-lg)}
+.lede{font-family:var(--serif);font-size:15px;color:var(--lt-2);line-height:1.6;max-width:540px;text-shadow:var(--ts)}
+
+/* ===== THE SLAB — same glass as the nav, just a bigger pane of it ===== */
+.card{position:relative;border-radius:24px;padding:22px;background:var(--glass);
+  backdrop-filter:var(--glass-filter);
+  -webkit-backdrop-filter:var(--glass-filter);
+  box-shadow:var(--ambient-lg),var(--rim);
+  transition:transform 240ms var(--eo),box-shadow 240ms var(--eo);
+  animation:rise 460ms var(--eo) both}
+/* Soft glare — a diffuse light bloom drifting off the top-left corner,
+   feathering away. This is the "liquid" catch, not a hard sweep. */
+.card::before{content:'';position:absolute;inset:0;border-radius:24px;pointer-events:none;
+  background:radial-gradient(130% 90% at 22% -12%,rgba(255,255,255,0.26) 0%,rgba(255,255,255,0.07) 26%,transparent 52%);
+  mix-blend-mode:screen}
+/* Bottom edge — a whisper of light catching the underside, kept gentle */
+.card::after{content:'';position:absolute;left:12%;right:12%;bottom:-1px;height:2px;pointer-events:none;
+  border-radius:100px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.24),transparent)}
+.card>*{position:relative;z-index:1}
+.card:hover{transform:translateY(-4px);box-shadow:var(--ambient-hi),var(--rim)}
+@keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+/* INTAKE */
+.intake{margin-bottom:16px;animation-delay:55ms}
+.well{min-height:112px;border-radius:16px;padding:17px 19px;font-family:var(--serif);font-size:14px;color:var(--lt-3);line-height:1.6;text-shadow:var(--ts);
+  background:var(--chip);box-shadow:var(--sunk);transition:background 220ms,box-shadow 220ms}
+.well:hover{background:var(--chip-hover);
+  box-shadow:inset 0 3px 6px rgba(255,84,0,0.16),inset 0 -1px 0 rgba(255,255,255,0.30),inset 0 0 0 1.5px rgba(255,150,80,0.40)}
+.foot{display:flex;align-items:center;gap:10px;margin-top:15px}
+.rule{flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.20),transparent)}
+
+/* BUTTONS — liquid glass, made of the same material as the panels. A gentle
+   fill, soft rim, real blur. Hover warms the fill a touch and lifts, matching
+   the panels' own hover language rather than flipping to a solid dark block. */
+.abtn{font-family:var(--sans);font-size:13px;font-weight:600;color:var(--lt-1);text-shadow:var(--ts);
+  padding:8px 17px;border-radius:100px;border:none;cursor:pointer;
+  background:rgba(255,255,255,0.10);
+  backdrop-filter:blur(14px) saturate(1.8);-webkit-backdrop-filter:blur(14px) saturate(1.8);
+  box-shadow:var(--ambient),var(--rim-sm);
+  transition:transform 200ms var(--eo),background 200ms,box-shadow 200ms}
+.abtn:hover{background:rgba(255,120,50,0.16);transform:translateY(-2px);
+  box-shadow:var(--ambient-hi),var(--rim-sm),inset 0 0 20px rgba(255,120,50,0.10)}
+.abtn:active{transform:scale(0.96)}
+.pbtn{font-family:var(--sans);font-size:13px;font-weight:600;color:#fff;padding:9px 21px;border-radius:100px;border:none;cursor:pointer;
+  background:linear-gradient(180deg,#FF8A45 0%,var(--flame) 52%,#DC4400 100%);
+  box-shadow:0 1px 2px rgba(120,36,0,0.50),0 6px 16px rgba(255,84,0,0.52),0 18px 40px rgba(255,84,0,0.30),
+    inset 0 2px 0 rgba(255,255,255,0.62),inset 0 -2px 2px rgba(120,34,0,0.44),inset 0 0 0 1px rgba(255,140,80,0.50);
+  transition:transform 160ms var(--eo),box-shadow 160ms}
+.pbtn:hover{transform:translateY(-1.5px) scale(1.02)}
+.pbtn:active{transform:scale(0.96)}
+
+/* STATS */
+.srow{display:grid;grid-template-columns:repeat(4,1fr);margin-bottom:16px;animation-delay:80ms}
+.sc{padding-right:16px;margin-right:16px;border-right:1px solid var(--border)}
+.sc:last-child{border-right:none;padding-right:0;margin-right:0}
+.sn{font-family:var(--serif);font-size:33px;font-weight:400;line-height:1;margin-bottom:4px;letter-spacing:-0.02em;color:var(--lt-1);text-shadow:var(--ts-lg)}
+.sl{font-size:11.5px;color:var(--lt-3);margin-bottom:3px;text-shadow:var(--ts)}
+.sup{font-size:11.5px;font-weight:600;color:#5FD48F;text-shadow:var(--ts)}
+.sdn{font-size:11.5px;font-weight:600;color:#FF9466;text-shadow:var(--ts)}
+
+/* HEADS */
+.chead{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.chead h2{font-family:var(--serif);font-size:19px;font-weight:400;white-space:nowrap;color:var(--lt-1);text-shadow:var(--ts-lg)}
+.uchip{font-size:11px;font-weight:600;color:#FFD8BE;background:rgba(255,84,0,0.30);padding:3px 11px;border-radius:100px;
+  box-shadow:var(--rim-sm)}
+.tchip{font-size:11px;font-weight:600;color:var(--lt-2);background:rgba(255,255,255,0.14);padding:3px 11px;border-radius:100px;
+  box-shadow:var(--rim-sm)}
+
+/* ROWS */
+.row{display:grid;grid-template-columns:4px 1fr auto;gap:14px;align-items:center;border-radius:15px;padding:13px 15px;margin-bottom:9px;
+  background:var(--chip);
+  box-shadow:var(--rim-sm);
+  transition:background 200ms,transform 200ms var(--eo),box-shadow 200ms}
+.row:hover{background:var(--chip-hover);transform:translateX(3px)}
+.stripe{border-radius:100px;align-self:stretch;min-height:34px;width:4px;box-shadow:0 0 10px currentColor}
+.sf{background:var(--flame);color:rgba(255,84,0,0.70)}
+.sh{background:var(--honey);color:rgba(255,192,71,0.70)}
+.st{background:var(--stone);color:rgba(185,204,204,0.50)}
+.sg{background:#5FD48F;color:rgba(95,212,143,0.55)}
+.qterm{font-family:var(--serif);font-size:14.5px;line-height:1.4;margin-bottom:3px;color:var(--lt-1);text-shadow:var(--ts)}
+.qmeta{font-size:11.5px;color:var(--lt-3);text-shadow:var(--ts)}
+.qright{display:flex;align-items:center;gap:11px}
+.tag{font-size:10px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;padding:4px 10px;border-radius:100px;white-space:nowrap;flex-shrink:0;
+  box-shadow:var(--rim-sm)}
+.t-f{background:rgba(255,84,0,0.35);color:#FFE0CC}
+.t-h{background:rgba(255,192,71,0.40);color:#FFF3D6}
+.t-t{background:rgba(255,255,255,0.16);color:var(--lt-2)}
+.t-g{background:rgba(95,212,143,0.32);color:#DDFBE9}
+.pos{font-family:var(--serif);font-size:17px;min-width:34px;text-align:right;color:var(--lt-2);text-shadow:var(--ts)}
+
+/* SYNC */
+.sync{display:flex;align-items:center;gap:11px;padding:12px 15px;border-radius:14px;margin-bottom:15px;
+  background:var(--chip);
+  box-shadow:var(--rim-sm)}
+.spin{width:12px;height:12px;border-radius:50%;border:2px solid rgba(255,84,0,0.30);border-top-color:var(--flame);animation:sp 900ms linear infinite;flex-shrink:0}
+@keyframes sp{to{transform:rotate(360deg)}}
+.sync-lbl{font-size:12px;color:var(--lt-3);white-space:nowrap;text-shadow:var(--ts)}
+.bbg{flex:1;height:5px;background:rgba(255,255,255,0.14);border-radius:100px;overflow:hidden;box-shadow:inset 0 1px 2px rgba(6,20,28,0.30)}
+.bfill{height:100%;border-radius:100px;background:linear-gradient(90deg,var(--flame) 0%,#ff9a5d 100%);width:62%;
+  box-shadow:0 0 12px rgba(255,84,0,0.80),inset 0 1px 0 rgba(255,255,255,0.50)}
+.blbl{font-size:11px;font-weight:600;color:#FFB07A;white-space:nowrap;text-shadow:var(--ts)}
+
+/* BENTO */
+.bento{display:grid;grid-template-columns:1.85fr 1fr;gap:16px;align-items:start}
+.side{display:flex;flex-direction:column;gap:16px}
+.drow{display:flex;gap:11px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--border)}
+.drow:last-child{border-bottom:none;padding-bottom:0}
+.dnum{font-family:var(--serif);font-size:13px;color:var(--lt-3);min-width:15px;padding-top:1px;text-shadow:var(--ts)}
+.dtitle{font-family:var(--serif);font-size:13.5px;line-height:1.42;margin-bottom:4px;color:var(--lt-1);text-shadow:var(--ts)}
+.dmeta{font-size:11px;color:var(--lt-3);display:flex;align-items:center;gap:6px;text-shadow:var(--ts)}
+.dot{width:2.5px;height:2.5px;border-radius:50%;background:var(--lt-3)}
+.fcs{display:flex;gap:7px;margin-bottom:14px}
+.fc{padding:6px 14px;border-radius:100px;font-size:11.5px;font-weight:500;border:none;cursor:pointer;color:var(--lt-2);text-shadow:var(--ts);
+  background:var(--chip);
+  box-shadow:var(--rim-sm);
+  transition:all 160ms}
+.fc.on{background:rgba(255,120,50,0.20);color:var(--lt-1);font-weight:600;
+  box-shadow:var(--rim-sm),inset 0 0 16px rgba(255,120,50,0.12)}
+.fc:hover:not(.on){background:var(--chip-hover)}
+
+/* HEADLINE PROMPT — same glass as .card now, no separate opaque-dark variant */
+.prompt{position:relative;border-radius:24px;padding:22px;background:var(--glass);
+  backdrop-filter:var(--glass-filter);-webkit-backdrop-filter:var(--glass-filter);
+  box-shadow:var(--ambient-lg),var(--rim);animation:rise 460ms var(--eo) both;animation-delay:105ms}
+.prompt::before{content:'';position:absolute;inset:0;border-radius:24px;pointer-events:none;
+  background:radial-gradient(130% 90% at 22% -12%,rgba(255,255,255,0.26) 0%,rgba(255,255,255,0.07) 26%,transparent 52%);mix-blend-mode:screen}
+.prompt::after{content:'';position:absolute;left:12%;right:12%;bottom:-1px;height:2px;pointer-events:none;border-radius:100px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.24),transparent)}
+.prompt>*{position:relative;z-index:1}
+.prompt .eyebrow{color:var(--lt-3);text-shadow:var(--ts)}
+.prompt h2{font-family:var(--serif);font-size:19px;font-weight:400;color:var(--lt-1);margin-bottom:8px;text-shadow:var(--ts-lg)}
+.prompt p{font-size:12.5px;color:var(--lt-3);line-height:1.6;margin-bottom:16px;text-shadow:var(--ts)}
+.pready{display:flex;align-items:center;gap:9px;padding:11px 13px;border-radius:12px;margin-bottom:9px;
+  background:var(--chip);box-shadow:var(--rim-sm)}
+.pready-t{font-size:11.5px;color:var(--lt-2);text-shadow:var(--ts)}
+.check{width:15px;height:15px;border-radius:50%;background:#2e9d5f;display:flex;align-items:center;justify-content:center;font-size:8px;color:#fff;flex-shrink:0;
+  box-shadow:0 0 10px rgba(46,157,95,0.70),inset 0 1px 0 rgba(255,255,255,0.44)}
+.pbtn-wide{width:100%;justify-content:center;display:flex;align-items:center;gap:7px;padding:11px;margin-top:6px}
+
+/* GAPS — now bottom, full width */
+.gaps{animation-delay:155ms}
+.grid2{display:grid;grid-template-columns:1fr;gap:10px}
+.gap-row{display:grid;grid-template-columns:4px 1fr auto;gap:13px;align-items:center;border-radius:15px;padding:13px 15px;cursor:pointer;
+  background:rgba(255,84,0,0.14);
+  box-shadow:var(--rim-sm);
+  transition:background 200ms,transform 200ms var(--eo),box-shadow 200ms}
+.gap-row:hover{background:rgba(255,84,0,0.24);transform:translateY(-2px)}
+.gvol{font-family:var(--serif);font-size:15px;color:#FFC49B;text-align:right;white-space:nowrap;text-shadow:var(--ts)}
+.gvol span{display:block;font-family:var(--sans);font-size:10px;color:var(--lt-3);font-weight:500}
+
+.footnote{font-size:11.5px;color:var(--lt-3);margin-top:30px;text-align:center;font-family:var(--serif);text-shadow:var(--ts)}
+
+/* ===== POP-UP / MODAL — glass panel on a frosted, dimmed page ===== */
+.backdrop{position:fixed;inset:0;z-index:100;display:flex;align-items:flex-start;justify-content:center;
+  padding:56px 20px;overflow-y:auto;
+  background:rgba(5,8,13,0.64);
+  backdrop-filter:blur(13px) saturate(1.05);-webkit-backdrop-filter:blur(13px) saturate(1.05);
+  opacity:0;pointer-events:none;transition:opacity 280ms var(--eo)}
+.backdrop.open{opacity:1;pointer-events:auto}
+/* The panel — same material and rim as every other frame */
+.modal{position:relative;width:100%;max-width:920px;border-radius:26px;padding:26px 28px 22px;
+  background:var(--glass);backdrop-filter:var(--glass-filter);-webkit-backdrop-filter:var(--glass-filter);
+  box-shadow:var(--ambient-hi),var(--rim);
+  transform:translateY(16px) scale(0.985);opacity:0;
+  transition:transform 320ms var(--eo),opacity 320ms var(--eo)}
+.backdrop.open .modal{transform:none;opacity:1}
+.modal::before{content:'';position:absolute;inset:0;border-radius:26px;pointer-events:none;
+  background:radial-gradient(130% 90% at 22% -12%,rgba(255,255,255,0.24) 0%,rgba(255,255,255,0.07) 26%,transparent 52%);mix-blend-mode:screen}
+.modal::after{content:'';position:absolute;left:12%;right:12%;bottom:-1px;height:2px;pointer-events:none;border-radius:100px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.24),transparent)}
+.modal>*{position:relative;z-index:1}
+
+.mhead{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:22px}
+.mhead h2{font-family:var(--serif);font-size:23px;font-weight:400;color:var(--lt-1);text-shadow:var(--ts-lg)}
+
+/* Inputs — chip glass, same idea as the rows */
+.minputs{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.ginput{width:100%;font-family:var(--sans);font-size:14px;color:var(--lt-1);
+  padding:12px 15px;border-radius:14px;border:none;outline:none;
+  background:var(--chip);box-shadow:var(--rim-sm);
+  transition:background 200ms,box-shadow 200ms}
+.ginput::placeholder{color:rgba(255,255,255,0.5)}
+.ginput:focus{background:var(--chip-hover);
+  box-shadow:var(--rim-sm),inset 0 0 0 1.5px rgba(255,150,80,0.45)}
+
+.mcontrols{display:flex;align-items:center;gap:10px;margin-bottom:24px;flex-wrap:wrap}
+.gsel{position:relative}
+.gsel select{appearance:none;-webkit-appearance:none;font-family:var(--sans);font-size:13px;font-weight:500;
+  color:var(--lt-1);cursor:pointer;padding:10px 34px 10px 15px;border-radius:100px;border:none;outline:none;
+  background:var(--chip);box-shadow:var(--rim-sm);transition:background 200ms}
+.gsel select:hover{background:var(--chip-hover)}
+.gsel::after{content:'▾';position:absolute;right:14px;top:50%;transform:translateY(-50%);
+  color:var(--lt-3);font-size:11px;pointer-events:none}
+.mcontrols .pbtn{margin-left:auto}
+
+/* "Already on your site" match cards */
+.meyebrow{font-size:10px;font-weight:600;letter-spacing:0.10em;text-transform:uppercase;color:var(--lt-3);margin-bottom:11px;text-shadow:var(--ts)}
+.mmatches{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.mcard{border-radius:16px;padding:15px 17px;background:var(--chip);box-shadow:var(--rim-sm)}
+.mcard .mlabel{font-size:10px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--lt-3);margin-bottom:7px;text-shadow:var(--ts)}
+.mcard .mstat{font-family:var(--serif);font-size:15px;color:var(--lt-1);line-height:1.4;margin-bottom:8px;text-shadow:var(--ts)}
+.flink{color:#FFB07A;font-weight:600;font-size:12px;text-decoration:none;text-shadow:var(--ts);transition:color 160ms}
+.flink:hover{color:#fff}
+
+/* Chart well — sunk glass, holds the Google Trends embed */
+.mchart{border-radius:18px;min-height:280px;background:var(--chip);box-shadow:var(--sunk);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--lt-3);text-align:center;padding:24px}
+.mchart .mspark{width:38px;height:38px;border-radius:12px;background:rgba(255,120,50,0.16);
+  display:flex;align-items:center;justify-content:center;font-size:18px;color:#FFB07A;box-shadow:var(--rim-sm)}
+.mchart .mchint{font-size:12.5px;font-family:var(--serif);max-width:280px;line-height:1.5;text-shadow:var(--ts)}
+
+.mfoot{text-align:center;margin-top:18px}
+.mfoot .flink{font-size:12.5px}
+.mnote{font-size:11px;color:var(--lt-3);margin-top:10px;text-align:center;line-height:1.5;font-family:var(--serif);text-shadow:var(--ts)}
+
+@media (prefers-reduced-motion:reduce){*{animation-duration:0.01ms !important;transition-duration:0.01ms !important}}
+@media(max-width:900px){.bento{grid-template-columns:1fr}.srow{grid-template-columns:1fr 1fr;gap:16px 0}.grid2{grid-template-columns:1fr}h1{font-size:32px}
+  .minputs,.mmatches{grid-template-columns:1fr}.mcontrols .pbtn{margin-left:0;width:100%}}
+</style>
+</head>
+<body>
+<div class="scene"><div class="bg-photo"></div><div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div></div>
+
+<div class="nav-wrap">
+  <div class="nav-pill">
+    <div class="wordmark">Desk<em>.</em></div>
+    <div class="ntab">Briefs</div>
+    <div class="ntab on">Desk Headline</div>
+    <div class="ntab">Library</div>
+    <div class="nav-sep"></div>
+    <div class="lang"><span class="on">EN</span><span>فا</span></div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="hero">
+    <div class="eyebrow"><span class="pdot"></span>Live · Search Console · Last synced 4 min ago</div>
+    <h1>Desk Headline</h1>
+    <p class="lede">Paste an article. Terms extract, queries sync, Discover loads, the headline prompt assembles — all on its own.</p>
+  </div>
+
+  <div class="card intake">
+    <div class="eyebrow" style="color:var(--lt-3);text-shadow:var(--ts)">Article intake</div>
+    <div class="well">Paste your article text here — headline, standfirst, and body. Extraction begins the moment it lands.</div>
+    <div class="foot">
+      <div class="rule"></div>
+      <span class="qmeta">14 terms extracted</span>
+      <button class="abtn">↻ Resync</button>
+    </div>
+  </div>
+
+  <div class="card srow">
+    <div class="sc"><div class="sn">312</div><div class="sl">Queries you own</div><div class="sup">↑ 18 this week</div></div>
+    <div class="sc"><div class="sn">48.2k</div><div class="sl">Clicks · 28d</div><div class="sup">↑ 6.4%</div></div>
+    <div class="sc"><div class="sn">11.4</div><div class="sl">Avg. position</div><div class="sdn">↓ 0.8</div></div>
+    <div class="sc"><div class="sn">9.7k</div><div class="sl">Discover clicks</div><div class="sup">↑ 22%</div></div>
+  </div>
+
+  <div class="bento">
+
+    <div class="card" style="animation-delay:105ms">
+      <div class="chead">
+        <h2>Live queries</h2>
+        <div class="rule"></div>
+        <div class="uchip">syncing</div>
+      </div>
+
+      <div class="sync">
+        <div class="spin"></div>
+        <span class="sync-lbl">Checking term 9 of 14</span>
+        <div class="bbg"><div class="bfill"></div></div>
+        <span class="blbl">62%</span>
+      </div>
+
+      <div class="row">
+        <div class="stripe sf"></div>
+        <div><div class="qterm">تحریم‌های جدید ایران</div><div class="qmeta">2,840 clicks · 28d · you rank for this</div></div>
+        <div class="qright"><div class="tag t-f">Own it</div><div class="pos">3.2</div></div>
+      </div>
+      <div class="row">
+        <div class="stripe sh"></div>
+        <div><div class="qterm">Iran sanctions relief talks</div><div class="qmeta">1,120 clicks · 28d · rising fast</div></div>
+        <div class="qright"><div class="tag t-h">Rising</div><div class="pos">7.8</div></div>
+      </div>
+      <div class="row">
+        <div class="stripe sg"></div>
+        <div><div class="qterm">مذاکرات هسته‌ای وین</div><div class="qmeta">960 clicks · 28d · improving</div></div>
+        <div class="qright"><div class="tag t-g">Gaining</div><div class="pos">5.1</div></div>
+      </div>
+      <div class="row">
+        <div class="stripe st"></div>
+        <div><div class="qterm">IAEA inspectors Tehran</div><div class="qmeta">412 clicks · 28d · steady</div></div>
+        <div class="qright"><div class="tag t-t">Steady</div><div class="pos">14.6</div></div>
+      </div>
+      <div class="row">
+        <div class="stripe st"></div>
+        <div><div class="qterm">Vienna talks resume date</div><div class="qmeta">288 clicks · 28d · steady</div></div>
+        <div class="qright"><div class="tag t-t">Steady</div><div class="pos">18.2</div></div>
+      </div>
+
+      <div class="foot">
+        <div class="rule"></div>
+        <button class="abtn">＋ Add a term</button>
+        <button class="abtn">Clear</button>
+      </div>
+    </div>
+
+    <div class="side">
+
+      <div class="prompt">
+        <div class="eyebrow"><span class="pdot"></span>Ready</div>
+        <h2>Headline prompt</h2>
+        <p>Assembles from your article, live queries, and Discover winners.</p>
+        <div class="pready"><div class="check">✓</div><div class="pready-t">Article parsed · 14 terms</div></div>
+        <div class="pready"><div class="check">✓</div><div class="pready-t">Discover winners loaded</div></div>
+        <button class="pbtn pbtn-wide">◆ Generate prompt</button>
+      </div>
+
+      <div class="card" style="animation-delay:130ms">
+        <div class="chead"><h2>Discover winners</h2><div class="rule"></div></div>
+        <div class="fcs"><div class="fc on">Last 3d</div><div class="fc">This week</div></div>
+        <div class="drow"><div class="dnum">01</div><div><div class="dtitle">Inside the quiet return of Iran's nuclear inspectors</div><div class="dmeta">4.2k clicks<span class="dot"></span>2d ago</div></div></div>
+        <div class="drow"><div class="dnum">02</div><div><div class="dtitle">آنچه از دور تازه مذاکرات می‌دانیم</div><div class="dmeta">3.1k clicks<span class="dot"></span>1d ago</div></div></div>
+        <div class="drow"><div class="dnum">03</div><div><div class="dtitle">Why sanctions relief keeps stalling</div><div class="dmeta">2.4k clicks<span class="dot"></span>3d ago</div></div></div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="bento" style="margin-top:16px">
+
+    <div class="card gaps">
+      <div class="chead">
+        <h2>Coverage gaps</h2>
+        <div class="rule"></div>
+        <div class="uchip">4 unclaimed</div>
+      </div>
+      <p style="font-size:12.5px;color:var(--lt-3);font-family:var(--serif);line-height:1.6;margin-bottom:15px;text-shadow:var(--ts)">Terms in your article that carry real search demand — and nobody at Radio Farda ranks for them yet.</p>
+      <div class="grid2">
+        <div class="gap-row">
+          <div class="stripe sf"></div>
+          <div><div class="qterm">Iran uranium enrichment level</div><div class="qmeta">No page ranking · high intent</div></div>
+          <div class="gvol">6.6k<span>searches/mo</span></div>
+        </div>
+        <div class="gap-row">
+          <div class="stripe sf"></div>
+          <div><div class="qterm">سطح غنی‌سازی اورانیوم</div><div class="qmeta">No page ranking · rising 3w</div></div>
+          <div class="gvol">4.1k<span>searches/mo</span></div>
+        </div>
+        <div class="gap-row">
+          <div class="stripe sf"></div>
+          <div><div class="qterm">snapback sanctions explained</div><div class="qmeta">No page ranking · evergreen</div></div>
+          <div class="gvol">2.9k<span>searches/mo</span></div>
+        </div>
+        <div class="gap-row">
+          <div class="stripe sf"></div>
+          <div><div class="qterm">IAEA Board of Governors vote</div><div class="qmeta">No page ranking · time-boxed</div></div>
+          <div class="gvol">1.8k<span>searches/mo</span></div>
+        </div>
+      </div>
+      <div class="foot">
+        <div class="rule"></div>
+        <button class="abtn">⇄ Compare a gap</button>
+        <button class="abtn">◆ Draft headline for a gap</button>
+      </div>
+    </div>
+
+    <div class="card" style="animation-delay:155ms">
+      <div class="chead"><h2>Compare</h2><div class="rule"></div><div class="tchip">7d</div></div>
+      <p style="font-size:12.5px;color:var(--lt-3);line-height:1.6;margin-bottom:14px;font-family:var(--serif);text-shadow:var(--ts)">Google's public interest data, against your own Search Console history.</p>
+      <button class="abtn" style="width:100%" data-open-compare>⇄ Compare two keywords</button>
+    </div>
+
+  </div>
+
+  <p class="footnote">Chart data is Google's public interest signal. Stats are your own Search Console history.</p>
+</div>
+
+<!-- COMPARE TWO KEYWORDS — pop-up -->
+<div class="backdrop" id="cmpModal">
+  <div class="modal" role="dialog" aria-modal="true" aria-label="Compare two keywords">
+    <div class="mhead">
+      <h2>Compare two keywords</h2>
+      <button class="abtn" data-close-compare>Close</button>
+    </div>
+
+    <div class="minputs">
+      <input class="ginput" dir="auto" value="آمریکا" aria-label="First keyword">
+      <input class="ginput" dir="auto" value="ترامپ" aria-label="Second keyword">
+    </div>
+
+    <div class="mcontrols">
+      <div class="gsel"><select aria-label="Region"><option>Iran</option><option>Worldwide</option><option>United States</option></select></div>
+      <div class="gsel"><select aria-label="Time range"><option>Past 7 days</option><option>Past 30 days</option><option>Past 12 months</option></select></div>
+      <button class="pbtn">◆ Compare</button>
+    </div>
+
+    <div class="meyebrow">Already on your site</div>
+    <div class="mmatches">
+      <div class="mcard">
+        <div class="mlabel">آمریکا · closest matches</div>
+        <div class="mstat">4,426 clicks across 13 pages on your site</div>
+        <a href="#" class="flink">↳ Show all 13 ranking pages</a>
+      </div>
+      <div class="mcard">
+        <div class="mlabel">ترامپ · closest matches</div>
+        <div class="mstat">3,186 clicks across 11 pages on your site</div>
+        <a href="#" class="flink">↳ Show all 11 ranking pages</a>
+      </div>
+    </div>
+
+    <div class="mchart">
+      <div class="mspark">◷</div>
+      <div class="mchint">Google Trends comparison loads here — relative search interest for both terms.</div>
+    </div>
+
+    <div class="mfoot">
+      <a href="#" class="flink">Open this comparison in Google Trends ↗</a>
+      <p class="mnote">Chart is Google's own public interest data (relative search volume, not tied to your site). Stats above the chart are your own Search Console history for these exact terms.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var m=document.getElementById('cmpModal');
+  function open(){m.classList.add('open');document.body.style.overflow='hidden';}
+  function close(){m.classList.remove('open');document.body.style.overflow='';}
+  document.querySelectorAll('[data-open-compare]').forEach(function(b){b.addEventListener('click',open);});
+  document.querySelectorAll('[data-close-compare]').forEach(function(b){b.addEventListener('click',close);});
+  m.addEventListener('click',function(e){if(e.target===m)close();});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape')close();});
+})();
+</script>
+</body>
+</html>
