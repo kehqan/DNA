@@ -31,11 +31,21 @@
   }
 
   async function login(username, password) {
-    const res = await fetch(GSC_URL, {
-      method: 'POST',
-      body: JSON.stringify({ mode: 'login', username, password })
-    });
-    const data = await res.json();
+    let res;
+    try {
+      res = await fetch(GSC_URL, {
+        method: 'POST',
+        body: JSON.stringify({ mode: 'login', username, password })
+      });
+    } catch (networkErr) {
+      return { ok: false, error: 'Network error reaching the login server: ' + (networkErr.message || networkErr) };
+    }
+    let data;
+    try {
+      data = await res.json();
+    } catch (parseErr) {
+      return { ok: false, error: 'Server returned an unexpected response (HTTP ' + res.status + '). Check the Apps Script deployment and Script Properties.' };
+    }
     if (!data.ok) return { ok: false, error: data.error || 'Login failed' };
     const sess = {
       token: data.token,
@@ -59,11 +69,21 @@
   async function authedPost(payload) {
     const sess = getSession();
     if (!sess) return { ok: false, error: 'Not logged in', authError: true };
-    const res = await fetch(GSC_URL, {
-      method: 'POST',
-      body: JSON.stringify(Object.assign({ token: sess.token }, payload))
-    });
-    const data = await res.json();
+    let res;
+    try {
+      res = await fetch(GSC_URL, {
+        method: 'POST',
+        body: JSON.stringify(Object.assign({ token: sess.token }, payload))
+      });
+    } catch (networkErr) {
+      return { ok: false, error: 'Network error: ' + (networkErr.message || networkErr) };
+    }
+    let data;
+    try {
+      data = await res.json();
+    } catch (parseErr) {
+      return { ok: false, error: 'Server returned an unexpected response (HTTP ' + res.status + ').' };
+    }
     if (!data.ok && data.authError) clearSession();
     return data;
   }
