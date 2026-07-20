@@ -1140,7 +1140,7 @@ function renderHlResults(items){
       <div class="hl-top"><div class="hl-idx">${String(i+1).padStart(2,'0')}</div><div class="hl-text">${esc(it.headline)}</div></div>
       ${it.reasoning ? `<div class="hl-reason" id="hlReason-${i}">${esc(it.reasoning)}</div>` : ''}
       <div class="hl-row">
-        ${it.reasoning ? `<button class="hl-why-btn" data-i="${i}" title="${t('h.why')}" aria-label="${t('h.why')}"><span class="chev">▶</span></button>` : '<span></span>'}
+        ${it.reasoning ? `<button class="hl-why-btn" data-i="${i}" title="${t('h.why')}" aria-label="${t('h.why')}"><span class="chev">?</span></button>` : '<span></span>'}
         <div class="hl-actions">
           <button class="ghost-sm hl-copy" data-i="${i}">${t('h.copy')}</button>
           <button class="btn-flame hl-use" data-i="${i}">${t('h.useThis')}</button>
