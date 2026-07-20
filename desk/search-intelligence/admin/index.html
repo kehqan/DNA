@@ -513,13 +513,18 @@ async function doLogin(){
   clearLoginError();
   if (!u || !p) return showLoginError('Enter a username and password');
   $('loginSubmit').disabled = true; $('loginSubmit').textContent = 'Signing in…';
-  const res = await AuthEngine.login(u, p);
-  $('loginSubmit').disabled = false; $('loginSubmit').textContent = 'Sign in →';
-  if (!res.ok) return showLoginError(res.error || 'Invalid username or password');
-  $('loginPassword').value = '';
-  if (!res.session.isAdmin) return showAccessDenied(res.session.username);
-  hideLoginGate();
-  startAdmin();
+  try{
+    const res = await AuthEngine.login(u, p);
+    if (!res.ok) return showLoginError(res.error || 'Invalid username or password');
+    $('loginPassword').value = '';
+    if (!res.session.isAdmin) return showAccessDenied(res.session.username);
+    hideLoginGate();
+    startAdmin();
+  }catch(e){
+    showLoginError(String((e && e.message) || e));
+  }finally{
+    $('loginSubmit').disabled = false; $('loginSubmit').textContent = 'Sign in →';
+  }
 }
 $('loginSubmit').addEventListener('click', doLogin);
 $('loginUsername').addEventListener('keydown', e=>{ if (e.key==='Enter') doLogin(); });
