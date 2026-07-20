@@ -103,6 +103,73 @@ pre#preview{white-space:pre-wrap;word-break:break-word;font-family:ui-monospace,
 .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(12px);opacity:0;pointer-events:none;background:rgba(26,57,72,0.92);backdrop-filter:blur(20px);color:var(--ivory);font-size:12.5px;font-weight:500;padding:10px 20px;border-radius:100px;box-shadow:0 8px 32px rgba(0,0,0,0.24);z-index:99;transition:all 280ms var(--eo)}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .errbox{font-size:11.5px;color:var(--flame);background:rgba(255,84,0,.06);border:1px solid rgba(255,84,0,.18);border-radius:12px;padding:10px 13px;line-height:1.5;margin-bottom:12px}
+
+/* ===== LOGIN GATE ===== */
+.login-gate{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;background:#F0EFED;padding:20px}
+.login-gate.hide{display:none}
+.login-card{width:100%;max-width:380px;border-radius:22px;padding:34px 30px;
+  background:var(--glass);backdrop-filter:blur(20px) saturate(1.8);-webkit-backdrop-filter:blur(20px) saturate(1.8);
+  border:1px solid var(--glass-b);box-shadow:var(--gs),var(--gi);text-align:center}
+.login-wordmark{font-family:var(--serif);font-size:19px;color:var(--teal);margin-bottom:26px}
+.login-wordmark em{font-style:normal;color:var(--flame);font-weight:600}
+.login-title{font-family:var(--serif);font-size:22px;color:var(--teal);margin-bottom:6px}
+.login-sub{font-size:12px;color:var(--muted);margin-bottom:22px}
+.login-field{margin-bottom:12px;text-align:left}
+.login-field label{display:block;font-size:11px;color:var(--muted);margin-bottom:6px;padding-left:4px}
+.login-field input{width:100%;font-family:var(--sans);font-size:13.5px;color:var(--teal);
+  padding:10px 14px;border-radius:12px;border:1px solid var(--border);outline:none;
+  background:rgba(255,255,255,0.7);transition:all 150ms}
+.login-field input:focus{background:#fff;border-color:var(--flame)}
+.login-submit{width:100%;margin-top:8px}
+.login-error{font-size:11.5px;color:var(--flame);background:rgba(255,84,0,.06);border:1px solid rgba(255,84,0,.18);
+  border-radius:12px;padding:9px 12px;margin-bottom:12px;display:none;text-align:left}
+.login-error.show{display:block}
+
+/* ===== ACCESS DENIED ===== */
+.access-denied{position:fixed;inset:0;z-index:999;display:none;align-items:center;justify-content:center;background:#F0EFED;padding:20px}
+.access-denied.show{display:flex}
+.access-card{width:100%;max-width:400px;border-radius:22px;padding:34px 30px;text-align:center;
+  background:var(--glass);backdrop-filter:blur(20px) saturate(1.8);border:1px solid var(--glass-b);box-shadow:var(--gs),var(--gi)}
+.access-card h2{font-family:var(--serif);font-size:21px;color:var(--teal);margin-bottom:10px}
+.access-card p{font-size:12.5px;color:var(--muted);line-height:1.6;margin-bottom:20px}
+.access-card a.ghost, .access-card .ghost{display:inline-block;text-decoration:none}
+
+/* ===== SERVICE SWITCH ===== */
+.svc-switch{display:inline-flex;gap:2px;background:rgba(26,57,72,0.06);border-radius:100px;padding:3px}
+.svc-opt{font-size:12px;font-weight:600;color:var(--muted);padding:6px 14px;border-radius:100px;cursor:pointer;transition:all 150ms}
+.svc-opt.on{background:var(--teal);color:var(--ivory)}
+.svc-opt:hover:not(.on){color:var(--teal)}
+
+/* ===== MODAL (users) ===== */
+.modal-overlay{position:fixed;inset:0;z-index:200;display:none;align-items:flex-start;justify-content:center;
+  background:rgba(15,20,25,0.34);backdrop-filter:blur(4px);padding:60px 20px;overflow:auto}
+.modal-overlay.show{display:flex}
+.modal-card{width:100%;max-width:620px;border-radius:22px;padding:24px 26px;
+  background:#F8F7F6;border:1px solid var(--glass-b);box-shadow:0 24px 64px rgba(0,0,0,0.28)}
+.modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.modal-head h2{font-family:var(--serif);font-size:20px;font-weight:400}
+.users-toolbar{display:flex;justify-content:flex-end;margin-bottom:14px}
+.user-row{border-radius:16px;background:var(--glass);backdrop-filter:blur(20px) saturate(1.8);-webkit-backdrop-filter:blur(20px) saturate(1.8);
+  border:1px solid var(--glass-b);box-shadow:var(--gs),var(--gi);padding:12px 14px;margin-bottom:10px;transition:opacity 200ms}
+.user-row.inactive{opacity:.5}
+.user-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.user-name{font-family:var(--serif);font-size:15px;color:var(--teal);flex:1;min-width:90px}
+.user-badge{font-size:10px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;padding:3px 9px;border-radius:100px;white-space:nowrap}
+.user-badge.fa{background:rgba(62,111,190,0.14);color:#3E6FBE}
+.user-badge.en{background:rgba(196,97,30,0.14);color:#C4611E}
+.user-badge.admin{background:rgba(31,122,69,0.14);color:#1F7A45}
+.user-badge.off{background:rgba(26,57,72,0.10);color:var(--soft)}
+.user-actions{display:flex;gap:6px}
+.user-actions .ghost{padding:5px 12px;font-size:11px}
+.user-edit{display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);gap:8px;flex-wrap:wrap;align-items:center}
+.user-edit.open{display:flex}
+.user-edit input,.user-edit select{font-family:var(--sans);font-size:12.5px;color:var(--teal);
+  padding:8px 12px;border-radius:10px;border:1px solid var(--border);background:#fff;outline:none;min-width:0}
+.user-edit label{font-size:10.5px;color:var(--muted);display:flex;align-items:center;gap:5px}
+.new-user-row{border-radius:16px;border:1.5px dashed rgba(26,57,72,0.18);padding:14px;margin-bottom:14px;display:none;flex-wrap:wrap;gap:8px;align-items:center}
+.new-user-row.open{display:flex}
+.new-user-row input,.new-user-row select{font-family:var(--sans);font-size:12.5px;color:var(--teal);
+  padding:8px 12px;border-radius:10px;border:1px solid var(--border);background:#fff;outline:none}
 </style>
 </head>
 <body>
@@ -114,6 +181,60 @@ pre#preview{white-space:pre-wrap;word-break:break-word;font-family:ui-monospace,
     <div class="wordmark">Desk<em>.</em></div>
     <a href="/desk/search-intelligence/" class="ntab">Search Intelligence</a>
     <div class="ntab on">Prompt Admin</div>
+    <div class="ntab" id="logoutBtn" title="Sign out">⏻ Sign out</div>
+  </div>
+</div>
+
+<div class="login-gate" id="loginGate">
+  <div class="login-card">
+    <div class="login-wordmark">Desk<em>.</em></div>
+    <div class="login-title">Admin sign in</div>
+    <div class="login-sub">Prompt design & user management</div>
+    <div class="login-error" id="loginError"></div>
+    <div class="login-field">
+      <label>Username</label>
+      <input id="loginUsername" autocomplete="username" placeholder="admin">
+    </div>
+    <div class="login-field">
+      <label>Password</label>
+      <input id="loginPassword" type="password" autocomplete="current-password" placeholder="••••••••">
+    </div>
+    <button class="btn-flame login-submit" id="loginSubmit">Sign in →</button>
+  </div>
+</div>
+
+<div class="access-denied" id="accessDenied">
+  <div class="access-card">
+    <h2>Admin access required</h2>
+    <p id="accessDeniedMsg">This account doesn't have admin access to Prompt Admin.</p>
+    <a href="/desk/search-intelligence/" class="ghost" style="margin-right:8px">← Back to Search Intelligence</a>
+    <button class="ghost" id="accessDeniedLogout">Sign in as someone else</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="usersModal">
+  <div class="modal-card">
+    <div class="modal-head">
+      <h2>Manage users</h2>
+      <button class="ghost" id="usersClose">Close</button>
+    </div>
+    <div id="usersError"></div>
+    <div class="users-toolbar">
+      <button class="ghost" id="addUserToggle">＋ Add user</button>
+    </div>
+    <div class="new-user-row" id="newUserRow">
+      <input id="nuUsername" placeholder="Username" style="flex:1;min-width:110px">
+      <input id="nuPassword" placeholder="Password (6+ chars)" style="flex:1;min-width:140px">
+      <select id="nuService">
+        <option value="fa">Farsi service</option>
+        <option value="en">English service</option>
+      </select>
+      <label style="font-size:11.5px;color:var(--muted);display:flex;align-items:center;gap:5px">
+        <input type="checkbox" id="nuAdmin" style="width:auto"> Admin
+      </label>
+      <button class="btn-flame" id="nuCreate" style="padding:7px 16px;font-size:12px">Create</button>
+    </div>
+    <div id="usersList"></div>
   </div>
 </div>
 
@@ -128,6 +249,11 @@ pre#preview{white-space:pre-wrap;word-break:break-word;font-family:ui-monospace,
   </div>
 
   <div class="toolbar">
+    <div class="svc-switch" id="svcSwitch">
+      <div class="svc-opt on" data-svc="fa">Farsi</div>
+      <div class="svc-opt" data-svc="en">English</div>
+    </div>
+    <button class="ghost" id="btnManageUsers">👤 Manage users</button>
     <button class="ghost" id="btnReset">↺ Reset to default</button>
     <button class="ghost" id="btnReload">↻ Reload from server</button>
     <span class="savestate" id="saveState"></span>
@@ -170,6 +296,7 @@ pre#preview{white-space:pre-wrap;word-break:break-word;font-family:ui-monospace,
       'If that URL 404s or shows an HTML page instead of JavaScript, the file either isn\'t uploaded at that path, or your host is serving a catch-all page for unmatched routes instead of the real file. It must return the raw .js content, not your app\'s index.html.</div>';
   }
 </script>
+<script src="/desk/search-intelligence/auth-engine.js"></script>
 <script src="/desk/search-intelligence/prompt-engine.js" onerror="promptEngineLoadFailed()"></script>
 <script>
 if (typeof PromptEngine === 'undefined') {
@@ -185,6 +312,7 @@ let BLOCKS = [];
 let lastFocusedBody = null;
 let dirty = false;
 let dragIdx = null;
+let activeService = 'fa';
 
 /* ---------- sample scenarios for preview ---------- */
 const SAMPLE_ARTICLE = `دولت ایران روز سه‌شنبه اعلام کرد که مذاکرات هسته‌ای با نمایندگان آمریکا در دور تازه‌ای در وین از سر گرفته خواهد شد. به گفته یک منبع نزدیک به وزارت خارجه، تمرکز اصلی این دور بر تضمین‌های مربوط به راستی‌آزمایی و رفع بخشی از تحریم‌های بانکی خواهد بود.
@@ -308,11 +436,11 @@ window.addEventListener('beforeunload', e => { if (dirty) { e.preventDefault(); 
 $('btnSave').addEventListener('click', async () => {
   $('btnSave').disabled = true; $('btnSave').textContent = 'Saving…';
   try {
-    await PromptEngine.saveRemote(BLOCKS);
-    PromptEngine.saveLocal(BLOCKS);
+    await PromptEngine.saveRemote(activeService, BLOCKS);
+    PromptEngine.saveLocal(activeService, BLOCKS);
     markClean(new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}));
     setStatus('ok', 'Synced to Supabase · live on Search Intelligence now');
-    toast('Published — every editor now sees this version');
+    toast(`Published — every ${activeService==='en'?'English':'Farsi'}-service editor now sees this version`);
   } catch(e){
     $('btnSave').disabled = false;
     setStatus('warn', 'Save failed: ' + e.message);
@@ -328,7 +456,17 @@ $('btnReset').addEventListener('click', () => {
   toast('Reset — click "Save & publish" to make this live');
 });
 
-$('btnReload').addEventListener('click', () => boot(true));
+$('btnReload').addEventListener('click', () => boot(true, activeService));
+
+$('svcSwitch').addEventListener('click', e => {
+  const el = e.target.closest('.svc-opt'); if (!el) return;
+  const next = el.dataset.svc;
+  if (next === activeService) return;
+  if (dirty && !confirm('You have unsaved changes on the ' + (activeService==='en'?'English':'Farsi') + ' template. Switch anyway and lose them?')) return;
+  activeService = next;
+  document.querySelectorAll('.svc-opt').forEach(o => o.classList.toggle('on', o.dataset.svc===activeService));
+  boot(false, activeService);
+});
 
 function setStatus(kind, text){
   $('statusDot').className = 'dot' + (kind==='ok'?' ok':kind==='warn'?' warn':'');
@@ -336,11 +474,12 @@ function setStatus(kind, text){
 }
 
 /* ---------- boot ---------- */
-async function boot(manual){
+async function boot(manual, service){
+  service = service || activeService;
   setStatus('', manual ? 'Reloading…' : 'Loading…');
   $('errArea').innerHTML = '';
   try {
-    const { blocks, source } = await PromptEngine.getBlocks();
+    const { blocks, source } = await PromptEngine.getBlocks(service);
     BLOCKS = JSON.parse(JSON.stringify(blocks));
     renderBlocks(); renderPreview(); markClean();
     if (source === 'remote') setStatus('ok', 'Loaded from Supabase — shared, up to date');
@@ -354,14 +493,178 @@ async function boot(manual){
   }
 }
 
-try {
-  renderTokens();
-  renderScenarios();
-  boot();
-} catch(e){
-  $('errArea').innerHTML = `<div class="errbox"><b>Admin page crashed on startup.</b><br>${esc(e.message)}</div>`;
-  setStatus('warn','Startup error — see message above');
+/* ==================== AUTH / LOGIN GATE ==================== */
+function showLoginGate(){ $('loginGate').classList.remove('hide'); }
+function hideLoginGate(){ $('loginGate').classList.add('hide'); }
+function showLoginError(msg){ const el=$('loginError'); el.textContent=msg; el.classList.add('show'); }
+function clearLoginError(){ $('loginError').classList.remove('show'); }
+function showAccessDenied(username){
+  hideLoginGate();
+  $('accessDeniedMsg').textContent = username
+    ? `The account "${username}" doesn't have admin access to Prompt Admin.`
+    : `This account doesn't have admin access to Prompt Admin.`;
+  $('accessDenied').classList.add('show');
 }
+function hideAccessDenied(){ $('accessDenied').classList.remove('show'); }
+
+async function doLogin(){
+  const u = $('loginUsername').value.trim();
+  const p = $('loginPassword').value;
+  clearLoginError();
+  if (!u || !p) return showLoginError('Enter a username and password');
+  $('loginSubmit').disabled = true; $('loginSubmit').textContent = 'Signing in…';
+  const res = await AuthEngine.login(u, p);
+  $('loginSubmit').disabled = false; $('loginSubmit').textContent = 'Sign in →';
+  if (!res.ok) return showLoginError(res.error || 'Invalid username or password');
+  $('loginPassword').value = '';
+  if (!res.session.isAdmin) return showAccessDenied(res.session.username);
+  hideLoginGate();
+  startAdmin();
+}
+$('loginSubmit').addEventListener('click', doLogin);
+$('loginUsername').addEventListener('keydown', e=>{ if (e.key==='Enter') doLogin(); });
+$('loginPassword').addEventListener('keydown', e=>{ if (e.key==='Enter') doLogin(); });
+$('logoutBtn').addEventListener('click', ()=>{ AuthEngine.logout(); location.reload(); });
+$('accessDeniedLogout').addEventListener('click', ()=>{ AuthEngine.logout(); hideAccessDenied(); showLoginGate(); });
+
+function startAdmin(){
+  try {
+    renderTokens();
+    renderScenarios();
+    boot(false, activeService);
+  } catch(e){
+    $('errArea').innerHTML = `<div class="errbox"><b>Admin page crashed on startup.</b><br>${esc(e.message)}</div>`;
+    setStatus('warn','Startup error — see message above');
+  }
+}
+
+(function initAdminGate(){
+  if (typeof AuthEngine === 'undefined'){
+    showLoginGate();
+    showLoginError('auth-engine.js did not load — check it exists at /desk/search-intelligence/auth-engine.js');
+    return;
+  }
+  const existing = AuthEngine.getSession();
+  if (!existing){ showLoginGate(); return; }
+  if (!existing.isAdmin){ showAccessDenied(existing.username); return; }
+  hideLoginGate();
+  startAdmin();
+})();
+
+/* ==================== USER MANAGEMENT ==================== */
+let USERS = [];
+
+function userRowHtml(u){
+  const svcLabel = u.service === 'en' ? 'English' : 'Farsi';
+  return `
+  <div class="user-row ${u.active===false?'inactive':''}" data-id="${u.id}">
+    <div class="user-top">
+      <div class="user-name">${esc(u.username)}</div>
+      <span class="user-badge ${u.service}">${svcLabel}</span>
+      ${u.is_admin ? '<span class="user-badge admin">Admin</span>' : ''}
+      ${u.active===false ? '<span class="user-badge off">Disabled</span>' : ''}
+      <div class="user-actions">
+        <button class="ghost" data-action="edit">Edit</button>
+        <button class="ghost" data-action="delete">Delete</button>
+      </div>
+    </div>
+    <div class="user-edit" id="edit-${u.id}">
+      <input type="password" placeholder="New password (leave blank to keep)" data-field="password" style="flex:1;min-width:160px">
+      <select data-field="service">
+        <option value="fa" ${u.service==='fa'?'selected':''}>Farsi service</option>
+        <option value="en" ${u.service==='en'?'selected':''}>English service</option>
+      </select>
+      <label><input type="checkbox" data-field="isAdmin" ${u.is_admin?'checked':''} style="width:auto"> Admin</label>
+      <label><input type="checkbox" data-field="active" ${u.active!==false?'checked':''} style="width:auto"> Active</label>
+      <button class="btn-flame" data-action="save" style="padding:7px 16px;font-size:12px">Save</button>
+      <button class="ghost" data-action="cancel" style="padding:7px 12px;font-size:12px">Cancel</button>
+    </div>
+  </div>`;
+}
+
+function renderUsers(){
+  $('usersList').innerHTML = USERS.map(userRowHtml).join('') || '<div style="font-size:12.5px;color:var(--muted);padding:10px 2px">No users yet.</div>';
+}
+
+async function loadUsers(){
+  $('usersError').innerHTML = '';
+  const res = await AuthEngine.authedPost({ mode:'adminListUsers' });
+  if (!res.ok){
+    $('usersError').innerHTML = `<div class="errbox">${esc(res.error||'Failed to load users')}</div>`;
+    return;
+  }
+  USERS = res.users || [];
+  renderUsers();
+}
+
+$('btnManageUsers').addEventListener('click', () => {
+  $('usersModal').classList.add('show');
+  $('newUserRow').classList.remove('open');
+  loadUsers();
+});
+$('usersClose').addEventListener('click', () => $('usersModal').classList.remove('show'));
+$('usersModal').addEventListener('click', e => { if (e.target === $('usersModal')) $('usersModal').classList.remove('show'); });
+
+$('addUserToggle').addEventListener('click', () => {
+  $('newUserRow').classList.toggle('open');
+});
+$('nuCreate').addEventListener('click', async () => {
+  const username = $('nuUsername').value.trim();
+  const password = $('nuPassword').value;
+  const service = $('nuService').value;
+  const isAdmin = $('nuAdmin').checked;
+  if (!username || password.length < 6){
+    $('usersError').innerHTML = '<div class="errbox">Username and a password of 6+ characters are required.</div>';
+    return;
+  }
+  $('nuCreate').disabled = true;
+  const res = await AuthEngine.authedPost({ mode:'adminCreateUser', username, password, service, isAdmin });
+  $('nuCreate').disabled = false;
+  if (!res.ok){
+    $('usersError').innerHTML = `<div class="errbox">${esc(res.error||'Failed to create user')}</div>`;
+    return;
+  }
+  $('nuUsername').value=''; $('nuPassword').value=''; $('nuAdmin').checked=false; $('nuService').value='fa';
+  $('newUserRow').classList.remove('open');
+  toast('User created');
+  loadUsers();
+});
+
+$('usersList').addEventListener('click', async e => {
+  const row = e.target.closest('.user-row'); if (!row) return;
+  const id = row.dataset.id;
+  const action = e.target.dataset.action;
+  const editPanel = $('edit-'+id);
+
+  if (action === 'edit'){
+    document.querySelectorAll('.user-edit.open').forEach(el => { if (el.id !== 'edit-'+id) el.classList.remove('open'); });
+    editPanel.classList.toggle('open');
+  }
+  if (action === 'cancel'){
+    editPanel.classList.remove('open');
+  }
+  if (action === 'delete'){
+    const u = USERS.find(x => String(x.id) === String(id));
+    if (!confirm(`Delete user "${u ? u.username : id}"? This can't be undone.`)) return;
+    const res = await AuthEngine.authedPost({ mode:'adminDeleteUser', id });
+    if (!res.ok){ $('usersError').innerHTML = `<div class="errbox">${esc(res.error||'Failed to delete user')}</div>`; return; }
+    toast('User deleted');
+    loadUsers();
+  }
+  if (action === 'save'){
+    const password = editPanel.querySelector('[data-field="password"]').value;
+    const service = editPanel.querySelector('[data-field="service"]').value;
+    const isAdmin = editPanel.querySelector('[data-field="isAdmin"]').checked;
+    const active = editPanel.querySelector('[data-field="active"]').checked;
+    const patch = { mode:'adminUpdateUser', id, service, isAdmin, active };
+    if (password) patch.password = password;
+    const res = await AuthEngine.authedPost(patch);
+    if (!res.ok){ $('usersError').innerHTML = `<div class="errbox">${esc(res.error||'Failed to update user')}</div>`; return; }
+    toast('User updated');
+    editPanel.classList.remove('open');
+    loadUsers();
+  }
+});
 </script>
 </body>
 </html>
