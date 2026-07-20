@@ -375,7 +375,7 @@ select.mini-in:hover{background-color:var(--chip-hover)}
 .hl-why-btn:hover{background:rgba(255,120,50,0.16);transform:translateY(-2px)}
 .hl-why-btn.on{background:rgba(255,84,0,0.32);color:#fff}
 .hl-why-btn .chev{font-size:9px;color:inherit;transition:transform 200ms var(--eo)}
-.hl-why-btn.on .chev{transform:rotate(90deg)}
+.hl-why-btn.on .chev{transform:rotate(180deg)}
 .hl-actions{display:flex;gap:8px;justify-content:flex-end}
 .hl-actions .ghost-sm,.hl-actions .btn-flame{padding:7px 15px;font-size:11.5px}
 
@@ -1054,10 +1054,10 @@ function openSheet(){
   openRawPromptSheet(t('p.sheetTitle'), buildPrompt());
 }
 $('genBtn').addEventListener('click', ()=>{ if(!$('genBtn').classList.contains('idle')) openSheet(); });
-$('genBtn2').addEventListener('click', generateHeadlines);
-$('sheetClose').addEventListener('click', ()=>$('sheet').classList.remove('show'));
-$('sheet').addEventListener('click', e=>{ if(e.target===$('sheet')) $('sheet').classList.remove('show'); });
-document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ $('sheet').classList.remove('show'); $('cmpSheet').classList.remove('show'); $('hlSheet').classList.remove('show'); $('articleSheet').classList.remove('show'); } });
+$('genBtn2').addEventListener('click', openOrGenerateHeadlines);
+$('sheetClose').addEventListener('click', ()=>{ $('sheet').classList.remove('show'); $('sheet').style.zIndex=''; });
+$('sheet').addEventListener('click', e=>{ if(e.target===$('sheet')){ $('sheet').classList.remove('show'); $('sheet').style.zIndex=''; } });
+document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ $('sheet').classList.remove('show'); $('sheet').style.zIndex=''; $('cmpSheet').classList.remove('show'); $('hlSheet').classList.remove('show'); $('articleSheet').classList.remove('show'); } });
 
 /* ==================== Headline suggestions (AI API) ==================== */
 const HEADLINE_COUNT = 5;
@@ -1108,9 +1108,13 @@ function hlCycleJourney(){
   const el = $('hlFact');
   const pool = [t('h.j1'), t('h.j2'), t('h.j3'), t('h.j4'), t('h.j5'), t('h.j6')];
   let i = 0;
-  const step = ()=>{ el.style.opacity='0'; setTimeout(()=>{ el.textContent = pool[i%pool.length]; el.style.opacity='1'; i++; }, 260); };
-  step();
-  hlFactTimer = setInterval(step, 2600);
+  const show = idx => { el.style.opacity='0'; setTimeout(()=>{ el.textContent = pool[idx]; el.style.opacity='1'; }, 260); };
+  show(i);
+  hlFactTimer = setInterval(()=>{
+    if (i >= pool.length-1){ clearInterval(hlFactTimer); hlFactTimer = null; return; }
+    i++;
+    show(i);
+  }, 5000);
 }
 
 function openHlSheet(){
@@ -1127,6 +1131,7 @@ function openHlSheet(){
 
 function renderHlResults(items){
   hlLastHeadlines = items;
+  hlHasResult = true;
   clearInterval(hlFactTimer);
   stopBoatAnim();
   $('hlLoading').style.display = 'none';
@@ -1140,7 +1145,7 @@ function renderHlResults(items){
       <div class="hl-top"><div class="hl-idx">${String(i+1).padStart(2,'0')}</div><div class="hl-text">${esc(it.headline)}</div></div>
       ${it.reasoning ? `<div class="hl-reason" id="hlReason-${i}">${esc(it.reasoning)}</div>` : ''}
       <div class="hl-row">
-        ${it.reasoning ? `<button class="hl-why-btn" data-i="${i}" title="${t('h.why')}" aria-label="${t('h.why')}"><span class="chev">?</span></button>` : '<span></span>'}
+        ${it.reasoning ? `<button class="hl-why-btn" data-i="${i}" title="${t('h.why')}" aria-label="${t('h.why')}"><span class="chev">▾</span></button>` : '<span></span>'}
         <div class="hl-actions">
           <button class="ghost-sm hl-copy" data-i="${i}">${t('h.copy')}</button>
           <button class="btn-flame hl-use" data-i="${i}">${t('h.useThis')}</button>
@@ -1165,10 +1170,26 @@ function openRawPromptSheet(title, text){
   $('sheet').querySelector('.sheet-head h3').textContent = title;
   $('promptPre').textContent = text;
   $('promptMeta').textContent = t('p.meta',{c:num(text.length), t:num(Math.round(text.length/4)), q:num(S.keywords.length), d:num(S.articles.length)});
+  $('sheet').style.zIndex = '110';
   $('sheet').classList.add('show');
 }
 
 let hlLastPromptText = '';
+let hlHasResult = false;
+
+function reopenCachedHlSheet(){
+  $('hlLoading').style.display = 'none';
+  $('hlError').style.display = 'none';
+  $('hlList').style.display = 'flex';
+  $('hlViewPrompt').style.display = hlLastPromptText ? 'inline-flex' : 'none';
+  $('hlRegenerate').style.display = 'inline-flex';
+  $('hlSheet').classList.add('show');
+}
+
+function openOrGenerateHeadlines(){
+  if (hlHasResult){ reopenCachedHlSheet(); return; }
+  generateHeadlines();
+}
 
 async function generateHeadlines(){
   if (S.article.length<180) return toast(t('p.pasteFirstToast'));
