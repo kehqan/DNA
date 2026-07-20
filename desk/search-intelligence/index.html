@@ -353,6 +353,26 @@ select.mini-in:hover{background-color:var(--chip-hover)}
 .intake.hot{box-shadow:var(--ambient-hi),var(--rim),inset 0 0 0 1px rgba(255,150,80,0.34)}
 .intake.hot .intake-in{box-shadow:var(--sunk),inset 0 0 0 1px rgba(255,150,80,0.22)}
 
+/* ===== HEADLINE SUGGESTIONS ===== */
+.hl-loading{text-align:center;padding:38px 10px}
+.hl-fact{font-size:13px;color:var(--lt-3);text-shadow:var(--ts);line-height:1.7;max-width:400px;margin:10px auto 0;opacity:0;transition:opacity 400ms var(--eo)}
+.hl-list{display:flex;flex-direction:column;gap:11px}
+.hl-item{border-radius:16px;padding:16px 17px;background:var(--chip);box-shadow:var(--rim-sm);
+  display:flex;flex-direction:column;gap:10px;animation:rise 420ms var(--eo) both}
+.hl-top{display:flex;align-items:flex-start;gap:12px}
+.hl-idx{font-family:var(--serif);font-size:12px;color:var(--lt-3);text-shadow:var(--ts);flex-shrink:0;padding-top:3px;min-width:16px}
+.hl-text{font-family:var(--serif);font-size:16px;line-height:1.5;color:var(--lt-1);text-shadow:var(--ts-lg);flex:1}
+.hl-dd{margin-top:0;background:rgba(4,12,16,0.20)}
+.hl-dd>summary{padding:8px 12px;font-size:11px}
+.hl-dd .dd-body{padding:2px 12px 12px;font-size:12px;color:var(--lt-3);text-shadow:var(--ts);line-height:1.6}
+.hl-actions{display:flex;gap:8px;justify-content:flex-end}
+.hl-actions .ghost-sm,.hl-actions .btn-flame{padding:7px 15px;font-size:11.5px}
+
+.art-preview-headline{font-family:var(--serif);font-size:25px;line-height:1.4;color:var(--lt-1);
+  text-shadow:var(--ts-lg);margin-bottom:18px;padding-bottom:16px;border-bottom:1px solid var(--border)}
+.art-preview-body{font-family:var(--serif);font-size:14.5px;line-height:1.85;color:var(--lt-2);
+  text-shadow:var(--ts);white-space:pre-wrap}
+
 /* ===== MOTION ===== */
 @media (prefers-reduced-motion:reduce){*{animation-duration:0.01ms !important;transition-duration:0.01ms !important}}
 
@@ -419,6 +439,14 @@ select.mini-in:hover{background-color:var(--chip-hover)}
     <div class="card stat" style="animation-delay:130ms"><div class="sn pending" id="stDisc">—</div><div class="sl" data-i18n="stat.discClicks">Discover clicks</div><div class="sdn" id="stDiscD"></div></div>
   </div>
 
+  <div class="card" style="animation-delay:140ms;margin-bottom:14px">
+    <div class="chead"><h2 data-i18n="p.header">Headline suggestions</h2><div class="rule"></div><div class="uchip" id="promptState" data-i18n="p.waiting">waiting</div></div>
+    <div style="font-size:12px;color:var(--muted);line-height:1.6" id="promptSummary" data-i18n="p.summaryDefault">
+      Assembles from the article, your live queries, and Discover winners. Ready the moment syncing lands.
+    </div>
+    <button class="btn-flame" id="genBtn2" style="width:100%;margin-top:14px;opacity:.35;pointer-events:none" data-i18n="p.suggestBtn">✦ Suggest headlines</button>
+  </div>
+
   <div class="cols">
 
     <div class="card" style="animation-delay:150ms">
@@ -467,14 +495,6 @@ select.mini-in:hover{background-color:var(--chip-hover)}
           </div>
         </details>
       </div>
-
-      <div class="card" style="animation-delay:200ms">
-        <div class="chead"><h2 data-i18n="p.header">Headline prompt</h2><div class="rule"></div><div class="uchip" id="promptState" data-i18n="p.waiting">waiting</div></div>
-        <div style="font-size:12px;color:var(--muted);line-height:1.6" id="promptSummary" data-i18n="p.summaryDefault">
-          Assembles from the article, your live queries, and Discover winners. Ready the moment syncing lands.
-        </div>
-        <button class="btn-flame" id="genBtn2" style="width:100%;margin-top:14px;opacity:.35;pointer-events:none" data-i18n="p.genBtn">◆ Generate prompt</button>
-      </div>
     </div>
   </div>
 </div>
@@ -490,6 +510,45 @@ select.mini-in:hover{background-color:var(--chip-hover)}
       <div class="meta" id="promptMeta"></div>
       <button class="ghost-sm" id="btnDownload" data-i18n="p.download">⭳ .txt</button>
       <button class="btn-flame" id="btnCopy" data-i18n="p.copy">⧉ Copy prompt</button>
+    </div>
+  </div>
+</div>
+
+<div class="sheet" id="hlSheet">
+  <div class="sheet-in" style="max-width:640px">
+    <div class="sheet-head">
+      <h3 data-i18n="h.sheetTitle">Suggested headlines</h3>
+      <button class="ghost-sm" id="hlSheetClose" data-i18n="p.close">Close</button>
+    </div>
+    <div style="padding:20px 22px;max-height:70vh;overflow:auto">
+      <div class="hl-loading" id="hlLoading">
+        <div class="spin" style="margin:0 auto;width:22px;height:22px"></div>
+        <div class="hl-fact" id="hlFact"></div>
+      </div>
+      <div class="errbox" id="hlError" style="display:none"></div>
+      <div class="hl-list" id="hlList" style="display:none"></div>
+    </div>
+    <div class="sheet-foot">
+      <div class="meta" id="hlMeta"></div>
+      <button class="ghost-sm" id="hlRegenerate" style="display:none" data-i18n="h.regenerate">↻ Regenerate</button>
+    </div>
+  </div>
+</div>
+
+<div class="sheet" id="articleSheet">
+  <div class="sheet-in" style="max-width:760px">
+    <div class="sheet-head">
+      <h3 data-i18n="h.previewTitle">Article preview</h3>
+      <button class="ghost-sm" id="articleSheetClose" data-i18n="p.close">Close</button>
+    </div>
+    <div style="padding:24px 26px;max-height:70vh;overflow:auto">
+      <div class="art-preview-headline" id="artPreviewHeadline"></div>
+      <div class="art-preview-body" id="artPreviewBody"></div>
+    </div>
+    <div class="sheet-foot">
+      <div class="meta" id="artPreviewMeta" data-i18n="h.previewMeta">Chosen headline, shown above your article text.</div>
+      <button class="ghost-sm" id="artPreviewBack" data-i18n="h.backToList">← Back to suggestions</button>
+      <button class="btn-flame" id="artPreviewCopyHl" data-i18n="h.copyHeadline">⧉ Copy headline</button>
     </div>
   </div>
 </div>
@@ -587,11 +646,20 @@ en: {
   'p.header':'Headline prompt', 'p.waiting':'waiting', 'p.building':'building', 'p.ready':'ready',
   'p.summaryDefault':'Assembles from the article, your live queries, and Discover winners. Ready the moment syncing lands.',
   'p.summaryReady':'Article <b>{w}</b> words · <b>{q}</b> live queries · <b>{d}</b> Discover winners · <b>{c}</b> chars assembled.',
-  'p.genBtn':'◆ Generate prompt', 'p.sheetTitle':'Headline prompt', 'p.close':'Close',
+  'p.genBtn':'◆ View raw prompt', 'p.suggestBtn':'✦ Suggest headlines', 'p.sheetTitle':'Headline prompt', 'p.close':'Close',
   'p.download':'⭳ .txt', 'p.copy':'⧉ Copy prompt',
   'p.meta':'{c} chars · ~{t} tokens · {q} queries · {d} Discover',
   'p.copiedToast':'Prompt copied — paste into any LLM', 'p.copyBlockedToast':'Copy blocked — select manually',
   'p.pasteFirstToast':'Paste an article first',
+
+  'h.sheetTitle':'Suggested headlines', 'h.regenerate':'↻ Regenerate',
+  'h.why':'Why this headline', 'h.copy':'⧉ Copy', 'h.useThis':'Use this →',
+  'h.headlineCopiedToast':'Headline copied', 'h.noHeadlines':'No headlines came back — try regenerating.',
+  'h.apiError':'Couldn\'t reach the AI API: {msg}',
+  'h.previewTitle':'Article preview', 'h.previewMeta':'Chosen headline, shown above your article text.',
+  'h.backToList':'← Back to suggestions', 'h.copyHeadline':'⧉ Copy headline',
+  'h.fact1':'Thinking through your queries…', 'h.fact2':'Weighing the Discover winners…', 'h.fact3':'Drafting headline options…',
+  'h.metaCount':'{n} headlines · {q} queries · {d} Discover winners used',
   'c.title':'Compare two keywords', 'c.close':'Close', 'c.termA':'Term A', 'c.termB':'Term B',
   'c.geoIran':'Iran', 'c.geoWorld':'Worldwide', 'c.geoUS':'United States',
   'c.time7':'Past 7 days', 'c.time30':'Past 30 days', 'c.time90':'Past 90 days', 'c.time12m':'Past 12 months',
@@ -651,11 +719,20 @@ fa: {
   'p.header':'پرامپت سرتیتر', 'p.waiting':'در انتظار', 'p.building':'در حال آماده‌سازی', 'p.ready':'آماده',
   'p.summaryDefault':'از متن خبر، کلیدواژه‌های زنده و برترین‌های آرشیو ساخته می‌شود؛ به‌محض پایان همگام‌سازی آماده است.',
   'p.summaryReady':'متن خبر <b>{w}</b> کلمه · <b>{q}</b> کلیدواژهٔ زنده · <b>{d}</b> مطلب برتر آرشیو · <b>{c}</b> نویسه آماده شد.',
-  'p.genBtn':'◆ ساخت پرامپت', 'p.sheetTitle':'پرامپت سرتیتر', 'p.close':'بستن',
+  'p.genBtn':'◆ مشاهدهٔ پرامپت خام', 'p.suggestBtn':'✦ پیشنهاد سرتیتر', 'p.sheetTitle':'پرامپت سرتیتر', 'p.close':'بستن',
   'p.download':'⭳ .txt', 'p.copy':'⧉ کپی پرامپت',
   'p.meta':'{c} نویسه · حدود {t} توکن · {q} عبارت · {d} آرشیو',
   'p.copiedToast':'پرامپت کپی شد — در هر ابزار هوش مصنوعی بچسبانید', 'p.copyBlockedToast':'کپی مسدود شد — متن را دستی انتخاب کنید',
   'p.pasteFirstToast':'ابتدا متن خبر را بچسبانید',
+
+  'h.sheetTitle':'سرتیترهای پیشنهادی', 'h.regenerate':'↻ ساخت دوباره',
+  'h.why':'چرا این سرتیتر', 'h.copy':'⧉ کپی', 'h.useThis':'← استفاده از این',
+  'h.headlineCopiedToast':'سرتیتر کپی شد', 'h.noHeadlines':'سرتیتری برنگشت — دوباره امتحان کنید.',
+  'h.apiError':'اتصال به API هوش مصنوعی ناموفق بود: {msg}',
+  'h.previewTitle':'پیش‌نمایش خبر', 'h.previewMeta':'سرتیتر انتخابی، بالای متن خبر شما.',
+  'h.backToList':'→ بازگشت به پیشنهادها', 'h.copyHeadline':'⧉ کپی سرتیتر',
+  'h.fact1':'در حال بررسی کلیدواژه‌های شما…', 'h.fact2':'در حال سنجش برترین‌های آرشیو…', 'h.fact3':'در حال نوشتن سرتیترها…',
+  'h.metaCount':'{n} سرتیتر · {q} عبارت · {d} مطلب برتر آرشیو استفاده شد',
   'c.title':'مقایسهٔ دو کلیدواژه', 'c.close':'بستن', 'c.termA':'کلیدواژهٔ اول', 'c.termB':'کلیدواژهٔ دوم',
   'c.geoIran':'ایران', 'c.geoWorld':'جهانی', 'c.geoUS':'ایالات متحده',
   'c.time7':'7 روز اخیر', 'c.time30':'30 روز اخیر', 'c.time90':'90 روز اخیر', 'c.time12m':'12 ماه اخیر',
@@ -960,10 +1037,150 @@ function openSheet(){
   $('sheet').classList.add('show');
 }
 $('genBtn').addEventListener('click', ()=>{ if(!$('genBtn').classList.contains('idle')) openSheet(); });
-$('genBtn2').addEventListener('click', openSheet);
+$('genBtn2').addEventListener('click', generateHeadlines);
 $('sheetClose').addEventListener('click', ()=>$('sheet').classList.remove('show'));
 $('sheet').addEventListener('click', e=>{ if(e.target===$('sheet')) $('sheet').classList.remove('show'); });
-document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ $('sheet').classList.remove('show'); $('cmpSheet').classList.remove('show'); } });
+document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ $('sheet').classList.remove('show'); $('cmpSheet').classList.remove('show'); $('hlSheet').classList.remove('show'); $('articleSheet').classList.remove('show'); } });
+
+/* ==================== Headline suggestions (AI API) ==================== */
+const HEADLINE_COUNT = 5;
+let hlFactTimer = null;
+let hlLastHeadlines = [];
+
+function headlineInstructions(){
+  return LANG==='fa'
+    ? `بر اساس تمام اطلاعات بالا، ${HEADLINE_COUNT} پیشنهاد سرتیتر متفاوت برای این خبر بنویس.\nدقیقاً با همین قالب پاسخ بده — بدون مقدمه، بدون مارک‌داون، بدون هیچ توضیح اضافه‌ای:\n\nHEADLINE: <متن سرتیتر>\nREASONING: <یک یا دو جمله دربارهٔ چرایی این سرتیتر>\n---\n\nاین الگو را دقیقاً ${HEADLINE_COUNT} بار تکرار کن، با «---» بین هر مورد جدا شود.`
+    : `Based on everything above, write ${HEADLINE_COUNT} distinct headline options for this article.\nRespond in exactly this format — no preamble, no markdown, nothing else:\n\nHEADLINE: <headline text>\nREASONING: <one or two sentences on why this headline works>\n---\n\nRepeat this pattern exactly ${HEADLINE_COUNT} times total, separated by "---".`;
+}
+
+function parseHeadlines(text){
+  const blocks = String(text||'').split(/\n?---+\n?/).map(b=>b.trim()).filter(Boolean);
+  const items = [];
+  blocks.forEach(b=>{
+    const hm = b.match(/HEADLINE:\s*([^\n]+)/i);
+    const rm = b.match(/REASONING:\s*([\s\S]+)/i);
+    if (hm) items.push({ headline: hm[1].trim(), reasoning: rm ? rm[1].trim() : '' });
+  });
+  if (!items.length){
+    String(text||'').split('\n').forEach(line=>{
+      const m = line.match(/^\s*\d+[.)]\s*(.+)/);
+      if (m) items.push({ headline: m[1].trim(), reasoning:'' });
+    });
+  }
+  return items;
+}
+
+function hlCycleFacts(){
+  const el = $('hlFact');
+  const pool = [t('h.fact1'), t('h.fact2'), t('h.fact3'), pickFact()];
+  let i = 0;
+  const step = ()=>{ el.style.opacity='0'; setTimeout(()=>{ el.textContent = pool[i%pool.length]; el.style.opacity='1'; i++; }, 260); };
+  step();
+  hlFactTimer = setInterval(step, 3400);
+}
+
+function openHlSheet(){
+  $('hlLoading').style.display = 'block';
+  $('hlError').style.display = 'none';
+  $('hlList').style.display = 'none';
+  $('hlRegenerate').style.display = 'none';
+  $('hlMeta').textContent = '';
+  hlCycleFacts();
+  $('hlSheet').classList.add('show');
+}
+
+function renderHlResults(items){
+  hlLastHeadlines = items;
+  clearInterval(hlFactTimer);
+  $('hlLoading').style.display = 'none';
+  $('hlError').style.display = 'none';
+  $('hlMeta').textContent = t('h.metaCount',{n:num(items.length),q:num(S.keywords.length),d:num(S.articles.length)});
+  $('hlRegenerate').style.display = 'inline-flex';
+  const list = $('hlList');
+  list.innerHTML = items.map((it,i)=>`
+    <div class="hl-item" style="animation-delay:${i*40}ms">
+      <div class="hl-top"><div class="hl-idx">${String(i+1).padStart(2,'0')}</div><div class="hl-text">${esc(it.headline)}</div></div>
+      ${it.reasoning ? `<details class="dd hl-dd"><summary><span class="chev">▶</span> <span>${t('h.why')}</span></summary><div class="dd-body">${esc(it.reasoning)}</div></details>` : ''}
+      <div class="hl-actions">
+        <button class="ghost-sm hl-copy" data-i="${i}">${t('h.copy')}</button>
+        <button class="btn-flame hl-use" data-i="${i}">${t('h.useThis')}</button>
+      </div>
+    </div>`).join('');
+  list.style.display = 'flex';
+}
+
+function showHlError(msg){
+  clearInterval(hlFactTimer);
+  $('hlLoading').style.display = 'none';
+  $('hlList').style.display = 'none';
+  $('hlRegenerate').style.display = 'inline-flex';
+  $('hlError').style.display = 'block';
+  $('hlError').textContent = t('h.apiError',{msg});
+}
+
+async function generateHeadlines(){
+  if (S.article.length<180) return toast(t('p.pasteFirstToast'));
+  openHlSheet();
+  const promptText = buildPrompt() + '\n\n' + headlineInstructions();
+  try{
+    // Note: no Content-Type header set on purpose — keeps this a "simple"
+    // request so the browser doesn't send a CORS preflight OPTIONS call,
+    // which Apps Script web apps don't handle. The body is still JSON;
+    // doPost(e) parses e.postData.contents regardless of the label.
+    const response = await fetch(GSC_URL, {
+      method:'POST',
+      body: JSON.stringify({ mode:'suggestHeadlines', prompt: promptText })
+    });
+    const data = await response.json();
+    if (!data.ok) throw new Error(data.error || 'Unknown error from headline endpoint');
+    const items = parseHeadlines(data.text);
+    if (!items.length) return showHlError(t('h.noHeadlines'));
+    renderHlResults(items);
+  }catch(e){
+    showHlError(e.message||String(e));
+  }
+}
+
+$('hlSheetClose').addEventListener('click', ()=>{ clearInterval(hlFactTimer); $('hlSheet').classList.remove('show'); });
+$('hlSheet').addEventListener('click', e=>{ if(e.target===$('hlSheet')){ clearInterval(hlFactTimer); $('hlSheet').classList.remove('show'); } });
+$('hlRegenerate').addEventListener('click', generateHeadlines);
+
+$('hlList').addEventListener('click', async e=>{
+  const copyBtn = e.target.closest('.hl-copy');
+  const useBtn = e.target.closest('.hl-use');
+  if (copyBtn){
+    const it = hlLastHeadlines[+copyBtn.dataset.i];
+    try{ await navigator.clipboard.writeText(it.headline); toast(t('h.headlineCopiedToast')); }
+    catch(err){
+      const ta=document.createElement('textarea'); ta.value=it.headline; document.body.appendChild(ta); ta.select();
+      try{ document.execCommand('copy'); toast(t('h.headlineCopiedToast')); }catch(e2){ toast(t('p.copyBlockedToast')); }
+      ta.remove();
+    }
+  }
+  if (useBtn){
+    const it = hlLastHeadlines[+useBtn.dataset.i];
+    openArticlePreview(it.headline);
+  }
+});
+
+function openArticlePreview(headline){
+  $('artPreviewHeadline').textContent = headline;
+  $('artPreviewBody').textContent = S.article;
+  $('hlSheet').classList.remove('show');
+  $('articleSheet').classList.add('show');
+}
+$('articleSheetClose').addEventListener('click', ()=>$('articleSheet').classList.remove('show'));
+$('articleSheet').addEventListener('click', e=>{ if(e.target===$('articleSheet')) $('articleSheet').classList.remove('show'); });
+$('artPreviewBack').addEventListener('click', ()=>{ $('articleSheet').classList.remove('show'); $('hlSheet').classList.add('show'); });
+$('artPreviewCopyHl').addEventListener('click', async ()=>{
+  const h = $('artPreviewHeadline').textContent;
+  try{ await navigator.clipboard.writeText(h); toast(t('h.headlineCopiedToast')); }
+  catch(e){
+    const ta=document.createElement('textarea'); ta.value=h; document.body.appendChild(ta); ta.select();
+    try{ document.execCommand('copy'); toast(t('h.headlineCopiedToast')); }catch(e2){ toast(t('p.copyBlockedToast')); }
+    ta.remove();
+  }
+});
 
 $('btnCopy').addEventListener('click', async ()=>{
   const p = $('promptPre').textContent;
