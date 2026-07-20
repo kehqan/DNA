@@ -363,10 +363,22 @@ select.mini-in:hover{background-color:var(--chip-hover)}
   display:flex;flex-direction:column;gap:10px;animation:rise 420ms var(--eo) both}
 .hl-top{display:flex;align-items:flex-start;gap:12px}
 .hl-idx{font-family:var(--serif);font-size:12px;color:var(--lt-3);text-shadow:var(--ts);flex-shrink:0;padding-top:3px;min-width:16px}
-.hl-text{font-family:var(--serif);font-size:16px;line-height:1.5;color:var(--lt-1);text-shadow:var(--ts-lg);flex:1}
-.hl-reason{display:none;font-size:12px;color:var(--lt-3);text-shadow:var(--ts);line-height:1.65;
+.hl-group{display:inline-block;font-size:9.5px;letter-spacing:.03em;text-transform:uppercase;
+  padding:2.5px 9px;border-radius:20px;margin-bottom:6px;font-family:var(--sans)}
+.hl-group.search{background:rgba(90,160,255,0.18);color:#8FC1FF}
+.hl-group.discover{background:rgba(255,140,80,0.18);color:#FFB088}
+.hl-group.straight{background:rgba(255,255,255,0.10);color:var(--lt-3)}
+.hl-group.current{background:rgba(255,255,255,0.08);color:var(--lt-3)}
+.hl-text{font-family:var(--serif);font-size:16px;line-height:1.5;color:var(--lt-1);text-shadow:var(--ts-lg)}
+.hl-current-item{border:1px dashed rgba(255,255,255,0.18);background:rgba(255,255,255,0.03)}
+.hl-reason{display:none;flex-direction:column;gap:9px;
   background:rgba(4,12,16,0.22);border-radius:12px;padding:11px 13px}
-.hl-reason.open{display:block}
+.hl-reason.open{display:flex}
+.hl-adv{font-size:12px;line-height:1.6;color:#8FE3AC;text-shadow:var(--ts)}
+.hl-adv::before{content:'✓ ';font-weight:700}
+.hl-risk{font-size:12px;line-height:1.6;color:#F0AE72;text-shadow:var(--ts)}
+.hl-risk::before{content:'⚠ ';font-weight:700}
+.hl-notes{font-size:12px;line-height:1.65;color:var(--lt-3);text-shadow:var(--ts)}
 .hl-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .hl-why-btn{width:30px;height:30px;border-radius:50%;border:none;cursor:pointer;flex-shrink:0;
   background:rgba(255,255,255,0.10);box-shadow:var(--ambient),var(--rim-sm);color:var(--lt-2);
@@ -677,6 +689,8 @@ en: {
   'h.j3':'🌊 Out on the open sea…', 'h.j4':'🧭 Charting a course through your queries…',
   'h.j5':'🌅 Discover winners spotted on the horizon…', 'h.j6':'🏝️ Bringing headlines into harbor…',
   'h.metaCount':'{n} headlines · {q} queries · {d} Discover winners used',
+  'h.groupSearch':'Search-led', 'h.groupDiscover':'Discover-led', 'h.groupStraight':'Straight',
+  'h.currentBadge':'Current headline',
   'c.title':'Compare two keywords', 'c.close':'Close', 'c.termA':'Term A', 'c.termB':'Term B',
   'c.geoIran':'Iran', 'c.geoWorld':'Worldwide', 'c.geoUS':'United States',
   'c.time7':'Past 7 days', 'c.time30':'Past 30 days', 'c.time90':'Past 90 days', 'c.time12m':'Past 12 months',
@@ -753,6 +767,8 @@ fa: {
   'h.j3':'🌊 در دل دریای باز…', 'h.j4':'🧭 مسیر را از میان کلیدواژه‌های شما پیدا می‌کنیم…',
   'h.j5':'🌅 برترین‌های آرشیو در افق دیده می‌شوند…', 'h.j6':'🏝️ سرتیترها را به بندر می‌رسانیم…',
   'h.metaCount':'{n} سرتیتر · {q} عبارت · {d} مطلب برتر آرشیو استفاده شد',
+  'h.groupSearch':'مبتنی بر سرچ', 'h.groupDiscover':'مبتنی بر دیسکاور', 'h.groupStraight':'مستقیم',
+  'h.currentBadge':'سرتیتر فعلی',
   'c.title':'مقایسهٔ دو کلیدواژه', 'c.close':'بستن', 'c.termA':'کلیدواژهٔ اول', 'c.termB':'کلیدواژهٔ دوم',
   'c.geoIran':'ایران', 'c.geoWorld':'جهانی', 'c.geoUS':'ایالات متحده',
   'c.time7':'7 روز اخیر', 'c.time30':'30 روز اخیر', 'c.time90':'90 روز اخیر', 'c.time12m':'12 ماه اخیر',
@@ -1060,31 +1076,80 @@ $('sheet').addEventListener('click', e=>{ if(e.target===$('sheet')){ $('sheet').
 document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ $('sheet').classList.remove('show'); $('sheet').style.zIndex=''; $('cmpSheet').classList.remove('show'); $('hlSheet').classList.remove('show'); $('articleSheet').classList.remove('show'); } });
 
 /* ==================== Headline suggestions (AI API) ==================== */
-const HEADLINE_COUNT = 5;
 let hlFactTimer = null;
 let hlLastHeadlines = [];
+let hlLastAnalysis = null;
 
-function headlineInstructions(){
-  return LANG==='fa'
-    ? `بر اساس تمام اطلاعات بالا، ${HEADLINE_COUNT} پیشنهاد سرتیتر متفاوت برای این خبر بنویس.\nدقیقاً با همین قالب پاسخ بده — بدون مقدمه، بدون مارک‌داون، بدون هیچ توضیح اضافه‌ای:\n\nHEADLINE: <متن سرتیتر>\nREASONING: <یک یا دو جمله دربارهٔ چرایی این سرتیتر>\n---\n\nاین الگو را دقیقاً ${HEADLINE_COUNT} بار تکرار کن، با «---» بین هر مورد جدا شود.`
-    : `Based on everything above, write ${HEADLINE_COUNT} distinct headline options for this article.\nRespond in exactly this format — no preamble, no markdown, nothing else:\n\nHEADLINE: <headline text>\nREASONING: <one or two sentences on why this headline works>\n---\n\nRepeat this pattern exactly ${HEADLINE_COUNT} times total, separated by "---".`;
+/* The ADMIN page's "Task instructions" card owns WHAT to write (how many,
+   which mix, what to weigh). This function owns HOW to format the reply —
+   it doesn't restate counts, so the two can never fall out of sync. */
+function buildOutputContract(){
+  const hasHeadline = !!(S.headline && S.headline.trim());
+  const analysisPart = !hasHeadline ? '' : (LANG==='fa'
+    ? `\n\nسپس، دقیقاً یک بار، تحلیل سرتیتر فعلی را در همین سبک اضافه کن:\n\n### CURRENT HEADLINE ANALYSIS\nTEXT: <سرتیتر فعلی، بدون تغییر>\nNOTES: <یک یا دو جمله — بگو اگر چیزی را وارونه نشان می‌دهد، پنهان می‌کند یا بزرگ‌نمایی می‌کند؛ اگر مشکلی ندارد همین را بنویس>`
+    : `\n\nThen, exactly once, add an analysis of the current headline in the same style:\n\n### CURRENT HEADLINE ANALYSIS\nTEXT: <the current headline, unchanged>\nNOTES: <one or two sentences — say plainly if it misrepresents, buries, or overstates anything; if it holds up, say so>`);
+
+  const head = LANG==='fa'
+    ? `════════ قالب خروجی — دقیقاً همین‌طور بنویس ════════\nفقط با همین ساختار پاسخ بده. بدون مقدمه، بدون مارک‌داون، بدون هیچ متنی بیرون از این تگ‌ها.\nبه ازای هر سرتیتری که در بالا خواسته شد، دقیقاً یک بلوک زیر را بنویس — به همان ترتیب خواسته‌شده:\n\n### HEADLINE\nGROUP: <SEARCH یا DISCOVER یا STRAIGHT>\nTEXT: <خود سرتیتر>\nADVANTAGE: <یک جمله — چرا این سرتیتر کار می‌کند>\nRISK: <یک جمله — نقطه‌ضعف یا ریسک آن>`
+    : `════════ OUTPUT FORMAT — FOLLOW EXACTLY ════════\nRespond ONLY in this structure. No preamble, no markdown, nothing outside these tags.\nFor every headline requested above, write exactly one block below, in the order requested:\n\n### HEADLINE\nGROUP: <SEARCH or DISCOVER or STRAIGHT>\nTEXT: <the headline itself>\nADVANTAGE: <one sentence — why this headline works>\nRISK: <one sentence — the tradeoff or risk it carries>`;
+
+  return head + analysisPart + '\n\n### END';
 }
 
-function parseHeadlines(text){
-  const blocks = String(text||'').split(/\n?---+\n?/).map(b=>b.trim()).filter(Boolean);
+function grabField(block, label, otherLabels){
+  const stop = otherLabels.map(l=>l+':').join('|');
+  const re = new RegExp(label+':\\s*([\\s\\S]*?)(?=\\n(?:'+stop+')|$)', 'i');
+  const m = block.match(re);
+  return m ? m[1].trim() : '';
+}
+
+function parseHeadlineBlock(block){
+  const labels = ['GROUP','TEXT','ADVANTAGE','RISK'];
+  const group = grabField(block,'GROUP',labels.filter(l=>l!=='GROUP'));
+  const headline = grabField(block,'TEXT',labels.filter(l=>l!=='TEXT'));
+  const advantage = grabField(block,'ADVANTAGE',labels.filter(l=>l!=='ADVANTAGE'));
+  const risk = grabField(block,'RISK',labels.filter(l=>l!=='RISK'));
+  if (!headline) return null;
+  return { group: group.toUpperCase(), headline, advantage, risk };
+}
+
+function parseAnalysisBlock(block){
+  const labels = ['TEXT','NOTES'];
+  const headline = grabField(block,'TEXT',labels.filter(l=>l!=='TEXT'));
+  const notes = grabField(block,'NOTES',labels.filter(l=>l!=='NOTES'));
+  if (!headline && !notes) return null;
+  return { headline, notes };
+}
+
+function parseHeadlinesResponse(text){
+  const raw = String(text||'');
   const items = [];
-  blocks.forEach(b=>{
-    const hm = b.match(/HEADLINE:\s*([^\n]+)/i);
-    const rm = b.match(/REASONING:\s*([\s\S]+)/i);
-    if (hm) items.push({ headline: hm[1].trim(), reasoning: rm ? rm[1].trim() : '' });
-  });
+  const hlRe = /###\s*HEADLINE\b([\s\S]*?)(?=###\s*HEADLINE\b|###\s*CURRENT HEADLINE ANALYSIS\b|###\s*END\b|$)/gi;
+  let m;
+  while ((m = hlRe.exec(raw))){
+    const parsed = parseHeadlineBlock(m[1]);
+    if (parsed) items.push(parsed);
+  }
+  let analysis = null;
+  const aMatch = raw.match(/###\s*CURRENT HEADLINE ANALYSIS\b([\s\S]*?)(?=###\s*END\b|$)/i);
+  if (aMatch) analysis = parseAnalysisBlock(aMatch[1]);
+
+  /* Fallbacks in case the admin card hasn't been updated to the new
+     format yet, or an older reply slips through. */
   if (!items.length){
-    String(text||'').split('\n').forEach(line=>{
-      const m = line.match(/^\s*\d+[.)]\s*(.+)/);
-      if (m) items.push({ headline: m[1].trim(), reasoning:'' });
+    raw.split(/\n?---+\n?/).map(b=>b.trim()).filter(Boolean).forEach(b=>{
+      const hm = b.match(/HEADLINE:\s*([^\n]+)/i);
+      const rm = b.match(/REASONING:\s*([\s\S]+)/i);
+      if (hm) items.push({ group:'', headline: hm[1].trim(), advantage: rm?rm[1].trim():'', risk:'' });
     });
   }
-  return items;
+  if (!items.length){
+    raw.split('\n').forEach(line=>{
+      const mm = line.match(/^\s*\d+[.)]\s*(.+)/);
+      if (mm) items.push({ group:'', headline: mm[1].trim(), advantage:'', risk:'' });
+    });
+  }
+  return { items, analysis };
 }
 
 let hlBoatInst = null;
@@ -1129,8 +1194,17 @@ function openHlSheet(){
   $('hlSheet').classList.add('show');
 }
 
-function renderHlResults(items){
+function groupBadge(g){
+  const key = { SEARCH:'h.groupSearch', DISCOVER:'h.groupDiscover', STRAIGHT:'h.groupStraight' }[g];
+  return key ? t(key) : '';
+}
+function groupClass(g){
+  return { SEARCH:'search', DISCOVER:'discover', STRAIGHT:'straight' }[g] || 'straight';
+}
+
+function renderHlResults(items, analysis){
   hlLastHeadlines = items;
+  hlLastAnalysis = analysis || null;
   hlHasResult = true;
   clearInterval(hlFactTimer);
   stopBoatAnim();
@@ -1139,20 +1213,51 @@ function renderHlResults(items){
   $('hlMeta').textContent = t('h.metaCount',{n:num(items.length),q:num(S.keywords.length),d:num(S.articles.length)});
   $('hlViewPrompt').style.display = 'inline-flex';
   $('hlRegenerate').style.display = 'inline-flex';
-  const list = $('hlList');
-  list.innerHTML = items.map((it,i)=>`
-    <div class="hl-item" style="animation-delay:${i*40}ms">
-      <div class="hl-top"><div class="hl-idx">${String(i+1).padStart(2,'0')}</div><div class="hl-text">${esc(it.headline)}</div></div>
-      ${it.reasoning ? `<div class="hl-reason" id="hlReason-${i}">${esc(it.reasoning)}</div>` : ''}
+
+  const analysisHtml = (analysis && (analysis.headline || analysis.notes)) ? `
+    <div class="hl-item hl-current-item">
+      <div class="hl-top">
+        <div class="hl-idx">•</div>
+        <div style="flex:1;min-width:0">
+          <span class="hl-group current">${t('h.currentBadge')}</span>
+          <div class="hl-text">${esc(analysis.headline || S.headline)}</div>
+        </div>
+      </div>
+      ${analysis.notes ? `
+      <div class="hl-reason" id="hlReason-cur"><div class="hl-notes">${esc(analysis.notes)}</div></div>
       <div class="hl-row">
-        ${it.reasoning ? `<button class="hl-why-btn" data-i="${i}" title="${t('h.why')}" aria-label="${t('h.why')}"><span class="chev">▾</span></button>` : '<span></span>'}
+        <button class="hl-why-btn" data-i="cur" title="${t('h.why')}" aria-label="${t('h.why')}"><span class="chev">▾</span></button>
+        <span></span>
+      </div>` : ''}
+    </div>` : '';
+
+  const itemsHtml = items.map((it,i)=>{
+    const hasReason = !!(it.advantage || it.risk);
+    return `
+    <div class="hl-item" style="animation-delay:${i*40}ms">
+      <div class="hl-top">
+        <div class="hl-idx">${String(i+1).padStart(2,'0')}</div>
+        <div style="flex:1;min-width:0">
+          ${it.group ? `<span class="hl-group ${groupClass(it.group)}">${groupBadge(it.group)}</span>` : ''}
+          <div class="hl-text">${esc(it.headline)}</div>
+        </div>
+      </div>
+      ${hasReason ? `<div class="hl-reason" id="hlReason-${i}">
+        ${it.advantage ? `<div class="hl-adv">${esc(it.advantage)}</div>` : ''}
+        ${it.risk ? `<div class="hl-risk">${esc(it.risk)}</div>` : ''}
+      </div>` : ''}
+      <div class="hl-row">
+        ${hasReason ? `<button class="hl-why-btn" data-i="${i}" title="${t('h.why')}" aria-label="${t('h.why')}"><span class="chev">▾</span></button>` : '<span></span>'}
         <div class="hl-actions">
           <button class="ghost-sm hl-copy" data-i="${i}">${t('h.copy')}</button>
           <button class="btn-flame hl-use" data-i="${i}">${t('h.useThis')}</button>
         </div>
       </div>
-    </div>`).join('');
-  list.style.display = 'flex';
+    </div>`;
+  }).join('');
+
+  $('hlList').innerHTML = analysisHtml + itemsHtml;
+  $('hlList').style.display = 'flex';
 }
 
 function showHlError(msg){
@@ -1200,7 +1305,7 @@ async function generateHeadlines(){
     const { blocks } = await PromptEngine.getBlocks();
     TPL_BLOCKS = blocks;
   }catch(e){ /* fall back to whatever was loaded at boot */ }
-  const promptText = buildPrompt() + '\n\n' + headlineInstructions();
+  const promptText = buildPrompt() + '\n\n' + buildOutputContract();
   hlLastPromptText = promptText;
   try{
     // Note: no Content-Type header set on purpose — keeps this a "simple"
@@ -1213,9 +1318,9 @@ async function generateHeadlines(){
     });
     const data = await response.json();
     if (!data.ok) throw new Error(data.error || 'Unknown error from headline endpoint');
-    const items = parseHeadlines(data.text);
+    const { items, analysis } = parseHeadlinesResponse(data.text);
     if (!items.length) return showHlError(t('h.noHeadlines'));
-    renderHlResults(items);
+    renderHlResults(items, analysis);
   }catch(e){
     showHlError(e.message||String(e));
   }
