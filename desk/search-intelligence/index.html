@@ -1703,13 +1703,18 @@ async function doLogin(){
   if (!u || !p) return showLoginError(t('login.fillBoth'));
   $('loginSubmit').disabled = true;
   $('loginSubmit').textContent = t('login.submitting');
-  const res = await AuthEngine.login(u, p);
-  $('loginSubmit').disabled = false;
-  $('loginSubmit').textContent = t('login.submit');
-  if (!res.ok) return showLoginError(res.error || t('login.error'));
-  $('loginPassword').value = '';
-  hideLoginGate();
-  startApp(res.session);
+  try{
+    const res = await AuthEngine.login(u, p);
+    if (!res.ok) return showLoginError(res.error || t('login.error'));
+    $('loginPassword').value = '';
+    hideLoginGate();
+    startApp(res.session);
+  }catch(e){
+    showLoginError(String((e && e.message) || e));
+  }finally{
+    $('loginSubmit').disabled = false;
+    $('loginSubmit').textContent = t('login.submit');
+  }
 }
 $('loginSubmit').addEventListener('click', doLogin);
 $('loginUsername').addEventListener('keydown', e=>{ if (e.key==='Enter') doLogin(); });
