@@ -1,15 +1,17 @@
 /* ============================================================
-   Desk — Prompt Engine v2
+   Desk — Prompt Engine v3
    Template = an ordered array of BLOCKS. Each block is a card
-   in the admin UI. Persisted in Supabase (shared across
-   editors/devices), cached in localStorage for instant load.
+   in the admin UI. One template PER SERVICE ('fa' | 'en').
+
+   v2 → v3 change: blocks used to be fetched/saved directly against
+   Supabase using the public anon key (visible in this file, in the
+   browser). That let anyone who opened dev tools rewrite the live
+   prompt. v3 routes all reads/writes through the Apps Script backend,
+   which requires a valid login session and uses a service_role key
+   that never leaves the server.
    ============================================================ */
 (function (global) {
-  const SUPABASE_URL = 'https://yiewnykbchfadipznpet.supabase.co';
-  const SUPABASE_KEY = 'sb_publishable_SzVtJbVL--379ISTr-_-LQ_q0sDxshQ';
-  const TABLE = 'prompt_templates';
-  const ROW_ID = 'headline_prompt';
-  const LOCAL_KEY = 'desk.si.promptBlocks.v2';
+  const LOCAL_KEY_PREFIX = 'desk.si.promptBlocks.v3.';
 
   /* Tokens available for insertion. `cond:true` = meaningful as a block's "show only if". */
   const TOKENS = [
@@ -30,6 +32,9 @@
 
   const uid = () => 'b' + Math.random().toString(36).slice(2, 9);
 
+  /* Built-in fallback if nothing has been saved yet for a service
+     (Farsi wording — used verbatim for 'fa'; 'en' is the same structure
+     with "Persian" swapped to "English", matching the live EN template). */
   const DEFAULT_BLOCKS = [
     { id:uid(), title:'Role & voice', showIf:'', enabled:true,
       body:'You are a senior headline editor at Radio Farda (RFE/RL Persian Service).\nYou write headlines that are accurate first, findable second, and never sensational.\nYou do not invent facts, overstate what the reporting supports, or write bait.' },
@@ -52,7 +57,7 @@
     { id:uid(), title:'Discover winners', showIf:'DISCOVER', enabled:true,
       body:'════════ WHAT IS WINNING ON DISCOVER RIGHT NOW ════════\nTop {{SITE}} pages in Google Discover, {{DISCOVER_WINDOW_LABEL}}.\nStudy the HEADLINE PATTERNS — what earns the click here.\n\n{{DISCOVER}}' },
     { id:uid(), title:'Task instructions', showIf:'', enabled:true,
-      body:'════════ YOUR TASK ════════\nWrite 6 headline options for the article above:\n  1–2  SEARCH-LED — built on the highest-value queries above. Front-load the term readers type.\n  3–4  DISCOVER-LED — echo the patterns winning above. Curiosity with substance, never bait.\n  5    STRAIGHT — the plain wire-service statement of what happened.\n  6    YOUR BEST — whatever genuinely serves this story best.\n\nFor EACH option give:\n  · The headline — Persian, under 70 characters where possible\n  · The query or pattern it targets, and why\n  · One risk or tradeoff it carries\n\nThen name the single strongest option and defend it in two sentences.\nFinally flag anything the current headline misrepresents, buries, or overstates.' },
+      body:'════════ YOUR TASK ════════\nWrite 5 headline options for the article above, in this exact mix and order:\n  1–2  SEARCH-LED — built on the highest-value queries above. Front-load the term readers type.\n  3–4  DISCOVER-LED — echo the patterns winning on Discover above. Curiosity with substance, never bait.\n  5    STRAIGHT — the plain wire-service statement of what happened.\n\nFor EACH headline:\n  · Persian, between 90–105 characters where possible.\n  · Think through what it targets (a query, a Discover pattern, or just the facts) and why that\'s the right call for this option.\n  · Think through the one real risk or tradeoff it carries.\n\nIf a current headline was supplied above, also assess it on the same terms: does it misrepresent, bury, or overstate anything the reporting actually supports? Or does it hold up?' },
     { id:uid(), title:'Constraints', showIf:'', enabled:true,
       body:'CONSTRAINTS: Persian output. No invented facts. No question-mark headlines unless the article genuinely poses one. Nothing the reporting does not support.' }
   ];
@@ -70,50 +75,42 @@
     return parts.join('\n\n').replace(/\n{3,}/g, '\n\n').trim();
   }
 
-  /* ---------- local cache (instant load, offline fallback) ---------- */
-  function loadLocal(){
-    try { const raw = localStorage.getItem(LOCAL_KEY); return raw ? JSON.parse(raw) : null; }
+  /* ---------- local cache (instant load, offline fallback), per service ---------- */
+  function loadLocal(service){
+    try { const raw = localStorage.getItem(LOCAL_KEY_PREFIX + service); return raw ? JSON.parse(raw) : null; }
     catch(e){ return null; }
   }
-  function saveLocal(blocks){
-    try { localStorage.setItem(LOCAL_KEY, JSON.stringify(blocks)); } catch(e){}
+  function saveLocal(service, blocks){
+    try { localStorage.setItem(LOCAL_KEY_PREFIX + service, JSON.stringify(blocks)); } catch(e){}
   }
 
-  /* ---------- Supabase — source of truth, shared across editors ---------- */
-  async function fetchRemote(){
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?id=eq.${ROW_ID}&select=blocks,updated_at`, {
-      headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY }
-    });
-    if (!res.ok) throw new Error(`Supabase read failed: HTTP ${res.status}`);
-    const rows = await res.json();
-    return rows[0] ? { blocks: rows[0].blocks, updated_at: rows[0].updated_at } : null;
+  /* ---------- backend (Apps Script — requires login, service_role on the server) ---------- */
+  async function fetchRemote(service){
+    if (typeof AuthEngine === 'undefined') throw new Error('AuthEngine not loaded — check auth-engine.js is included before prompt-engine.js');
+    const res = await AuthEngine.authedPost({ mode:'getPromptBlocks', service });
+    if (!res.ok) throw new Error(res.error || 'Failed to load prompt blocks');
+    return { blocks: res.blocks, service: res.service };
   }
-  async function saveRemote(blocks){
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}`, {
-      method: 'POST',
-      headers: {
-        apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY,
-        'Content-Type': 'application/json',
-        Prefer: 'resolution=merge-duplicates,return=representation'
-      },
-      body: JSON.stringify([{ id: ROW_ID, blocks, updated_at: new Date().toISOString() }])
-    });
-    if (!res.ok) throw new Error(`Supabase write failed: HTTP ${res.status} — ${await res.text()}`);
+  async function saveRemote(service, blocks){
+    if (typeof AuthEngine === 'undefined') throw new Error('AuthEngine not loaded — check auth-engine.js is included before prompt-engine.js');
+    const res = await AuthEngine.authedPost({ mode:'savePromptBlocks', service, blocks });
+    if (!res.ok) throw new Error(res.error || 'Failed to save prompt blocks');
     return true;
   }
 
-  /* getBlocks(): remote if reachable (also refreshes local cache), else local cache, else built-in default. */
-  async function getBlocks(){
+  /* getBlocks(service): remote if reachable (also refreshes local cache), else local cache, else built-in default. */
+  async function getBlocks(service){
+    service = service === 'en' ? 'en' : 'fa';
     try {
-      const remote = await fetchRemote();
+      const remote = await fetchRemote(service);
       if (remote && Array.isArray(remote.blocks) && remote.blocks.length){
-        saveLocal(remote.blocks);
-        return { blocks: remote.blocks, source: 'remote' };
+        saveLocal(service, remote.blocks);
+        return { blocks: remote.blocks, source: 'remote', service };
       }
     } catch(e){ /* fall through */ }
-    const local = loadLocal();
-    if (local && local.length) return { blocks: local, source: 'local-cache' };
-    return { blocks: DEFAULT_BLOCKS, source: 'default' };
+    const local = loadLocal(service);
+    if (local && local.length) return { blocks: local, source: 'local-cache', service };
+    return { blocks: DEFAULT_BLOCKS, source: 'default', service };
   }
 
   global.PromptEngine = {
