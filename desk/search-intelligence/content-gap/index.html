@@ -176,6 +176,8 @@ body{font-family:var(--sans);color:var(--lt-2);min-height:100vh;-webkit-font-smo
 .gm-pos.crit{background:rgba(255,84,0,0.26);color:#FFCBB0}
 .gm-cov{background:rgba(255,255,255,0.07);color:var(--lt-3);border:1px dashed rgba(255,255,255,0.20)}
 .gm-cov.none{background:rgba(255,84,0,0.14);color:#FFB08C;border:1px dashed rgba(255,120,60,0.40)}
+.gm-cov a, .gm-cov.none a{color:inherit;text-decoration:underline;text-underline-offset:2px}
+.gm-cov a:hover, .gm-cov.none a:hover{opacity:.8}
 .gm-active.fresh{background:rgba(95,212,143,0.18);color:#9BEBB6}
 .gm-active.ok{background:rgba(255,255,255,0.08);color:var(--lt-3)}
 .gm-active.stale{background:rgba(255,84,0,0.10);color:#FF9B76}
@@ -184,7 +186,18 @@ body{font-family:var(--sans);color:var(--lt-2);min-height:100vh;-webkit-font-smo
 .gm-trend.down{color:#FFB07A}
 .gm-trend.flat{color:var(--lt-3)}
 .gm-trend.new{color:#8FC1FF}
-.gap-actions{display:flex;align-items:center;justify-content:flex-end;margin-top:10px}
+.gap-actions{display:flex;align-items:center;justify-content:space-between;margin-top:10px}
+.gap-pages{display:none;flex-direction:column;gap:6px;margin-top:10px;background:rgba(4,12,16,0.22);border-radius:12px;padding:10px 12px}
+.gap-pages.open{display:flex}
+.gap-page-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px}
+.gap-page-row a{color:#8FC1FF;text-decoration:underline;text-underline-offset:2px;word-break:break-all;flex:1;min-width:0}
+.gap-page-row a:hover{opacity:.8}
+.gap-pages-btn{font-family:var(--sans);font-size:11px;font-weight:600;color:var(--lt-3);text-shadow:var(--ts);
+  padding:6px 13px;border-radius:100px;border:none;cursor:pointer;background:rgba(255,255,255,0.08);
+  display:inline-flex;align-items:center;gap:5px;transition:background 200ms,color 200ms}
+.gap-pages-btn:hover{background:rgba(255,255,255,0.14);color:var(--lt-1)}
+.gap-pages-btn .chev{font-size:8px;transition:transform 200ms var(--eo)}
+.gap-pages-btn.on .chev{transform:rotate(180deg)}
 .ghost-sm{font-family:var(--sans);font-size:11.5px;font-weight:600;color:var(--lt-1);text-shadow:var(--ts);
   padding:7px 15px;border-radius:100px;border:none;cursor:pointer;
   background:rgba(255,255,255,0.10);box-shadow:var(--ambient),var(--rim-sm);
@@ -474,8 +487,14 @@ function renderGapList(){
     const match = findTrendingMatch(g.query);
     const posClass = g.position >= 30 ? 'crit' : '';
     const covHtml = g.coverage === 'none'
-      ? `<span class="gm-chip gm-cov none" title="A page ranks, just not a dedicated article">No dedicated article${g.page ? ' · currently: ' + esc(shortenUrl(g.page)) : ''}</span>`
-      : `<span class="gm-chip gm-cov">Weak — pos. ${g.position}${g.page ? ' · ' + esc(shortenUrl(g.page)) : ''}</span>`;
+      ? `<span class="gm-chip gm-cov none" title="A page ranks, just not a dedicated article">No dedicated article${g.page ? ' · currently: <a href="'+esc(g.page)+'" target="_blank" rel="noopener">'+esc(shortenUrl(g.page))+'</a>' : ''}</span>`
+      : `<span class="gm-chip gm-cov">Weak — pos. ${g.position}${g.page ? ' · <a href="'+esc(g.page)+'" target="_blank" rel="noopener">'+esc(shortenUrl(g.page))+'</a>' : ''}</span>`;
+    const pagesHtml = (g.pages || []).map(p => `
+      <div class="gap-page-row">
+        <a href="${esc(p.page)}" target="_blank" rel="noopener">${esc(shortenUrl(p.page))}</a>
+        <span class="gm-chip gm-impr">${num(p.impressions)} impr</span>
+        <span class="gm-chip gm-pos ${p.position>=30?'crit':''}">pos. ${p.position}</span>
+      </div>`).join('');
     return `
     <div class="gap-item ${match ? 'trending-match' : ''}" style="animation-delay:${Math.min(i,10)*30}ms">
       <div class="gap-top">
@@ -494,7 +513,9 @@ function renderGapList(){
           </div>
         </div>
       </div>
+      ${g.pages && g.pages.length ? `<div class="gap-pages" id="gapPages-${i}">${pagesHtml}</div>` : ''}
       <div class="gap-actions">
+        ${g.pages && g.pages.length ? `<button class="gap-pages-btn" data-i="${i}"><span class="chev">▾</span> ${g.pages.length} page${g.pages.length===1?'':'s'}</button>` : '<span></span>'}
         <button class="ghost-sm gap-copy" data-q="${esc(g.query)}">⧉ Copy query</button>
       </div>
     </div>`;
@@ -616,9 +637,17 @@ document.querySelectorAll('.filter-chip').forEach(el => el.addEventListener('cli
   renderGapList();
 }));
 $('gapList').addEventListener('click', async e => {
-  const btn = e.target.closest('.gap-copy'); if (!btn) return;
-  try{ await navigator.clipboard.writeText(btn.dataset.q); btn.textContent = '✓ Copied'; setTimeout(()=>btn.textContent='⧉ Copy query',1400); }
-  catch(err){}
+  const copyBtn = e.target.closest('.gap-copy');
+  const pagesBtn = e.target.closest('.gap-pages-btn');
+  if (copyBtn){
+    try{ await navigator.clipboard.writeText(copyBtn.dataset.q); copyBtn.textContent = '✓ Copied'; setTimeout(()=>copyBtn.textContent='⧉ Copy query',1400); }
+    catch(err){}
+  }
+  if (pagesBtn){
+    const panel = $('gapPages-'+pagesBtn.dataset.i);
+    pagesBtn.classList.toggle('on');
+    if (panel) panel.classList.toggle('open');
+  }
 });
 
 /* ==================== BOOT ==================== */
