@@ -288,7 +288,7 @@ body{font-family:var(--sans);color:var(--lt-2);min-height:100vh;-webkit-font-smo
     <div class="card stat"><div class="sn pending" id="statGaps">—</div><div class="sl">Gaps flagged</div></div>
     <div class="card stat warn"><div class="sn pending" id="statImpr">—</div><div class="sl">Impressions at stake</div></div>
     <div class="card stat"><div class="sn pending" id="statPos">—</div><div class="sl">Avg. buried position</div></div>
-    <div class="card stat crit"><div class="sn pending" id="statZero">—</div><div class="sl">Zero-coverage topics</div></div>
+    <div class="card stat crit"><div class="sn pending" id="statZero">—</div><div class="sl">No dedicated article</div></div>
   </div>
 
   <div class="syncbar">
@@ -305,7 +305,7 @@ body{font-family:var(--sans);color:var(--lt-2);min-height:100vh;-webkit-font-smo
     <button class="filter-chip" id="applySensitivity">Apply</button>
     <div class="nav-sep" style="height:22px"></div>
     <div class="filter-chip on" data-filter="all">All gaps</div>
-    <div class="filter-chip" data-filter="none">Zero coverage only</div>
+    <div class="filter-chip" data-filter="none">No dedicated article only</div>
     <div class="filter-chip" data-filter="crit">Position 30+</div>
     <div class="filter-chip" data-filter="stale">Active this week</div>
   </div>
@@ -474,7 +474,7 @@ function renderGapList(){
     const match = findTrendingMatch(g.query);
     const posClass = g.position >= 30 ? 'crit' : '';
     const covHtml = g.coverage === 'none'
-      ? `<span class="gm-chip gm-cov none">No coverage</span>`
+      ? `<span class="gm-chip gm-cov none" title="A page ranks, just not a dedicated article">No dedicated article${g.page ? ' · currently: ' + esc(shortenUrl(g.page)) : ''}</span>`
       : `<span class="gm-chip gm-cov">Weak — pos. ${g.position}${g.page ? ' · ' + esc(shortenUrl(g.page)) : ''}</span>`;
     return `
     <div class="gap-item ${match ? 'trending-match' : ''}" style="animation-delay:${Math.min(i,10)*30}ms">
