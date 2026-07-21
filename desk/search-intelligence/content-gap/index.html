@@ -176,6 +176,9 @@ body{font-family:var(--sans);color:var(--lt-2);min-height:100vh;-webkit-font-smo
 .gm-pos.crit{background:rgba(255,84,0,0.26);color:#FFCBB0}
 .gm-cov{background:rgba(255,255,255,0.07);color:var(--lt-3);border:1px dashed rgba(255,255,255,0.20)}
 .gm-cov.none{background:rgba(255,84,0,0.14);color:#FFB08C;border:1px dashed rgba(255,120,60,0.40)}
+.gm-active.fresh{background:rgba(95,212,143,0.18);color:#9BEBB6}
+.gm-active.ok{background:rgba(255,255,255,0.08);color:var(--lt-3)}
+.gm-active.stale{background:rgba(255,84,0,0.10);color:#FF9B76}
 .gm-trend{font-size:10.5px;font-weight:700}
 .gm-trend.up{color:#7FE3A8}
 .gm-trend.down{color:#FFB07A}
@@ -255,6 +258,7 @@ body{font-family:var(--sans);color:var(--lt-2);min-height:100vh;-webkit-font-smo
       <p>Real search demand your coverage isn't winning yet — ranked by impressions left on the table, sorted worst first.</p>
     </div>
     <div class="win-switch" id="winSwitch">
+      <div class="win-opt" data-days="7">7 days</div>
       <div class="win-opt on" data-days="28">28 days</div>
       <div class="win-opt" data-days="90">90 days</div>
     </div>
@@ -283,6 +287,7 @@ body{font-family:var(--sans);color:var(--lt-2);min-height:100vh;-webkit-font-smo
     <div class="filter-chip on" data-filter="all">All gaps</div>
     <div class="filter-chip" data-filter="none">Zero coverage only</div>
     <div class="filter-chip" data-filter="crit">Position 30+</div>
+    <div class="filter-chip" data-filter="stale">Active this week</div>
   </div>
 
   <div class="cols">
@@ -396,6 +401,14 @@ function trendBadge(g){
   return `<span class="gm-trend flat">– flat</span>`;
 }
 
+function lastActiveBadge(g){
+  if (g.lastActiveDaysAgo === null || g.lastActiveDaysAgo === undefined) return '';
+  const d = g.lastActiveDaysAgo;
+  const cls = d <= 3 ? 'fresh' : (d <= 10 ? 'ok' : 'stale');
+  const label = d === 0 ? 'active today' : d === 1 ? 'active yesterday' : `active ${d}d ago`;
+  return `<span class="gm-chip gm-active ${cls}">${label}</span>`;
+}
+
 function shortenUrl(url){
   try{
     const u = new URL(url);
@@ -408,6 +421,7 @@ function renderGapList(){
   const filtered = allGaps.filter(g => {
     if (activeFilter === 'none') return g.coverage === 'none';
     if (activeFilter === 'crit') return g.position >= 30;
+    if (activeFilter === 'stale') return g.lastActiveDaysAgo !== null && g.lastActiveDaysAgo <= 7;
     return true;
   });
   $('gapCount').textContent = `${filtered.length} queries`;
@@ -434,6 +448,7 @@ function renderGapList(){
             <span class="gm-chip gm-impr">${num(g.impressions)} impressions</span>
             <span class="gm-chip gm-pos ${posClass}">pos. ${g.position}</span>
             ${covHtml}
+            ${lastActiveBadge(g)}
             ${trendBadge(g)}
           </div>
         </div>
