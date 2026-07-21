@@ -136,6 +136,12 @@ body{font-family:var(--sans);color:var(--lt-2);min-height:100vh;-webkit-font-smo
   background:rgba(255,255,255,0.07);transition:all 180ms;white-space:nowrap}
 .filter-chip:hover{background:rgba(255,255,255,0.13);color:var(--lt-1)}
 .filter-chip.on{background:rgba(255,84,0,0.30);color:#FFE0CC}
+.sens-field{display:flex;align-items:center;gap:6px}
+.sens-field label{font-size:10.5px;color:var(--lt-3);white-space:nowrap}
+.sens-field input{width:56px;font-family:var(--sans);font-size:12px;color:var(--lt-1);
+  padding:5px 8px;border-radius:8px;border:none;outline:none;background:var(--chip);box-shadow:var(--rim-sm);
+  text-align:center}
+.sens-field input:focus{background:var(--chip-hover);box-shadow:var(--rim-sm),inset 0 0 0 1.5px rgba(255,150,80,0.45)}
 
 /* ===== LAYOUT ===== */
 .cols{display:grid;grid-template-columns:1.7fr 1fr;gap:14px;align-items:start}
@@ -264,6 +270,16 @@ body{font-family:var(--sans);color:var(--lt-2);min-height:100vh;-webkit-font-smo
   <div class="syncbar">
     <div class="sb-text" id="syncText"><span class="spin"></span> Loading…</div>
     <div style="flex:1"></div>
+    <div class="sens-field">
+      <label>Min. impressions</label>
+      <input type="number" id="minImprInput" value="50" min="0" step="10">
+    </div>
+    <div class="sens-field">
+      <label>Min. position</label>
+      <input type="number" id="minPosInput" value="12" min="1" step="1">
+    </div>
+    <button class="filter-chip" id="applySensitivity">Apply</button>
+    <div class="nav-sep" style="height:22px"></div>
     <div class="filter-chip on" data-filter="all">All gaps</div>
     <div class="filter-chip" data-filter="none">Zero coverage only</div>
     <div class="filter-chip" data-filter="crit">Position 30+</div>
@@ -335,7 +351,9 @@ $('logoutBtn').addEventListener('click', ()=>{ AuthEngine.logout(); location.rel
 
 /* ==================== FETCH ==================== */
 async function fetchContentGaps(days){
-  const url = AuthEngine.authedGetUrl({ mode:'contentGaps', days, minImpressions:100, minPosition:15, limit:40 });
+  const minImpressions = +$('minImprInput').value || 50;
+  const minPosition = +$('minPosInput').value || 12;
+  const url = AuthEngine.authedGetUrl({ mode:'contentGaps', days, minImpressions, minPosition, limit:40 });
   if (!url){ showLoginGate(); throw new Error('Not logged in'); }
   const res = await fetch(url);
   const d = await res.json();
@@ -466,6 +484,9 @@ $('winSwitch').addEventListener('click', e => {
   document.querySelectorAll('.win-opt').forEach(o => o.classList.toggle('on', o===el));
   loadGaps();
 });
+$('applySensitivity').addEventListener('click', loadGaps);
+$('minImprInput').addEventListener('keydown', e=>{ if (e.key==='Enter') loadGaps(); });
+$('minPosInput').addEventListener('keydown', e=>{ if (e.key==='Enter') loadGaps(); });
 document.querySelectorAll('.filter-chip').forEach(el => el.addEventListener('click', () => {
   document.querySelectorAll('.filter-chip').forEach(o => o.classList.remove('on'));
   el.classList.add('on');
