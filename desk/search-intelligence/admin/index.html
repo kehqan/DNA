@@ -170,6 +170,26 @@ pre#preview{white-space:pre-wrap;word-break:break-word;font-family:ui-monospace,
 .new-user-row.open{display:flex}
 .new-user-row input,.new-user-row select{font-family:var(--sans);font-size:12.5px;color:var(--teal);
   padding:8px 12px;border-radius:10px;border:1px solid var(--border);background:#fff;outline:none}
+
+/* ===== TRENDING UPLOAD ===== */
+.trending-status{font-size:12px;color:var(--muted);background:rgba(26,57,72,0.05);border-radius:12px;
+  padding:10px 14px;margin-bottom:14px;line-height:1.6}
+.trending-geo-row{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.trending-geo-row input{font-family:var(--sans);font-size:12.5px;color:var(--teal);
+  padding:7px 10px;border-radius:10px;border:1px solid var(--border);background:#fff;outline:none}
+.trending-dropzone{display:flex;align-items:center;justify-content:center;text-align:center;
+  border:1.5px dashed rgba(26,57,72,0.22);border-radius:16px;padding:26px 20px;cursor:pointer;
+  font-size:12.5px;color:var(--muted);transition:all 180ms;margin-bottom:6px}
+.trending-dropzone:hover, .trending-dropzone.dragover{border-color:var(--flame);color:var(--teal);background:rgba(255,84,0,0.04)}
+.trending-preview-head{display:flex;align-items:center;justify-content:space-between;margin:16px 0 10px}
+.trending-preview-head span{font-size:12px;color:var(--muted)}
+.trending-preview-list{max-height:320px;overflow:auto;display:flex;flex-direction:column;gap:6px}
+.tr-row{display:grid;grid-template-columns:26px 1fr auto auto;gap:10px;align-items:center;
+  border-radius:12px;padding:8px 12px;background:var(--glass);border:1px solid var(--glass-b)}
+.tr-rank{font-family:var(--serif);font-size:12px;color:var(--muted)}
+.tr-term{font-family:var(--serif);font-size:13px;color:var(--teal);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;direction:rtl;text-align:right}
+.tr-vol{font-size:10.5px;font-weight:700;color:var(--flame);white-space:nowrap}
+.tr-time{font-size:10px;color:var(--soft);white-space:nowrap}
 </style>
 </head>
 <body>
@@ -238,6 +258,38 @@ pre#preview{white-space:pre-wrap;word-break:break-word;font-family:ui-monospace,
   </div>
 </div>
 
+<div class="modal-overlay" id="trendingModal">
+  <div class="modal-card" style="max-width:720px">
+    <div class="modal-head">
+      <h2>Trending data</h2>
+      <button class="ghost" id="trendingClose">Close</button>
+    </div>
+    <div id="trendingError"></div>
+
+    <div class="trending-status" id="trendingStatus">Checking for existing data…</div>
+
+    <div class="trending-upload">
+      <div class="trending-geo-row">
+        <label style="font-size:11.5px;color:var(--muted)">Geo</label>
+        <input id="trGeo" value="IR" style="width:70px;text-align:center;text-transform:uppercase">
+        <span style="font-size:11px;color:var(--soft)">auto-detected from filename when possible</span>
+      </div>
+      <label class="trending-dropzone" id="trDropzone">
+        <input type="file" id="trFile" accept=".csv" style="display:none">
+        <span id="trDropzoneText">📄 Choose the Google Trends CSV export, or drag it here</span>
+      </label>
+    </div>
+
+    <div id="trendingPreviewWrap" style="display:none">
+      <div class="trending-preview-head">
+        <span id="trPreviewCount"></span>
+        <button class="btn-flame" id="trPublish" style="padding:8px 18px;font-size:12.5px">Publish</button>
+      </div>
+      <div class="trending-preview-list" id="trPreviewList"></div>
+    </div>
+  </div>
+</div>
+
 <div class="wrap">
   <div class="hero">
     <div>
@@ -254,6 +306,7 @@ pre#preview{white-space:pre-wrap;word-break:break-word;font-family:ui-monospace,
       <div class="svc-opt" data-svc="en">English</div>
     </div>
     <button class="ghost" id="btnManageUsers">👤 Manage users</button>
+    <button class="ghost" id="btnTrending">📈 Trending data</button>
     <button class="ghost" id="btnReset">↺ Reset to default</button>
     <button class="ghost" id="btnReload">↻ Reload from server</button>
     <span class="savestate" id="saveState"></span>
@@ -669,6 +722,156 @@ $('usersList').addEventListener('click', async e => {
     editPanel.classList.remove('open');
     loadUsers();
   }
+});
+
+/* ==================== TRENDING DATA (CSV upload) ==================== */
+let trParsedRows = [];
+
+/* Minimal quoted-CSV parser — handles embedded commas inside quoted
+   fields (Google's "Trend breakdown" column has several, comma-separated). */
+function parseCSV(text){
+  const rows = [];
+  let row = [], field = '', inQuotes = false;
+  for (let i = 0; i < text.length; i++){
+    const c = text[i];
+    if (inQuotes){
+      if (c === '"'){
+        if (text[i+1] === '"'){ field += '"'; i++; }
+        else inQuotes = false;
+      } else field += c;
+    } else {
+      if (c === '"') inQuotes = true;
+      else if (c === ','){ row.push(field); field = ''; }
+      else if (c === '\n' || c === '\r'){
+        if (c === '\r' && text[i+1] === '\n') i++;
+        row.push(field); field = '';
+        if (row.length > 1 || row[0] !== '') rows.push(row);
+        row = [];
+      } else field += c;
+    }
+  }
+  if (field.length || row.length){ row.push(field); rows.push(row); }
+  return rows;
+}
+
+function parseVolumeNum(v){
+  const m = String(v||'').match(/([\d.]+)\s*([km]?)\+?/i);
+  if (!m) return 0;
+  let n = parseFloat(m[1]);
+  const unit = m[2].toLowerCase();
+  if (unit === 'k') n *= 1000;
+  if (unit === 'm') n *= 1000000;
+  return Math.round(n);
+}
+
+function shortTime(raw){
+  // "21 July 2026 at 06:30:00 UTC+2" -> "21 Jul · 06:30"
+  const m = String(raw||'').match(/^(\d{1,2}) (\w+) \d{4} at (\d{2}:\d{2})/);
+  if (!m) return raw || '';
+  return `${m[1]} ${m[2].slice(0,3)} · ${m[3]}`;
+}
+
+function parseTrendsCSV(text){
+  const table = parseCSV(text);
+  if (!table.length) return [];
+  const header = table[0].map(h => h.trim().toLowerCase());
+  const idx = {
+    term: header.indexOf('trends'),
+    volume: header.indexOf('search volume'),
+    started: header.indexOf('started'),
+    ended: header.indexOf('ended')
+  };
+  return table.slice(1)
+    .filter(r => r.length > 1 && r[idx.term])
+    .map(r => ({
+      term: r[idx.term].trim(),
+      volume: (r[idx.volume]||'').trim(),
+      volumeNum: parseVolumeNum(r[idx.volume]),
+      started: (r[idx.started]||'').trim(),
+      ended: (r[idx.ended]||'').trim()
+    }))
+    .sort((a,b) => b.volumeNum - a.volumeNum);
+}
+
+function detectGeoFromFilename(name){
+  const m = String(name||'').match(/trending_([A-Za-z]{2})_/);
+  return m ? m[1].toUpperCase() : null;
+}
+
+function renderTrPreview(rows){
+  trParsedRows = rows;
+  $('trPreviewCount').textContent = `${rows.length} terms parsed — sorted by search volume`;
+  $('trPreviewList').innerHTML = rows.map((r,i) => `
+    <div class="tr-row">
+      <div class="tr-rank">${i+1}</div>
+      <div class="tr-term">${esc(r.term)}</div>
+      <div class="tr-vol">${esc(r.volume)}</div>
+      <div class="tr-time">${esc(shortTime(r.started))}</div>
+    </div>`).join('');
+  $('trendingPreviewWrap').style.display = 'block';
+}
+
+function handleTrFile(file){
+  $('trendingError').innerHTML = '';
+  const geo = detectGeoFromFilename(file.name);
+  if (geo) $('trGeo').value = geo;
+  $('trDropzoneText').textContent = '📄 ' + file.name;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const rows = parseTrendsCSV(reader.result);
+      if (!rows.length) throw new Error('No rows found — is this a Google Trends export CSV?');
+      renderTrPreview(rows);
+    } catch(e){
+      $('trendingError').innerHTML = `<div class="errbox">Couldn't parse this file: ${esc(e.message)}</div>`;
+      $('trendingPreviewWrap').style.display = 'none';
+    }
+  };
+  reader.onerror = () => { $('trendingError').innerHTML = '<div class="errbox">Couldn\'t read this file.</div>'; };
+  reader.readAsText(file);
+}
+
+$('trFile').addEventListener('change', e => { if (e.target.files[0]) handleTrFile(e.target.files[0]); });
+$('trDropzone').addEventListener('dragover', e => { e.preventDefault(); $('trDropzone').classList.add('dragover'); });
+$('trDropzone').addEventListener('dragleave', () => $('trDropzone').classList.remove('dragover'));
+$('trDropzone').addEventListener('drop', e => {
+  e.preventDefault(); $('trDropzone').classList.remove('dragover');
+  const f = e.dataTransfer.files[0];
+  if (f) handleTrFile(f);
+});
+
+async function loadTrendingStatus(){
+  const res = await AuthEngine.authedPost({ mode:'getTrending', geo: $('trGeo').value.trim() || 'IR' });
+  if (!res.ok){ $('trendingStatus').textContent = 'Could not check existing data: ' + (res.error||''); return; }
+  if (!res.found){ $('trendingStatus').textContent = 'No trending data published yet for this geo.'; return; }
+  const when = new Date(res.uploadedAt).toLocaleString([], {dateStyle:'medium', timeStyle:'short'});
+  $('trendingStatus').textContent = `Last published: ${when} · by ${res.uploadedBy} · ${res.rows.length} terms · from ${res.sourceFilename||'—'}`;
+}
+
+$('btnTrending').addEventListener('click', () => {
+  $('trendingModal').classList.add('show');
+  $('trendingPreviewWrap').style.display = 'none';
+  $('trendingError').innerHTML = '';
+  $('trDropzoneText').textContent = '📄 Choose the Google Trends CSV export, or drag it here';
+  $('trFile').value = '';
+  loadTrendingStatus();
+});
+$('trendingClose').addEventListener('click', () => $('trendingModal').classList.remove('show'));
+$('trendingModal').addEventListener('click', e => { if (e.target === $('trendingModal')) $('trendingModal').classList.remove('show'); });
+
+$('trPublish').addEventListener('click', async () => {
+  if (!trParsedRows.length) return;
+  const geo = $('trGeo').value.trim().toUpperCase() || 'IR';
+  const filename = $('trFile').files[0] ? $('trFile').files[0].name : null;
+  $('trPublish').disabled = true; $('trPublish').textContent = 'Publishing…';
+  const res = await AuthEngine.authedPost({ mode:'saveTrending', geo, rows: trParsedRows, filename });
+  $('trPublish').disabled = false; $('trPublish').textContent = 'Publish';
+  if (!res.ok){
+    $('trendingError').innerHTML = `<div class="errbox">${esc(res.error||'Failed to publish')}</div>`;
+    return;
+  }
+  toast(`Published — ${trParsedRows.length} trending terms live for ${geo}`);
+  loadTrendingStatus();
 });
 </script>
 </body>
