@@ -780,17 +780,22 @@ function parseTrendsCSV(text){
     term: header.indexOf('trends'),
     volume: header.indexOf('search volume'),
     started: header.indexOf('started'),
-    ended: header.indexOf('ended')
+    ended: header.indexOf('ended'),
+    explore: header.indexOf('explore link')
   };
   return table.slice(1)
     .filter(r => r.length > 1 && r[idx.term])
-    .map(r => ({
-      term: r[idx.term].trim(),
-      volume: (r[idx.volume]||'').trim(),
-      volumeNum: parseVolumeNum(r[idx.volume]),
-      started: (r[idx.started]||'').trim(),
-      ended: (r[idx.ended]||'').trim()
-    }))
+    .map(r => {
+      const rawExplore = (idx.explore > -1 ? r[idx.explore] : '').trim();
+      return {
+        term: r[idx.term].trim(),
+        volume: (r[idx.volume]||'').trim(),
+        volumeNum: parseVolumeNum(r[idx.volume]),
+        started: (r[idx.started]||'').trim(),
+        ended: (r[idx.ended]||'').trim(),
+        exploreLink: rawExplore ? 'https://trends.google.com/trending' + rawExplore.replace(/^\./, '') : ''
+      };
+    })
     .sort((a,b) => b.volumeNum - a.volumeNum);
 }
 
