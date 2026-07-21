@@ -193,7 +193,7 @@ body{font-family:var(--sans);color:var(--lt-2);min-height:100vh;-webkit-font-smo
 
 /* ===== TRENDING SIDEBAR ===== */
 .trend-list{display:flex;flex-direction:column;gap:8px}
-.trend-row{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;
+.trend-row{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;cursor:pointer;
   border-radius:14px;padding:11px 13px;background:var(--chip);box-shadow:var(--rim-sm);transition:background 200ms}
 .trend-row:hover{background:var(--chip-hover)}
 .trend-row.hot{background:rgba(255,84,0,0.10);box-shadow:var(--rim-sm),inset 0 0 0 1px rgba(255,120,60,0.22)}
@@ -207,6 +207,26 @@ body{font-family:var(--sans);color:var(--lt-2);min-height:100vh;-webkit-font-smo
 .trend-foot{margin-top:14px;padding-top:12px;border-top:1px solid var(--border);
   font-size:10.5px;color:var(--lt-3);text-shadow:var(--ts);line-height:1.5}
 .trend-foot a{color:#FFB07A;text-decoration:none}
+
+/* ===== TERM DRILL-DOWN MODAL ===== */
+.term-modal-overlay{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;
+  background:rgba(4,8,12,0.55);backdrop-filter:blur(6px);padding:20px}
+.term-modal-overlay.show{display:flex}
+.term-modal-card{width:100%;max-width:460px;border-radius:22px;padding:24px;
+  background:var(--glass);backdrop-filter:var(--glass-filter);-webkit-backdrop-filter:var(--glass-filter);
+  border:1px solid var(--border);box-shadow:var(--ambient-hi),var(--rim);animation:rise 340ms var(--eo) both}
+.term-modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:12px}
+.term-modal-head h3{font-family:var(--serif);font-size:19px;font-weight:400;color:var(--lt-1);text-shadow:var(--ts-lg);direction:rtl}
+.term-chart-wrap{margin-bottom:16px}
+.term-chart-label{font-size:10.5px;color:var(--lt-3);text-shadow:var(--ts);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em}
+#termChartArea{background:rgba(4,12,16,0.22);border-radius:14px;padding:14px}
+.term-chart-empty{font-size:12px;color:var(--lt-3);text-shadow:var(--ts);text-align:center;padding:20px 10px}
+.term-chart-axis{display:flex;justify-content:space-between;font-size:10px;color:var(--lt-3);margin-top:6px}
+.term-modal-actions{display:flex;gap:8px;margin-bottom:16px}
+.term-coverage{background:rgba(4,12,16,0.22);border-radius:14px;padding:13px 15px}
+.term-coverage-label{font-size:10.5px;color:var(--lt-3);text-shadow:var(--ts);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em}
+.term-coverage-hit{font-size:12.5px;line-height:1.6;color:var(--lt-2);text-shadow:var(--ts)}
+.term-coverage-miss{font-size:12px;color:var(--lt-3);text-shadow:var(--ts)}
 
 @media(max-width:900px){
   .cols{grid-template-columns:1fr}
@@ -311,6 +331,27 @@ body{font-family:var(--sans);color:var(--lt-2);min-height:100vh;-webkit-font-smo
       <div class="trend-foot" id="trendFoot"></div>
     </div>
 
+  </div>
+
+  <div class="term-modal-overlay" id="termModal">
+    <div class="term-modal-card">
+      <div class="term-modal-head">
+        <h3 id="termModalTitle"></h3>
+        <button class="ghost-sm" id="termModalClose">Close</button>
+      </div>
+      <div class="term-chart-wrap">
+        <div class="term-chart-label">Your upload history</div>
+        <div id="termChartArea"></div>
+      </div>
+      <div class="term-modal-actions">
+        <a id="termExploreLink" class="ghost-sm" target="_blank" rel="noopener">📈 Explore</a>
+        <a id="termSearchLink" class="ghost-sm" target="_blank" rel="noopener">🔍 Search it</a>
+      </div>
+      <div class="term-coverage">
+        <div class="term-coverage-label">Do we have coverage?</div>
+        <div id="termCoverageBody"></div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -477,7 +518,7 @@ function renderTrending(data){
     const isHot = i === 0;
     const matchedGap = allGaps.find(g => tokenOverlap(g.query, t.term) >= 0.5 || g.query.includes(t.term) || t.term.includes(g.query));
     return `
-    <div class="trend-row ${isHot?'hot':''} ${matchedGap?'matched':''}">
+    <div class="trend-row ${isHot?'hot':''} ${matchedGap?'matched':''}" data-idx="${i}">
       <div class="trend-rank">${String(i+1).padStart(2,'0')}</div>
       <div class="trend-term">
         <div class="trend-fa">${esc(t.term)}</div>
@@ -489,6 +530,72 @@ function renderTrending(data){
   const when = new Date(data.uploadedAt).toLocaleString([], {dateStyle:'medium', timeStyle:'short'});
   $('trendFoot').innerHTML = `Source: <a href="https://trends.google.com/trending?geo=IR" target="_blank" rel="noopener">Google Trends — Iran</a> · uploaded ${when} by ${esc(data.uploadedBy)}`;
 }
+
+/* ==================== TERM DRILL-DOWN ==================== */
+function renderSparkline(points){
+  const area = $('termChartArea');
+  if (!points || points.length < 2){
+    area.innerHTML = `<div class="term-chart-empty">Not enough history yet — upload trends more regularly to build this chart.<br>(${points ? points.length : 0} data point${points && points.length===1 ? '' : 's'} so far)</div>`;
+    return;
+  }
+  const w = 400, h = 100, pad = 8;
+  const vals = points.map(p => p.volumeNum);
+  const min = Math.min(...vals), max = Math.max(...vals);
+  const range = (max - min) || 1;
+  const stepX = (w - pad*2) / (points.length - 1);
+  const coords = points.map((p,i) => {
+    const x = pad + i*stepX;
+    const y = pad + (h - pad*2) * (1 - (p.volumeNum - min)/range);
+    return [x,y];
+  });
+  const pathD = coords.map((c,i) => (i===0?'M':'L') + c[0].toFixed(1) + ',' + c[1].toFixed(1)).join(' ');
+  const areaD = pathD + ` L${coords[coords.length-1][0].toFixed(1)},${h-pad} L${coords[0][0].toFixed(1)},${h-pad} Z`;
+  const fmt = iso => new Date(iso).toLocaleDateString([], {month:'short', day:'numeric'});
+  area.innerHTML = `
+    <svg viewBox="0 0 ${w} ${h}" style="width:100%;height:100px;display:block">
+      <defs>
+        <linearGradient id="sparkFade" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#FF8A45" stop-opacity="0.35"/>
+          <stop offset="100%" stop-color="#FF8A45" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <path d="${areaD}" fill="url(#sparkFade)"/>
+      <path d="${pathD}" fill="none" stroke="#FFB07A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <div class="term-chart-axis"><span>${fmt(points[0].uploadedAt)}</span><span>${fmt(points[points.length-1].uploadedAt)}</span></div>`;
+}
+
+async function openTermModal(t){
+  $('termModalTitle').textContent = t.term;
+  const searchUrl = 'https://www.google.com/search?q=' + encodeURIComponent(t.term) + '&gl=IR';
+  $('termExploreLink').href = t.exploreLink || searchUrl;
+  $('termSearchLink').href = searchUrl;
+  $('termChartArea').innerHTML = '<div class="term-chart-empty"><span class="spin"></span> Loading history…</div>';
+  $('termModal').classList.add('show');
+
+  const hit = allGaps.find(g => tokenOverlap(g.query, t.term) >= 0.5 || g.query.includes(t.term) || t.term.includes(g.query));
+  $('termCoverageBody').innerHTML = hit
+    ? `<div class="term-coverage-hit">Matches a flagged gap: <b>${esc(hit.query)}</b> — ${num(hit.impressions)} impressions, position ${hit.position}${hit.coverage==='none' ? ', no dedicated article yet' : ', existing coverage is weak'}.</div>`
+    : `<div class="term-coverage-miss">No related item found in your current gap report.</div>`;
+
+  try{
+    const res = await AuthEngine.authedPost({ mode:'getTrendHistory', geo:'IR', term: t.term });
+    if (!res.ok) throw new Error(res.error || 'Failed to load history');
+    if (res.exploreLink) $('termExploreLink').href = res.exploreLink;
+    renderSparkline(res.points);
+  }catch(e){
+    $('termChartArea').innerHTML = `<div class="term-chart-empty">Couldn't load history: ${esc(e.message)}</div>`;
+  }
+}
+
+$('trendList').addEventListener('click', e => {
+  const row = e.target.closest('.trend-row'); if (!row) return;
+  const t = trendingRows[+row.dataset.idx];
+  if (t) openTermModal(t);
+});
+$('termModalClose').addEventListener('click', () => $('termModal').classList.remove('show'));
+$('termModal').addEventListener('click', e => { if (e.target === $('termModal')) $('termModal').classList.remove('show'); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') $('termModal').classList.remove('show'); });
 
 /* ==================== EVENTS ==================== */
 $('winSwitch').addEventListener('click', e => {
