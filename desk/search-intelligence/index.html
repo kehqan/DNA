@@ -118,6 +118,45 @@ html[dir="rtl"] .kw-num,html[dir="rtl"] .art-clicks,html[dir="rtl"] .sn{directio
     inset 0 2px 0 rgba(255,255,255,0.62),inset 0 -2px 2px rgba(120,34,0,0.44),inset 0 0 0 1px rgba(255,140,80,0.50)}
 .gen-ntab.ready:hover{transform:translateY(-1.5px) scale(1.02);background:linear-gradient(180deg,#FF8A45 0%,var(--flame) 52%,#DC4400 100%)}
 
+/* ===== PROFILE DROPDOWN ===== */
+.profile-wrap{position:relative}
+.profile-trigger{display:flex;align-items:center;gap:8px;font-family:var(--sans);font-size:13px;font-weight:500;
+  color:var(--lt-3);text-shadow:var(--ts);padding:5px 12px 5px 6px;border-radius:100px;cursor:pointer;
+  border:none;background:transparent;transition:color 180ms,background 180ms;white-space:nowrap}
+.profile-trigger:hover{color:var(--lt-1);background:rgba(255,255,255,0.08)}
+.profile-wrap.open .profile-trigger{background:rgba(255,255,255,0.10);color:var(--lt-1)}
+.profile-avatar{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-family:var(--sans);font-size:10.5px;font-weight:700;color:#fff;flex-shrink:0;
+  background:linear-gradient(180deg,#FF8A45 0%,var(--flame) 100%);box-shadow:var(--rim-sm)}
+.profile-avatar.lg{width:38px;height:38px;font-size:14px}
+.profile-name{max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.profile-chev{font-size:8px;color:var(--lt-3);transition:transform 200ms var(--eo)}
+.profile-wrap.open .profile-chev{transform:rotate(180deg)}
+.profile-menu{position:absolute;top:calc(100% + 10px);right:0;min-width:240px;border-radius:18px;padding:8px;
+  background:var(--glass);backdrop-filter:var(--glass-filter);-webkit-backdrop-filter:var(--glass-filter);
+  box-shadow:var(--ambient-hi),var(--rim);z-index:60;
+  opacity:0;pointer-events:none;transform:translateY(-6px) scale(0.98);
+  transition:opacity 200ms var(--eo),transform 200ms var(--eo)}
+html[dir="rtl"] .profile-menu{right:auto;left:0}
+.profile-wrap.open .profile-menu{opacity:1;pointer-events:auto;transform:none}
+.profile-menu-head{display:flex;align-items:center;gap:11px;padding:9px 10px 11px}
+.profile-menu-name{font-family:var(--serif);font-size:14.5px;color:var(--lt-1);text-shadow:var(--ts);margin-bottom:4px;
+  max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.profile-svc-badge{display:inline-block;font-size:10px;font-weight:600;letter-spacing:.02em;
+  padding:3px 9px;border-radius:100px;background:rgba(255,255,255,0.10);color:var(--lt-3);box-shadow:var(--rim-sm)}
+.profile-svc-badge.fa{background:rgba(90,160,255,0.18);color:#8FC1FF}
+.profile-svc-badge.en{background:rgba(255,140,80,0.18);color:#FFB088}
+.profile-menu-sep{height:1px;background:var(--border);margin:4px 6px}
+.profile-menu-item{display:flex;align-items:center;gap:10px;width:100%;padding:9px 10px;border-radius:12px;
+  border:none;background:transparent;cursor:pointer;text-decoration:none;text-align:left;
+  font-family:var(--sans);transition:background 160ms}
+html[dir="rtl"] .profile-menu-item{text-align:right}
+.profile-menu-item:hover{background:rgba(255,255,255,0.08)}
+.profile-menu-item.danger:hover{background:rgba(255,84,0,0.14)}
+.pmi-icon{font-size:14px;flex-shrink:0;width:18px;text-align:center}
+.pmi-title{display:block;font-size:12.5px;font-weight:600;color:var(--lt-2);text-shadow:var(--ts)}
+.pmi-sub{display:block;font-size:10.5px;color:var(--lt-3);text-shadow:var(--ts);margin-top:1px}
+
 /* ===== HERO ===== */
 .hero{padding:46px 0 24px;max-width:660px}
 .eyebrow{font-size:10px;font-weight:600;letter-spacing:0.10em;text-transform:uppercase;color:var(--lt-3);
@@ -450,7 +489,35 @@ select.mini-in:hover{background-color:var(--chip-hover)}
     <div class="nav-sep"></div>
     <div class="gen-ntab idle" id="genBtn" data-i18n="nav.promptBtn">◆ Prompt</div>
     <div class="nav-sep"></div>
-    <div class="ntab" id="logoutBtn" data-i18n="nav.logout" title="Sign out">⏻ Sign out</div>
+    <div class="profile-wrap" id="profileWrap">
+      <button class="profile-trigger" id="profileTrigger" type="button">
+        <span class="profile-avatar" id="profileAvatar">–</span>
+        <span class="profile-name" id="profileName">–</span>
+        <span class="profile-chev">▾</span>
+      </button>
+      <div class="profile-menu" id="profileMenu">
+        <div class="profile-menu-head">
+          <span class="profile-avatar lg" id="profileAvatarLg">–</span>
+          <div>
+            <div class="profile-menu-name" id="profileMenuName">–</div>
+            <span class="profile-svc-badge" id="profileSvcBadge">–</span>
+          </div>
+        </div>
+        <div class="profile-menu-sep"></div>
+        <a class="profile-menu-item" id="profileLibraryLink" href="/briefdesk">
+          <span class="pmi-icon">📚</span>
+          <span>
+            <span class="pmi-title" data-i18n="profile.library">Library</span>
+            <span class="pmi-sub" data-i18n="profile.librarySub">Your saved briefs</span>
+          </span>
+        </a>
+        <div class="profile-menu-sep"></div>
+        <button class="profile-menu-item danger" id="logoutBtn" type="button">
+          <span class="pmi-icon">⏻</span>
+          <span class="pmi-title" data-i18n="nav.logout">Sign out</span>
+        </button>
+      </div>
+    </div>
     <div class="nav-sep"></div>
     <div class="langtoggle" id="langToggle">
       <div class="lt-opt on" data-lang="en">EN</div>
@@ -678,6 +745,8 @@ const I18N = {
 en: {
   'nav.briefs':'Briefs', 'nav.searchIntel':'Search Intelligence', 'nav.library':'Library', 'nav.contentGap':'Content Gap',
   'nav.logout':'⏻ Sign out',
+  'profile.library':'Library', 'profile.librarySub':'Your saved briefs',
+  'profile.svcFa':'Farsi service', 'profile.svcEn':'English service',
   'login.title':'Sign in', 'login.sub':'Search Intelligence — Radio Farda',
   'login.username':'Username', 'login.usernamePh':'e.g. user1',
   'login.password':'Password', 'login.passwordPh':'••••••••',
@@ -761,6 +830,8 @@ en: {
 fa: {
   'nav.briefs':'بریف‌ها', 'nav.searchIntel':'سرمقاله‌گزین', 'nav.library':'کتابخانه', 'nav.contentGap':'شکاف محتوا',
   'nav.logout':'⏻ خروج',
+  'profile.library':'کتابخانه', 'profile.librarySub':'بریف‌های ذخیره‌شدهٔ شما',
+  'profile.svcFa':'سرویس فارسی', 'profile.svcEn':'سرویس انگلیسی',
   'login.title':'ورود', 'login.sub':'هوش جست‌وجو — رادیو فردا',
   'login.username':'نام کاربری', 'login.usernamePh':'مثلاً user1',
   'login.password':'رمز عبور', 'login.passwordPh':'••••••••',
@@ -1731,8 +1802,31 @@ $('logoutBtn').addEventListener('click', ()=>{
 /* ==================== Boot (runs once per successful session) ==================== */
 applyStaticI18n();
 
+/* ==================== Profile dropdown ==================== */
+function renderProfile(session){
+  if (!session) return;
+  const initials = String(session.username||'?').trim().slice(0,2).toUpperCase();
+  const svc = session.service==='en' ? 'en' : 'fa';
+  const svcLabel = svc==='en' ? t('profile.svcEn') : t('profile.svcFa');
+  $('profileAvatar').textContent = initials;
+  $('profileAvatarLg').textContent = initials;
+  $('profileName').textContent = session.username;
+  $('profileMenuName').textContent = session.username;
+  $('profileSvcBadge').textContent = svcLabel;
+  $('profileSvcBadge').className = 'profile-svc-badge ' + svc;
+}
+$('profileTrigger').addEventListener('click', e=>{
+  e.stopPropagation();
+  $('profileWrap').classList.toggle('open');
+});
+document.addEventListener('click', e=>{
+  if (!$('profileWrap').contains(e.target)) $('profileWrap').classList.remove('open');
+});
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') $('profileWrap').classList.remove('open'); });
+
 async function startApp(session){
   S.session = session;
+  renderProfile(session);
   try {
     if (typeof PromptEngine === 'undefined') throw new Error('prompt-engine.js did not load — check the file exists at /desk/search-intelligence/prompt-engine.js');
     const { blocks } = await PromptEngine.getBlocks(session.service);
