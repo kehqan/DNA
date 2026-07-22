@@ -93,7 +93,7 @@ html[dir="rtl"] .kw-num,html[dir="rtl"] .art-clicks,html[dir="rtl"] .sn{directio
   border-radius:100px;padding:5px;box-shadow:var(--ambient),var(--rim);pointer-events:all}
 .wordmark{font-family:var(--serif);font-size:17px;color:var(--lt-1);text-shadow:var(--ts);
   padding:6px 16px 6px 12px;border-right:1px solid var(--border);margin-right:4px;white-space:nowrap;
-  position:relative;z-index:1}
+  position:relative;z-index:1;text-decoration:none;display:inline-block}
 .wordmark em{font-style:normal;color:#FFB07A;font-weight:600}
 
 /* Shared sliding highlight — one element that glides between whichever
@@ -498,7 +498,7 @@ select.mini-in:hover{background-color:var(--chip-hover)}
 <div class="nav-wrap">
   <div class="nav-pill">
     <span class="nav-highlight" id="navHighlight"></span>
-    <div class="wordmark">Desk Headline<em>.</em></div>
+    <a href="/desk/" class="wordmark">Desk Headline<em>.</em></a>
     <a href="/desk/search-intelligence/content-gap/" class="ntab" data-i18n="nav.contentGap">Content Gap</a>
     <div class="nav-sep"></div>
     <div class="ntab" id="compareBtn" data-i18n="nav.compare" data-i18n-title="nav.compareTitle" title="Compare two keywords">⇄ Compare</div>
