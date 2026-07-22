@@ -76,7 +76,7 @@ body.dark { background: #0F1B21; }
 .eyebrow { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--soft); margin-bottom: 8px; }
 
 .hero-block { position: relative; min-height: 460px; border-radius: 28px; overflow: hidden; margin-bottom: 8px; box-shadow: var(--gs), var(--gi); border: 1px solid var(--glass-b); }
-.hero-block-bg { position: absolute; inset: 0; background-image: url('/desk/assets/hero-desk-investigative.jpg'); background-size: cover; background-position: center 42%; filter: saturate(0.92) brightness(0.98); }
+.hero-block-bg { position: absolute; inset: 0; background-image: url('/desk/investigative/assets/hero-desk-investigative.jpg'); background-size: cover; background-position: center 42%; filter: saturate(0.92) brightness(0.98); }
 .hero-block-fade { position: absolute; inset: 0; background: linear-gradient(90deg, var(--ivory) 0%, var(--ivory) 24%, rgba(248,247,246,0.94) 40%, rgba(248,247,246,0.55) 58%, rgba(248,247,246,0.08) 78%, transparent 92%); }
 body.dark .hero-block-fade { background: linear-gradient(90deg, var(--ivory) 0%, var(--ivory) 24%, rgba(22,36,43,0.94) 40%, rgba(22,36,43,0.55) 58%, rgba(22,36,43,0.08) 78%, transparent 92%); }
 .hero-block-content { position: relative; z-index: 2; padding: 54px 36px 50px 48px; max-width: 480px; display: flex; flex-direction: column; height: 100%; min-height: 460px; justify-content: center; }
@@ -415,7 +415,7 @@ body.dark .mat-row:hover { background: rgba(255,255,255,0.08); }
 
     <div class="sdiv"><h2>Where the work starts</h2><div class="rule"></div></div>
     <div class="workspace-row">
-      <div class="wcard accent" onclick="window.location.href='/briefdesk'">
+      <div class="wcard accent" onclick="window.location.href=BRIEF_BASE">
         <div class="wcard-ico"><div class="brand-mark" data-lamp-mark></div></div>
         <div><div class="wcard-title">BriefDesk</div><div class="wcard-sub">Where the digging happens. Sources, priorities, and demand signals — turned into something you'd stand behind in an editorial meeting.</div></div>
         <div class="wcard-open">Start digging →</div>
@@ -819,20 +819,22 @@ function injectBrandMarks() {
 injectBrandMarks();
 function dashToast(msg) { const el = document.getElementById('dashToast'); el.textContent = msg; el.classList.add('show'); clearTimeout(window._toastT); window._toastT = setTimeout(() => el.classList.remove('show'), 2600); }
 
-/* ==================== Routing: /desk (home) + /desk/doc/<slug>--<id> ==================== */
+/* ==================== Routing: /desk/investigative (home) + /desk/investigative/doc/<slug>--<id> ==================== */
+const SELF_BASE = '/desk/investigative';
+const BRIEF_BASE = '/desk/brief';
 function slugify(s) { return String(s || 'untitled').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 48) || 'untitled'; }
 function shortId(id) { return String(id || '').replace(/-/g, '').slice(0, 8); }
 function docSlug(doc) { return `${slugify(doc.title)}--${shortId(doc.id)}`; }
-function docPath(doc) { return `/desk/doc/${docSlug(doc)}`; }
-function folderPath(folder) { return `/desk/library/${slugify(folder.title)}--${shortId(folder.id)}`; }
-function goHome() { if (location.pathname.replace(/\/+$/, '') !== '/desk') history.pushState(null, '', '/desk'); showHome(); }
-function goAssign() { if (location.pathname.replace(/\/+$/, '') !== '/desk/assign') history.pushState(null, '', '/desk/assign'); showAssign(); }
+function docPath(doc) { return `${SELF_BASE}/doc/${docSlug(doc)}`; }
+function folderPath(folder) { return `${SELF_BASE}/library/${slugify(folder.title)}--${shortId(folder.id)}`; }
+function goHome() { if (location.pathname.replace(/\/+$/, '') !== SELF_BASE) history.pushState(null, '', SELF_BASE); showHome(); }
+function goAssign() { if (location.pathname.replace(/\/+$/, '') !== SELF_BASE + '/assign') history.pushState(null, '', SELF_BASE + '/assign'); showAssign(); }
 function goDoc(doc) { const p = docPath(doc); if (location.pathname !== p) history.pushState({ docId: doc.id }, '', p); }
 function goFolder(folder) { const p = folderPath(folder); if (location.pathname !== p) history.pushState({ folderId: folder.id }, '', p); }
 async function routeFromLocation() {
   const path = location.pathname.replace(/\/+$/, '');
-  if (path === '/desk/assign') { showAssign(); return; }
-  const fm = path.match(/^\/desk\/library\/(.+)--([a-f0-9]{6,10})$/i);
+  if (path === SELF_BASE + '/assign') { showAssign(); return; }
+  const fm = path.match(new RegExp('^' + SELF_BASE.replace(/\//g, '\\/') + '\\/library\\/(.+)--([a-f0-9]{6,10})$', 'i'));
   if (fm) {
     const sid = fm[2].toLowerCase();
     try {
@@ -843,7 +845,7 @@ async function routeFromLocation() {
     dashToast('That case could not be found — showing Desk instead');
     showHome(); return;
   }
-  const m = path.match(/^\/desk\/doc\/(.+)--([a-f0-9]{6,10})$/i);
+  const m = path.match(new RegExp('^' + SELF_BASE.replace(/\//g, '\\/') + '\\/doc\\/(.+)--([a-f0-9]{6,10})$', 'i'));
   if (m) {
     const sid = m[2].toLowerCase();
     try {
@@ -947,13 +949,13 @@ async function loadRecentBriefs() {
       </div>`).join('');
     row.querySelectorAll('.bcard-mini').forEach(el => el.addEventListener('click', () => {
       const topic = el.getAttribute('data-topic'), id = el.getAttribute('data-brief');
-      window.location.href = `/briefdesk/${slugify(topic)}--${shortId(id)}`;
+      window.location.href = `${BRIEF_BASE}/${slugify(topic)}--${shortId(id)}`;
     }));
   } catch (e) {
     row.innerHTML = `<div class="empty-note" style="flex:1;">Couldn't load briefs: ${escapeHtml(e.message)}</div>`;
   }
 }
-document.getElementById('seeAllBriefsBtn').addEventListener('click', () => { window.location.href = '/briefdesk'; });
+document.getElementById('seeAllBriefsBtn').addEventListener('click', () => { window.location.href = BRIEF_BASE; });
 
 /* ==================== Investigate a topic — search + copyable LLM digest prompt ==================== */
 const FARDA_SEARCH_URL = 'https://trend-kehqans-projects.vercel.app/api/farda-search';
@@ -1818,7 +1820,7 @@ const PRIORITIES = [
   { id: 'high', label: 'High', color: '#FF5400' },
 ];
 let TEAM = [], ASSIGNMENTS = [], CURRENT_USER = null, asnFilter = 'all', asnView = 'board';
-function briefPath(title, id) { return `/briefdesk/${slugify(title)}--${shortId(id)}`; }
+function briefPath(title, id) { return `${BRIEF_BASE}/${slugify(title)}--${shortId(id)}`; }
 function personOf(id) { return TEAM.find(p => p.id === id); }
 function statusOf(id) { return STATUSES.find(s => s.id === id) || STATUSES[0]; }
 function priorityOf(id) { return PRIORITIES.find(p => p.id === id) || PRIORITIES[1]; }
