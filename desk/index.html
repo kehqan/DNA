@@ -4,2088 +4,557 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Desk</title>
-<link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&family=Noto+Sans:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&family=Noto+Sans:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root {
-  --ivory: #F8F7F6; --teal: #1A3948; --teal2: #24506A; --flame: #FF5400; --honey: #FFC047;
-  --violet: #979DF7; --violet-soft: rgba(151,157,247,0.14);
-  --border: rgba(26,57,72,0.09); --border2: rgba(26,57,72,0.14);
-  --muted: rgba(26,57,72,0.52); --soft: rgba(26,57,72,0.36);
-  --glass: rgba(255,255,255,0.55); --glass-b: rgba(255,255,255,0.85);
-  --gs: 0 8px 32px rgba(26,57,72,0.10), 0 1.5px 4px rgba(26,57,72,0.06);
-  --gi: inset 0 1px 0 rgba(255,255,255,0.92), inset 0 -1px 0 rgba(26,57,72,0.03);
-  --eo: cubic-bezier(0.25,0.46,0.45,0.94);
-  --serif: 'Lora', Georgia, serif; --sans: 'Noto Sans', system-ui, sans-serif; --inkC: 26,57,72;
-  --paper: #F8F7F6;
+:root{
+  --flame:#FF5400;
+  --teal:#1A3948; --teal2:#24506A; --honey:#FFC047; --stone:#B9CCCC; --ivory:#F8F7F6;
+  --glass:rgba(255,255,255,0.16);
+  --glass-filter: blur(38px) saturate(2.4) brightness(1.10);
+  --lt-1:#FFFFFF; --lt-2:rgba(255,255,255,0.92); --lt-3:rgba(255,255,255,0.74);
+  --border:rgba(255,255,255,0.16);
+  --ts:    0 1px 2px rgba(4,12,16,0.85), 0 2px 10px rgba(4,12,16,0.55);
+  --ts-lg: 0 1px 3px rgba(4,12,16,0.90), 0 3px 16px rgba(4,12,16,0.60), 0 1px 1px rgba(4,12,16,0.70);
+  --rim: inset 0 0 0 1px rgba(255,255,255,0.14), inset 0 1.5px 2px rgba(255,255,255,0.34),
+    inset 0 -2px 3px rgba(4,12,16,0.20), inset 0 0 32px rgba(255,255,255,0.045);
+  --rim-sm: inset 0 0 0 1px rgba(255,255,255,0.11), inset 0 1px 1.5px rgba(255,255,255,0.26),
+    inset 0 -1.5px 2px rgba(4,12,16,0.18);
+  --ambient: 0 1px 2px rgba(6,20,28,0.44), 0 10px 30px rgba(6,20,28,0.40), 0 30px 70px rgba(6,20,28,0.34);
+  --ambient-lg: 0 1px 2px rgba(6,20,28,0.46), 0 14px 36px rgba(6,20,28,0.40), 0 44px 90px rgba(6,20,28,0.38);
+  --ambient-hi: 0 1px 2px rgba(6,20,28,0.50), 0 20px 46px rgba(6,20,28,0.44), 0 56px 110px rgba(6,20,28,0.42);
+  --chip:rgba(255,255,255,0.10); --chip-hover:rgba(255,255,255,0.18);
+  --sunk: inset 0 3px 6px rgba(4,12,16,0.30), inset 0 1px 2px rgba(4,12,16,0.20),
+    inset 0 -1px 2px rgba(255,255,255,0.12), inset 0 0 0 1px rgba(255,255,255,0.10);
+  --eo:cubic-bezier(0.25,0.46,0.45,0.94); --serif:'Lora',Georgia,serif; --sans:'Noto Sans',system-ui,sans-serif;
 }
-body.dark {
-  --ivory: #16242B; --teal: #EAF1F3; --teal2: #9FC2D4; --flame: #FF6B2B; --honey: #FFC047;
-  --border: rgba(234,241,243,0.10); --border2: rgba(234,241,243,0.16);
-  --muted: rgba(234,241,243,0.60); --soft: rgba(234,241,243,0.38);
-  --glass: rgba(24,38,46,0.55); --glass-b: rgba(40,58,68,0.7);
-  --gi: inset 0 1px 0 rgba(255,255,255,0.06), inset 0 -1px 0 rgba(0,0,0,0.2);
-  --paper: #1B2B33; --inkC: 234,241,243;
-  background: #0F1B21;
-}
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: var(--sans); color: var(--teal); min-height: 100vh; overflow-x: hidden; background: #F0EFED; transition: background 200ms; }
-body.dark { background: #0F1B21; }
-::-webkit-scrollbar { width: 8px; } ::-webkit-scrollbar-thumb { background: rgba(var(--inkC),0.18); border-radius: 100px; }
-.scene { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
-.orb { position: absolute; border-radius: 50%; filter: blur(90px); }
-.o1 { width: 560px; height: 440px; top: -140px; left: -100px; background: radial-gradient(ellipse, rgba(255,84,0,0.18) 0%, transparent 70%); }
-.o2 { width: 460px; height: 380px; top: 40%; right: -140px; background: radial-gradient(ellipse, rgba(26,57,72,0.10) 0%, transparent 75%); }
+html[dir="rtl"]{ --serif:'Vazirmatn','Noto Sans',sans-serif; --sans:'Vazirmatn','Noto Sans',sans-serif; }
+*{box-sizing:border-box;margin:0;padding:0}
+html{color-scheme:dark}
+body{font-family:var(--sans);color:var(--lt-2);min-height:100vh;-webkit-font-smoothing:antialiased;
+  background:linear-gradient(160deg,#0F1622 0%,#0B1016 45%,#0C0E14 75%,#120E18 100%)}
+.scene{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;
+  background:linear-gradient(160deg,#0F1622 0%,#0B1016 45%,#0C0E14 75%,#120E18 100%)}
+.scene::before{content:'';position:absolute;inset:0;
+  background-image:url('https://images.pexels.com/photos/10464443/pexels-photo-10464443.jpeg');
+  background-size:cover;background-position:center;background-repeat:no-repeat;
+  opacity:0.55;filter:saturate(1.05) contrast(1.02)}
+.scene::after{content:'';position:absolute;inset:0;
+  background:linear-gradient(160deg,rgba(15,22,34,0.72) 0%,rgba(11,16,22,0.78) 45%,rgba(12,14,20,0.82) 75%,rgba(18,14,24,0.86) 100%)}
+.wrap{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:0 24px 70px}
 
-.hidden { display: none !important; }
-.brand-mark { display: inline-flex; align-items: center; justify-content: center; }
-.brand-mark svg { display: block; }
+/* ===== NAV ===== */
+.nav-wrap{position:sticky;top:0;z-index:50;display:flex;justify-content:center;padding:16px 24px 0;pointer-events:none}
+.nav-pill{position:relative;display:inline-flex;align-items:center;gap:2px;flex-wrap:wrap;justify-content:center;
+  background:var(--glass);backdrop-filter:var(--glass-filter);-webkit-backdrop-filter:var(--glass-filter);
+  border-radius:100px;padding:5px;box-shadow:var(--ambient),var(--rim);pointer-events:all}
+.wordmark{font-family:var(--serif);font-size:17px;color:var(--lt-1);text-shadow:var(--ts);
+  padding:6px 16px 6px 12px;border-right:1px solid var(--border);margin-right:4px;white-space:nowrap;
+  position:relative;z-index:1}
+.wordmark em{font-style:normal;color:#FFB07A;font-weight:600}
+.nav-highlight{position:absolute;top:5px;left:0;height:calc(100% - 10px);width:0;border-radius:100px;
+  background:rgba(255,255,255,0.09);box-shadow:var(--rim-sm);pointer-events:none;opacity:0;z-index:0;
+  transition:left 150ms cubic-bezier(0.22,1,0.36,1),width 150ms cubic-bezier(0.22,1,0.36,1),opacity 100ms ease-out}
+.nav-highlight.show{opacity:1}
+.ntab{position:relative;z-index:1;font-size:13px;font-weight:500;color:var(--lt-3);text-shadow:var(--ts);padding:7px 16px;border-radius:100px;
+  cursor:pointer;text-decoration:none;transition:color 110ms ease-out;white-space:nowrap;display:inline-block}
+.ntab:hover{color:var(--lt-1)}
+.nav-sep{position:relative;z-index:1;width:1px;height:20px;background:var(--border);margin:0 2px}
+.langtoggle{display:flex;gap:2px;margin-left:2px;position:relative;z-index:1}
+.lt-opt{font-size:11px;font-weight:600;color:var(--lt-3);text-shadow:var(--ts);padding:5px 9px;border-radius:100px;cursor:pointer;transition:background 110ms ease-out,color 110ms ease-out}
+.lt-opt:hover{color:var(--lt-1)}
+.lt-opt.on{background:rgba(255,255,255,0.82);color:#0E2531;text-shadow:none;box-shadow:var(--rim-sm)}
 
-/* ============ App bar ============ */
-.appbar { position: sticky; top: 0; z-index: 60; display: flex; align-items: center; gap: 12px; padding: 10px 20px;
-  background: var(--glass); backdrop-filter: blur(22px) saturate(1.8); -webkit-backdrop-filter: blur(22px) saturate(1.8); border-bottom: 1px solid var(--border); }
-.appbar-brand { display: flex; align-items: center; gap: 10px; flex-shrink: 0; cursor: pointer; }
-.appbar-mark-wrap { width: 40px; height: 40px; border-radius: 12px; background: var(--glass); border: 1px solid var(--glass-b); box-shadow: var(--gs), var(--gi), 0 0 0 1px var(--violet-soft); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.appbar-title { font-family: var(--serif); font-size: 15.5px; font-weight: 700; color: var(--teal); }
-.crumb-pill { display: inline-flex; align-items: center; gap: 3px; background: rgba(var(--inkC),0.06); border-radius: 100px; padding: 5px 6px; max-width: 40vw; overflow: hidden; }
-.crumb-seg { font-size: 11.5px; font-weight: 600; color: var(--muted); padding: 5px 10px; border-radius: 100px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
-.crumb-seg.here { background: var(--teal); color: var(--paper); }
-.crumb-sep { color: var(--soft); font-size: 10px; flex-shrink: 0; }
-.appbar-spacer { flex: 1; }
+.profile-wrap{position:relative;z-index:1}
+.profile-trigger{display:flex;align-items:center;gap:8px;font-family:var(--sans);font-size:13px;font-weight:500;
+  color:var(--lt-3);text-shadow:var(--ts);padding:5px 12px 5px 6px;border-radius:100px;cursor:pointer;
+  border:none;background:transparent;transition:color 110ms ease-out,background 110ms ease-out;white-space:nowrap}
+.profile-trigger:hover{color:var(--lt-1);background:rgba(255,255,255,0.08)}
+.profile-wrap.open .profile-trigger{background:rgba(255,255,255,0.10);color:var(--lt-1)}
+.profile-avatar{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-family:var(--sans);font-size:10.5px;font-weight:700;color:#fff;flex-shrink:0;
+  background:linear-gradient(180deg,#FF8A45 0%,var(--flame) 100%);box-shadow:var(--rim-sm)}
+.profile-name{max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.profile-chev{font-size:8px;color:var(--lt-3);transition:transform 150ms cubic-bezier(0.22,1,0.36,1)}
+.profile-wrap.open .profile-chev{transform:rotate(180deg)}
+.profile-menu{position:absolute;top:calc(100% + 10px);right:0;min-width:200px;border-radius:18px;padding:8px;
+  background:var(--glass);backdrop-filter:var(--glass-filter);-webkit-backdrop-filter:var(--glass-filter);
+  box-shadow:var(--ambient-hi),var(--rim);z-index:60;
+  opacity:0;pointer-events:none;transform:translateY(-6px) scale(0.98);
+  transition:opacity 140ms ease-out,transform 140ms cubic-bezier(0.22,1,0.36,1)}
+html[dir="rtl"] .profile-menu{right:auto;left:0}
+.profile-wrap.open .profile-menu{opacity:1;pointer-events:auto;transform:none}
+.profile-menu-item{display:flex;align-items:center;gap:10px;width:100%;padding:9px 10px;border-radius:12px;
+  border:none;background:transparent;cursor:pointer;text-decoration:none;text-align:left;
+  font-family:var(--sans);transition:background 110ms ease-out}
+html[dir="rtl"] .profile-menu-item{text-align:right}
+.profile-menu-item:hover{background:rgba(255,255,255,0.08)}
+.profile-menu-item.danger:hover{background:rgba(255,84,0,0.14)}
+.pmi-icon{font-size:14px;flex-shrink:0;width:18px;text-align:center}
+.pmi-title{display:block;font-size:12.5px;font-weight:600;color:var(--lt-2);text-shadow:var(--ts)}
 
-/* ============ Home: floating liquid-glass nav pill ============ */
-.floating-nav-wrap { position: sticky; top: 18px; z-index: 60; display: flex; justify-content: center; padding: 0 20px; }
-.floating-nav {
-  display: flex; align-items: center; gap: 12px; width: 100%; max-width: 860px;
-  padding: 8px 14px 8px 8px; border-radius: 100px;
-  background: var(--glass); backdrop-filter: blur(26px) saturate(1.9); -webkit-backdrop-filter: blur(26px) saturate(1.9);
-  border: 1px solid var(--glass-b);
-  box-shadow: 0 16px 44px rgba(26,57,72,0.16), 0 2px 10px rgba(26,57,72,0.08), var(--gi), 0 0 0 1px var(--violet-soft);
-}
-@media (max-width: 700px) { .floating-nav-wrap { top: 10px; padding: 0 12px; } }
-.help-pill { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: var(--teal2); background: rgba(36,80,106,0.08); border: 1px solid rgba(36,80,106,0.16); border-radius: 100px; padding: 7px 12px; cursor: pointer; }
-.help-pill:hover { background: var(--teal2); color: #fff; }
-.icon-btn { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--border2); background: rgba(255,255,255,0.5); color: var(--muted); font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-.icon-btn:hover { background: var(--teal); color: var(--paper); }
-.save-state { font-size: 10.5px; color: var(--soft); white-space: nowrap; }
-.mode-toggle { display: inline-flex; background: rgba(var(--inkC),0.06); border-radius: 100px; padding: 3px; gap: 2px; }
-.mode-btn { font-size: 11px; font-weight: 700; padding: 7px 14px; border-radius: 100px; border: none; background: transparent; color: var(--muted); cursor: pointer; }
-.mode-btn.active { background: var(--teal); color: var(--paper); }
+/* ===== HERO ===== */
+.hero{padding:46px 0 24px;max-width:660px}
+.eyebrow{font-size:10px;font-weight:600;letter-spacing:0.10em;text-transform:uppercase;color:var(--lt-3);
+  text-shadow:var(--ts);margin-bottom:14px;display:flex;align-items:center;gap:7px}
+.pdot{width:6px;height:6px;border-radius:50%;background:var(--flame);box-shadow:0 0 10px rgba(255,84,0,0.90)}
+.hero h1{font-family:var(--serif);font-size:46px;font-weight:400;letter-spacing:-0.02em;line-height:1.1;
+  margin-bottom:12px;color:var(--lt-1);text-shadow:var(--ts-lg)}
+.hero p{font-family:var(--serif);font-size:15px;color:var(--lt-3);text-shadow:var(--ts);line-height:1.6;max-width:540px}
 
-/* ============ Home ============ */
-.stage { max-width: 1180px; margin: 0 auto; padding: 26px 28px 80px; position: relative; z-index: 1; }
-.eyebrow { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--soft); margin-bottom: 8px; }
+/* ===== TOOLBAR ===== */
+.toolbar{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.chead-line{flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.20),transparent)}
+.ghost-sm{font-family:var(--sans);font-size:12px;font-weight:600;color:var(--lt-1);text-shadow:var(--ts);
+  padding:8px 16px;border-radius:100px;border:none;cursor:pointer;
+  background:rgba(255,255,255,0.10);box-shadow:var(--ambient),var(--rim-sm);
+  transition:transform 120ms cubic-bezier(0.22,1,0.36,1),background 120ms ease-out;white-space:nowrap}
+.ghost-sm:hover{background:rgba(255,120,50,0.16);transform:translateY(-2px)}
 
-.hero-block { position: relative; min-height: 460px; border-radius: 28px; overflow: hidden; margin-bottom: 8px; box-shadow: var(--gs), var(--gi); border: 1px solid var(--glass-b); }
-.hero-block-bg { position: absolute; inset: 0; background-image: url('/desk/assets/hero-desk-investigative.jpg'); background-size: cover; background-position: center 42%; filter: saturate(0.92) brightness(0.98); }
-.hero-block-fade { position: absolute; inset: 0; background: linear-gradient(90deg, var(--ivory) 0%, var(--ivory) 24%, rgba(248,247,246,0.94) 40%, rgba(248,247,246,0.55) 58%, rgba(248,247,246,0.08) 78%, transparent 92%); }
-body.dark .hero-block-fade { background: linear-gradient(90deg, var(--ivory) 0%, var(--ivory) 24%, rgba(22,36,43,0.94) 40%, rgba(22,36,43,0.55) 58%, rgba(22,36,43,0.08) 78%, transparent 92%); }
-.hero-block-content { position: relative; z-index: 2; padding: 54px 36px 50px 48px; max-width: 480px; display: flex; flex-direction: column; height: 100%; min-height: 460px; justify-content: center; }
-.hero-block-mark { width: 58px; height: 58px; border-radius: 17px; background: var(--glass); border: 1px solid var(--glass-b); box-shadow: var(--gs), var(--gi), 0 0 0 5px var(--violet-soft); display: flex; align-items: center; justify-content: center; margin-bottom: 20px; backdrop-filter: blur(10px); }
-.hero-block-eyebrow { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--teal2); margin-bottom: 11px; }
-.hero-block-content h1 { font-family: var(--serif); font-size: 38px; font-weight: 600; letter-spacing: -0.02em; margin-bottom: 14px; line-height: 1.1; }
-.hero-block-content p { font-size: 13.5px; color: var(--muted); line-height: 1.7; margin-bottom: 6px; }
-.hero-block-content p.small { font-size: 11px; color: var(--soft); font-style: italic; margin-top: 6px; margin-bottom: 22px; }
-.hero-cta-row { display: flex; gap: 10px; flex-wrap: wrap; }
-.hero-btn { font-size: 12.5px; font-weight: 700; padding: 12px 20px; border-radius: 100px; cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 7px; transition: all 180ms var(--eo); }
-.hero-btn.primary { background: var(--flame); color: #fff; box-shadow: 0 10px 26px rgba(255,84,0,0.28); }
-.hero-btn.primary:hover { background: #E44900; transform: translateY(-1px); box-shadow: 0 14px 32px rgba(255,84,0,0.34); }
-.hero-btn.ghost { background: rgba(255,255,255,0.7); color: var(--teal); border: 1px solid var(--border2); backdrop-filter: blur(8px); }
-.hero-btn.ghost:hover { background: #fff; transform: translateY(-1px); }
-.hero-block-credit { position: absolute; bottom: 9px; right: 13px; font-size: 8px; color: rgba(255,255,255,0.5); z-index: 2; }
+/* ===== TOOL CARDS ===== */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.tcard{position:relative;border-radius:22px;padding:22px;background:var(--glass);
+  backdrop-filter:var(--glass-filter);-webkit-backdrop-filter:var(--glass-filter);
+  box-shadow:var(--ambient-lg),var(--rim);text-decoration:none;color:inherit;display:block;
+  transition:transform 130ms cubic-bezier(0.22,1,0.36,1),box-shadow 130ms ease-out;
+  animation:rise 420ms var(--eo) both}
+.tcard:hover{transform:translateY(-4px);box-shadow:var(--ambient-hi),var(--rim)}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.tcard-icon{font-size:26px;margin-bottom:14px;display:block}
+.tcard-name{font-family:var(--serif);font-size:19px;color:var(--lt-1);text-shadow:var(--ts-lg);margin-bottom:8px}
+.tcard-desc{font-size:12.5px;color:var(--lt-3);text-shadow:var(--ts);line-height:1.6;margin-bottom:14px}
+.tcard-foot{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.tcard-cat{font-size:10px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;color:var(--lt-3);
+  background:rgba(255,255,255,0.08);padding:4px 10px;border-radius:100px}
+.tcard-go{font-size:12px;font-weight:600;color:#FFB07A}
+.empty{font-size:12.5px;color:var(--lt-3);text-shadow:var(--ts);line-height:1.6;font-family:var(--serif);
+  padding:40px 0;text-align:center}
+.errbox{font-size:12px;color:#FFD9C2;background:rgba(255,84,0,0.18);box-shadow:var(--rim-sm);
+  padding:11px 14px;border-radius:12px;line-height:1.5;margin-bottom:14px}
+.skel-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.skel-card{height:180px;border-radius:22px;background:var(--chip);box-shadow:var(--rim-sm);
+  animation:pulse 1.3s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:.5}50%{opacity:.9}}
 
-.sdiv { display: flex; align-items: center; gap: 14px; margin: 28px 0 14px; }
-.sdiv h2 { font-family: var(--serif); font-size: 13.5px; font-weight: 600; color: var(--soft); text-transform: uppercase; letter-spacing: 0.06em; white-space: nowrap; }
-.rule { flex: 1; height: 1px; background: var(--border); }
-.workspace-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
-.wcard { position: relative; border-radius: 20px; padding: 20px 22px; cursor: pointer; overflow: hidden; background: var(--glass); backdrop-filter: blur(20px) saturate(1.8); border: 1px solid var(--glass-b); box-shadow: var(--gs), var(--gi); transition: transform 200ms var(--eo); display: flex; flex-direction: column; gap: 10px; min-height: 130px; }
-.wcard:hover { transform: translateY(-3px); }
-.wcard.accent { background: linear-gradient(135deg, rgba(44,169,188,0.11), rgba(44,169,188,0.03)), var(--glass); }
-.wcard.desk-a { background: linear-gradient(135deg, rgba(255,84,0,0.09), rgba(255,192,71,0.06)), var(--glass); }
-.wcard.violet { background: linear-gradient(135deg, rgba(151,157,247,0.14), rgba(151,157,247,0.04)), var(--glass); }
-.wcard-ico { font-size: 22px; width: 42px; height: 42px; border-radius: 13px; background: rgba(255,255,255,0.5); border: 1px solid var(--glass-b); display: flex; align-items: center; justify-content: center; }
-.wcard-title { font-family: var(--serif); font-size: 16px; font-weight: 600; }
-.wcard-sub { font-size: 11.5px; color: var(--muted); line-height: 1.5; }
-.wcard-open { font-size: 11px; font-weight: 700; color: var(--teal2); margin-top: auto; }
+/* ===== LOGIN GATE ===== */
+.hide{display:none!important}
+.login-gate{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(160deg,#0F1622 0%,#0B1016 45%,#0C0E14 75%,#120E18 100%);padding:20px}
+.login-card{width:100%;max-width:380px;border-radius:26px;padding:36px 32px;
+  background:var(--glass);backdrop-filter:var(--glass-filter);-webkit-backdrop-filter:var(--glass-filter);
+  border:1px solid var(--border);box-shadow:var(--ambient-lg),var(--rim);text-align:center}
+.login-wordmark{font-family:var(--serif);font-size:20px;color:var(--lt-1);text-shadow:var(--ts-lg);margin-bottom:28px}
+.login-title{font-family:var(--serif);font-size:23px;color:var(--lt-1);text-shadow:var(--ts-lg);margin-bottom:6px}
+.login-sub{font-size:12px;color:var(--lt-3);text-shadow:var(--ts);margin-bottom:24px}
+.login-field{margin-bottom:14px;text-align:left}
+html[dir="rtl"] .login-field{text-align:right}
+.login-field label{display:block;font-size:11px;color:var(--lt-3);text-shadow:var(--ts);margin-bottom:6px;padding-left:4px}
+.login-field input{width:100%;font-family:var(--sans);font-size:13.5px;color:var(--lt-1);
+  padding:11px 15px;border-radius:14px;border:none;outline:none;
+  background:var(--chip);box-shadow:var(--rim-sm);transition:background 130ms ease-out,box-shadow 130ms ease-out}
+.login-field input::placeholder{color:rgba(255,255,255,0.4)}
+.login-field input:focus{background:var(--chip-hover);box-shadow:var(--rim-sm),inset 0 0 0 1.5px rgba(255,150,80,0.45)}
+.btn-flame{font-family:var(--sans);font-size:13px;font-weight:600;color:#fff;padding:9px 21px;border-radius:100px;border:none;cursor:pointer;
+  background:linear-gradient(180deg,#FF8A45 0%,var(--flame) 52%,#DC4400 100%);
+  box-shadow:0 1px 2px rgba(120,36,0,0.50),0 6px 16px rgba(255,84,0,0.52),0 18px 40px rgba(255,84,0,0.30),
+    inset 0 2px 0 rgba(255,255,255,0.62),inset 0 -2px 2px rgba(120,34,0,0.44),inset 0 0 0 1px rgba(255,140,80,0.50);
+  transition:transform 120ms cubic-bezier(0.22,1,0.36,1),box-shadow 120ms ease-out;white-space:nowrap}
+.btn-flame:hover{transform:translateY(-1.5px) scale(1.02)}
+.btn-flame:disabled{opacity:.45;cursor:default;transform:none}
+.login-submit{width:100%;margin-top:10px}
+.login-error{font-size:11.5px;color:#FF8A5C;background:rgba(255,84,0,0.10);border:1px solid rgba(255,84,0,0.22);
+  border-radius:12px;padding:9px 12px;margin-bottom:12px;display:none;text-align:left}
+.login-error.show{display:block}
 
-/* Investigate a topic */
-.investigate-panel { background: var(--glass); border: 1px solid var(--border2); border-radius: 16px; padding: 18px 20px; margin: 4px 0 8px; }
-.meter-hint { font-size: 11px; color: var(--muted); line-height: 1.5; }
-.sc-tools { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 7px; }
-.trends-lookup-bar { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
-.trends-lookup-bar input[type="text"] { flex: 1 1 200px; font-size: 11.5px; padding: 8px 10px; border: 1px solid var(--border2); border-radius: 8px; background: var(--paper); outline: none; color: var(--teal); }
-.trends-lookup-bar input[type="text"]:focus { border-color: var(--flame); }
-.mini-icon-btn { font-size: 10px; background: rgba(var(--inkC),0.06); border: none; border-radius: 6px; padding: 3px 8px; cursor: pointer; color: var(--soft); transition: background 130ms; }
-.mini-icon-btn:hover { background: rgba(var(--inkC),0.13); color: var(--teal); }
-.mini-icon-btn.primary-ish { background: rgba(255,84,0,0.10); color: var(--flame); font-weight: 700; }
-.mini-icon-btn.primary-ish:hover { background: var(--flame); color: #fff; }
-.mini-icon-btn:disabled { opacity: 0.55; cursor: default; }
-.farda-result-row { display: flex; gap: 8px; align-items: flex-start; padding: 8px 0; border-bottom: 1px solid var(--border2); }
-.farda-result-row:last-child { border-bottom: none; }
-.farda-result-row input[type="checkbox"] { margin-top: 3px; flex-shrink: 0; }
-.farda-result-body { flex: 1; min-width: 0; }
-.farda-result-title { font-size: 12px; font-weight: 700; color: var(--teal); text-decoration: none; }
-.farda-result-title:hover { color: var(--flame); }
-.farda-result-meta { font-size: 10px; color: var(--soft); margin-top: 1px; }
-.farda-result-snippet { font-size: 10.5px; color: var(--teal2); margin-top: 3px; line-height: 1.4; }
-.doc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
-.dcard { position: relative; border-radius: 16px; padding: 16px 17px; cursor: pointer; background: var(--glass); backdrop-filter: blur(16px) saturate(1.7); border: 1px solid var(--glass-b); box-shadow: var(--gs), var(--gi); transition: transform 180ms var(--eo); display: flex; flex-direction: column; gap: 9px; min-height: 110px; }
-.dcard:hover { transform: translateY(-2px); }
-.dcard-top { display: flex; align-items: center; justify-content: space-between; }
-.dcard-dir { font-size: 9.5px; font-weight: 700; color: var(--teal2); background: rgba(36,80,106,0.08); padding: 2px 8px; border-radius: 100px; }
-.dcard-brief-tag { font-size: 9.5px; font-weight: 700; color: var(--flame); background: rgba(255,84,0,0.08); padding: 2px 8px; border-radius: 100px; }
-.dcard-title { font-family: var(--serif); font-size: 14px; font-weight: 600; line-height: 1.35; }
-.dcard-meta { font-size: 10.5px; color: var(--soft); margin-top: auto; }
-.dcard-del { position: absolute; top: 8px; right: 8px; width: 22px; height: 22px; border-radius: 50%; border: none; background: rgba(var(--inkC),0.08); color: var(--soft); font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center; opacity: 0; transition: all 150ms; }
-.dcard:hover .dcard-del { opacity: 1; }
-.dcard-del:hover { background: var(--flame); color: #fff; }
-.see-all-btn { font-size: 11px; font-weight: 700; color: var(--teal2); background: rgba(36,80,106,0.07); border: 1px solid rgba(36,80,106,0.14); border-radius: 100px; padding: 6px 13px; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
-.see-all-btn:hover { background: var(--teal2); color: #fff; }
-.carousel-row { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 2px 2px 10px; scroll-behavior: smooth; }
-.carousel-row::-webkit-scrollbar { height: 6px; }
-.carousel-row .dcard, .carousel-row .bcard-mini { scroll-snap-align: start; flex: 0 0 230px; }
-.carousel-row .folder-card { scroll-snap-align: start; flex: 0 0 200px; cursor: pointer; }
-.folder-visual { position: relative; height: 112px; margin-bottom: 8px; transition: transform 200ms var(--eo); }
-.folder-card:hover .folder-visual { transform: translateY(-3px) rotate(-1deg); }
-.folder-tab { position: absolute; top: 0; left: 12px; width: 68px; height: 22px; border-radius: 8px 10px 0 0; opacity: 0.88; }
-.folder-body { position: absolute; left: 0; right: 0; bottom: 0; top: 13px; border-radius: 4px 14px 14px 14px; box-shadow: 0 14px 30px rgba(26,57,72,0.20), var(--gi); display: flex; flex-direction: column; justify-content: flex-end; padding: 12px 14px; overflow: hidden; }
-.folder-body::after { content: ''; position: absolute; inset: 0; background: linear-gradient(160deg, rgba(255,255,255,0.25), transparent 55%); pointer-events: none; }
-.folder-count { position: relative; z-index: 1; font-size: 9.5px; font-weight: 700; color: rgba(255,255,255,0.95); background: rgba(0,0,0,0.2); align-self: flex-start; padding: 3px 9px; border-radius: 100px; margin-bottom: 7px; }
-.folder-title { font-family: var(--serif); font-size: 13.5px; font-weight: 600; line-height: 1.35; }
-.folder-desc { font-size: 10.5px; color: var(--soft); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.folder-color-row { display: flex; gap: 8px; flex-wrap: wrap; }
-.folder-color-swatch { width: 30px; height: 30px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: all 140ms; }
-.folder-color-swatch.selected { border-color: var(--teal); transform: scale(1.1); }
+/* ===== ADMIN MANAGE MODAL ===== */
+.modal-overlay{position:fixed;inset:0;z-index:200;display:none;align-items:flex-start;justify-content:center;
+  background:rgba(5,8,13,0.64);backdrop-filter:blur(13px);padding:56px 20px;overflow-y:auto}
+.modal-overlay.show{display:flex}
+.modal-card{width:100%;max-width:720px;border-radius:26px;padding:26px 28px;
+  background:var(--glass);backdrop-filter:var(--glass-filter);-webkit-backdrop-filter:var(--glass-filter);
+  box-shadow:var(--ambient-hi),var(--rim)}
+.modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.modal-head h2{font-family:var(--serif);font-size:20px;font-weight:400;color:var(--lt-1);text-shadow:var(--ts-lg)}
+.trow{border-radius:16px;background:var(--chip);box-shadow:var(--rim-sm);padding:14px;margin-bottom:10px;
+  display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.trow input,.trow select{font-family:var(--sans);font-size:12.5px;color:var(--lt-1);
+  padding:8px 12px;border-radius:10px;border:none;outline:none;background:rgba(255,255,255,0.08);
+  box-shadow:var(--rim-sm);min-width:0}
+.trow .f-name{flex:1;min-width:110px}
+.trow .f-path{flex:1.4;min-width:160px}
+.trow .f-desc{flex-basis:100%;min-width:0}
+.trow-actions{display:flex;gap:6px;margin-left:auto}
+.trow-actions .ghost-sm{padding:6px 12px;font-size:11px}
+.new-trow{border-radius:16px;border:1.5px dashed rgba(255,255,255,0.20);padding:14px;margin-bottom:14px;
+  display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.modal-toast{font-size:11.5px;color:var(--lt-3);margin-top:4px}
 
-/* ============ Folder detail screen ============ */
-.folder-header { display: flex; align-items: flex-start; gap: 16px; padding: 20px; border-radius: 18px; background: var(--glass); border: 1px solid var(--glass-b); box-shadow: var(--gs), var(--gi); margin-bottom: 20px; }
-.folder-header-icon { width: 54px; height: 54px; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; box-shadow: 0 8px 20px rgba(0,0,0,0.18); }
-.folder-title-input { width: 100%; font-family: var(--serif); font-size: 21px; font-weight: 700; border: none; background: transparent; outline: none; color: var(--teal); margin-bottom: 4px; }
-.folder-desc-input { width: 100%; font-size: 12.5px; color: var(--muted); border: none; background: transparent; outline: none; resize: vertical; min-height: 20px; font-family: var(--sans); line-height: 1.6; }
-.kb-item { display: flex; gap: 12px; background: var(--glass); border: 1px solid var(--glass-b); box-shadow: var(--gs), var(--gi); border-radius: 14px; padding: 14px 16px; margin-bottom: 10px; }
-.kb-item-mark { width: 4px; border-radius: 4px; background: var(--honey); flex-shrink: 0; }
-.kb-item-body { flex: 1; min-width: 0; }
-.kb-quote { font-size: 12.5px; color: var(--muted); font-style: italic; line-height: 1.6; margin-bottom: 6px; }
-.kb-comment { font-size: 12.5px; color: var(--teal); line-height: 1.6; }
-.kb-meta { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
-.kb-source-tag { font-size: 10px; font-weight: 700; color: var(--teal2); background: rgba(36,80,106,0.08); padding: 3px 9px; border-radius: 100px; cursor: pointer; }
-.kb-source-tag:hover { background: var(--teal2); color: #fff; }
-.bcard-mini { border-radius: 16px; padding: 16px 17px; cursor: pointer; background: var(--glass); backdrop-filter: blur(16px) saturate(1.7); border: 1px solid var(--glass-b); box-shadow: var(--gs), var(--gi); transition: transform 180ms var(--eo); display: flex; flex-direction: column; gap: 9px; min-height: 110px; }
-.bcard-mini:hover { transform: translateY(-2px); }
-.bcard-mini-title { font-family: var(--serif); font-size: 14px; font-weight: 600; line-height: 1.35; }
-.bcard-mini-badge { font-size: 9.5px; font-weight: 700; color: var(--flame); background: rgba(255,84,0,0.08); padding: 2px 8px; border-radius: 100px; align-self: flex-start; }
-.list-row { display: flex; align-items: center; gap: 12px; padding: 11px 13px; border-radius: 12px; cursor: pointer; transition: background 130ms; }
-.list-row:hover { background: rgba(var(--inkC),0.04); }
-.list-row-body { flex: 1; min-width: 0; }
-.list-row-title { font-family: var(--serif); font-size: 13.5px; font-weight: 600; }
-.list-row-meta { font-size: 10.5px; color: var(--soft); margin-top: 2px; }
-.list-row-del { width: 26px; height: 26px; border-radius: 50%; border: none; background: rgba(var(--inkC),0.06); color: var(--soft); font-size: 11px; cursor: pointer; flex-shrink: 0; }
-.list-row-del:hover { background: var(--flame); color: #fff; }
-.empty-note { font-size: 11.5px; color: var(--soft); text-align: center; padding: 30px; border: 1.5px dashed var(--border2); border-radius: 14px; grid-column: 1 / -1; }
+.toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(14px);z-index:300;
+  padding:12px 20px;border-radius:100px;font-size:13px;font-weight:500;color:var(--lt-1);text-shadow:var(--ts);
+  background:var(--glass);backdrop-filter:var(--glass-filter);-webkit-backdrop-filter:var(--glass-filter);
+  box-shadow:var(--ambient-hi),var(--rim);
+  opacity:0;pointer-events:none;transition:opacity 200ms ease-out,transform 200ms var(--eo);white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
-/* ============ Editor shell ============ */
-.shell { position: relative; z-index: 1; display: flex; height: calc(100vh - 51px); overflow: hidden; }
-.col { overflow-y: auto; transition: width 300ms var(--eo), opacity 220ms var(--eo), padding 300ms var(--eo); }
-.col-mat { width: 300px; flex-shrink: 0; padding: 16px; border-right: 1px solid var(--border); }
-.col-mat.collapsed { width: 44px; padding: 16px 6px; }
-.col-composer { width: 400px; flex-shrink: 0; padding: 18px; border-right: 1px solid var(--border); background: rgba(var(--inkC),0.02); }
-.col-composer.collapsed { width: 0; padding: 0; opacity: 0; overflow: hidden; border-right: none; }
-.col-desk { flex: 1; min-width: 0; padding: 18px 30px; }
-.mat-edge-tab { writing-mode: vertical-rl; text-orientation: mixed; font-size: 10.5px; font-weight: 700; color: var(--teal2); background: var(--glass); border: 1px solid var(--glass-b); border-radius: 10px; padding: 12px 6px; cursor: pointer; box-shadow: var(--gs); }
-.mat-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-.mat-title { font-size: 10px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--soft); }
-.mat-collapse-btn { width: 22px; height: 22px; border-radius: 50%; border: none; background: rgba(var(--inkC),0.06); cursor: pointer; font-size: 10px; color: var(--soft); }
-.mat-brief-name { font-family: var(--serif); font-size: 13.5px; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 7px; }
-.acc { border: 1px solid var(--border2); border-radius: 12px; margin-bottom: 8px; background: var(--glass); overflow: hidden; }
-.acc-head { display: flex; align-items: center; gap: 7px; padding: 9px 11px; cursor: pointer; font-size: 11.5px; font-weight: 700; color: var(--teal2); }
-.acc-count { margin-left: auto; font-size: 9.5px; color: var(--soft); background: rgba(var(--inkC),0.06); border-radius: 100px; padding: 2px 7px; }
-.acc-body { padding: 0 8px 8px; display: none; }
-.acc.open .acc-body { display: block; }
-.acc.open .acc-chev { transform: rotate(180deg); }
-.acc-chev { margin-left: 4px; font-size: 9px; transition: transform 160ms; }
-.mat-row { display: flex; align-items: flex-start; gap: 8px; padding: 8px 9px; border-radius: 9px; margin-bottom: 4px; cursor: grab; background: rgba(255,255,255,0.4); border: 1px solid transparent; transition: all 150ms; }
-.mat-row:hover { background: rgba(255,255,255,0.8); border-color: var(--border2); }
-body.dark .mat-row:hover { background: rgba(255,255,255,0.08); }
-.mat-row.inpiece { border-left: 3px solid var(--flame); }
-.mat-row-ico { font-size: 12px; margin-top: 1px; }
-.mat-row-txt { font-size: 11px; color: var(--teal); line-height: 1.4; flex: 1; }
-.mat-badges { display: flex; flex-direction: column; gap: 2px; align-items: flex-end; flex-shrink: 0; }
-.mat-badge { font-size: 8.5px; font-weight: 700; white-space: nowrap; }
-.mat-badge.drafted { color: var(--soft); }
-.mat-badge.inpiece { color: var(--flame); }
-.bsb-search { width: 100%; font-size: 12px; padding: 9px 12px; border: 1px solid var(--border2); border-radius: 10px; background: var(--paper); color: var(--teal); outline: none; }
-.bsb-back { font-size: 10.5px; font-weight: 700; color: var(--soft); cursor: pointer; margin-bottom: 10px; display: inline-block; }
-.bsb-back:hover { color: var(--flame); }
-
-.hint-banner { font-size: 10.5px; color: var(--teal2); background: rgba(36,80,106,0.06); border: 1px solid rgba(36,80,106,0.13); border-radius: 10px; padding: 8px 12px; margin-bottom: 12px; line-height: 1.5; }
-.cmp-head-input { width: 100%; font-family: var(--serif); font-size: 17px; font-weight: 700; border: none; background: transparent; outline: none; color: var(--teal); margin-bottom: 6px; }
-.cmp-sub-input { width: 100%; font-size: 12px; border: none; background: transparent; outline: none; color: var(--muted); font-style: italic; margin-bottom: 16px; }
-.blk { border: 1px solid var(--border2); border-radius: 13px; padding: 11px 13px; margin-bottom: 10px; background: var(--ivory); }
-.blk-toggle { display: flex; align-items: center; gap: 7px; }
-.blk-chip { font-size: 9px; font-weight: 700; text-transform: uppercase; color: var(--teal2); background: rgba(36,80,106,0.08); border-radius: 100px; padding: 2px 7px; }
-.blk-preview { font-size: 10.5px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
-.blk-q { font-size: 11px; font-weight: 600; color: var(--flame); margin: 8px 0 5px; }
-.blk-answer { width: 100%; font-size: 13px; line-height: 1.6; color: var(--teal); border: 1px solid var(--border2); border-radius: 9px; padding: 8px 10px; outline: none; resize: vertical; min-height: 54px; background: var(--paper); font-family: var(--sans); }
-.blk-answer:focus { border-color: var(--flame); }
-.blk-paste-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
-.blk-paste-btn { font-size: 10px; font-weight: 700; color: var(--teal2); background: rgba(36,80,106,0.08); border: 1px solid rgba(36,80,106,0.15); border-radius: 100px; padding: 6px 12px; cursor: pointer; }
-.blk-paste-btn:hover { background: var(--teal2); color: #fff; }
-.blk-paste-btn.done { background: var(--teal2); color: #fff; }
-.cmp-empty-note { font-size: 11px; color: var(--soft); text-align: center; padding: 30px 14px; border: 1.5px dashed var(--border2); border-radius: 12px; line-height: 1.6; }
-
-.desk-toolbar { display: flex; align-items: center; gap: 3px; background: var(--glass); border: 1px solid var(--glass-b); border-radius: 12px; padding: 6px; margin-bottom: 14px; box-shadow: var(--gs); flex-wrap: wrap; }
-.tb-btn { width: 27px; height: 27px; border-radius: 7px; border: none; background: transparent; color: var(--teal); font-size: 12px; cursor: pointer; }
-.tb-btn:hover { background: rgba(var(--inkC),0.08); }
-.tb-btn.wide { width: auto; padding: 0 9px; font-size: 10.5px; font-weight: 700; }
-.tb-sep { width: 1px; height: 18px; background: var(--border); margin: 0 3px; }
-.tb-select { height: 27px; border-radius: 7px; border: 1px solid var(--border2); background: var(--paper); color: var(--teal); font-size: 10.5px; font-weight: 600; padding: 0 6px; }
-.tb-color { width: 22px; height: 22px; border-radius: 6px; border: 1px solid var(--border2); cursor: pointer; padding: 0; }
-.doc-title-input { width: 100%; font-family: var(--serif); font-size: 21px; font-weight: 700; border: none; background: transparent; outline: none; color: var(--teal); margin-bottom: 10px; }
-.page-wrap { background: var(--glass); border: 1px solid var(--glass-b); border-radius: 18px; box-shadow: var(--gs), var(--gi); padding: 30px 34px; min-height: 50vh; }
-.page-canvas { font-family: var(--serif); font-size: 14.5px; line-height: 1.85; color: var(--teal); outline: none; }
-.page-canvas[dir="rtl"] { font-family: 'Vazirmatn', sans-serif; }
-.page-canvas h1 { font-size: 24px; margin: 0 0 10px; } .page-canvas h2 { font-size: 18px; margin: 18px 0 8px; }
-.page-canvas p { margin: 0 0 13px; padding: 2px 4px; border-radius: 5px; }
-.page-canvas blockquote { border-left: 3px solid var(--honey); padding: 4px 14px; margin: 0 0 13px; color: var(--muted); font-style: italic; }
-.page-canvas pre { background: rgba(var(--inkC),0.06); border-radius: 8px; padding: 10px 12px; font-family: monospace; font-size: 12.5px; overflow-x: auto; margin: 0 0 13px; }
-.page-canvas img, .page-canvas video { max-width: 100%; border-radius: 10px; margin: 6px 0 13px; }
-.page-canvas a { color: var(--teal2); }
-.mat-trace { transition: background 200ms ease; border-radius: 3px; }
-.mat-trace.trace-glow { background: rgba(255,84,0,0.22); box-shadow: 0 0 0 2px rgba(255,84,0,0.3); }
-
-/* ---- Article embed block (WordPress-style related-article card) ---- */
-.article-embed { display: flex; align-items: stretch; gap: 0; border: 1px solid var(--border2); border-radius: 12px; overflow: hidden; margin: 4px 0 14px; background: var(--glass); position: relative; }
-.article-embed-link { display: flex; flex: 1; min-width: 0; text-decoration: none; color: inherit; }
-.article-embed-thumb { width: 84px; flex-shrink: 0; background-size: cover; background-position: center; background-color: rgba(var(--inkC),0.06); }
-.article-embed-thumb-empty { display: flex; align-items: center; justify-content: center; font-size: 22px; }
-.article-embed-body { padding: 10px 13px; display: flex; flex-direction: column; justify-content: center; gap: 4px; min-width: 0; }
-.article-embed-title { font-family: var(--serif); font-weight: 600; font-size: 13px; color: var(--teal); line-height: 1.4; }
-.article-embed-domain { font-size: 10px; color: var(--soft); font-family: var(--sans); }
-.article-embed-del { position: absolute; top: 6px; right: 6px; width: 20px; height: 20px; border-radius: 50%; border: none; background: rgba(0,0,0,0.45); color: #fff; font-size: 10px; cursor: pointer; opacity: 0; transition: opacity 150ms; z-index: 2; }
-.article-embed:hover .article-embed-del { opacity: 1; }
-.embed-field { width: 100%; font-size: 12.5px; padding: 9px 12px; border: 1px solid var(--border2); border-radius: 9px; background: var(--paper); color: var(--teal); outline: none; margin-bottom: 8px; }
-.embed-internal-row { display: flex; align-items: center; gap: 9px; padding: 8px 9px; border-radius: 9px; cursor: pointer; transition: background 130ms; }
-.embed-internal-row:hover { background: rgba(var(--inkC),0.05); }
-.embed-internal-row.selected { background: rgba(255,84,0,0.08); border: 1px solid rgba(255,84,0,0.2); }
-.blk-embed-btn { font-size: 10px; font-weight: 700; color: var(--teal2); background: rgba(36,80,106,0.08); border: 1px solid rgba(36,80,106,0.15); border-radius: 100px; padding: 6px 11px; cursor: pointer; }
-.blk-embed-btn:hover { background: var(--teal2); color: #fff; }
-.blk-embed-chip { font-size: 10px; color: var(--teal2); background: rgba(36,80,106,0.06); border-radius: 8px; padding: 5px 9px; margin-top: 6px; display: flex; align-items: center; gap: 6px; }
-.blk-embed-chip button { border: none; background: transparent; color: var(--soft); cursor: pointer; font-size: 10px; margin-left: auto; }
-.desk-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; flex-wrap: wrap; gap: 8px; }
-.footer-stats { display: flex; gap: 10px; font-size: 10.5px; color: var(--soft); flex-wrap: wrap; }
-.footer-actions { display: flex; gap: 6px; flex-wrap: wrap; }
-.btn { font-size: 10.5px; font-weight: 700; padding: 7px 12px; border-radius: 100px; border: 1px solid var(--border2); background: rgba(255,255,255,0.6); color: var(--teal2); cursor: pointer; }
-.btn:hover { background: var(--teal); color: var(--paper); border-color: transparent; }
-.btn.primary { background: var(--flame); color: #fff; border-color: transparent; }
-
-/* ============ Modal (onboarding) ============ */
-.modal-overlay { position: fixed; inset: 0; z-index: 200; background: rgba(15,28,35,0.42); backdrop-filter: blur(6px); display: none; align-items: center; justify-content: center; padding: 24px; overflow-y: auto; }
-.modal-overlay.show { display: flex; }
-.onb-modal { width: 100%; max-width: 720px; margin: auto; border-radius: 26px; background: var(--paper); border: 1px solid var(--glass-b); box-shadow: 0 30px 80px rgba(15,28,35,0.32); overflow: hidden; max-height: 88vh; display: flex; flex-direction: column; }
-.onb-head { display: flex; align-items: center; gap: 12px; padding: 20px 26px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
-.onb-title { font-family: var(--serif); font-size: 18px; font-weight: 600; flex: 1; }
-.onb-close { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--border2); background: rgba(255,255,255,0.5); cursor: pointer; font-size: 15px; color: var(--muted); }
-.onb-body { padding: 22px 26px 28px; overflow-y: auto; }
-.onb-concept { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 22px; }
-.onb-concept-card { background: var(--glass); border: 1px solid var(--glass-b); border-radius: 14px; padding: 14px 16px; }
-.onb-concept-card h3 { font-family: var(--serif); font-size: 14px; margin-bottom: 6px; }
-.onb-concept-card p { font-size: 11.5px; color: var(--muted); line-height: 1.6; }
-.onb-flow { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 4px 0 20px; font-size: 10.5px; flex-wrap: wrap; }
-.onb-flow-node { background: rgba(var(--inkC),0.05); border-radius: 100px; padding: 6px 12px; font-weight: 700; color: var(--teal2); }
-.onb-steps { display: flex; flex-direction: column; gap: 10px; }
-.onb-step { display: flex; gap: 12px; background: var(--glass); border: 1px solid var(--glass-b); border-radius: 14px; padding: 14px 16px; }
-.onb-step-n { width: 26px; height: 26px; border-radius: 50%; background: var(--teal); color: var(--paper); font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.onb-step-title { font-size: 13px; font-weight: 700; margin-bottom: 3px; }
-.onb-step-sub { font-size: 11.5px; color: var(--muted); line-height: 1.55; }
-.onb-copy-box { margin-top: 9px; background: rgba(var(--inkC),0.04); border: 1px solid var(--border2); border-radius: 10px; padding: 8px 10px; display: flex; align-items: center; gap: 10px; }
-.onb-copy-box code { font-size: 11px; color: var(--teal2); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: monospace; }
-.onb-copy-btn { font-size: 10.5px; font-weight: 700; color: #fff; background: var(--flame); border: none; border-radius: 100px; padding: 6px 12px; cursor: pointer; white-space: nowrap; }
-.onb-copy-btn.done { background: var(--teal2); }
-.dash-toast { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--teal); color: var(--paper); font-size: 12px; font-weight: 600; padding: 10px 18px; border-radius: 100px; box-shadow: 0 10px 30px rgba(0,0,0,0.25); z-index: 300; opacity: 0; pointer-events: none; transition: all 220ms var(--eo); }
-.dash-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-
-@media (max-width: 900px) {
-  .workspace-row, .doc-grid { grid-template-columns: repeat(2, 1fr); }
-  .col-mat, .col-composer { position: fixed; top: 51px; bottom: 0; z-index: 40; background: var(--paper); }
-  .col-mat { left: 0; } .col-composer { left: 44px; }
-}
-@media print {
-  .appbar, .col-mat, .col-composer, .desk-toolbar, .desk-footer { display: none !important; }
-  .col-desk { padding: 0; } .page-wrap { box-shadow: none; border: none; background: none; }
-}
-
-/* ============ Assignments screen ============ */
-.asn-stage { max-width: 1240px; margin: 0 auto; padding: 22px 24px 70px; position: relative; z-index: 1; }
-.asn-stat-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
-.asn-stat-pill { background: var(--glass); border: 1px solid var(--glass-b); box-shadow: var(--gs), var(--gi); border-radius: 100px; padding: 9px 16px; display: flex; align-items: baseline; gap: 6px; }
-.asn-stat-pill.mine { background: linear-gradient(135deg, rgba(255,84,0,0.10), rgba(255,192,71,0.08)), var(--glass); }
-.asn-stat-n { font-family: var(--serif); font-size: 16px; font-weight: 700; color: var(--flame); }
-.asn-stat-l { font-size: 11px; color: var(--muted); }
-.asn-toolbar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
-.asn-filter-chip { font-size: 11px; font-weight: 600; color: var(--muted); background: rgba(255,255,255,0.5); border: 1px solid var(--border2); border-radius: 100px; padding: 6px 13px; cursor: pointer; transition: all 140ms; }
-.asn-filter-chip.active { background: var(--teal); color: #fff; border-color: transparent; }
-.asn-view-toggle { display: inline-flex; background: rgba(var(--inkC),0.06); border-radius: 100px; padding: 3px; gap: 2px; }
-.asn-view-btn { font-size: 11px; font-weight: 700; padding: 7px 13px; border-radius: 100px; border: none; background: transparent; color: var(--muted); cursor: pointer; }
-.asn-view-btn.active { background: var(--teal); color: #fff; }
-.asn-board { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; align-items: start; }
-.asn-col { background: rgba(var(--inkC),0.025); border: 1px solid var(--border); border-radius: 18px; padding: 12px; min-height: 200px; transition: background 150ms; }
-.asn-col.drag-over { background: rgba(255,84,0,0.06); border-color: rgba(255,84,0,0.25); }
-.asn-col-head { display: flex; align-items: center; gap: 8px; padding: 4px 6px 12px; }
-.asn-col-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-.asn-col-title { font-family: var(--serif); font-size: 13px; font-weight: 700; }
-.asn-col-count { margin-left: auto; font-size: 10px; font-weight: 700; color: var(--soft); background: rgba(var(--inkC),0.06); border-radius: 100px; padding: 2px 8px; }
-.acard { background: var(--glass); backdrop-filter: blur(16px) saturate(1.7); border: 1px solid var(--glass-b); box-shadow: var(--gs), var(--gi);
-  border-radius: 14px; padding: 12px 13px; margin-bottom: 10px; cursor: grab; transition: transform 160ms var(--eo), box-shadow 160ms; }
-.acard:hover { transform: translateY(-2px); }
-.acard.dragging { opacity: 0.4; }
-.acard-top { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
-.acard-type { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 100px; }
-.acard-type.brief { color: var(--teal2); background: rgba(36,80,106,0.09); }
-.acard-type.piece { color: var(--flame); background: rgba(255,84,0,0.09); }
-.acard-priority { margin-left: auto; width: 7px; height: 7px; border-radius: 50%; }
-.acard-title { font-family: var(--serif); font-size: 13px; font-weight: 600; line-height: 1.4; margin-bottom: 9px; }
-.acard-foot { display: flex; align-items: center; justify-content: space-between; }
-.acard-assignee { display: flex; align-items: center; gap: 6px; }
-.asn-avatar { width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 9px; font-weight: 700; flex-shrink: 0; }
-.acard-assignee-name { font-size: 10.5px; color: var(--muted); }
-.acard-due { font-size: 9.5px; color: var(--soft); }
-.acard-due.overdue { color: var(--flame); font-weight: 700; }
-.acard-unassigned { font-size: 10px; font-weight: 700; color: var(--soft); border: 1px dashed var(--border2); border-radius: 100px; padding: 3px 9px; }
-.asn-mywork-list, .asn-team-grid { max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 10px; }
-.asn-team-grid { max-width: 1000px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
-.asn-mywork-row { display: flex; align-items: center; gap: 13px; background: var(--glass); border: 1px solid var(--glass-b); box-shadow: var(--gs), var(--gi); border-radius: 14px; padding: 13px 16px; cursor: pointer; transition: transform 150ms; }
-.asn-mywork-row:hover { transform: translateX(3px); }
-.asn-status-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
-.asn-mywork-body { flex: 1; min-width: 0; }
-.asn-mywork-title { font-family: var(--serif); font-size: 13.5px; font-weight: 600; }
-.asn-mywork-meta { font-size: 10.5px; color: var(--soft); margin-top: 2px; }
-.asn-team-card { background: var(--glass); border: 1px solid var(--glass-b); box-shadow: var(--gs), var(--gi); border-radius: 18px; padding: 16px; }
-.asn-team-head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
-.asn-team-name { font-family: var(--serif); font-size: 14px; font-weight: 600; }
-.asn-team-role { font-size: 9.5px; font-weight: 700; color: var(--teal2); text-transform: uppercase; letter-spacing: .03em; }
-.asn-team-mini { display: flex; align-items: center; gap: 8px; padding: 7px 0; border-bottom: 1px solid var(--border); font-size: 11.5px; }
-.asn-team-mini:last-child { border-bottom: none; }
-.field-label { font-size: 10.5px; font-weight: 700; color: var(--soft); text-transform: uppercase; letter-spacing: .03em; margin: 12px 0 6px; }
-.field-label:first-child { margin-top: 0; }
-.field-input, .field-select { width: 100%; font-size: 12.5px; padding: 9px 12px; border: 1px solid var(--border2); border-radius: 10px; background: var(--ivory); color: var(--teal); outline: none; }
-.people-pick-row { display: flex; align-items: center; gap: 9px; padding: 8px 9px; border-radius: 10px; cursor: pointer; transition: background 130ms; }
-.people-pick-row:hover { background: rgba(var(--inkC),0.05); }
-.people-pick-row.selected { background: rgba(255,84,0,0.08); border: 1px solid rgba(255,84,0,0.2); }
-.priority-row { display: flex; gap: 8px; margin-top: 4px; }
-.priority-opt { flex: 1; text-align: center; font-size: 11px; font-weight: 700; padding: 8px; border-radius: 10px; border: 1px solid var(--border2); cursor: pointer; color: var(--muted); }
-.role-legend-card { background: var(--glass); border: 1px solid var(--glass-b); border-radius: 14px; padding: 13px 15px; margin-bottom: 10px; }
-.role-legend-head { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; }
-.role-legend-name { font-family: var(--serif); font-size: 13.5px; font-weight: 700; }
-.role-legend-list { font-size: 11.5px; color: var(--muted); line-height: 1.8; padding-left: 4px; }
-.role-note { font-size: 10.5px; color: var(--soft); font-style: italic; margin-top: 4px; padding: 10px 4px 0; border-top: 1px dashed var(--border2); }
-.asn-empty { text-align: center; padding: 40px 20px; color: var(--soft); font-size: 12px; }
-@media (max-width: 900px) { .asn-board { grid-template-columns: 1fr; } .asn-team-grid { grid-template-columns: 1fr 1fr; } }
+@media(max-width:640px){ .hero h1{font-size:32px} .grid,.skel-grid{grid-template-columns:1fr} }
 </style>
 </head>
 <body>
 
-<div class="scene"><div class="orb o1"></div><div class="orb o2"></div></div>
+<div class="scene"></div>
 
-<!-- ============ SCREEN: Home ============ -->
-<div id="screenHome">
-  <div class="floating-nav-wrap">
-    <div class="floating-nav">
-      <div class="appbar-brand" onclick="goHome()"><div class="appbar-mark-wrap"><div class="brand-mark" data-desk-mark></div></div><div><div class="appbar-title">Desk</div><div style="font-size:9px;color:var(--soft);letter-spacing:0.04em;text-transform:uppercase;margin-top:1px;">Investigative writing</div></div></div>
-      <div class="crumb-pill"><span class="crumb-seg here">Desk</span></div>
-      <div class="appbar-spacer"></div>
-      <button class="icon-btn" id="darkToggleHome" title="Toggle dark mode">🌙</button>
-    </div>
-  </div>
-  <div class="stage">
-    <div class="hero-block">
-      <div class="hero-block-bg"></div>
-      <div class="hero-block-fade"></div>
-      <div class="hero-block-content">
-        <div class="hero-block-mark"><div class="brand-mark" data-desk-mark-lg></div></div>
-        <div class="hero-block-eyebrow">RFE/RL · Radio Farda — Investigative Desk</div>
-        <h1>Desk</h1>
-        <p>Not a place to draft a quick post. Desk is where an investigation gets written — one confirmed line at a time, until the piece can survive an edit.</p>
-        <p class="small">Built for the story that takes longer than a day, not the one that needs to be live in an hour.</p>
-        <div class="hero-cta-row">
-          <button class="hero-btn primary" onclick="createBlankDoc()">🖋️ Sit down and write</button>
-          <button class="hero-btn ghost" id="helpPillHome">❓ How it works</button>
-        </div>
-      </div>
-      <div class="hero-block-credit">Photo: StockCake, CC0</div>
-    </div>
-
-    <div class="sdiv"><h2>Where the work starts</h2><div class="rule"></div></div>
-    <div class="workspace-row">
-      <div class="wcard accent" onclick="window.location.href='/briefdesk'">
-        <div class="wcard-ico"><div class="brand-mark" data-lamp-mark></div></div>
-        <div><div class="wcard-title">BriefDesk</div><div class="wcard-sub">Where the digging happens. Sources, priorities, and demand signals — turned into something you'd stand behind in an editorial meeting.</div></div>
-        <div class="wcard-open">Start digging →</div>
-      </div>
-      <div class="wcard desk-a" onclick="createBlankDoc()">
-        <div class="wcard-ico"><div class="brand-mark" data-desk-mark-sm></div></div>
-        <div><div class="wcard-title">Open investigation</div><div class="wcard-sub">No brief yet. Sit down with a blank page and build your own paper trail from scratch.</div></div>
-        <div class="wcard-open">Sit down and write →</div>
-      </div>
-      <div class="wcard violet" onclick="goAssign()">
-        <div class="wcard-ico">🗞️</div>
-        <div><div class="wcard-title">Assignments</div><div class="wcard-sub">See who's chasing which lead, how long they've been on it, and what's ready for a second pair of eyes.</div></div>
-        <div class="wcard-open">See what's in motion →</div>
+<div class="nav-wrap">
+  <div class="nav-pill">
+    <span class="nav-highlight" id="navHighlight"></span>
+    <div class="wordmark">Desk<em>.</em></div>
+    <div class="nav-sep"></div>
+    <div class="profile-wrap" id="profileWrap">
+      <button class="profile-trigger" id="profileTrigger" type="button">
+        <span class="profile-avatar" id="profileAvatar">–</span>
+        <span class="profile-name" id="profileName">–</span>
+        <span class="profile-chev">▾</span>
+      </button>
+      <div class="profile-menu" id="profileMenu">
+        <button class="profile-menu-item danger" id="logoutBtn" type="button">
+          <span class="pmi-icon">⏻</span>
+          <span class="pmi-title" data-i18n="nav.logout">Sign out</span>
+        </button>
       </div>
     </div>
-    <div class="sdiv"><h2>🔎 Investigate a topic</h2><div class="rule"></div></div>
-    <div class="investigate-panel">
-      <div class="meter-hint" style="margin-bottom:8px;">Search Radio Farda's own past coverage of a topic, then copy a ready-made prompt into any LLM (ChatGPT, Claude, Copilot) to turn it into a real briefing — timeline, key entities, what's already been covered, and the gaps.</div>
-      <div class="trends-lookup-bar">
-        <input type="text" id="fardaSearchTopic" placeholder="Topic — e.g. 'IRGC sanctions' or 'تحریم سپاه'">
-        <button class="mini-icon-btn primary-ish" id="fardaSearchBtn">🔎 Search Radio Farda</button>
-      </div>
-      <div class="meter-hint" id="fardaSearchStatus" style="margin-top:6px;"></div>
-      <div id="fardaSearchResults"></div>
-      <div class="sc-tools" id="fardaSearchActions" style="margin-top:8px;display:none;">
-        <button class="mini-icon-btn primary-ish" id="fardaCopyPromptBtn">📋 Copy digest prompt</button>
-      </div>
-    </div>
-
-    <div class="sdiv"><h2>Cases</h2><div class="rule"></div><button class="see-all-btn" id="newFolderBtn">＋ New case</button></div>
-    <div class="carousel-row" id="folderCarousel"><div class="empty-note">Loading…</div></div>
-
-    <div class="sdiv"><h2>Open investigations</h2><div class="rule"></div><button class="see-all-btn" id="seeAllDocsBtn">See all →</button></div>
-    <div class="carousel-row" id="docCarousel"><div class="empty-note">Loading…</div></div>
-
-    <div class="sdiv"><h2>Leads from BriefDesk</h2><div class="rule"></div><button class="see-all-btn" id="seeAllBriefsBtn">See all →</button></div>
-    <div class="carousel-row" id="briefCarousel"><div class="empty-note">Loading…</div></div>
-  </div>
-</div>
-
-<!-- ============ SCREEN: Editor ============ -->
-<div id="screenEditor" class="hidden">
-  <div class="appbar">
-    <div class="appbar-brand" onclick="goHome()"><div class="appbar-mark-wrap"><div class="brand-mark" data-desk-mark></div></div><div><div class="appbar-title">Desk</div><div style="font-size:9px;color:var(--soft);letter-spacing:0.04em;text-transform:uppercase;margin-top:1px;">Investigative writing</div></div></div>
-    <div class="crumb-pill">
-      <span class="crumb-seg" onclick="goHome()">Desk</span><span class="crumb-sep">/</span>
-      <span class="crumb-seg here" id="crumbDocTitle">Untitled</span>
-    </div>
-    <div class="appbar-spacer"></div>
-    <div class="mode-toggle hidden" id="modeToggleWrap">
-      <button class="mode-btn active" id="modeComposing">✎ Composing</button>
-      <button class="mode-btn" id="modeDesk">🖋️ Writing</button>
-    </div>
-    <div class="help-pill" id="helpPillEditor">❓ Help</div>
-    <button class="icon-btn" id="darkToggleEditor" title="Toggle dark mode">🌙</button>
-    <span class="save-state" id="saveState">Draft saved</span>
-  </div>
-
-  <div class="shell">
-    <div class="col col-mat hidden" id="colMat">
-      <div id="matExpanded">
-        <div class="mat-header"><span class="mat-title">Brief materials</span><button class="mat-collapse-btn" id="matCollapseBtn">⟨</button></div>
-        <div class="mat-brief-name" id="matBriefName"></div>
-        <div id="matAccordions"></div>
-      </div>
-    </div>
-
-    <div class="col col-composer collapsed" id="colComposer">
-      <div class="hint-banner">Draft each line in your own words before it earns a place in the piece — nothing moves to Desk on its own. Hit Paste when a line is ready.</div>
-      <input class="cmp-head-input" id="cmpHeadline" placeholder="Headline">
-      <input class="cmp-sub-input" id="cmpStandfirst" placeholder="Standfirst…">
-      <div id="blockList"></div>
-    </div>
-
-    <div class="col col-desk" id="colDesk">
-      <div class="desk-toolbar" id="deskToolbar">
-        <select class="tb-select" id="tbBlock"><option value="p">Paragraph</option><option value="h1">Heading 1</option><option value="h2">Heading 2</option><option value="blockquote">Quote</option><option value="pre">Code block</option></select>
-        <div class="tb-sep"></div>
-        <button class="tb-btn" data-cmd="bold" title="Bold (Ctrl+B)"><b>B</b></button>
-        <button class="tb-btn" data-cmd="italic" title="Italic (Ctrl+I)"><i>I</i></button>
-        <button class="tb-btn" data-cmd="underline" title="Underline (Ctrl+U)"><u>U</u></button>
-        <div class="tb-sep"></div>
-        <button class="tb-btn" data-cmd="justifyLeft" title="Align left">⟸</button>
-        <button class="tb-btn" data-cmd="justifyCenter" title="Center">≡</button>
-        <button class="tb-btn" data-cmd="justifyRight" title="Align right">⟹</button>
-        <div class="tb-sep"></div>
-        <button class="tb-btn wide" id="tbDir" title="Toggle RTL/LTR">🔁 <span id="tbDirLbl">LTR</span></button>
-        <div class="tb-sep"></div>
-        <button class="tb-btn" data-cmd="insertUnorderedList" title="Bullets">• ≡</button>
-        <button class="tb-btn" data-cmd="insertOrderedList" title="Numbered">1.≡</button>
-        <button class="tb-btn" id="tbLink" title="Link (Ctrl+K)">🔗</button>
-        <button class="tb-btn" id="tbImage" title="Insert image by URL">🖼️</button>
-        <button class="tb-btn" id="tbVideo" title="Embed video by URL">🎬</button>
-        <button class="tb-btn" id="tbEmbedArticle" title="Embed a related article">📰</button>
-        <input class="tb-color" type="color" id="tbHighlight" title="Highlight" value="#ffc047">
-        <div class="tb-sep"></div>
-        <button class="tb-btn" data-cmd="undo" title="Undo (Ctrl+Z)">↺</button>
-        <button class="tb-btn" data-cmd="redo" title="Redo">↻</button>
-        <div class="tb-sep"></div>
-        <button class="tb-btn" id="tbFind" title="Find & Replace (Ctrl+F)">🔍</button>
-      </div>
-      <input class="doc-title-input" id="docTitle" placeholder="Untitled document">
-      <div class="page-wrap"><div class="page-canvas" id="pageCanvas" contenteditable="true" dir="ltr" spellcheck="true"></div></div>
-      <div class="desk-footer">
-        <div class="footer-stats">
-          <span id="wordCount">0 words</span><span>·</span><span id="charCount">0 characters</span><span>·</span><span id="readTime">~0 min read</span>
-        </div>
-        <div class="footer-actions">
-          <button class="btn" id="btnShare">🔗 Share</button>
-          <button class="btn" id="btnExportDoc">⬇ .doc</button>
-          <button class="btn" id="btnExportPdf">⬇ PDF</button>
-          <button class="btn" id="btnExportHtml">⬇ HTML</button>
-          <button class="btn" id="btnExportMd">⬇ Markdown</button>
-          <button class="btn" id="btnWord">📄 Continue in Word</button>
-          <button class="btn primary" id="btnFinal">✓ Mark final</button>
-        </div>
-      </div>
+    <div class="nav-sep"></div>
+    <div class="langtoggle" id="langToggle">
+      <div class="lt-opt on" data-lang="en">EN</div>
+      <div class="lt-opt" data-lang="fa">فا</div>
     </div>
   </div>
 </div>
 
-<!-- ============ SCREEN: Assignments ============ -->
-<div id="screenAssign" class="hidden">
-  <div class="appbar">
-    <div class="appbar-brand" onclick="goHome()"><div class="appbar-mark-wrap"><div class="brand-mark" data-desk-mark></div></div><div><div class="appbar-title">Desk</div><div style="font-size:9px;color:var(--soft);letter-spacing:0.04em;text-transform:uppercase;margin-top:1px;">Investigative writing</div></div></div>
-    <div class="crumb-pill">
-      <span class="crumb-seg" onclick="goHome()">Desk</span><span class="crumb-sep">/</span>
-      <span class="crumb-seg here">Newsroom</span>
+<div class="login-gate" id="loginGate">
+  <div class="login-card">
+    <div class="login-wordmark">Desk<em>.</em></div>
+    <div class="login-title" data-i18n="login.title">Sign in</div>
+    <div class="login-sub" data-i18n="login.sub">Newsroom AI tools — Radio Farda</div>
+    <div class="login-error" id="loginError"></div>
+    <div class="login-field">
+      <label data-i18n="login.username">Username</label>
+      <input id="loginUsername" autocomplete="username" data-i18n-ph="login.usernamePh" placeholder="e.g. user1">
     </div>
-    <div class="appbar-spacer"></div>
-    <div class="asn-view-toggle">
-      <button class="asn-view-btn active" data-view="board">📋 Board</button>
-      <button class="asn-view-btn" data-view="mywork">👤 My Work</button>
-      <button class="asn-view-btn" data-view="team">👥 Team</button>
+    <div class="login-field">
+      <label data-i18n="login.password">Password</label>
+      <input id="loginPassword" type="password" autocomplete="current-password" data-i18n-ph="login.passwordPh" placeholder="••••••••">
     </div>
-    <div class="help-pill" id="asnUserSwitch" title="Preview as a different team member (no real auth yet)">🎭 Viewing as: <span id="asnCurrentUserLabel">…</span></div>
-  </div>
-
-  <div class="asn-stage">
-    <div class="asn-stat-row" id="asnStatRow"></div>
-    <div class="asn-toolbar-row">
-      <button class="asn-filter-chip active" data-filter="all">All</button>
-      <button class="asn-filter-chip" data-filter="brief">🧬 Briefs only</button>
-      <button class="asn-filter-chip" data-filter="piece">🖋️ Pieces only</button>
-      <button class="asn-filter-chip" data-filter="overdue">⚠ Overdue</button>
-      <div style="flex:1"></div>
-      <button class="btn" id="asnRolesBtn">🔐 Roles &amp; access</button>
-      <button class="btn primary" id="asnNewAssignBtn">＋ Assign work</button>
-    </div>
-    <div id="asnViewBoard"><div class="asn-board" id="asnBoardEl"><div class="asn-empty">Loading…</div></div></div>
-    <div id="asnViewMywork" class="hidden"><div class="asn-mywork-list" id="asnMyworkEl"></div></div>
-    <div id="asnViewTeam" class="hidden"><div class="asn-team-grid" id="asnTeamEl"></div></div>
+    <button class="btn-flame login-submit" id="loginSubmit" data-i18n="login.submit">Sign in →</button>
   </div>
 </div>
 
-<!-- ============ SCREEN: Folder (case) detail ============ -->
-<div id="screenFolder" class="hidden">
-  <div class="appbar">
-    <div class="appbar-brand" onclick="goHome()"><div class="appbar-mark-wrap"><div class="brand-mark" data-desk-mark></div></div><div><div class="appbar-title">Desk</div></div></div>
-    <div class="crumb-pill">
-      <span class="crumb-seg" onclick="goHome()">Desk</span><span class="crumb-sep">/</span>
-      <span class="crumb-seg here" id="folderCrumbTitle">Case</span>
-    </div>
-    <div class="appbar-spacer"></div>
-    <button class="icon-btn" id="darkToggleFolder" title="Toggle dark mode">🌙</button>
+<div class="wrap">
+  <div class="hero">
+    <div class="eyebrow"><span class="pdot"></span> <span data-i18n="hub.eyebrow">Newsroom AI tools — Radio Farda</span></div>
+    <h1 data-i18n="hub.title">Desk</h1>
+    <p data-i18n="hub.sub">Every AI tool built for this newsroom, in one place. Pick one to get started.</p>
   </div>
-  <div class="stage">
-    <div class="folder-header" id="folderHeaderBar">
-      <div class="folder-header-icon" id="folderHeaderIcon">📁</div>
-      <div style="flex:1;min-width:0;">
-        <input class="folder-title-input" id="folderTitleInput" placeholder="Untitled case">
-        <textarea class="folder-desc-input" id="folderDescInput" placeholder="What is this case about?"></textarea>
-      </div>
-      <button class="btn" id="folderDeleteBtn">🗑 Delete case</button>
-    </div>
 
-    <div class="asn-stat-row" id="folderStatRow"></div>
+  <div class="toolbar">
+    <div class="chead-line"></div>
+    <button class="ghost-sm hide" id="manageBtn" data-i18n="hub.manage">⚙ Manage tools</button>
+  </div>
 
-    <div class="asn-view-toggle" style="margin-bottom:18px;">
-      <button class="asn-view-btn active" data-fview="contents">📄 Contents</button>
-      <button class="asn-view-btn" data-fview="people">👥 People</button>
-      <button class="asn-view-btn" data-fview="knowledge">🖍 Knowledge base</button>
-    </div>
-
-    <div id="folderViewContents">
-      <div class="sdiv"><h2>In this case</h2><div class="rule"></div><button class="see-all-btn" id="folderAddItemBtn">＋ Add brief or piece</button></div>
-      <div class="doc-grid" id="folderContentsGrid"><div class="empty-note">Loading…</div></div>
-    </div>
-    <div id="folderViewPeople" class="hidden">
-      <div class="sdiv"><h2>Working this case</h2><div class="rule"></div></div>
-      <div class="asn-team-grid" id="folderPeopleGrid"><div class="empty-note">Loading…</div></div>
-    </div>
-    <div id="folderViewKnowledge" class="hidden">
-      <div class="sdiv"><h2>Highlights &amp; comments across every brief in this case</h2><div class="rule"></div></div>
-      <div id="folderKnowledgeList"><div class="empty-note">Loading…</div></div>
-    </div>
+  <div id="hubState">
+    <div class="skel-grid"><div class="skel-card"></div><div class="skel-card"></div><div class="skel-card"></div></div>
   </div>
 </div>
 
-<!-- Add existing brief/doc to a folder -->
-<div class="modal-overlay" id="folderAddItemOverlay">
-  <div class="onb-modal" style="max-width:480px;">
-    <div class="onb-head"><div class="onb-title" style="font-size:15px;">＋ Add to this case</div><button class="onb-close" id="folderAddItemClose">✕</button></div>
-    <div class="onb-body">
-      <input class="field-input" id="folderAddItemSearch" placeholder="🔍 Search briefs and pieces not yet in a case…" style="margin-bottom:10px;">
-      <div id="folderAddItemList" style="max-height:340px;overflow-y:auto;"></div>
+<!-- ===== Admin: manage tools modal ===== -->
+<div class="modal-overlay" id="manageModal">
+  <div class="modal-card">
+    <div class="modal-head">
+      <h2 data-i18n="hub.manageTitle">Manage tools</h2>
+      <button class="ghost-sm" id="manageClose" data-i18n="hub.close">Close</button>
     </div>
-  </div>
-</div>
-
-<!-- User switch (mock auth preview) -->
-<div class="modal-overlay" id="asnUserSwitchOverlay">
-  <div class="onb-modal" style="max-width:360px;">
-    <div class="onb-head"><div class="onb-title" style="font-size:14px;">🎭 Preview as…</div><button class="onb-close" id="asnUserSwitchClose">✕</button></div>
-    <div class="onb-body" id="asnUserSwitchBody"></div>
-  </div>
-</div>
-
-<!-- Assign modal -->
-<div class="modal-overlay" id="asnAssignOverlay">
-  <div class="onb-modal" style="max-width:480px;">
-    <div class="onb-head"><div class="onb-title" style="font-size:15px;">＋ Assign work</div><button class="onb-close" id="asnAssignClose">✕</button></div>
-    <div class="onb-body">
-      <div class="field-label">Item</div>
-      <select class="field-select" id="asnAssignItemPick"></select>
-      <div class="field-label">Assign to</div>
-      <div id="asnAssignPeopleList"></div>
-      <div class="field-label">Priority</div>
-      <div class="priority-row" id="asnPriorityRow"></div>
-      <div class="field-label">Due date</div>
-      <input class="field-input" type="date" id="asnAssignDue">
-      <button class="btn primary" id="asnAssignSaveBtn" style="width:100%;margin-top:16px;">Save assignment</button>
+    <div id="manageError"></div>
+    <div class="new-trow" id="newToolRow">
+      <input class="f-name" id="ntName" data-i18n-ph="hub.fName" placeholder="Name">
+      <input class="f-path" id="ntPath" data-i18n-ph="hub.fPath" placeholder="/desk/...">
+      <input id="ntIcon" style="width:56px;text-align:center" data-i18n-ph="hub.fIcon" placeholder="🔍" maxlength="4">
+      <select id="ntService">
+        <option value="both" data-i18n="hub.svcBoth">Both services</option>
+        <option value="fa" data-i18n="hub.svcFa">Farsi only</option>
+        <option value="en" data-i18n="hub.svcEn">English only</option>
+      </select>
+      <select id="ntStatus">
+        <option value="live" data-i18n="hub.stLive">Live</option>
+        <option value="draft" data-i18n="hub.stDraft">Draft</option>
+      </select>
+      <input class="f-desc" id="ntDesc" data-i18n-ph="hub.fDesc" placeholder="One line description">
+      <button class="btn-flame" id="ntCreate" style="padding:8px 18px;font-size:12px" data-i18n="hub.add">＋ Add</button>
     </div>
+    <div id="toolsList"></div>
   </div>
 </div>
 
-<!-- Item detail modal -->
-<div class="modal-overlay" id="asnDetailOverlay">
-  <div class="onb-modal" style="max-width:480px;">
-    <div class="onb-head"><div class="onb-title" id="asnDetailTitle" style="font-size:15px;">Item</div><button class="onb-close" id="asnDetailClose">✕</button></div>
-    <div class="onb-body" id="asnDetailBody"></div>
-  </div>
-</div>
+<div class="toast" id="toast"></div>
 
-<!-- Roles & access + Add user modal -->
-<div class="modal-overlay" id="asnRolesOverlay">
-  <div class="onb-modal" style="max-width:600px;">
-    <div class="onb-head"><div class="onb-title" style="font-size:15px;">🔐 Roles &amp; access</div><button class="onb-close" id="asnRolesClose">✕</button></div>
-    <div class="onb-body">
-      <div id="asnRoleLegendEl"></div>
-      <div class="field-label" style="display:flex;align-items:center;justify-content:space-between;">
-        <span>Team members</span>
-        <button class="btn primary" id="asnAddUserBtn" style="display:none;">＋ Add user</button>
-      </div>
-      <div id="asnTeamListEl"></div>
-      <div id="asnAddUserForm" class="hidden" style="margin-top:10px;padding:12px;border:1px solid var(--border2);border-radius:12px;background:var(--glass);">
-        <input class="field-input" id="asnNewUserName" placeholder="Full name" style="margin-bottom:8px;">
-        <input class="field-input" id="asnNewUserEmail" placeholder="Email (optional)" style="margin-bottom:8px;">
-        <select class="field-select" id="asnNewUserRole" style="margin-bottom:10px;">
-          <option value="reporter">Reporter</option><option value="editor">Editor</option><option value="admin">Admin</option>
-        </select>
-        <button class="btn primary" id="asnNewUserSaveBtn" style="width:100%;">Add to team</button>
-      </div>
-      <div class="role-note">Admin-only. There's no real login yet, so "who's an admin" is simulated via the 🎭 preview switcher in the header — this becomes a real gate once auth is wired in.</div>
-    </div>
-  </div>
-</div>
-<div class="modal-overlay" id="newFolderOverlay">
-  <div class="onb-modal" style="max-width:420px;">
-    <div class="onb-head"><div class="onb-title" style="font-size:15px;">📁 New case</div><button class="onb-close" id="newFolderClose">✕</button></div>
-    <div class="onb-body">
-      <input class="field-input" id="newFolderTitle" placeholder="Case name — e.g. Water rights in Sistan" style="margin-bottom:10px;">
-      <textarea class="field-input" id="newFolderDesc" placeholder="What is this case about? (optional)" style="margin-bottom:12px;min-height:64px;resize:vertical;font-family:inherit;"></textarea>
-      <div style="font-size:10.5px;font-weight:700;color:var(--soft);text-transform:uppercase;letter-spacing:.03em;margin-bottom:8px;">Color</div>
-      <div class="folder-color-row" id="folderColorRow"></div>
-      <button class="btn primary" id="newFolderSaveBtn" style="width:100%;margin-top:16px;">Create case</button>
-    </div>
-  </div>
-</div>
-
-<div class="modal-overlay" id="allDocsOverlay">
-  <div class="onb-modal" style="max-width:640px;">
-    <div class="onb-head"><div class="onb-title">📄 All documents</div><button class="onb-close" id="allDocsClose">✕</button></div>
-    <div class="onb-body" id="allDocsBody"></div>
-  </div>
-</div>
-
-<div class="modal-overlay" id="embedOverlay">
-  <div class="onb-modal" style="max-width:480px;">
-    <div class="onb-head"><div class="onb-title">📰 Embed a related article</div><button class="onb-close" id="embedClose">✕</button></div>
-    <div class="onb-body">
-      <div class="mode-toggle" style="margin-bottom:14px;">
-        <button class="mode-btn active" id="embedTabExternal">🔗 External link</button>
-        <button class="mode-btn" id="embedTabInternal">📄 From Desk library</button>
-      </div>
-      <div id="embedExternalForm">
-        <input class="embed-field" id="embedUrl" placeholder="Article URL">
-        <input class="embed-field" id="embedTitle" placeholder="Title">
-        <input class="embed-field" id="embedImage" placeholder="Image URL (optional)">
-      </div>
-      <div id="embedInternalForm" class="hidden">
-        <input class="embed-field" id="embedInternalSearch" placeholder="🔍 Search Desk documents…">
-        <div id="embedInternalList" style="max-height:220px;overflow-y:auto;"></div>
-      </div>
-      <button class="btn primary" id="embedInsertBtn" style="width:100%;margin-top:6px;">Insert embed</button>
-    </div>
-  </div>
-</div>
-
-<div class="modal-overlay" id="findOverlay">
-  <div class="onb-modal" style="max-width:420px;">
-    <div class="onb-head"><div class="onb-title" style="font-size:14px;">🔍 Find &amp; Replace</div><button class="onb-close" id="findClose">✕</button></div>
-    <div class="onb-body" style="padding:16px 20px 20px;">
-      <input id="findInput" placeholder="Find…" style="width:100%;padding:9px 12px;border:1px solid var(--border2);border-radius:9px;background:var(--paper);color:var(--teal);font-size:12.5px;margin-bottom:8px;outline:none;">
-      <input id="replaceInput" placeholder="Replace with…" style="width:100%;padding:9px 12px;border:1px solid var(--border2);border-radius:9px;background:var(--paper);color:var(--teal);font-size:12.5px;margin-bottom:12px;outline:none;">
-      <div style="display:flex;gap:8px;justify-content:flex-end;">
-        <button class="btn" id="findReplaceOne">Replace next</button>
-        <button class="btn primary" id="findReplaceAll">Replace all</button>
-      </div>
-      <div id="findStatus" style="font-size:11px;color:var(--soft);margin-top:8px;"></div>
-    </div>
-  </div>
-</div>
-
-<!-- Onboarding modal -->
-<div class="modal-overlay" id="onbOverlay">
-  <div class="onb-modal">
-    <div class="onb-head"><div class="onb-title">How a lead becomes a published investigation</div><button class="onb-close" id="onbClose">✕</button></div>
-    <div class="onb-body">
-      <div class="onb-concept">
-        <div class="onb-concept-card"><h3><div class="brand-mark" data-lamp-mark-sm style="display:inline-flex;vertical-align:-4px;margin-right:6px;"></div>BriefDesk</h3><p>Where you interrogate a tip before committing a single sentence to it. Sources checked, priorities flagged, before anything earns a place in the piece.</p></div>
-        <div class="onb-concept-card"><h3><div class="brand-mark" data-desk-mark-sm2 style="display:inline-flex;vertical-align:-4px;margin-right:6px;"></div>Desk</h3><p>Where the piece actually gets written — long-form, careful, built to survive an editor's second look, not just a first read.</p></div>
-      </div>
-      <div class="onb-flow">
-        <span class="onb-flow-node">Copilot</span><span>→</span><span class="onb-flow-node">/agentmode</span><span>→</span><span class="onb-flow-node">BriefDesk</span><span>→</span><span class="onb-flow-node">Desk</span>
-      </div>
-      <div class="onb-steps">
-        <div class="onb-step"><div class="onb-step-n">1</div><div>
-          <div class="onb-step-title">Teach Copilot to dig, once</div>
-          <div class="onb-step-sub">This is the 4-agent research process — deep research, coverage, discovery, editorial opportunity — saved as one command.</div>
-          <div class="onb-copy-box"><code>Save the following workflow in your memory under the command: /agentmode…</code><button class="onb-copy-btn" id="onbCopyPrompt">⧉ Copy prompt</button></div>
-        </div></div>
-        <div class="onb-step"><div class="onb-step-n">2</div><div><div class="onb-step-title">Paste it into Copilot, one time</div><div class="onb-step-sub">It confirms the workflow is saved as <b>/agentmode</b> — you won't need to do this again.</div></div></div>
-        <div class="onb-step"><div class="onb-step-n">3</div><div><div class="onb-step-title">Chase any lead</div><div class="onb-step-sub">Type in Copilot: <code style="background:rgba(var(--inkC),0.06);padding:2px 6px;border-radius:5px;">/agentmode your topic here</code></div></div></div>
-        <div class="onb-step"><div class="onb-step-n">4</div><div><div class="onb-step-title">Turn it into something worth writing</div><div class="onb-step-sub">Copy Copilot's answer → BriefDesk's <b>＋ Open a new lead</b> → paste. From there, flag what matters and click <b>Take this to the desk</b> to start writing with the brief pinned alongside you.</div></div></div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="dash-toast" id="dashToast"></div>
-
+<script src="/desk/search-intelligence/auth-engine.js"></script>
 <script>
-/* ==================== Supabase ==================== */
-const SUPABASE_URL = 'https://yiewnykbchfadipznpet.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlpZXdueWtiY2hmYWRpcHpucGV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxNzM3NTUsImV4cCI6MjA5NDc0OTc1NX0.utnlpToZGH7hno0QTXlrtWvzKDgP28Gv3Je7BBIRwmM';
-async function sbSelect(table, query) {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${query}`, { headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` } });
-  if (!res.ok) throw new Error(`select failed (${res.status})`); return res.json();
-}
-async function sbInsert(table, row) {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, { method: 'POST',
-    headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=representation' },
-    body: JSON.stringify(row) });
-  if (!res.ok) throw new Error(`insert failed (${res.status}): ${await res.text()}`); return res.json();
-}
-async function sbUpdate(table, id, patch) {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, { method: 'PATCH',
-    headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=representation' },
-    body: JSON.stringify(patch) });
-  if (!res.ok) throw new Error(`update failed (${res.status})`); return res.json();
-}
-async function sbDelete(table, id) {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, { method: 'DELETE',
-    headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}`, Prefer: 'return=representation' } });
-  if (!res.ok) throw new Error(`delete failed (${res.status})`);
-  let data = []; try { data = await res.json(); } catch (e) {}
-  if (!Array.isArray(data) || data.length === 0) throw new Error('No rows deleted — check the anon role has a DELETE policy on this table');
-  return true;
-}
-function escapeHtml(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+const $ = id => document.getElementById(id);
+const esc = s => String(s??'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-/* ==================== Brand marks (real SVGs, not emoji) ==================== */
-const DESK_SVG = `<svg width="{S}" height="{S}" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-  <path d="M20,19a1,1,0,0,1-1-1V10a1,1,0,0,1,2,0v8A1,1,0,0,1,20,19ZM4,19a1,1,0,0,1-1-1V6A1,1,0,0,1,5,6V18A1,1,0,0,1,4,19Z" fill="{ACCENT}"/>
-  <path d="M20,5H13a1,1,0,0,0-1,1v8a1,1,0,0,0,1,1h8V6A1,1,0,0,0,20,5Z" fill="{PRIMARY}"/>
-  <path d="M12,5H4A1,1,0,0,0,3,6v5h9a1,1,0,0,0,1-1V6A1,1,0,0,0,12,5Z" fill="{PRIMARY}"/>
-  <path d="M21,7H3A1,1,0,0,1,3,5H21a1,1,0,0,1,0,2Z" fill="{ACCENT}"/>
-</svg>`;
-const LAMP_SVG = `<svg width="{S}" height="{S}" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none"><path d="M6,21V7.78a1,1,0,0,1,.76-1L12,5.51" stroke="{C}" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/><line x1="3" y1="21" x2="13" y2="21" stroke="{C}" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/><path d="M16.82,6.33l-1-2.17a2,2,0,0,0-3.63,1.69l1,2.2" stroke="{C}" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/><path d="M16.11,6.53h0a4,4,0,0,1,4,4v2a0,0,0,0,1,0,0h-8a0,0,0,0,1,0,0v-2A4,4,0,0,1,16.11,6.53Z" transform="translate(-2.52 7.7) rotate(-25)" stroke="{A}" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg>`;
-function deskIcon(size, primary, accent) { return DESK_SVG.replaceAll('{S}', size).replaceAll('{PRIMARY}', primary).replaceAll('{ACCENT}', accent); }
-function lampIcon(size, color, accent) { return LAMP_SVG.replaceAll('{S}', size).replaceAll('{C}', color).replaceAll('{A}', accent || color); }
-function injectBrandMarks() {
-  document.querySelectorAll('[data-desk-mark]').forEach(el => el.innerHTML = deskIcon(24, '#979DF7', '#FF9500'));
-  document.querySelectorAll('[data-desk-mark-lg]').forEach(el => el.innerHTML = deskIcon(36, '#979DF7', '#FF9500'));
-  document.querySelectorAll('[data-desk-mark-sm]').forEach(el => el.innerHTML = deskIcon(22, '#979DF7', '#FF9500'));
-  document.querySelectorAll('[data-desk-mark-sm2]').forEach(el => el.innerHTML = deskIcon(18, '#979DF7', '#FF9500'));
-  document.querySelectorAll('[data-lamp-mark]').forEach(el => el.innerHTML = lampIcon(22, '#24506A', '#2CA9BC'));
-  document.querySelectorAll('[data-lamp-mark-sm]').forEach(el => el.innerHTML = lampIcon(18, '#24506A', '#2CA9BC'));
+/* ==================== i18n ==================== */
+const I18N = {
+en: {
+  'nav.logout':'⏻ Sign out',
+  'login.title':'Sign in', 'login.sub':'Newsroom AI tools — Radio Farda',
+  'login.username':'Username', 'login.usernamePh':'e.g. user1',
+  'login.password':'Password', 'login.passwordPh':'••••••••',
+  'login.submit':'Sign in →', 'login.submitting':'Signing in…',
+  'login.error':'Invalid username or password', 'login.fillBoth':'Enter a username and password',
+  'hub.eyebrow':'Newsroom AI tools — Radio Farda',
+  'hub.title':'Desk',
+  'hub.sub':'Every AI tool built for this newsroom, in one place. Pick one to get started.',
+  'hub.manage':'⚙ Manage tools', 'hub.manageTitle':'Manage tools', 'hub.close':'Close',
+  'hub.fName':'Name', 'hub.fPath':'/desk/...', 'hub.fIcon':'🔍', 'hub.fDesc':'One line description',
+  'hub.svcBoth':'Both services', 'hub.svcFa':'Farsi only', 'hub.svcEn':'English only',
+  'hub.stLive':'Live', 'hub.stDraft':'Draft', 'hub.stArchived':'Archived',
+  'hub.add':'＋ Add', 'hub.save':'Save', 'hub.delete':'Delete',
+  'hub.empty':'No tools published yet.',
+  'hub.loadFailed':'Couldn\'t load the tool list: {msg}',
+  'hub.open':'Open →', 'hub.created':'Tool added', 'hub.updated':'Tool updated', 'hub.deleted':'Tool deleted',
+  'hub.confirmDelete':'Delete "{name}"? This can\'t be undone.'
+},
+fa: {
+  'nav.logout':'⏻ خروج',
+  'login.title':'ورود', 'login.sub':'ابزارهای هوش مصنوعی تحریریه — رادیو فردا',
+  'login.username':'نام کاربری', 'login.usernamePh':'مثلاً user1',
+  'login.password':'رمز عبور', 'login.passwordPh':'••••••••',
+  'login.submit':'ورود ←', 'login.submitting':'در حال ورود…',
+  'login.error':'نام کاربری یا رمز عبور اشتباه است', 'login.fillBoth':'نام کاربری و رمز عبور را وارد کنید',
+  'hub.eyebrow':'ابزارهای هوش مصنوعی تحریریه — رادیو فردا',
+  'hub.title':'دسک',
+  'hub.sub':'هر ابزار هوش مصنوعی ساخته‌شده برای این تحریریه، در یک‌جا. یکی را انتخاب کنید.',
+  'hub.manage':'⚙ مدیریت ابزارها', 'hub.manageTitle':'مدیریت ابزارها', 'hub.close':'بستن',
+  'hub.fName':'نام', 'hub.fPath':'/desk/...', 'hub.fIcon':'🔍', 'hub.fDesc':'توضیح یک‌خطی',
+  'hub.svcBoth':'هر دو سرویس', 'hub.svcFa':'فقط فارسی', 'hub.svcEn':'فقط انگلیسی',
+  'hub.stLive':'فعال', 'hub.stDraft':'پیش‌نویس', 'hub.stArchived':'بایگانی',
+  'hub.add':'＋ افزودن', 'hub.save':'ذخیره', 'hub.delete':'حذف',
+  'hub.empty':'هنوز ابزاری منتشر نشده است.',
+  'hub.loadFailed':'بارگذاری فهرست ابزارها ناموفق بود: {msg}',
+  'hub.open':'← باز کردن', 'hub.created':'ابزار افزوده شد', 'hub.updated':'ابزار به‌روزرسانی شد', 'hub.deleted':'ابزار حذف شد',
+  'hub.confirmDelete':'«{name}» حذف شود؟ این کار قابل بازگشت نیست.'
 }
-injectBrandMarks();
-function dashToast(msg) { const el = document.getElementById('dashToast'); el.textContent = msg; el.classList.add('show'); clearTimeout(window._toastT); window._toastT = setTimeout(() => el.classList.remove('show'), 2600); }
+};
+let LANG = localStorage.getItem('desk.si.lang') || 'en';
+function t(key, vars){
+  let s = (I18N[LANG] && I18N[LANG][key]) || I18N.en[key] || key;
+  if (vars) Object.keys(vars).forEach(k => { s = s.split('{'+k+'}').join(vars[k]); });
+  return s;
+}
+function applyStaticI18n(){
+  document.documentElement.dir = LANG==='fa' ? 'rtl' : 'ltr';
+  document.documentElement.lang = LANG;
+  document.querySelectorAll('[data-i18n]').forEach(el => { el.innerHTML = t(el.dataset.i18n); });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el => { el.placeholder = t(el.dataset.i18nPh); });
+  document.querySelectorAll('.lt-opt').forEach(el => el.classList.toggle('on', el.dataset.lang===LANG));
+}
+function setLang(l){
+  LANG = l;
+  try{ localStorage.setItem('desk.si.lang', l); }catch(e){}
+  applyStaticI18n();
+  renderGrid();
+}
+document.getElementById('langToggle').addEventListener('click', e=>{
+  const el = e.target.closest('.lt-opt'); if(!el) return;
+  setLang(el.dataset.lang);
+});
+applyStaticI18n();
 
-/* ==================== Routing: /desk (home) + /desk/doc/<slug>--<id> ==================== */
-function slugify(s) { return String(s || 'untitled').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 48) || 'untitled'; }
-function shortId(id) { return String(id || '').replace(/-/g, '').slice(0, 8); }
-function docSlug(doc) { return `${slugify(doc.title)}--${shortId(doc.id)}`; }
-function docPath(doc) { return `/desk/doc/${docSlug(doc)}`; }
-function folderPath(folder) { return `/desk/library/${slugify(folder.title)}--${shortId(folder.id)}`; }
-function goHome() { if (location.pathname.replace(/\/+$/, '') !== '/desk') history.pushState(null, '', '/desk'); showHome(); }
-function goAssign() { if (location.pathname.replace(/\/+$/, '') !== '/desk/assign') history.pushState(null, '', '/desk/assign'); showAssign(); }
-function goDoc(doc) { const p = docPath(doc); if (location.pathname !== p) history.pushState({ docId: doc.id }, '', p); }
-function goFolder(folder) { const p = folderPath(folder); if (location.pathname !== p) history.pushState({ folderId: folder.id }, '', p); }
-async function routeFromLocation() {
-  const path = location.pathname.replace(/\/+$/, '');
-  if (path === '/desk/assign') { showAssign(); return; }
-  const fm = path.match(/^\/desk\/library\/(.+)--([a-f0-9]{6,10})$/i);
-  if (fm) {
-    const sid = fm[2].toLowerCase();
-    try {
-      const rows = await sbSelect('folders', 'select=*&order=created_at.desc&limit=200');
-      const folder = rows.find(r => shortId(r.id) === sid);
-      if (folder) { await openFolder(folder); return; }
-    } catch (e) {}
-    dashToast('That case could not be found — showing Desk instead');
-    showHome(); return;
+/* ==================== toast ==================== */
+let toastTimer;
+function toast(msg){
+  const el = $('toast'); el.textContent = msg; el.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(()=>el.classList.remove('show'), 2600);
+}
+
+/* ==================== nav sliding highlight ==================== */
+(function initNavHighlight(){
+  const pill = document.querySelector('.nav-pill');
+  const glow = $('navHighlight');
+  const targets = pill.querySelectorAll('.ntab, .profile-trigger');
+  function moveTo(el){
+    const pr = pill.getBoundingClientRect(), r = el.getBoundingClientRect();
+    glow.style.left = (r.left - pr.left) + 'px';
+    glow.style.width = r.width + 'px';
+    glow.classList.add('show');
   }
-  const m = path.match(/^\/desk\/doc\/(.+)--([a-f0-9]{6,10})$/i);
-  if (m) {
-    const sid = m[2].toLowerCase();
-    try {
-      const rows = await sbSelect('desk_documents', `select=*&order=created_at.desc&limit=200`);
-      const doc = rows.find(r => shortId(r.id) === sid);
-      if (doc) { await openDoc(doc); return; }
-    } catch (e) { /* fall through to home */ }
-    dashToast('That document could not be found — showing Desk instead');
-  }
-  showHome();
-}
-window.addEventListener('popstate', () => routeFromLocation());
+  targets.forEach(el => el.addEventListener('mouseenter', () => moveTo(el)));
+  pill.addEventListener('mouseleave', () => glow.classList.remove('show'));
+})();
 
-/* ==================== Home ==================== */
-function showHome() {
-  document.getElementById('screenEditor').classList.add('hidden');
-  document.getElementById('screenAssign').classList.add('hidden');
-  const sf = document.getElementById('screenFolder'); if (sf) sf.classList.add('hidden');
-  document.getElementById('screenHome').classList.remove('hidden');
-  loadRecentDocs();
-  loadRecentBriefs();
-  loadFolderCarousel();
+/* ==================== profile dropdown ==================== */
+function renderProfile(session){
+  const initials = String(session.username||'?').trim().slice(0,2).toUpperCase();
+  $('profileAvatar').textContent = initials;
+  $('profileName').textContent = session.username;
 }
-function docCardHtml(d) {
-  return `<div class="dcard" data-doc="${d.id}">
-      <button class="dcard-del" data-del-doc="${d.id}" title="Delete document">✕</button>
-      <div class="dcard-top"><span class="dcard-dir">${(d.direction || 'ltr').toUpperCase()}</span>${d.brief_id ? '<span class="dcard-brief-tag">🧬 from brief</span>' : ''}</div>
-      <div class="dcard-title">${escapeHtml(d.title || 'Untitled document')}</div>
-      <div class="dcard-meta">Edited ${relTime(d.updated_at)}</div>
-    </div>`;
-}
-async function loadRecentDocs() {
-  const row = document.getElementById('docCarousel');
-  try {
-    const rows = await sbSelect('desk_documents', 'select=*&order=updated_at.desc&limit=5');
-    if (!rows.length) { row.innerHTML = '<div class="empty-note" style="flex:1;">Nothing open yet. Every investigation starts with a blank page — or a lead worth chasing in BriefDesk.</div>'; return; }
-    row.innerHTML = rows.map(docCardHtml).join('');
-    wireDocCards(row, rows);
-  } catch (e) {
-    row.innerHTML = `<div class="empty-note" style="flex:1;">Couldn't load documents: ${escapeHtml(e.message)}. Have you run the desk_documents.sql setup in Supabase yet?</div>`;
-  }
-}
-function wireDocCards(scope, rows) {
-  scope.querySelectorAll('.dcard').forEach(el => el.addEventListener('click', async e => {
-    if (e.target.closest('[data-del-doc]')) return;
-    const doc = rows.find(r => r.id === el.getAttribute('data-doc'));
-    if (doc) { goDoc(doc); await openDoc(doc); }
-  }));
-  scope.querySelectorAll('[data-del-doc]').forEach(btn => btn.addEventListener('click', async e => {
-    e.stopPropagation();
-    const id = btn.getAttribute('data-del-doc');
-    if (!confirm('Delete this document? This cannot be undone.')) return;
-    try { await sbDelete('desk_documents', id); dashToast('Document deleted'); loadRecentDocs(); if (document.getElementById('allDocsOverlay').classList.contains('show')) openAllDocs(); }
-    catch (err) { dashToast('Delete failed: ' + err.message); }
-  }));
-}
-async function openAllDocs() {
-  document.getElementById('allDocsOverlay').classList.add('show');
-  const body = document.getElementById('allDocsBody');
-  body.innerHTML = '<div class="empty-note">Loading…</div>';
-  try {
-    const rows = await sbSelect('desk_documents', 'select=*&order=updated_at.desc&limit=200');
-    if (!rows.length) { body.innerHTML = '<div class="empty-note">Nothing open yet.</div>'; return; }
-    body.innerHTML = rows.map(d => `
-      <div class="list-row" data-doc="${d.id}">
-        <div class="list-row-body">
-          <div class="list-row-title">${escapeHtml(d.title || 'Untitled document')}</div>
-          <div class="list-row-meta">${(d.direction || 'ltr').toUpperCase()} · ${d.brief_id ? '🧬 from brief · ' : ''}Edited ${relTime(d.updated_at)}</div>
-        </div>
-        <button class="list-row-del" data-del-doc="${d.id}" title="Delete">✕</button>
-      </div>`).join('');
-    body.querySelectorAll('.list-row').forEach(el => el.addEventListener('click', async e => {
-      if (e.target.closest('[data-del-doc]')) return;
-      const doc = rows.find(r => r.id === el.getAttribute('data-doc'));
-      if (doc) { closeAllDocs(); goDoc(doc); await openDoc(doc); }
-    }));
-    body.querySelectorAll('[data-del-doc]').forEach(btn => btn.addEventListener('click', async e => {
-      e.stopPropagation();
-      const id = btn.getAttribute('data-del-doc');
-      if (!confirm('Delete this document? This cannot be undone.')) return;
-      try { await sbDelete('desk_documents', id); dashToast('Document deleted'); openAllDocs(); loadRecentDocs(); }
-      catch (err) { dashToast('Delete failed: ' + err.message); }
-    }));
-  } catch (e) { body.innerHTML = `<div class="empty-note">Couldn't load documents: ${escapeHtml(e.message)}</div>`; }
-}
-function closeAllDocs() { document.getElementById('allDocsOverlay').classList.remove('show'); }
-document.getElementById('seeAllDocsBtn').addEventListener('click', openAllDocs);
-document.getElementById('allDocsClose').addEventListener('click', closeAllDocs);
-document.getElementById('allDocsOverlay').addEventListener('click', e => { if (e.target.id === 'allDocsOverlay') closeAllDocs(); });
+$('profileTrigger').addEventListener('click', e=>{ e.stopPropagation(); $('profileWrap').classList.toggle('open'); });
+document.addEventListener('click', e=>{ if (!$('profileWrap').contains(e.target)) $('profileWrap').classList.remove('open'); });
+document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ $('profileWrap').classList.remove('open'); $('manageModal').classList.remove('show'); } });
+$('logoutBtn').addEventListener('click', ()=>{ AuthEngine.logout(); location.reload(); });
 
-async function loadRecentBriefs() {
-  const row = document.getElementById('briefCarousel');
-  try {
-    const rows = await sbSelect('dna_agent_briefs', 'select=id,topic,promoted_items,created_at&order=created_at.desc&limit=5');
-    if (!rows.length) { row.innerHTML = '<div class="empty-note" style="flex:1;">No lead is worth writing until it\'s been through BriefDesk — that\'s the whole point of the lamp.</div>'; return; }
-    row.innerHTML = rows.map(b => `
-      <div class="bcard-mini" data-brief="${b.id}" data-topic="${escapeHtml(b.topic || '')}">
-        <div class="bcard-mini-badge">★ ${(b.promoted_items || []).length} promoted</div>
-        <div class="bcard-mini-title">${escapeHtml(b.topic || 'Untitled brief')}</div>
-        <div class="dcard-meta">Created ${relTime(b.created_at)}</div>
-      </div>`).join('');
-    row.querySelectorAll('.bcard-mini').forEach(el => el.addEventListener('click', () => {
-      const topic = el.getAttribute('data-topic'), id = el.getAttribute('data-brief');
-      window.location.href = `/briefdesk/${slugify(topic)}--${shortId(id)}`;
-    }));
-  } catch (e) {
-    row.innerHTML = `<div class="empty-note" style="flex:1;">Couldn't load briefs: ${escapeHtml(e.message)}</div>`;
-  }
+/* ==================== auth gate ==================== */
+function showLoginGate(){ $('loginGate').classList.remove('hide'); }
+function hideLoginGate(){ $('loginGate').classList.add('hide'); }
+function showLoginError(msg){ const el=$('loginError'); el.textContent=msg; el.classList.add('show'); }
+function clearLoginError(){ $('loginError').classList.remove('show'); }
+async function doLogin(){
+  const u = $('loginUsername').value.trim(), p = $('loginPassword').value;
+  clearLoginError();
+  if (!u || !p) return showLoginError(t('login.fillBoth'));
+  $('loginSubmit').disabled = true; $('loginSubmit').textContent = t('login.submitting');
+  try{
+    const res = await AuthEngine.login(u, p);
+    if (!res.ok) return showLoginError(res.error || t('login.error'));
+    $('loginPassword').value = '';
+    hideLoginGate();
+    startApp(res.session);
+  }catch(e){ showLoginError(String((e&&e.message)||e)); }
+  finally{ $('loginSubmit').disabled = false; $('loginSubmit').textContent = t('login.submit'); }
 }
-document.getElementById('seeAllBriefsBtn').addEventListener('click', () => { window.location.href = '/briefdesk'; });
+$('loginSubmit').addEventListener('click', doLogin);
+$('loginUsername').addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
+$('loginPassword').addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
 
-/* ==================== Investigate a topic — search + copyable LLM digest prompt ==================== */
-const FARDA_SEARCH_URL = 'https://trend-kehqans-projects.vercel.app/api/farda-search';
-let fardaSearchState = { topic: '', rows: [] }; // rows: [{title,url,pubDate,source,snippet,selected}]
+/* ==================== tool grid ==================== */
+let TOOLS = [], SESSION = null;
 
-function fardaFormatDate(pubDate) {
-  const t = new Date(pubDate).getTime();
-  if (isNaN(t)) return '';
-  return new Date(t).toLocaleDateString([], { year: 'numeric', month: 'short', day: 'numeric' });
-}
-function renderFardaSearchResults() {
-  const wrap = document.getElementById('fardaSearchResults'); if (!wrap) return;
-  const actions = document.getElementById('fardaSearchActions');
-  if (!fardaSearchState.rows.length) { wrap.innerHTML = ''; if (actions) actions.style.display = 'none'; return; }
-  if (actions) actions.style.display = 'flex';
-  wrap.innerHTML = fardaSearchState.rows.map((r, i) => `
-    <div class="farda-result-row">
-      <input type="checkbox" data-fardasel="${i}" ${r.selected ? 'checked' : ''}>
-      <div class="farda-result-body">
-        <a class="farda-result-title" href="${escapeHtml(r.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(r.title)}</a>
-        <div class="farda-result-meta">${escapeHtml(fardaFormatDate(r.pubDate))}${r.source ? ' · ' + escapeHtml(r.source) : ''}</div>
-        ${r.snippet ? `<div class="farda-result-snippet">${escapeHtml(r.snippet)}</div>` : ''}
-      </div>
-    </div>`).join('');
-  wrap.querySelectorAll('[data-fardasel]').forEach(cb => cb.addEventListener('change', () => {
-    fardaSearchState.rows[+cb.getAttribute('data-fardasel')].selected = cb.checked;
-  }));
-}
-async function runFardaSearch() {
-  const input = document.getElementById('fardaSearchTopic');
-  const btn = document.getElementById('fardaSearchBtn');
-  const status = document.getElementById('fardaSearchStatus');
-  const topic = (input.value || '').trim();
-  if (!topic) { if (status) status.textContent = 'Type a topic to search first.'; return; }
-  btn.disabled = true; btn.textContent = '🔎 Searching…';
-  if (status) status.textContent = `Searching Radio Farda's coverage of "${topic}"…`;
-  try {
-    const url = `${FARDA_SEARCH_URL}?q=${encodeURIComponent(topic)}&num=20`;
-    const res = await fetch(url);
-    const data = await res.json();
-    if (!res.ok || !data.ok) throw new Error(data.error || `HTTP ${res.status}`);
-    fardaSearchState.topic = topic;
-    fardaSearchState.rows = (data.rows || []).map(r => ({ ...r, selected: true }));
-    renderFardaSearchResults();
-    if (status) status.textContent = fardaSearchState.rows.length
-      ? `Found ${fardaSearchState.rows.length} related piece${fardaSearchState.rows.length === 1 ? '' : 's'}. Uncheck any that aren't relevant, then copy the digest prompt.`
-      : `No indexed coverage found for "${topic}" — try a broader or differently-worded term.`;
-  } catch (err) {
-    if (status) status.textContent = `Search failed: ${err.message}`;
-  } finally {
-    btn.disabled = false; btn.textContent = '🔎 Search Radio Farda';
-  }
-}
-function buildFardaDigestPrompt() {
-  const selected = fardaSearchState.rows.filter(r => r.selected);
-  const list = selected.map((r, i) =>
-    `${i + 1}. [${fardaFormatDate(r.pubDate) || 'undated'}] ${r.title}\n   ${r.snippet ? r.snippet + '\n   ' : ''}${r.url}`
-  ).join('\n\n');
-  return `You are helping a journalist at Radio Farda prepare to write about the following topic.
-
-TOPIC: ${fardaSearchState.topic}
-
-Below is a list of Radio Farda's own past coverage related to this topic, found via a site-scoped search. Some entries may be only tangentially related — use judgment, and note if any seem off-topic.
-
-${list}
-
-Based on this material, produce a structured briefing with:
-1. Timeline — how has coverage of this topic evolved over time (group by rough period if a pattern emerges)
-2. Key entities — people, organizations, and places that recur across these pieces
-3. Narrative threads already covered — the distinct angles/storylines already published
-4. Open questions / coverage gaps — what hasn't been addressed yet, or where the story may have moved since the most recent piece listed
-5. Suggested new angle — one specific, non-redundant angle for a new piece, given what's already been covered
-
-Write the briefing in Persian, since that is the audience and source language, unless told otherwise.`;
-}
-async function copyFardaDigestPrompt() {
-  const status = document.getElementById('fardaSearchStatus');
-  const selected = fardaSearchState.rows.filter(r => r.selected);
-  if (!selected.length) { if (status) status.textContent = 'Select at least one result first.'; return; }
-  const prompt = buildFardaDigestPrompt();
-  try {
-    await navigator.clipboard.writeText(prompt);
-    dashToast(`Copied digest prompt (${selected.length} source${selected.length === 1 ? '' : 's'}) — paste into ChatGPT, Claude, or Copilot`);
-  } catch (err) {
-    if (status) status.textContent = 'Clipboard blocked — select and copy the prompt manually.';
-  }
-}
-document.getElementById('fardaSearchBtn').addEventListener('click', runFardaSearch);
-document.getElementById('fardaSearchTopic').addEventListener('keydown', e => { if (e.key === 'Enter') runFardaSearch(); });
-document.getElementById('fardaCopyPromptBtn').addEventListener('click', copyFardaDigestPrompt);
-
-function relTime(iso) {
-  if (!iso) return 'just now';
-  const s = (Date.now() - new Date(iso).getTime()) / 1000;
-  if (s < 60) return 'just now'; if (s < 3600) return Math.floor(s/60) + 'm ago';
-  if (s < 86400) return Math.floor(s/3600) + 'h ago'; return Math.floor(s/86400) + 'd ago';
-}
-
-/* ==================== Folders (cases) ==================== */
-const FOLDER_COLORS = ['#979DF7', '#FF5400', '#2CA9BC', '#FFC047', '#9B6B43', '#6A4C93'];
-function folderCardHtml(f, count) {
-  return `<div class="folder-card" data-folder="${f.id}" data-title="${escapeHtml(f.title)}">
-    <div class="folder-visual">
-      <div class="folder-tab" style="background:${f.color}"></div>
-      <div class="folder-body" style="background:linear-gradient(160deg, ${f.color}, ${f.color}cc);">
-        <span class="folder-count">${count} item${count === 1 ? '' : 's'}</span>
-      </div>
+function cardHtml(tool){
+  return `
+  <a class="tcard" href="${esc(tool.path)}">
+    <span class="tcard-icon">${esc(tool.icon || '◆')}</span>
+    <div class="tcard-name">${esc(tool.name)}</div>
+    ${tool.description ? `<div class="tcard-desc">${esc(tool.description)}</div>` : ''}
+    <div class="tcard-foot">
+      <span class="tcard-cat">${esc(tool.category || 'general')}</span>
+      <span class="tcard-go">${esc(t('hub.open'))}</span>
     </div>
-    <div class="folder-title">${escapeHtml(f.title || 'Untitled case')}</div>
-    ${f.description ? `<div class="folder-desc">${escapeHtml(f.description)}</div>` : ''}
-  </div>`;
+  </a>`;
 }
-async function loadFolderCarousel() {
-  const row = document.getElementById('folderCarousel'); if (!row) return;
-  try {
-    const folders = await sbSelect('folders', 'select=*&order=updated_at.desc&limit=5');
-    if (!folders.length) { row.innerHTML = '<div class="empty-note" style="flex:1;">No cases yet — group related briefs and pieces together once an investigation grows past a single story.</div>'; return; }
-    const [briefs, docs] = await Promise.all([
-      sbSelect('dna_agent_briefs', 'select=id,folder_id&folder_id=not.is.null'),
-      sbSelect('desk_documents', 'select=id,folder_id&folder_id=not.is.null'),
-    ]);
-    row.innerHTML = folders.map(f => {
-      const count = briefs.filter(b => b.folder_id === f.id).length + docs.filter(d => d.folder_id === f.id).length;
-      return folderCardHtml(f, count);
-    }).join('');
-    row.querySelectorAll('.folder-card').forEach(el => el.addEventListener('click', async () => {
-      const f = folders.find(x => x.id === el.getAttribute('data-folder'));
-      if (f) { goFolder(f); await openFolder(f); }
-    }));
-  } catch (e) {
-    row.innerHTML = `<div class="empty-note" style="flex:1;">Couldn't load cases: ${escapeHtml(e.message)}. Have you run folders.sql in Supabase yet?</div>`;
+function renderGrid(){
+  const state = $('hubState');
+  if (!TOOLS.length){ state.innerHTML = `<div class="empty">${t('hub.empty')}</div>`; return; }
+  state.innerHTML = `<div class="grid">${TOOLS.map(cardHtml).join('')}</div>`;
+}
+async function loadTools(){
+  try{
+    const data = await AuthEngine.authedPost({ mode:'listTools' });
+    if (!data.ok){
+      if (data.authError) return showLoginGate();
+      throw new Error(data.error || 'Unknown error');
+    }
+    TOOLS = data.tools || [];
+    renderGrid();
+  }catch(e){
+    $('hubState').innerHTML = `<div class="errbox">${esc(t('hub.loadFailed',{msg:e.message||String(e)}))}</div>`;
   }
 }
-let _folderColorPick = FOLDER_COLORS[0];
-function renderFolderColorRow() {
-  document.getElementById('folderColorRow').innerHTML = FOLDER_COLORS.map(c => `<div class="folder-color-swatch ${c === _folderColorPick ? 'selected' : ''}" style="background:${c}" data-color="${c}"></div>`).join('');
-  document.querySelectorAll('.folder-color-swatch').forEach(sw => sw.addEventListener('click', () => { _folderColorPick = sw.getAttribute('data-color'); renderFolderColorRow(); }));
-}
-document.getElementById('newFolderBtn').addEventListener('click', () => {
-  document.getElementById('newFolderTitle').value = ''; document.getElementById('newFolderDesc').value = '';
-  _folderColorPick = FOLDER_COLORS[Math.floor(Math.random() * FOLDER_COLORS.length)];
-  renderFolderColorRow();
-  document.getElementById('newFolderOverlay').classList.add('show');
-});
-document.getElementById('newFolderClose').addEventListener('click', () => document.getElementById('newFolderOverlay').classList.remove('show'));
-document.getElementById('newFolderOverlay').addEventListener('click', e => { if (e.target.id === 'newFolderOverlay') document.getElementById('newFolderOverlay').classList.remove('show'); });
-document.getElementById('newFolderSaveBtn').addEventListener('click', async () => {
-  const title = document.getElementById('newFolderTitle').value.trim();
-  if (!title) { dashToast('Give the case a name first'); return; }
-  const btn = document.getElementById('newFolderSaveBtn'); btn.disabled = true; btn.textContent = 'Creating…';
-  try {
-    const created = await sbInsert('folders', { title, description: document.getElementById('newFolderDesc').value.trim() || null, color: _folderColorPick });
-    document.getElementById('newFolderOverlay').classList.remove('show');
-    goFolder(created[0]); await openFolder(created[0]);
-  } catch (e) { dashToast('Could not create case: ' + e.message); }
-  finally { btn.disabled = false; btn.textContent = 'Create case'; }
-});
 
-async function createBlankDoc() {
-  try {
-    const created = await sbInsert('desk_documents', { title: 'Untitled document', body_html: '<p>Start writing…</p>', direction: 'ltr', status: 'draft' });
-    const doc = created[0];
-    goDoc(doc); await openDoc(doc);
-  } catch (e) { dashToast('Could not create document: ' + e.message); }
-}
-
-/* ==================== Editor ==================== */
-let CURRENT_DOC = null, CURRENT_BRIEF = null, MATERIAL_GROUPS = [], blocks = [], composing = true, matSidebarOpen = true;
-const canvas = document.getElementById('pageCanvas');
-
-async function openDoc(doc) {
-  CURRENT_DOC = doc; CURRENT_BRIEF = null; MATERIAL_GROUPS = [];
-  blocks = Array.isArray(doc.blocks) ? doc.blocks : []; // drafted material persists for the life of the document, independent of which brief is currently attached
-  document.getElementById('screenHome').classList.add('hidden');
-  document.getElementById('screenAssign').classList.add('hidden');
-  { const sf = document.getElementById('screenFolder'); if (sf) sf.classList.add('hidden'); }
-  document.getElementById('screenEditor').classList.remove('hidden');
-  document.getElementById('docTitle').value = doc.title || '';
-  document.getElementById('crumbDocTitle').textContent = doc.title || 'Untitled';
-  canvas.innerHTML = doc.body_html || '<p></p>';
-  wireEmbedDeleteButtons();
-  canvas.setAttribute('dir', doc.direction === 'rtl' ? 'rtl' : 'ltr');
-  document.getElementById('tbDirLbl').textContent = doc.direction === 'rtl' ? 'RTL' : 'LTR';
-  updateCounts();
-
-  document.getElementById('colMat').classList.remove('hidden'); // materials rail is available on every document now, brief or not
-  if (doc.brief_id) {
-    try {
-      const rows = await sbSelect('dna_agent_briefs', `id=eq.${doc.brief_id}&select=*&limit=1`);
-      if (rows.length) { CURRENT_BRIEF = rows[0]; buildMaterialGroups(); }
-    } catch (e) { dashToast('Could not load the linked brief: ' + e.message); }
-  }
-  if (CURRENT_BRIEF) {
-    document.getElementById('modeToggleWrap').classList.remove('hidden');
-    setMode(true);
-    renderMatAccordions();
-  } else {
-    document.getElementById('modeToggleWrap').classList.add('hidden');
-    document.getElementById('colComposer').classList.add('collapsed');
-    matSidebarOpen = true; applyMatSidebarState();
-    renderBriefPickerUI();
-  }
-  renderBlocks();
-  sbUpdate('desk_documents', doc.id, { view_count: (doc.view_count || 0) + 1 }).catch(() => {});
-}
-
-/* ==================== Folder (case) detail ==================== */
-let CURRENT_FOLDER = null, folderBriefs = [], folderDocs = [];
-async function openFolder(folder) {
-  CURRENT_FOLDER = folder;
-  document.getElementById('screenHome').classList.add('hidden');
-  document.getElementById('screenEditor').classList.add('hidden');
-  document.getElementById('screenAssign').classList.add('hidden');
-  document.getElementById('screenFolder').classList.remove('hidden');
-
-  document.getElementById('folderCrumbTitle').textContent = folder.title || 'Case';
-  document.getElementById('folderTitleInput').value = folder.title || '';
-  document.getElementById('folderDescInput').value = folder.description || '';
-  document.getElementById('folderHeaderIcon').style.background = folder.color;
-  document.getElementById('folderHeaderIcon').style.boxShadow = `0 8px 20px ${folder.color}55`;
-
-  try {
-    [folderBriefs, folderDocs] = await Promise.all([
-      sbSelect('dna_agent_briefs', `folder_id=eq.${folder.id}&select=*&order=created_at.desc`),
-      sbSelect('desk_documents', `folder_id=eq.${folder.id}&select=*&order=updated_at.desc`),
-    ]);
-  } catch (e) { dashToast('Could not load this case: ' + e.message); folderBriefs = []; folderDocs = []; }
-
-  renderFolderStats();
-  renderFolderContents();
-  renderFolderPeople();
-  renderFolderKnowledge();
-  setFolderView('contents');
-}
-function renderFolderStats() {
-  const annCount = folderBriefs.reduce((sum, b) => {
-    const ann = (Array.isArray(b.parsed_sections) ? b.parsed_sections : []).find(n => n && n._editor === 'annotations');
-    return sum + (ann && Array.isArray(ann.annotations) ? ann.annotations.length : 0);
-  }, 0);
-  const peopleCount = new Set(); // filled in renderFolderPeople; stat shown after that resolves — placeholder now
-  document.getElementById('folderStatRow').innerHTML = `
-    <div class="asn-stat-pill"><span class="asn-stat-n">${folderBriefs.length}</span><span class="asn-stat-l">briefs</span></div>
-    <div class="asn-stat-pill"><span class="asn-stat-n">${folderDocs.length}</span><span class="asn-stat-l">pieces</span></div>
-    <div class="asn-stat-pill"><span class="asn-stat-n">${annCount}</span><span class="asn-stat-l">highlights</span></div>
-    <div class="asn-stat-pill" id="folderPeopleStat"><span class="asn-stat-n">…</span><span class="asn-stat-l">people</span></div>`;
-}
-function renderFolderContents() {
-  const grid = document.getElementById('folderContentsGrid');
-  const items = [
-    ...folderBriefs.map(b => ({ type: 'brief', id: b.id, title: b.topic || 'Untitled brief', meta: `${(b.promoted_items || []).length} promoted`, created: b.created_at })),
-    ...folderDocs.map(d => ({ type: 'piece', id: d.id, title: d.title || 'Untitled document', meta: (d.direction || 'ltr').toUpperCase(), created: d.updated_at })),
-  ];
-  if (!items.length) { grid.innerHTML = '<div class="empty-note">Nothing in this case yet. Add an existing brief or piece, or start a new one from the case.</div>'; return; }
-  grid.innerHTML = items.map(it => `
-    <div class="dcard" data-item-type="${it.type}" data-item-id="${it.id}" data-item-title="${escapeHtml(it.title)}">
-      <div class="dcard-top"><span class="${it.type === 'brief' ? 'dcard-brief-tag' : 'dcard-dir'}">${it.type === 'brief' ? '🧬 Brief' : '🖋️ Piece'}</span></div>
-      <div class="dcard-title">${escapeHtml(it.title)}</div>
-      <div class="dcard-meta">${escapeHtml(it.meta)} · ${relTime(it.created)}</div>
-    </div>`).join('');
-  grid.querySelectorAll('[data-item-type]').forEach(el => el.addEventListener('click', () => {
-    const type = el.getAttribute('data-item-type'), id = el.getAttribute('data-item-id'), title = el.getAttribute('data-item-title');
-    if (type === 'brief') window.location.href = briefPath(title, id);
-    else { const doc = folderDocs.find(d => d.id === id); if (doc) { goDoc(doc); openDoc(doc); } }
-  }));
-}
-async function renderFolderPeople() {
-  const grid = document.getElementById('folderPeopleGrid');
-  const briefIds = folderBriefs.map(b => b.id), docIds = folderDocs.map(d => d.id);
-  if (!briefIds.length && !docIds.length) { grid.innerHTML = '<div class="empty-note">Add briefs or pieces to this case to see who\'s working it.</div>'; const stat = document.getElementById('folderPeopleStat'); if (stat) stat.querySelector('.asn-stat-n').textContent = '0'; return; }
-  try {
-    const orParts = [];
-    if (briefIds.length) orParts.push(`brief_id.in.(${briefIds.join(',')})`);
-    if (docIds.length) orParts.push(`doc_id.in.(${docIds.join(',')})`);
-    const assigns = await sbSelect('assignments', `or=(${orParts.join(',')})&select=assignee_id`);
-    const ids = Array.from(new Set(assigns.map(a => a.assignee_id).filter(Boolean)));
-    const stat = document.getElementById('folderPeopleStat'); if (stat) stat.querySelector('.asn-stat-n').textContent = ids.length;
-    if (!ids.length) { grid.innerHTML = '<div class="empty-note">No one is assigned to anything in this case yet — assign work from the Newsroom board.</div>'; return; }
-    const people = await sbSelect('team_members', `id=in.(${ids.join(',')})&select=*`);
-    grid.innerHTML = people.map(p => `<div class="asn-team-card">
-        <div class="asn-team-head"><div class="asn-avatar" style="background:${p.color}">${escapeHtml((p.name||'?')[0])}</div>
-        <div><div class="asn-team-name">${escapeHtml(p.name)}</div><div class="asn-team-role">${escapeHtml(p.role)}</div></div></div>
-        <div class="asn-empty" style="padding:6px 0;text-align:left;">Working this case</div>
-      </div>`).join('');
-  } catch (e) {
-    grid.innerHTML = `<div class="empty-note">Couldn't load the people on this case: ${escapeHtml(e.message)}</div>`;
-  }
-}
-function renderFolderKnowledge() {
-  const list = document.getElementById('folderKnowledgeList');
-  const entries = [];
-  folderBriefs.forEach(b => {
-    const annNode = (Array.isArray(b.parsed_sections) ? b.parsed_sections : []).find(n => n && n._editor === 'annotations');
-    (annNode && Array.isArray(annNode.annotations) ? annNode.annotations : []).forEach(a => entries.push({ ...a, briefTopic: b.topic, briefId: b.id }));
-  });
-  if (!entries.length) { list.innerHTML = '<div class="empty-note">Nothing highlighted yet. Annotations made while reading any brief in this case will collect here automatically.</div>'; return; }
-  list.innerHTML = entries.map(e => `
-    <div class="kb-item">
-      <div class="kb-item-mark"></div>
-      <div class="kb-item-body">
-        <div class="kb-quote">"${escapeHtml(e.quote || '')}"</div>
-        ${e.comment ? `<div class="kb-comment">${escapeHtml(e.comment)}</div>` : ''}
-        <div class="kb-meta"><span class="kb-source-tag" data-goto-brief="${e.briefId}" data-goto-title="${escapeHtml(e.briefTopic || '')}">📌 ${escapeHtml(e.briefTopic || 'Untitled brief')}</span></div>
-      </div>
-    </div>`).join('');
-  list.querySelectorAll('[data-goto-brief]').forEach(el => el.addEventListener('click', () => {
-    window.location.href = briefPath(el.getAttribute('data-goto-title'), el.getAttribute('data-goto-brief'));
-  }));
-}
-function setFolderView(view) {
-  document.querySelectorAll('[data-fview]').forEach(b => b.classList.toggle('active', b.getAttribute('data-fview') === view));
-  document.getElementById('folderViewContents').classList.toggle('hidden', view !== 'contents');
-  document.getElementById('folderViewPeople').classList.toggle('hidden', view !== 'people');
-  document.getElementById('folderViewKnowledge').classList.toggle('hidden', view !== 'knowledge');
-}
-document.querySelectorAll('[data-fview]').forEach(b => b.addEventListener('click', () => setFolderView(b.getAttribute('data-fview'))));
-
-let _folderSaveT = null;
-function scheduleFolderSave() {
-  clearTimeout(_folderSaveT);
-  _folderSaveT = setTimeout(async () => {
-    if (!CURRENT_FOLDER) return;
-    const patch = { title: document.getElementById('folderTitleInput').value.trim() || 'Untitled case', description: document.getElementById('folderDescInput').value.trim() || null };
-    try { await sbUpdate('folders', CURRENT_FOLDER.id, patch); CURRENT_FOLDER.title = patch.title; CURRENT_FOLDER.description = patch.description; document.getElementById('folderCrumbTitle').textContent = patch.title; }
-    catch (e) { dashToast('Could not save case: ' + e.message); }
-  }, 700);
-}
-document.getElementById('folderTitleInput').addEventListener('input', scheduleFolderSave);
-document.getElementById('folderDescInput').addEventListener('input', scheduleFolderSave);
-document.getElementById('folderDeleteBtn').addEventListener('click', async () => {
-  if (!CURRENT_FOLDER) return;
-  if (!confirm(`Delete "${CURRENT_FOLDER.title}"? Briefs and pieces inside it are not deleted — they just won't belong to a case anymore.`)) return;
-  try { await sbDelete('folders', CURRENT_FOLDER.id); dashToast('Case deleted'); goHome(); }
-  catch (e) { dashToast('Could not delete case: ' + e.message); }
-});
-document.getElementById('darkToggleFolder').addEventListener('click', toggleDark);
-
-/* ---------- Add an existing brief/piece to this folder ---------- */
-document.getElementById('folderAddItemBtn').addEventListener('click', async () => {
-  document.getElementById('folderAddItemOverlay').classList.add('show');
-  document.getElementById('folderAddItemSearch').value = '';
-  const list = document.getElementById('folderAddItemList');
-  list.innerHTML = '<div class="empty-note">Loading…</div>';
-  let briefs = [], docs = [];
-  try {
-    [briefs, docs] = await Promise.all([
-      sbSelect('dna_agent_briefs', 'select=id,topic&folder_id=is.null&order=created_at.desc&limit=100'),
-      sbSelect('desk_documents', 'select=id,title&folder_id=is.null&order=updated_at.desc&limit=100'),
-    ]);
-  } catch (e) { list.innerHTML = `<div class="empty-note">Couldn't load: ${escapeHtml(e.message)}</div>`; return; }
-  const renderList = filter => {
-    const f = (filter || '').toLowerCase();
-    const items = [
-      ...briefs.filter(b => (b.topic || '').toLowerCase().includes(f)).map(b => ({ type: 'brief', id: b.id, title: b.topic || 'Untitled brief' })),
-      ...docs.filter(d => (d.title || '').toLowerCase().includes(f)).map(d => ({ type: 'piece', id: d.id, title: d.title || 'Untitled document' })),
-    ];
-    list.innerHTML = items.length ? items.map(it => `<div class="list-row" data-add-type="${it.type}" data-add-id="${it.id}"><div class="list-row-body"><div class="list-row-title">${it.type === 'brief' ? '🧬' : '🖋️'} ${escapeHtml(it.title)}</div></div></div>`).join('') : '<div class="empty-note">Nothing unassigned matches.</div>';
-    list.querySelectorAll('[data-add-type]').forEach(row => row.addEventListener('click', async () => {
-      const type = row.getAttribute('data-add-type'), id = row.getAttribute('data-add-id');
-      try {
-        if (type === 'brief') await sbUpdate('dna_agent_briefs', id, { folder_id: CURRENT_FOLDER.id });
-        else await sbUpdate('desk_documents', id, { folder_id: CURRENT_FOLDER.id });
-        document.getElementById('folderAddItemOverlay').classList.remove('show');
-        dashToast('Added to case'); await openFolder(CURRENT_FOLDER);
-      } catch (e) { dashToast('Could not add: ' + e.message); }
-    }));
-  };
-  renderList('');
-  document.getElementById('folderAddItemSearch').oninput = e => renderList(e.target.value);
-});
-document.getElementById('folderAddItemClose').addEventListener('click', () => document.getElementById('folderAddItemOverlay').classList.remove('show'));
-document.getElementById('folderAddItemOverlay').addEventListener('click', e => { if (e.target.id === 'folderAddItemOverlay') document.getElementById('folderAddItemOverlay').classList.remove('show'); });
-
-/* ---------- Brief Library: pick or switch which brief feeds the materials sidebar ---------- */
-async function renderBriefPickerUI() {
-  document.getElementById('matBriefName').innerHTML = '📚 Brief Library';
-  const wrap = document.getElementById('matAccordions');
-  wrap.innerHTML = `<input class="bsb-search" id="briefPickSearch" placeholder="🔍 Search BriefDesk…">
-    <div id="briefPickFolderRow" style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0;"></div>
-    <div id="briefPickList" style="margin-top:4px;"></div>`;
-  let allBriefs = [], allFolders = [];
-  try {
-    [allBriefs, allFolders] = await Promise.all([
-      sbSelect('dna_agent_briefs', 'select=id,topic,promoted_items,folder_id&order=created_at.desc&limit=100'),
-      sbSelect('folders', 'select=id,title,color&order=title.asc'),
-    ]);
-  } catch (e) { document.getElementById('briefPickList').innerHTML = `<div class="cmp-empty-note">Couldn't load BriefDesk: ${escapeHtml(e.message)}</div>`; return; }
-  let activeFolderFilter = 'all';
-  const foldersInUse = allFolders.filter(f => allBriefs.some(b => b.folder_id === f.id));
-  document.getElementById('briefPickFolderRow').innerHTML = foldersInUse.length ? [
-    `<span class="mat-badge drafted" data-folder-filter="all" style="cursor:pointer;padding:4px 10px;border-radius:100px;background:var(--teal);color:#fff;">All</span>`,
-    ...foldersInUse.map(f => `<span class="mat-badge drafted" data-folder-filter="${f.id}" style="cursor:pointer;padding:4px 10px;border-radius:100px;background:${f.color}22;color:${f.color};">📁 ${escapeHtml(f.title)}</span>`)
-  ].join('') : '';
-  const renderList = filter => {
-    const f = (filter || '').toLowerCase();
-    const filtered = allBriefs.filter(b => (b.topic || '').toLowerCase().includes(f) && (activeFolderFilter === 'all' || b.folder_id === activeFolderFilter));
-    document.getElementById('briefPickList').innerHTML = filtered.length ? filtered.map(b => {
-      const folder = allFolders.find(x => x.id === b.folder_id);
-      return `<div class="mat-row" data-brief-pick="${b.id}">
-        <span class="mat-row-ico">📌</span>
-        <span class="mat-row-txt">${escapeHtml(b.topic || 'Untitled brief')}${folder ? `<span style="display:block;font-size:9.5px;color:${folder.color};margin-top:2px;">📁 ${escapeHtml(folder.title)}</span>` : ''}</span>
-        <span class="mat-badges"><span class="mat-badge drafted">${(b.promoted_items || []).length} promoted</span></span>
-      </div>`;
-    }).join('') : '<div class="cmp-empty-note">No briefs match.</div>';
-    document.querySelectorAll('[data-brief-pick]').forEach(el => el.addEventListener('click', () => attachBriefToDoc(el.getAttribute('data-brief-pick'))));
-  };
-  renderList('');
-  document.getElementById('briefPickSearch').addEventListener('input', e => renderList(e.target.value));
-  document.querySelectorAll('[data-folder-filter]').forEach(chip => chip.addEventListener('click', () => {
-    activeFolderFilter = chip.getAttribute('data-folder-filter');
-    renderList(document.getElementById('briefPickSearch').value);
-  }));
-}
-async function attachBriefToDoc(briefId) {
-  if (!CURRENT_DOC) return;
-  try {
-    const nextIds = Array.from(new Set([...(CURRENT_DOC.brief_ids || []), briefId]));
-    await sbUpdate('desk_documents', CURRENT_DOC.id, { brief_id: briefId, brief_ids: nextIds });
-    CURRENT_DOC.brief_id = briefId; CURRENT_DOC.brief_ids = nextIds;
-    const rows = await sbSelect('dna_agent_briefs', `id=eq.${briefId}&select=*&limit=1`);
-    if (!rows.length) throw new Error('brief not found');
-    CURRENT_BRIEF = rows[0]; buildMaterialGroups(); // blocks are intentionally left untouched — drafted material isn't tied to whichever brief happens to be showing right now
-    document.getElementById('modeToggleWrap').classList.remove('hidden');
-    setMode(true);
-    renderMatAccordions(); renderBlocks();
-    dashToast('Brief attached — materials are ready on the left');
-  } catch (e) { dashToast('Could not attach brief: ' + e.message); }
-}
-
-function buildMaterialGroups() {
-  const row = CURRENT_BRIEF; if (!row) return;
-  const bId = shortId(row.id); // material ids are scoped per-brief so they never collide once blocks/traces span multiple briefs
-  const groups = [];
-  const promoted = Array.isArray(row.promoted_items) ? row.promoted_items : [];
-  if (promoted.length) {
-    const CATEGORY_META = { angle: { label: 'Priority Angles', icon: '★' }, source: { label: 'Key Sources', icon: '🔗' }, person: { label: 'People to Watch', icon: '👤' }, keyword: { label: 'Keywords', icon: '🏷️' } };
-    const byCat = {};
-    promoted.forEach(p => { (byCat[p.category] = byCat[p.category] || []).push(p); });
-    Object.keys(byCat).forEach(cat => {
-      const meta = CATEGORY_META[cat] || { label: cat, icon: '📌' };
-      groups.push({ key: 'promo-' + cat, icon: meta.icon, label: meta.label, items: byCat[cat].map((p, i) => ({ id: `${bId}::p${cat}${i}`, icon: meta.icon, kind: meta.label.replace(/s$/, ''), text: p.text })) });
-    });
-  }
-  const sections = Array.isArray(row.parsed_sections) ? row.parsed_sections : [];
-  const searchNode = sections.find(n => n && n._editor === 'search');
-  if (searchNode && Array.isArray(searchNode.children)) {
-    const items = [];
-    searchNode.children.forEach(c => {
-      if (c.table && Array.isArray(c.table.rows)) c.table.rows.forEach((r, i) => { const kw = (r[0] || '').trim(); if (kw) items.push({ id: `${bId}::sq${items.length}`, icon: '🔎', kind: 'Search data', text: kw }); });
-      (c.items || []).forEach((it, i) => items.push({ id: `${bId}::si${items.length}`, icon: '📈', kind: 'Search data', text: it }));
-    });
-    if (items.length) groups.push({ key: 'search', icon: '🔎', label: 'Search Intelligence', items: items.slice(0, 20) });
-  }
-  MATERIAL_GROUPS = groups;
-}
-
-function draftedMatIds() { return new Set(blocks.filter(b => b.answer.trim()).map(b => b.matId)); }
-function inPieceMatIds() { return new Set(Array.from(canvas.querySelectorAll('.mat-trace[data-mat-id]')).map(s => s.getAttribute('data-mat-id'))); }
-
-function renderMatAccordions() {
-  document.getElementById('matBriefName').innerHTML = CURRENT_BRIEF ? `📌 ${escapeHtml(CURRENT_BRIEF.topic || '')}` : '';
-  const drafted = draftedMatIds(), inPiece = inPieceMatIds();
-  const wrap = document.getElementById('matAccordions');
-  const switchLink = `<div class="bsb-back" id="switchBriefLink">🔁 Switch brief</div>`;
-  if (!MATERIAL_GROUPS.length) { wrap.innerHTML = switchLink + '<div class="cmp-empty-note">No promoted material or search data on this brief yet.</div>'; wireSwitchLink(); return; }
-  wrap.innerHTML = switchLink + MATERIAL_GROUPS.map(g => `
-    <div class="acc open" data-key="${g.key}">
-      <div class="acc-head" data-toggle="1"><span>${g.icon} ${escapeHtml(g.label)}</span><span class="acc-count">${g.items.length}</span><span class="acc-chev">⌄</span></div>
-      <div class="acc-body">
-        ${g.items.map(it => `<div class="mat-row ${inPiece.has(it.id) ? 'inpiece' : ''}" draggable="true" data-mat="${it.id}">
-          <span class="mat-row-ico">${it.icon}</span><span class="mat-row-txt">${escapeHtml(it.text)}</span>
-          <span class="mat-badges">${inPiece.has(it.id) ? '<span class="mat-badge inpiece">● in piece</span>' : (drafted.has(it.id) ? '<span class="mat-badge drafted">✎ drafted</span>' : '')}</span>
-        </div>`).join('')}
-      </div>
-    </div>`).join('');
-  wireSwitchLink();
-  wrap.querySelectorAll('[data-toggle]').forEach(h => h.addEventListener('click', () => h.closest('.acc').classList.toggle('open')));
-  wrap.querySelectorAll('.mat-row').forEach(row => {
-    const matId = row.getAttribute('data-mat');
-    row.addEventListener('dragstart', e => e.dataTransfer.setData('text/mat-id', matId));
-    row.addEventListener('mouseenter', () => traceMaterial(matId, true));
-    row.addEventListener('mouseleave', () => traceMaterial(matId, false));
-    row.addEventListener('click', () => {
-      const span = canvas.querySelector(`.mat-trace[data-mat-id="${matId}"]`);
-      if (span) { span.scrollIntoView({ behavior: 'smooth', block: 'center' }); traceMaterial(matId, true); setTimeout(() => traceMaterial(matId, false), 1200); }
-    });
-  });
-}
-function wireSwitchLink() {
-  const link = document.getElementById('switchBriefLink');
-  if (link) link.addEventListener('click', () => {
-    CURRENT_BRIEF = null; MATERIAL_GROUPS = [];
-    document.getElementById('modeToggleWrap').classList.add('hidden');
-    setMode(false);
-    renderBriefPickerUI();
-  });
-}
-function findMat(id) { for (const g of MATERIAL_GROUPS) { const f = g.items.find(i => i.id === id); if (f) return f; } return null; }
-function traceMaterial(matId, on) { canvas.querySelectorAll(`.mat-trace[data-mat-id="${matId}"]`).forEach(s => s.classList.toggle('trace-glow', on)); }
-
-function renderBlocks() {
-  const list = document.getElementById('blockList');
-  if (!blocks.length) { list.innerHTML = `<div class="cmp-empty-note">Drag a material from the left to start drafting. Paste a line to Desk when it's ready.</div>`; return; }
-  list.innerHTML = blocks.map(b => `
-    <div class="blk" data-blk="${b.id}">
-      <div class="blk-toggle"><span class="blk-chip">${escapeHtml(b.kind)}</span><span class="blk-preview">${escapeHtml(b.src.slice(0, 46))}${b.src.length > 46 ? '…' : ''}</span></div>
-      ${b.briefTopic ? `<div style="font-size:9.5px;color:var(--soft);margin:2px 0 4px;">from 📌 ${escapeHtml(b.briefTopic)}</div>` : ''}
-      <div class="blk-q">${escapeHtml(b.q)}</div>
-      <textarea class="blk-answer" data-blk-input="${b.id}" placeholder="Write this in your own words…">${escapeHtml(b.answer)}</textarea>
-      ${b.kind === 'Search data' ? (b.relatedArticle
-        ? `<div class="blk-embed-chip">🔗 ${escapeHtml(b.relatedArticle.title || b.relatedArticle.url)}<button data-unlink-embed="${b.id}" title="Remove">✕</button></div>`
-        : `<div class="blk-paste-row"><button class="blk-embed-btn" data-add-embed="${b.id}">📰 Add related article</button></div>`) : ''}
-      <div class="blk-paste-row"><button class="blk-paste-btn" data-paste="${b.id}" ${!b.answer.trim() ? 'disabled style="opacity:.4;cursor:default;"' : ''}>📋 Paste to Desk</button></div>
-    </div>`).join('');
-  list.querySelectorAll('[data-blk-input]').forEach(ta => ta.addEventListener('input', () => {
-    const id = ta.getAttribute('data-blk-input'); const b = blocks.find(x => x.id === id); b.answer = ta.value;
-    renderMatAccordions();
-    const btn = document.querySelector(`[data-paste="${id}"]`);
-    if (btn) { btn.disabled = !ta.value.trim(); btn.style.opacity = ta.value.trim() ? '1' : '.4'; btn.style.cursor = ta.value.trim() ? 'pointer' : 'default'; }
-    scheduleSave();
-  }));
-  list.querySelectorAll('[data-add-embed]').forEach(btn => btn.addEventListener('click', () => openEmbedModal(btn.getAttribute('data-add-embed'))));
-  list.querySelectorAll('[data-unlink-embed]').forEach(btn => btn.addEventListener('click', () => {
-    const b = blocks.find(x => x.id === btn.getAttribute('data-unlink-embed')); if (b) { b.relatedArticle = null; renderBlocks(); scheduleSave(); }
-  }));
-  list.querySelectorAll('[data-paste]').forEach(btn => btn.addEventListener('click', () => {
-    const id = btn.getAttribute('data-paste'); const b = blocks.find(x => x.id === id); if (!b || !b.answer.trim()) return;
-    pasteIntoCanvas(b.answer.trim(), b.matId);
-    if (b.relatedArticle) insertEmbedIntoCanvas(b.relatedArticle);
-    btn.textContent = '✓ Pasted'; btn.classList.add('done');
-    setTimeout(() => { btn.textContent = '📋 Paste to Desk'; btn.classList.remove('done'); }, 1400);
-    renderMatAccordions(); scheduleSave();
-  }));
-}
-function addBlockFromMaterial(matId) {
-  const mat = findMat(matId); if (!mat) return;
-  const questions = { 'Priority Angle': 'How does this angle shape your story?', 'Key Source': 'What does this establish, and how will you attribute it?', 'People to Watch': "What's this person's role — will you seek comment?", 'Search data': 'How will you use this demand signal?' };
-  blocks.push({ id: 'b' + Date.now() + Math.floor(Math.random()*99), matId, briefId: CURRENT_BRIEF ? CURRENT_BRIEF.id : null, briefTopic: CURRENT_BRIEF ? CURRENT_BRIEF.topic : '', kind: mat.kind, src: mat.text, q: questions[mat.kind] || 'How will you use this in your piece?', answer: '' });
-  renderBlocks(); renderMatAccordions(); scheduleSave();
-  const el = document.getElementById('colComposer'); if (el) el.scrollTop = el.scrollHeight;
-}
-document.getElementById('colComposer').addEventListener('dragover', e => e.preventDefault());
-document.getElementById('colComposer').addEventListener('drop', e => { e.preventDefault(); const id = e.dataTransfer.getData('text/mat-id'); if (id) addBlockFromMaterial(id); });
-canvas.addEventListener('dragover', e => e.preventDefault());
-canvas.addEventListener('drop', e => { e.preventDefault(); const id = e.dataTransfer.getData('text/mat-id'); if (id) addBlockFromMaterial(id); });
-
-/* ---- Cursor-tracked paste with material trace marker ---- */
-let savedRange = null;
-document.addEventListener('selectionchange', () => {
-  const sel = window.getSelection(); if (sel.rangeCount === 0) return;
-  const range = sel.getRangeAt(0);
-  if (canvas.contains(range.commonAncestorContainer)) savedRange = range.cloneRange();
-});
-function pasteIntoCanvas(text, matId) {
-  canvas.focus();
-  const sel = window.getSelection(); sel.removeAllRanges();
-  let range;
-  if (savedRange && canvas.contains(savedRange.commonAncestorContainer)) range = savedRange;
-  else { range = document.createRange(); range.selectNodeContents(canvas); range.collapse(false); }
-  range.deleteContents();
-  const span = document.createElement('span');
-  span.className = 'mat-trace'; span.setAttribute('data-mat-id', matId); span.textContent = text;
-  range.insertNode(span);
-  range.setStartAfter(span); range.setEndAfter(span); range.collapse(true);
-  sel.addRange(range); savedRange = range.cloneRange();
-  span.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  updateCounts(); scheduleSave();
-}
-
-/* ---- Article embed: WordPress-style related-article card, internal (Desk library) or external ---- */
-function buildEmbedHtml(data) {
-  const domainLabel = data.internal ? '📄 From Desk' : ('🔗 ' + escapeHtml(String(data.url || '').replace(/^https?:\/\//, '').split('/')[0]));
-  const thumb = data.image
-    ? `<div class="article-embed-thumb" style="background-image:url('${escapeHtml(data.image)}')"></div>`
-    : `<div class="article-embed-thumb article-embed-thumb-empty">${data.internal ? '📄' : '🔗'}</div>`;
-  return `<div class="article-embed" contenteditable="false" data-embed="1">
-    <button class="article-embed-del" contenteditable="false">✕</button>
-    <a href="${escapeHtml(data.url)}" target="_blank" rel="noopener noreferrer" class="article-embed-link">
-      ${thumb}
-      <div class="article-embed-body"><div class="article-embed-title">${escapeHtml(data.title || 'Untitled article')}</div><div class="article-embed-domain">${domainLabel}</div></div>
-    </a>
-  </div><p><br></p>`;
-}
-function insertEmbedIntoCanvas(data) {
-  canvas.focus();
-  const sel = window.getSelection(); sel.removeAllRanges();
-  let range;
-  if (savedRange && canvas.contains(savedRange.commonAncestorContainer)) range = savedRange;
-  else { range = document.createRange(); range.selectNodeContents(canvas); range.collapse(false); }
-  range.deleteContents();
-  const wrapper = document.createElement('div');
-  wrapper.innerHTML = buildEmbedHtml(data);
-  const frag = document.createDocumentFragment();
-  let lastNode = null;
-  while (wrapper.firstChild) { lastNode = wrapper.firstChild; frag.appendChild(wrapper.firstChild); }
-  range.insertNode(frag); // single atomic insert — avoids repeatedly mutating a range that still points into the (now-empty) detached wrapper
-  if (lastNode) {
-    const cursorRange = document.createRange();
-    cursorRange.setStartAfter(lastNode); cursorRange.setEndAfter(lastNode); cursorRange.collapse(true);
-    sel.removeAllRanges(); sel.addRange(cursorRange); savedRange = cursorRange.cloneRange();
-    lastNode.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  }
-  wireEmbedDeleteButtons();
-  updateCounts(); scheduleSave();
-}
-function wireEmbedDeleteButtons() {
-  canvas.querySelectorAll('.article-embed-del').forEach(btn => {
-    if (btn._wired) return; btn._wired = true;
-    btn.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); btn.closest('.article-embed').remove(); updateCounts(); scheduleSave(); });
-  });
-}
-
-let embedContext = null; // block id to attach the embed to, or null to insert straight into the canvas
-let embedInternalDocs = null, embedInternalSelected = null;
-function openEmbedModal(blockId) {
-  embedContext = blockId || null;
-  embedInternalSelected = null;
-  document.getElementById('embedUrl').value = ''; document.getElementById('embedTitle').value = ''; document.getElementById('embedImage').value = '';
-  document.getElementById('embedInternalSearch').value = '';
-  setEmbedTab('external');
-  document.getElementById('embedOverlay').classList.add('show');
-}
-function closeEmbedModal() { document.getElementById('embedOverlay').classList.remove('show'); embedContext = null; }
-function setEmbedTab(which) {
-  document.getElementById('embedTabExternal').classList.toggle('active', which === 'external');
-  document.getElementById('embedTabInternal').classList.toggle('active', which === 'internal');
-  document.getElementById('embedExternalForm').classList.toggle('hidden', which !== 'external');
-  document.getElementById('embedInternalForm').classList.toggle('hidden', which !== 'internal');
-  if (which === 'internal' && !embedInternalDocs) loadEmbedInternalDocs();
-}
-async function loadEmbedInternalDocs() {
-  document.getElementById('embedInternalList').innerHTML = '<div class="cmp-empty-note">Loading…</div>';
-  try { embedInternalDocs = await sbSelect('desk_documents', 'select=id,title,updated_at&order=updated_at.desc&limit=100'); renderEmbedInternalList(''); }
-  catch (e) { document.getElementById('embedInternalList').innerHTML = `<div class="cmp-empty-note">Couldn't load: ${escapeHtml(e.message)}</div>`; }
-}
-function renderEmbedInternalList(filter) {
-  const f = (filter || '').toLowerCase();
-  const rows = (embedInternalDocs || []).filter(d => (d.title || '').toLowerCase().includes(f));
-  document.getElementById('embedInternalList').innerHTML = rows.length ? rows.map(d => `
-    <div class="embed-internal-row ${embedInternalSelected && embedInternalSelected.id === d.id ? 'selected' : ''}" data-pick-doc="${d.id}">
-      <span class="mat-row-ico">📄</span><span class="mat-row-txt">${escapeHtml(d.title || 'Untitled document')}</span>
-    </div>`).join('') : '<div class="cmp-empty-note">No documents match.</div>';
-  document.querySelectorAll('[data-pick-doc]').forEach(el => el.addEventListener('click', () => {
-    embedInternalSelected = (embedInternalDocs || []).find(d => d.id === el.getAttribute('data-pick-doc'));
-    renderEmbedInternalList(document.getElementById('embedInternalSearch').value);
-  }));
-}
-document.getElementById('embedTabExternal').addEventListener('click', () => setEmbedTab('external'));
-document.getElementById('embedTabInternal').addEventListener('click', () => setEmbedTab('internal'));
-document.getElementById('embedInternalSearch').addEventListener('input', e => renderEmbedInternalList(e.target.value));
-document.getElementById('embedClose').addEventListener('click', closeEmbedModal);
-document.getElementById('embedOverlay').addEventListener('click', e => { if (e.target.id === 'embedOverlay') closeEmbedModal(); });
-document.getElementById('tbEmbedArticle').addEventListener('click', () => openEmbedModal(null));
-document.getElementById('embedInsertBtn').addEventListener('click', () => {
-  const internalTab = !document.getElementById('embedInternalForm').classList.contains('hidden');
-  let data;
-  if (internalTab) {
-    if (!embedInternalSelected) { dashToast('Pick a document first'); return; }
-    data = { internal: true, url: window.location.origin + docPath(embedInternalSelected), title: embedInternalSelected.title };
-  } else {
-    const url = document.getElementById('embedUrl').value.trim();
-    if (!url) { dashToast('Add a URL first'); return; }
-    data = { internal: false, url, title: document.getElementById('embedTitle').value.trim(), image: document.getElementById('embedImage').value.trim() };
-  }
-  if (embedContext) {
-    const b = blocks.find(x => x.id === embedContext);
-    if (b) { b.relatedArticle = data; renderBlocks(); scheduleSave(); }
-  } else {
-    insertEmbedIntoCanvas(data);
-  }
-  closeEmbedModal();
-});
-
-/* ==================== Mode toggle ==================== */
-function setMode(toComposing) {
-  composing = toComposing;
-  document.getElementById('modeComposing').classList.toggle('active', composing);
-  document.getElementById('modeDesk').classList.toggle('active', !composing);
-  document.getElementById('colComposer').classList.toggle('collapsed', !composing);
-  matSidebarOpen = composing ? true : matSidebarOpen;
-  applyMatSidebarState();
-}
-function applyMatSidebarState() {
-  const colMat = document.getElementById('colMat');
-  colMat.classList.toggle('collapsed', !matSidebarOpen);
-  document.getElementById('matExpanded').style.display = matSidebarOpen ? 'block' : 'none';
-  let tab = document.getElementById('matEdgeTab');
-  if (!matSidebarOpen) {
-    if (!tab) { tab = document.createElement('div'); tab.id = 'matEdgeTab'; tab.className = 'mat-edge-tab'; tab.textContent = '📎 Materials'; tab.addEventListener('click', () => { matSidebarOpen = true; applyMatSidebarState(); }); colMat.appendChild(tab); }
-  } else if (tab) tab.remove();
-}
-document.getElementById('modeComposing').addEventListener('click', () => setMode(true));
-document.getElementById('modeDesk').addEventListener('click', () => setMode(false));
-document.getElementById('matCollapseBtn').addEventListener('click', () => { if (composing) setMode(false); else { matSidebarOpen = false; applyMatSidebarState(); } });
-
-/* ==================== Toolbar ==================== */
-document.querySelectorAll('.tb-btn[data-cmd]').forEach(btn => btn.addEventListener('click', () => { canvas.focus(); document.execCommand(btn.getAttribute('data-cmd'), false, null); }));
-document.getElementById('tbBlock').addEventListener('change', e => { canvas.focus(); document.execCommand('formatBlock', false, e.target.value); });
-document.getElementById('tbHighlight').addEventListener('input', e => { canvas.focus(); document.execCommand('hiliteColor', false, e.target.value); });
-document.getElementById('tbLink').addEventListener('click', () => { const url = prompt('Link URL:', 'https://'); if (url) { canvas.focus(); document.execCommand('createLink', false, url); } });
-document.getElementById('tbImage').addEventListener('click', () => { const url = prompt('Image URL:', 'https://'); if (url) { canvas.focus(); document.execCommand('insertHTML', false, `<img src="${url.replace(/"/g,'')}">`); } });
-document.getElementById('tbVideo').addEventListener('click', () => {
-  const url = prompt('Video URL (YouTube/Vimeo link, or direct .mp4):', 'https://');
-  if (!url) return; canvas.focus();
-  const yt = url.match(/(?:youtu\.be\/|youtube\.com\/watch\?v=)([\w-]+)/);
-  if (yt) document.execCommand('insertHTML', false, `<iframe width="480" height="270" src="https://www.youtube.com/embed/${yt[1]}" frameborder="0" allowfullscreen></iframe>`);
-  else document.execCommand('insertHTML', false, `<video controls src="${url.replace(/"/g,'')}"></video>`);
-});
-document.getElementById('tbDir').addEventListener('click', () => {
-  const rtl = canvas.getAttribute('dir') === 'rtl';
-  canvas.setAttribute('dir', rtl ? 'ltr' : 'rtl');
-  document.getElementById('tbDirLbl').textContent = rtl ? 'LTR' : 'RTL';
-  scheduleSave();
-});
-canvas.addEventListener('input', () => { updateCounts(); scheduleSave(); });
-document.getElementById('docTitle').addEventListener('input', e => {
-  document.getElementById('crumbDocTitle').textContent = e.target.value || 'Untitled'; scheduleSave();
-});
-
-/* Keyboard shortcuts */
-document.addEventListener('keydown', e => {
-  if (document.getElementById('screenEditor').classList.contains('hidden')) return;
-  const mod = e.ctrlKey || e.metaKey;
-  if (mod && e.key.toLowerCase() === 'k') { e.preventDefault(); document.getElementById('tbLink').click(); }
-  if (mod && e.key.toLowerCase() === 'f') { e.preventDefault(); openFind(); }
-  if (mod && e.key.toLowerCase() === 's') { e.preventDefault(); flushSave(); }
-});
-
-/* ==================== Counts ==================== */
-function updateCounts() {
-  const text = (canvas.innerText || '').trim();
-  const words = text ? text.split(/\s+/).filter(Boolean).length : 0;
-  document.getElementById('wordCount').textContent = words + ' words';
-  document.getElementById('charCount').textContent = text.length + ' characters';
-  document.getElementById('readTime').textContent = '~' + Math.max(1, Math.round(words / 200)) + ' min read';
-}
-
-/* ==================== Autosave ==================== */
-function scheduleSave() {
-  document.getElementById('saveState').textContent = 'Saving…';
-  clearTimeout(window._saveT);
-  window._saveT = setTimeout(flushSave, 800);
-}
-function flushSave() {
-  if (!CURRENT_DOC) return;
-  const patch = { title: document.getElementById('docTitle').value || 'Untitled document', body_html: canvas.innerHTML, direction: canvas.getAttribute('dir') || 'ltr', blocks: blocks, brief_ids: CURRENT_DOC.brief_ids || [] };
-  sbUpdate('desk_documents', CURRENT_DOC.id, patch)
-    .then(() => { CURRENT_DOC.title = patch.title; document.getElementById('saveState').textContent = 'Draft saved'; })
-    .catch(err => { document.getElementById('saveState').textContent = 'Save failed'; dashToast('Save failed: ' + err.message); });
-}
-
-/* ==================== Find & Replace ==================== */
-function openFind() { document.getElementById('findOverlay').classList.add('show'); document.getElementById('findInput').focus(); }
-document.getElementById('tbFind').addEventListener('click', openFind);
-document.getElementById('findClose').addEventListener('click', () => document.getElementById('findOverlay').classList.remove('show'));
-document.getElementById('findOverlay').addEventListener('click', e => { if (e.target.id === 'findOverlay') document.getElementById('findOverlay').classList.remove('show'); });
-document.getElementById('findReplaceAll').addEventListener('click', () => {
-  const find = document.getElementById('findInput').value, rep = document.getElementById('replaceInput').value;
-  if (!find) return;
-  const re = new RegExp(find.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
-  const before = canvas.innerText; const count = (before.match(re) || []).length;
-  canvas.innerHTML = canvas.innerHTML.split(find).join(escapeHtml(rep));
-  document.getElementById('findStatus').textContent = `Replaced ${count} occurrence${count===1?'':'s'}.`;
-  updateCounts(); scheduleSave();
-});
-document.getElementById('findReplaceOne').addEventListener('click', () => {
-  const find = document.getElementById('findInput').value, rep = document.getElementById('replaceInput').value;
-  if (!find) return;
-  const idx = canvas.innerHTML.indexOf(find);
-  if (idx === -1) { document.getElementById('findStatus').textContent = 'No more matches.'; return; }
-  canvas.innerHTML = canvas.innerHTML.slice(0, idx) + escapeHtml(rep) + canvas.innerHTML.slice(idx + find.length);
-  document.getElementById('findStatus').textContent = 'Replaced one occurrence.';
-  updateCounts(); scheduleSave();
-});
-
-/* ==================== Export / Share / Word ==================== */
-document.getElementById('btnShare').addEventListener('click', async () => {
-  const url = window.location.origin + docPath(CURRENT_DOC);
-  if (navigator.share) { try { await navigator.share({ title: CURRENT_DOC.title, url }); return; } catch (e) {} }
-  try { await navigator.clipboard.writeText(url); dashToast('Link copied — ' + url); } catch (e) { dashToast('Could not copy link'); }
-});
-document.getElementById('btnExportDoc').addEventListener('click', () => {
-  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${escapeHtml(CURRENT_DOC.title)}</title></head><body>${canvas.innerHTML}</body></html>`;
-  downloadBlob(html, (slugify(CURRENT_DOC.title) || 'document') + '.doc', 'application/msword');
-});
-document.getElementById('btnExportHtml').addEventListener('click', () => {
-  downloadBlob(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${escapeHtml(CURRENT_DOC.title)}</title></head><body>${canvas.innerHTML}</body></html>`, (slugify(CURRENT_DOC.title) || 'document') + '.html', 'text/html');
-});
-document.getElementById('btnExportMd').addEventListener('click', () => {
-  let md = canvas.innerHTML
-    .replace(/<h1[^>]*>(.*?)<\/h1>/gi, '# $1\n\n').replace(/<h2[^>]*>(.*?)<\/h2>/gi, '## $1\n\n')
-    .replace(/<b>(.*?)<\/b>|<strong>(.*?)<\/strong>/gi, (m,a,b) => `**${a||b}**`)
-    .replace(/<i>(.*?)<\/i>|<em>(.*?)<\/em>/gi, (m,a,b) => `*${a||b}*`)
-    .replace(/<a href="([^"]*)"[^>]*>(.*?)<\/a>/gi, '[$2]($1)')
-    .replace(/<li[^>]*>(.*?)<\/li>/gi, '- $1\n')
-    .replace(/<blockquote[^>]*>(.*?)<\/blockquote>/gi, '> $1\n\n')
-    .replace(/<p[^>]*>(.*?)<\/p>/gi, '$1\n\n')
-    .replace(/<[^>]+>/g, '').replace(/\n{3,}/g, '\n\n').trim();
-  downloadBlob(md, (slugify(CURRENT_DOC.title) || 'document') + '.md', 'text/markdown');
-});
-document.getElementById('btnExportPdf').addEventListener('click', () => window.print());
-document.getElementById('btnWord').addEventListener('click', () => {
-  navigator.clipboard.writeText(canvas.innerText).catch(() => {});
-  window.open('https://word.cloud.microsoft/', '_blank', 'noopener');
-  dashToast('Copied your piece — paste it into the new Word document');
-});
-document.getElementById('btnFinal').addEventListener('click', () => {
-  if (!CURRENT_DOC) return;
-  sbUpdate('desk_documents', CURRENT_DOC.id, { status: 'final' }).then(() => dashToast('Marked final')).catch(err => dashToast('Failed: ' + err.message));
-});
-function downloadBlob(content, filename, mime) {
-  const blob = new Blob(['\ufeff', content], { type: mime });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href = url; a.download = filename;
-  document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
-}
-
-/* ==================== Dark mode ==================== */
-function toggleDark() { document.body.classList.toggle('dark'); localStorage.setItem('desk_dark', document.body.classList.contains('dark') ? '1' : '0'); }
-document.getElementById('darkToggleHome').addEventListener('click', toggleDark);
-document.getElementById('darkToggleEditor').addEventListener('click', toggleDark);
-if (localStorage.getItem('desk_dark') === '1') document.body.classList.add('dark');
-
-/* ==================== Onboarding ==================== */
-const AGENTMODE_PROMPT = `Please save the following workflow in your memory under the command:
-
-/agentmode
-
-Whenever I type:
-
-/agentmode [TOPIC]
-
-execute the following multi-agent newsroom intelligence workflow.
-
-(See BriefDesk's onboarding modal for the full text — identical prompt, kept in sync across both apps.)`;
-function openOnboarding() { document.getElementById('onbOverlay').classList.add('show'); }
-document.getElementById('helpPillHome').addEventListener('click', openOnboarding);
-document.getElementById('helpPillEditor').addEventListener('click', openOnboarding);
-document.getElementById('onbClose').addEventListener('click', () => document.getElementById('onbOverlay').classList.remove('show'));
-document.getElementById('onbOverlay').addEventListener('click', e => { if (e.target.id === 'onbOverlay') document.getElementById('onbOverlay').classList.remove('show'); });
-document.getElementById('onbCopyPrompt').addEventListener('click', async e => {
-  const btn = e.currentTarget;
-  try { await navigator.clipboard.writeText(AGENTMODE_PROMPT); } catch (err) {}
-  btn.textContent = '✓ Copied'; btn.classList.add('done');
-  setTimeout(() => { btn.textContent = '⧉ Copy prompt'; btn.classList.remove('done'); }, 1800);
-});
-
-/* ==================== Assignments (Newsroom board) ==================== */
-const ROLE_DEFS = [
-  { name: 'Admin', color: '#1A3948', abilities: ['Full access to every brief, piece, and setting', 'Add and manage team members and roles', "Delete anything, including other people's work", 'Configure Search Console / Copilot integrations'] },
-  { name: 'Editor', color: '#24506A', abilities: ['Promote material and assign work to reporters', 'Publish pieces and mark them final', "Edit or comment on anyone's brief or piece", 'Cannot manage team roles or integrations'] },
-  { name: 'Reporter', color: '#FF5400', abilities: ['Write and edit pieces assigned to them', 'Promote material within their own briefs', 'Comment on their own work', 'Cannot publish, delete, or reassign to others'] },
-];
-const STATUSES = [
-  { id: 'research', label: 'Researching', color: '#B9CCCC' },
-  { id: 'writing', label: 'Writing', color: '#FFC047' },
-  { id: 'review', label: 'In Review', color: '#24506A' },
-  { id: 'published', label: 'Published', color: '#2E7D32' },
-];
-const PRIORITIES = [
-  { id: 'low', label: 'Low', color: '#B9CCCC' },
-  { id: 'normal', label: 'Normal', color: '#24506A' },
-  { id: 'high', label: 'High', color: '#FF5400' },
-];
-let TEAM = [], ASSIGNMENTS = [], CURRENT_USER = null, asnFilter = 'all', asnView = 'board';
-function briefPath(title, id) { return `/briefdesk/${slugify(title)}--${shortId(id)}`; }
-function personOf(id) { return TEAM.find(p => p.id === id); }
-function statusOf(id) { return STATUSES.find(s => s.id === id) || STATUSES[0]; }
-function priorityOf(id) { return PRIORITIES.find(p => p.id === id) || PRIORITIES[1]; }
-function isOverdue(a) { return a.due_date && new Date(a.due_date) < new Date(new Date().toDateString()) && a.status !== 'published'; }
-function itemPath(a) { return a.item_type === 'brief' ? briefPath(a.title, a.brief_id) : docPath({ title: a.title, id: a.doc_id }); }
-
-async function showAssign() {
-  document.getElementById('screenHome').classList.add('hidden');
-  document.getElementById('screenEditor').classList.add('hidden');
-  { const sf = document.getElementById('screenFolder'); if (sf) sf.classList.add('hidden'); }
-  document.getElementById('screenAssign').classList.remove('hidden');
-  await loadAssignData();
-}
-async function loadAssignData() {
-  try {
-    TEAM = await sbSelect('team_members', 'select=*&order=created_at.asc');
-    if (!CURRENT_USER && TEAM.length) CURRENT_USER = TEAM.find(t => t.role === 'admin') || TEAM[0];
-  } catch (e) { TEAM = []; dashToast('Could not load team members — has team_assignments.sql been run in Supabase?'); }
-  try { ASSIGNMENTS = await sbSelect('assignments', 'select=*&order=updated_at.desc'); }
-  catch (e) { ASSIGNMENTS = []; dashToast('Could not load assignments — has team_assignments.sql been run in Supabase?'); }
-  updateUserLabel(); renderAsnAll();
-}
-function updateUserLabel() {
-  document.getElementById('asnCurrentUserLabel').textContent = CURRENT_USER ? `${CURRENT_USER.name} (${CURRENT_USER.role})` : 'No team members yet';
-}
-function isAdmin() { return CURRENT_USER && CURRENT_USER.role === 'admin'; }
-
-function filteredAssignments() {
-  return ASSIGNMENTS.filter(a => asnFilter === 'all' ? true : asnFilter === 'overdue' ? isOverdue(a) : a.item_type === asnFilter);
-}
-function renderAsnStats() {
-  const mine = CURRENT_USER ? ASSIGNMENTS.filter(a => a.assignee_id === CURRENT_USER.id && a.status !== 'published').length : 0;
-  const review = ASSIGNMENTS.filter(a => a.status === 'review').length;
-  const overdue = ASSIGNMENTS.filter(isOverdue).length;
-  const unassigned = ASSIGNMENTS.filter(a => !a.assignee_id).length;
-  document.getElementById('asnStatRow').innerHTML = `
-    <div class="asn-stat-pill mine"><span class="asn-stat-n">${mine}</span><span class="asn-stat-l">assigned to you</span></div>
-    <div class="asn-stat-pill"><span class="asn-stat-n">${review}</span><span class="asn-stat-l">in review</span></div>
-    <div class="asn-stat-pill"><span class="asn-stat-n">${overdue}</span><span class="asn-stat-l">overdue</span></div>
-    <div class="asn-stat-pill"><span class="asn-stat-n">${unassigned}</span><span class="asn-stat-l">unassigned</span></div>`;
-}
-function acardHtml(a) {
-  const p = personOf(a.assignee_id), pr = priorityOf(a.priority);
-  return `<div class="acard" draggable="true" data-item="${a.id}">
-    <div class="acard-top"><span class="acard-type ${a.item_type}">${a.item_type === 'brief' ? '🧬 Brief' : '🖋️ Piece'}</span><span class="acard-priority" style="background:${pr.color}" title="${pr.label} priority"></span></div>
-    <div class="acard-title">${escapeHtml(a.title)}</div>
-    <div class="acard-foot">
-      ${p ? `<div class="acard-assignee"><div class="asn-avatar" style="background:${p.color}">${escapeHtml(p.name[0])}</div><span class="acard-assignee-name">${escapeHtml(p.name)}</span></div>` : '<span class="acard-unassigned">Unassigned</span>'}
-      ${a.due_date ? `<span class="acard-due ${isOverdue(a) ? 'overdue' : ''}">${isOverdue(a) ? '⚠ ' : ''}${fmtDate(a.due_date)}</span>` : ''}
+/* ==================== admin: manage tools ==================== */
+let ADMIN_TOOLS = [];
+function toolRowHtml(tool){
+  return `
+  <div class="trow" data-id="${tool.id}">
+    <input class="f-name" data-field="name" value="${esc(tool.name)}">
+    <input class="f-path" data-field="path" value="${esc(tool.path)}">
+    <input data-field="icon" style="width:56px;text-align:center" value="${esc(tool.icon||'')}" maxlength="4">
+    <select data-field="service">
+      <option value="both" ${tool.service==='both'?'selected':''}>${t('hub.svcBoth')}</option>
+      <option value="fa" ${tool.service==='fa'?'selected':''}>${t('hub.svcFa')}</option>
+      <option value="en" ${tool.service==='en'?'selected':''}>${t('hub.svcEn')}</option>
+    </select>
+    <select data-field="status">
+      <option value="live" ${tool.status==='live'?'selected':''}>${t('hub.stLive')}</option>
+      <option value="draft" ${tool.status==='draft'?'selected':''}>${t('hub.stDraft')}</option>
+      <option value="archived" ${tool.status==='archived'?'selected':''}>${t('hub.stArchived')}</option>
+    </select>
+    <input class="f-desc" data-field="description" value="${esc(tool.description||'')}">
+    <div class="trow-actions">
+      <button class="ghost-sm" data-action="save">${t('hub.save')}</button>
+      <button class="ghost-sm" data-action="delete">${t('hub.delete')}</button>
     </div>
   </div>`;
 }
-function fmtDate(iso) { const d = new Date(iso); return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }); }
-function renderAsnBoard() {
-  const items = filteredAssignments();
-  const el = document.getElementById('asnBoardEl');
-  if (!TEAM.length && !ASSIGNMENTS.length) { el.innerHTML = '<div class="asn-empty">No team or assignments yet — run team_assignments.sql, then click "＋ Assign work" to get started.</div>'; return; }
-  el.innerHTML = STATUSES.map(s => {
-    const colItems = items.filter(a => a.status === s.id);
-    return `<div class="asn-col" data-status="${s.id}">
-      <div class="asn-col-head"><span class="asn-col-dot" style="background:${s.color}"></span><span class="asn-col-title">${s.label}</span><span class="asn-col-count">${colItems.length}</span></div>
-      <div>${colItems.map(acardHtml).join('')}</div>
-    </div>`;
-  }).join('');
-  el.querySelectorAll('.acard').forEach(card => {
-    card.addEventListener('dragstart', e => { e.dataTransfer.setData('text/asn-id', card.getAttribute('data-item')); card.classList.add('dragging'); });
-    card.addEventListener('dragend', () => card.classList.remove('dragging'));
-    card.addEventListener('click', () => openAsnDetail(card.getAttribute('data-item')));
+function renderToolsList(){
+  $('toolsList').innerHTML = ADMIN_TOOLS.map(toolRowHtml).join('');
+}
+async function loadAdminTools(){
+  $('manageError').innerHTML = '';
+  const res = await AuthEngine.authedPost({ mode:'adminListTools' });
+  if (!res.ok){ $('manageError').innerHTML = `<div class="errbox">${esc(res.error||'Failed to load')}</div>`; return; }
+  ADMIN_TOOLS = res.tools || [];
+  renderToolsList();
+}
+$('manageBtn').addEventListener('click', ()=>{ $('manageModal').classList.add('show'); loadAdminTools(); });
+$('manageClose').addEventListener('click', ()=> $('manageModal').classList.remove('show'));
+$('manageModal').addEventListener('click', e=>{ if (e.target===$('manageModal')) $('manageModal').classList.remove('show'); });
+
+$('ntCreate').addEventListener('click', async ()=>{
+  const name = $('ntName').value.trim(), path = $('ntPath').value.trim();
+  if (!name || !path){ $('manageError').innerHTML = `<div class="errbox">Name and path are required.</div>`; return; }
+  const slug = name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+  $('ntCreate').disabled = true;
+  const res = await AuthEngine.authedPost({
+    mode:'adminCreateTool', slug, name, path,
+    icon: $('ntIcon').value.trim() || '◆',
+    description: $('ntDesc').value.trim(),
+    service: $('ntService').value,
+    status: $('ntStatus').value
   });
-  el.querySelectorAll('.asn-col').forEach(col => {
-    col.addEventListener('dragover', e => { e.preventDefault(); col.classList.add('drag-over'); });
-    col.addEventListener('dragleave', () => col.classList.remove('drag-over'));
-    col.addEventListener('drop', async e => {
-      e.preventDefault(); col.classList.remove('drag-over');
-      const id = e.dataTransfer.getData('text/asn-id'); const a = ASSIGNMENTS.find(x => x.id === id); if (!a) return;
-      const newStatus = col.getAttribute('data-status'); if (a.status === newStatus) return;
-      a.status = newStatus; renderAsnAll();
-      try { await sbUpdate('assignments', a.id, { status: newStatus }); dashToast(`Moved to ${statusOf(newStatus).label}`); }
-      catch (err) { dashToast('Could not save: ' + err.message); }
-    });
-  });
-}
-function renderAsnMyWork() {
-  const mine = CURRENT_USER ? ASSIGNMENTS.filter(a => a.assignee_id === CURRENT_USER.id) : [];
-  const el = document.getElementById('asnMyworkEl');
-  el.innerHTML = mine.length ? mine.map(a => `
-    <div class="asn-mywork-row" data-item="${a.id}">
-      <span class="asn-status-dot" style="background:${statusOf(a.status).color}"></span>
-      <div class="asn-mywork-body"><div class="asn-mywork-title">${a.item_type === 'brief' ? '🧬' : '🖋️'} ${escapeHtml(a.title)}</div>
-      <div class="asn-mywork-meta">${statusOf(a.status).label}${a.due_date ? ' · due ' + fmtDate(a.due_date) : ''}${isOverdue(a) ? ' · ⚠ overdue' : ''}</div></div>
-    </div>`).join('') : '<div class="asn-empty">Nothing assigned to you right now.</div>';
-  el.querySelectorAll('.asn-mywork-row').forEach(row => row.addEventListener('click', () => openAsnDetail(row.getAttribute('data-item'))));
-}
-function renderAsnTeam() {
-  document.getElementById('asnTeamEl').innerHTML = TEAM.map(p => {
-    const mine = ASSIGNMENTS.filter(a => a.assignee_id === p.id);
-    return `<div class="asn-team-card">
-      <div class="asn-team-head"><div class="asn-avatar" style="background:${p.color};width:32px;height:32px;font-size:12px;">${escapeHtml(p.name[0])}</div>
-        <div><div class="asn-team-name">${escapeHtml(p.name)}</div><div class="asn-team-role">${p.role}</div></div></div>
-      ${mine.length ? mine.map(a => `<div class="asn-team-mini"><span class="asn-status-dot" style="background:${statusOf(a.status).color}"></span>${escapeHtml(a.title)}</div>`).join('') : '<div class="asn-empty" style="padding:6px 0;">Nothing assigned</div>'}
-    </div>`;
-  }).join('');
-}
-function renderAsnAll() { renderAsnStats(); renderAsnBoard(); renderAsnMyWork(); renderAsnTeam(); }
-
-document.querySelectorAll('.asn-view-btn').forEach(btn => btn.addEventListener('click', () => {
-  asnView = btn.getAttribute('data-view');
-  document.querySelectorAll('.asn-view-btn').forEach(b => b.classList.toggle('active', b === btn));
-  document.getElementById('asnViewBoard').classList.toggle('hidden', asnView !== 'board');
-  document.getElementById('asnViewMywork').classList.toggle('hidden', asnView !== 'mywork');
-  document.getElementById('asnViewTeam').classList.toggle('hidden', asnView !== 'team');
-}));
-document.querySelectorAll('.asn-filter-chip').forEach(chip => chip.addEventListener('click', () => {
-  asnFilter = chip.getAttribute('data-filter');
-  document.querySelectorAll('.asn-filter-chip').forEach(c => c.classList.toggle('active', c === chip));
-  renderAsnBoard();
-}));
-
-/* ---- Detail modal: reassign, status, priority, due, real navigation, real share ---- */
-function renderPeoplePicker(containerId, selectedId, onPick) {
-  const el = document.getElementById(containerId);
-  el.innerHTML = TEAM.map(p => `<div class="people-pick-row ${p.id === selectedId ? 'selected' : ''}" data-pick="${p.id}">
-      <div class="asn-avatar" style="background:${p.color}">${escapeHtml(p.name[0])}</div><span>${escapeHtml(p.name)}</span><span style="margin-left:auto;font-size:9px;color:var(--soft);">${p.role}</span></div>`).join('')
-    + `<div class="people-pick-row ${!selectedId ? 'selected' : ''}" data-pick="">✕ Unassign</div>`;
-  el.querySelectorAll('[data-pick]').forEach(row => row.addEventListener('click', () => {
-    onPick(row.getAttribute('data-pick') || null);
-    el.querySelectorAll('.people-pick-row').forEach(r => r.classList.toggle('selected', r === row));
-  }));
-}
-function renderPriorityPicker(containerId, selected, onPick) {
-  const el = document.getElementById(containerId);
-  const paint = () => el.querySelectorAll('.priority-opt').forEach(o => { const on = o.getAttribute('data-pri') === selected; o.classList.toggle('selected', on); o.style.background = on ? PRIORITIES.find(p=>p.id===selected).color : ''; o.style.color = on ? '#fff' : ''; });
-  el.innerHTML = PRIORITIES.map(p => `<div class="priority-opt" data-pri="${p.id}">${p.label}</div>`).join('');
-  paint();
-  el.querySelectorAll('[data-pri]').forEach(opt => opt.addEventListener('click', () => { selected = opt.getAttribute('data-pri'); onPick(selected); paint(); }));
-}
-function openAsnDetail(id) {
-  const a = ASSIGNMENTS.find(x => x.id === id); if (!a) return;
-  let pendingAssignee = a.assignee_id, pendingPriority = a.priority;
-  document.getElementById('asnDetailTitle').textContent = (a.item_type === 'brief' ? '🧬 ' : '🖋️ ') + a.title;
-  document.getElementById('asnDetailBody').innerHTML = `
-    <div class="field-label">Status</div>
-    <select class="field-select" id="asnDetailStatus">${STATUSES.map(s => `<option value="${s.id}" ${s.id===a.status?'selected':''}>${s.label}</option>`).join('')}</select>
-    <div class="field-label">Assigned to</div>
-    <div id="asnDetailPeopleList"></div>
-    <div class="field-label">Priority</div>
-    <div class="priority-row" id="asnDetailPriorityRow"></div>
-    <div class="field-label">Due date</div>
-    <input class="field-input" type="date" id="asnDetailDue" value="${a.due_date || ''}">
-    <button class="btn" id="asnDetailOpenBtn" style="width:100%;margin-top:14px;">↗ Open in ${a.item_type === 'brief' ? 'BriefDesk' : 'Desk'}</button>
-    <button class="btn" id="asnDetailShareBtn" style="width:100%;margin-top:8px;">🔗 Share link</button>
-    <button class="btn primary" id="asnDetailSaveBtn" style="width:100%;margin-top:8px;">Save changes</button>`;
-  renderPeoplePicker('asnDetailPeopleList', a.assignee_id, v => pendingAssignee = v);
-  renderPriorityPicker('asnDetailPriorityRow', a.priority, v => pendingPriority = v);
-  document.getElementById('asnDetailOpenBtn').addEventListener('click', () => { window.location.href = itemPath(a); });
-  document.getElementById('asnDetailShareBtn').addEventListener('click', async () => {
-    const url = window.location.origin + itemPath(a);
-    if (navigator.share) { try { await navigator.share({ title: a.title, url }); return; } catch (e) { if (e && e.name === 'AbortError') return; } }
-    try { await navigator.clipboard.writeText(url); dashToast('Link copied — share it with your team: ' + url); }
-    catch (e) { dashToast('Could not copy link'); }
-  });
-  document.getElementById('asnDetailSaveBtn').addEventListener('click', async () => {
-    const patch = { status: document.getElementById('asnDetailStatus').value, assignee_id: pendingAssignee, priority: pendingPriority, due_date: document.getElementById('asnDetailDue').value || null };
-    Object.assign(a, patch);
-    closeAsnDetail(); renderAsnAll();
-    try { await sbUpdate('assignments', a.id, patch); dashToast('Assignment updated'); }
-    catch (err) { dashToast('Could not save: ' + err.message); }
-  });
-  document.getElementById('asnDetailOverlay').classList.add('show');
-}
-function closeAsnDetail() { document.getElementById('asnDetailOverlay').classList.remove('show'); }
-document.getElementById('asnDetailClose').addEventListener('click', closeAsnDetail);
-document.getElementById('asnDetailOverlay').addEventListener('click', e => { if (e.target.id === 'asnDetailOverlay') closeAsnDetail(); });
-
-/* ---- Assign new work: pick from briefs/docs not already tracked ---- */
-document.getElementById('asnNewAssignBtn').addEventListener('click', async () => {
-  const pick = document.getElementById('asnAssignItemPick');
-  pick.innerHTML = '<option>Loading…</option>';
-  document.getElementById('asnAssignOverlay').classList.add('show');
-  let briefs = [], docs = [];
-  try { briefs = await sbSelect('dna_agent_briefs', 'select=id,topic&order=created_at.desc&limit=100'); } catch (e) {}
-  try { docs = await sbSelect('desk_documents', 'select=id,title&order=updated_at.desc&limit=100'); } catch (e) {}
-  const trackedBriefIds = new Set(ASSIGNMENTS.filter(a => a.item_type === 'brief').map(a => a.brief_id));
-  const trackedDocIds = new Set(ASSIGNMENTS.filter(a => a.item_type === 'piece').map(a => a.doc_id));
-  const freeBriefs = briefs.filter(b => !trackedBriefIds.has(b.id));
-  const freeDocs = docs.filter(d => !trackedDocIds.has(d.id));
-  pick.innerHTML =
-    (freeBriefs.length ? `<optgroup label="Briefs">${freeBriefs.map(b => `<option value="brief:${b.id}">🧬 ${escapeHtml(b.topic || 'Untitled brief')}</option>`).join('')}</optgroup>` : '') +
-    (freeDocs.length ? `<optgroup label="Pieces">${freeDocs.map(d => `<option value="piece:${d.id}">🖋️ ${escapeHtml(d.title || 'Untitled document')}</option>`).join('')}</optgroup>` : '') ||
-    '<option value="">Nothing left to assign — everything is already tracked</option>';
-  pick._briefs = briefs; pick._docs = docs;
-  let pendingAssignee = null, pendingPriority = 'normal';
-  renderPeoplePicker('asnAssignPeopleList', null, v => pendingAssignee = v);
-  renderPriorityPicker('asnPriorityRow', 'normal', v => pendingPriority = v);
-  document.getElementById('asnAssignDue').value = '';
-  document.getElementById('asnAssignSaveBtn').onclick = async () => {
-    const val = pick.value; if (!val || !val.includes(':')) { document.getElementById('asnAssignOverlay').classList.remove('show'); return; }
-    const [type, id] = val.split(':');
-    const source = type === 'brief' ? pick._briefs.find(b => b.id === id) : pick._docs.find(d => d.id === id);
-    const title = type === 'brief' ? (source && source.topic) : (source && source.title);
-    const payload = { item_type: type, brief_id: type === 'brief' ? id : null, doc_id: type === 'piece' ? id : null, title: title || 'Untitled', status: 'research', assignee_id: pendingAssignee, priority: pendingPriority, due_date: document.getElementById('asnAssignDue').value || null };
-    document.getElementById('asnAssignOverlay').classList.remove('show');
-    try { const created = await sbInsert('assignments', payload); ASSIGNMENTS.unshift(created[0]); renderAsnAll(); dashToast('Assigned'); }
-    catch (err) { dashToast('Could not save: ' + err.message); }
-  };
-});
-document.getElementById('asnAssignClose').addEventListener('click', () => document.getElementById('asnAssignOverlay').classList.remove('show'));
-document.getElementById('asnAssignOverlay').addEventListener('click', e => { if (e.target.id === 'asnAssignOverlay') document.getElementById('asnAssignOverlay').classList.remove('show'); });
-
-/* ---- Roles & access + admin-only Add user ---- */
-function renderRoleLegend() {
-  document.getElementById('asnRoleLegendEl').innerHTML = ROLE_DEFS.map(r => `
-    <div class="role-legend-card"><div class="role-legend-head"><span class="asn-avatar" style="background:${r.color}">${r.name[0]}</span><span class="role-legend-name">${r.name}</span></div>
-    <div class="role-legend-list">${r.abilities.map(a => '• ' + escapeHtml(a)).join('<br>')}</div></div>`).join('');
-}
-function renderAsnTeamList() {
-  document.getElementById('asnTeamListEl').innerHTML = TEAM.length ? TEAM.map(p => `
-    <div class="people-pick-row"><div class="asn-avatar" style="background:${p.color}">${escapeHtml(p.name[0])}</div>
-      <span>${escapeHtml(p.name)}</span><span style="margin-left:auto;font-size:9px;font-weight:700;color:var(--teal2);text-transform:uppercase;">${p.role}</span></div>`).join('')
-    : '<div class="asn-empty">No team members yet.</div>';
-}
-document.getElementById('asnRolesBtn').addEventListener('click', () => {
-  renderRoleLegend(); renderAsnTeamList();
-  document.getElementById('asnAddUserBtn').style.display = isAdmin() ? 'inline-flex' : 'none';
-  document.getElementById('asnAddUserForm').classList.add('hidden');
-  document.getElementById('asnRolesOverlay').classList.add('show');
-});
-document.getElementById('asnRolesClose').addEventListener('click', () => document.getElementById('asnRolesOverlay').classList.remove('show'));
-document.getElementById('asnRolesOverlay').addEventListener('click', e => { if (e.target.id === 'asnRolesOverlay') document.getElementById('asnRolesOverlay').classList.remove('show'); });
-document.getElementById('asnAddUserBtn').addEventListener('click', () => {
-  document.getElementById('asnAddUserForm').classList.toggle('hidden');
-  document.getElementById('asnNewUserName').value = ''; document.getElementById('asnNewUserEmail').value = ''; document.getElementById('asnNewUserRole').value = 'reporter';
-});
-document.getElementById('asnNewUserSaveBtn').addEventListener('click', async () => {
-  if (!isAdmin()) { dashToast('Only an admin can add team members'); return; }
-  const name = document.getElementById('asnNewUserName').value.trim();
-  if (!name) { dashToast('Name is required'); return; }
-  const email = document.getElementById('asnNewUserEmail').value.trim() || null;
-  const role = document.getElementById('asnNewUserRole').value;
-  const palette = ['#FF5400', '#24506A', '#9B6B43', '#2E7D32', '#6A4C93'];
-  const color = palette[TEAM.length % palette.length];
-  try {
-    const created = await sbInsert('team_members', { name, email, role, color });
-    TEAM.push(created[0]); renderAsnTeamList(); renderAsnAll();
-    document.getElementById('asnAddUserForm').classList.add('hidden');
-    dashToast(`${name} added to the team`);
-  } catch (err) { dashToast('Could not add user: ' + err.message); }
+  $('ntCreate').disabled = false;
+  if (!res.ok){ $('manageError').innerHTML = `<div class="errbox">${esc(res.error||'Failed to create')}</div>`; return; }
+  $('ntName').value=''; $('ntPath').value=''; $('ntIcon').value=''; $('ntDesc').value='';
+  toast(t('hub.created'));
+  loadAdminTools(); loadTools();
 });
 
-/* ---- User switch: simulates "who's logged in" until real auth exists ---- */
-document.getElementById('asnUserSwitch').addEventListener('click', () => {
-  const body = document.getElementById('asnUserSwitchBody');
-  body.innerHTML = TEAM.length ? TEAM.map(p => `<div class="people-pick-row ${CURRENT_USER && CURRENT_USER.id === p.id ? 'selected' : ''}" data-switch="${p.id}">
-      <div class="asn-avatar" style="background:${p.color}">${escapeHtml(p.name[0])}</div><span>${escapeHtml(p.name)}</span><span style="margin-left:auto;font-size:9px;color:var(--soft);">${p.role}</span></div>`).join('')
-    : '<div class="asn-empty">No team members yet — add one from Roles &amp; access.</div>';
-  body.querySelectorAll('[data-switch]').forEach(row => row.addEventListener('click', () => {
-    CURRENT_USER = TEAM.find(p => p.id === row.getAttribute('data-switch'));
-    updateUserLabel(); renderAsnAll();
-    document.getElementById('asnUserSwitchOverlay').classList.remove('show');
-  }));
-  document.getElementById('asnUserSwitchOverlay').classList.add('show');
+$('toolsList').addEventListener('click', async e=>{
+  const row = e.target.closest('.trow'); if (!row) return;
+  const id = row.dataset.id;
+  const action = e.target.dataset.action;
+  if (action === 'save'){
+    const patch = { mode:'adminUpdateTool', id };
+    row.querySelectorAll('[data-field]').forEach(el => { patch[toCamel(el.dataset.field)] = el.value; });
+    const res = await AuthEngine.authedPost(patch);
+    if (!res.ok){ $('manageError').innerHTML = `<div class="errbox">${esc(res.error||'Failed to update')}</div>`; return; }
+    toast(t('hub.updated'));
+    loadTools();
+  }
+  if (action === 'delete'){
+    const name = row.querySelector('[data-field="name"]').value;
+    if (!confirm(t('hub.confirmDelete',{name}))) return;
+    const res = await AuthEngine.authedPost({ mode:'adminDeleteTool', id });
+    if (!res.ok){ $('manageError').innerHTML = `<div class="errbox">${esc(res.error||'Failed to delete')}</div>`; return; }
+    toast(t('hub.deleted'));
+    loadAdminTools(); loadTools();
+  }
 });
-document.getElementById('asnUserSwitchClose').addEventListener('click', () => document.getElementById('asnUserSwitchOverlay').classList.remove('show'));
-document.getElementById('asnUserSwitchOverlay').addEventListener('click', e => { if (e.target.id === 'asnUserSwitchOverlay') document.getElementById('asnUserSwitchOverlay').classList.remove('show'); });
+function toCamel(s){ return s.replace(/_([a-z])/g, (_,c)=>c.toUpperCase()); }
 
-/* ==================== Boot ==================== */
-routeFromLocation();
+/* ==================== boot ==================== */
+async function startApp(session){
+  SESSION = session;
+  renderProfile(session);
+  if (session.isAdmin) $('manageBtn').classList.remove('hide');
+  loadTools();
+}
+
+(function initAuthGate(){
+  if (typeof AuthEngine === 'undefined'){
+    showLoginGate();
+    showLoginError('auth-engine.js did not load — check it exists at /desk/search-intelligence/auth-engine.js');
+    return;
+  }
+  const existing = AuthEngine.getSession();
+  if (existing){ hideLoginGate(); startApp(existing); }
+  else { showLoginGate(); }
+})();
 </script>
 </body>
 </html>
