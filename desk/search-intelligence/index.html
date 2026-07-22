@@ -1453,6 +1453,7 @@ function renderHlResults(items, analysis){
 
   $('hlList').innerHTML = analysisHtml + itemsHtml;
   $('hlList').style.display = 'flex';
+  $('hlList').querySelectorAll('.hl-save-icon').forEach(ensureSaveIcon);
 }
 
 function showHlError(msg){
