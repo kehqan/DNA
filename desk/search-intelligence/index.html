@@ -159,9 +159,10 @@ html[dir="rtl"] .kw-num,html[dir="rtl"] .art-clicks,html[dir="rtl"] .sn{directio
 .intake-in:hover{background:var(--chip-hover)}
 .intake-in:focus{background:var(--chip-hover);
   box-shadow:inset 0 3px 6px rgba(255,84,0,0.16),inset 0 -1px 0 rgba(255,255,255,0.30),inset 0 0 0 1.5px rgba(255,150,80,0.40)}
-.intake-foot{display:flex;align-items:center;gap:10px;margin-top:12px}
+.intake-foot{display:flex;align-items:center;justify-content:flex-end;gap:10px;margin-top:12px}
 .intake-foot.hide{display:none}
-.hl-in{flex:1;font-family:var(--sans);font-size:13px;color:var(--lt-1);
+.intake-hl-row{margin-bottom:10px}
+.hl-in{flex:1;width:100%;font-family:var(--sans);font-size:13px;color:var(--lt-1);
   padding:10px 14px;border-radius:100px;border:none;outline:none;
   background:var(--chip);box-shadow:var(--rim-sm);transition:background 200ms,box-shadow 200ms}
 .hl-in::placeholder{color:rgba(255,255,255,0.5)}
@@ -485,9 +486,11 @@ select.mini-in:hover{background-color:var(--chip-hover)}
   </div>
 
   <div class="intake" id="intake">
+    <div class="intake-hl-row" id="intakeHlRow">
+      <input class="hl-in" id="articleHl" data-i18n-ph="intake.headlinePlaceholder" placeholder="Current headline (optional — sharpens the prompt)">
+    </div>
     <textarea class="intake-in" id="articleText" data-i18n-ph="intake.placeholder" placeholder="Paste the article text here — everything starts on its own…"></textarea>
     <div class="intake-foot hide" id="intakeFoot">
-      <input class="hl-in" id="articleHl" data-i18n-ph="intake.headlinePlaceholder" placeholder="Current headline (optional — sharpens the prompt)">
       <span id="wordCount"></span>
     </div>
   </div>
