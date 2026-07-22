@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RFE/RL · Morning Briefing Float Launcher</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink:    #1A3948;
+      --paper:  #F8F7F6;
+      --flame:  #FF5400;
+      --teal:   #1A3948;
+      --mid:    #7A8A8F;
+      --light:  #D6E0E0;
+      --faint:  #F0F4F4;
+      --success:#237a57;
+      --radius: 10px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--paper);
+      color: var(--ink);
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 14px;
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Masthead (matches morning-briefing exactly) ── */
+    .masthead {
+      background: #fff;
+      border-top: 4px solid var(--flame);
+      border-bottom: 1px solid var(--light);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .masthead-inner {
+      width: min(860px, 100%);
+      margin: 0 auto;
+      padding: 12px 40px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .masthead-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 8px;
+      background: var(--faint);
+      border: 1px solid var(--light);
+      border-radius: 5px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--mid);
+    }
+    .masthead-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--ink);
+      letter-spacing: -0.2px;
+    }
+    .masthead-sub {
+      font-size: 11px;
+      color: var(--mid);
+      margin-left: 2px;
+    }
+    .masthead-right {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .back-link {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 6px 12px;
+      border: 1px solid var(--light);
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--mid);
+      text-decoration: none;
+      transition: all 0.15s;
+    }
+    .back-link:hover { border-color: var(--ink); color: var(--ink); }
+
+    /* ── Support pill ── */
+    #support-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 10px 3px 8px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      border: 1px solid;
+      transition: all 0.3s;
+    }
+    #support-pill.ok  { background: #edf7f1; border-color: #b7dfc8; color: var(--success); }
+    #support-pill.err { background: #fff3f0; border-color: #ffc4b0; color: #c0341d; }
+    .pip { width: 6px; height: 6px; border-radius: 50%; background: currentColor; animation: blink 2s infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+    /* ── Main layout ── */
+    main {
+      flex: 1;
+      width: min(860px, 100%);
+      margin: 0 auto;
+      padding: 40px 40px 60px;
+    }
+
+    /* ── Hero section ── */
+    .hero {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 32px;
+      align-items: start;
+      margin-bottom: 36px;
+    }
+    .hero-eyebrow {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--flame);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .hero-eyebrow::before {
+      content: '';
+      display: inline-block;
+      width: 16px;
+      height: 2px;
+      background: var(--flame);
+      border-radius: 1px;
+    }
+    .hero-title {
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--ink);
+      line-height: 1.25;
+      letter-spacing: -0.5px;
+      margin-bottom: 10px;
+    }
+    .hero-desc {
+      font-size: 14px;
+      color: #5a6a70;
+      line-height: 1.65;
+      max-width: 480px;
+    }
+
+    /* ── Float window preview card ── */
+    .preview-card {
+      width: 200px;
+      background: #fff;
+      border: 1px solid var(--light);
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(26,57,72,0.1);
+      flex-shrink: 0;
+    }
+    .preview-titlebar {
+      background: var(--ink);
+      padding: 7px 10px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .preview-dot { width: 7px; height: 7px; border-radius: 50%; }
+    .preview-title-text {
+      font-size: 9px;
+      color: rgba(255,255,255,0.6);
+      font-family: 'JetBrains Mono', monospace;
+      margin-left: 4px;
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .preview-content {
+      padding: 10px;
+      background: var(--faint);
+    }
+    .preview-line {
+      height: 7px;
+      border-radius: 3px;
+      background: var(--light);
+      margin-bottom: 5px;
+    }
+    .preview-line:last-child { margin-bottom: 0; }
+    .preview-btn-row {
+      padding: 8px 10px;
+      background: #fff;
+      border-top: 1px solid var(--light);
+    }
+    .preview-btn {
+      width: 100%;
+      padding: 5px;
+      background: var(--flame);
+      border-radius: 5px;
+      height: 18px;
+    }
+    .preview-label {
+      text-align: center;
+      font-size: 10px;
+      color: var(--mid);
+      margin-top: 8px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* ── Step cards ── */
+    .workflow {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+    .step-card {
+      background: #fff;
+      border: 1px solid var(--light);
+      border-radius: var(--radius);
+      padding: 18px;
+      position: relative;
+    }
+    .step-num {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--faint);
+      border: 1px solid var(--light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--mid);
+      margin-bottom: 12px;
+    }
+    .step-icon {
+      font-size: 20px;
+      margin-bottom: 8px;
+      display: block;
+    }
+    .step-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 5px;
+    }
+    .step-text {
+      font-size: 12px;
+      color: #5a6a70;
+      line-height: 1.55;
+    }
+    .step-card.highlight {
+      border-color: var(--flame);
+      background: #fff9f7;
+    }
+    .step-card.highlight .step-num {
+      background: var(--flame);
+      border-color: var(--flame);
+      color: #fff;
+    }
+
+    /* ── Arrow connector ── */
+    .workflow-wrap {
+      position: relative;
+      margin-bottom: 28px;
+    }
+
+    /* ── Launch zone ── */
+    .launch-zone {
+      background: var(--ink);
+      border-radius: var(--radius);
+      padding: 28px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      margin-bottom: 20px;
+    }
+    .launch-info { flex: 1; min-width: 0; }
+    .launch-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.5);
+      margin-bottom: 6px;
+    }
+    .launch-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 4px;
+      letter-spacing: -0.3px;
+    }
+    .launch-url {
+      font-size: 11px;
+      color: rgba(255,255,255,0.4);
+      font-family: 'JetBrains Mono', monospace;
+    }
+    #launch-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 13px 24px;
+      background: var(--flame);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+    #launch-btn:hover {
+      background: #ff6b20;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(255,84,0,0.35);
+    }
+    #launch-btn:active { transform: none; }
+    #launch-btn:disabled {
+      background: rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.3);
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    /* ── Active banner ── */
+    #active-banner {
+      display: none;
+      background: #edf7f1;
+      border: 1px solid #b7dfc8;
+      border-radius: var(--radius);
+      padding: 12px 16px;
+      margin-bottom: 20px;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      animation: fadeIn 0.3s ease;
+    }
+    #active-banner.visible { display: flex; }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:translateY(0)} }
+    .active-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .active-dot-wrap {
+      width: 32px;
+      height: 32px;
+      background: #d4f0e0;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .active-label-text { font-size: 12px; font-weight: 700; color: var(--success); }
+    .active-sub { font-size: 11px; color: #5a8070; font-family: 'JetBrains Mono', monospace; }
+    .close-pip-btn {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 6px 12px;
+      background: #fff;
+      border: 1px solid #b7dfc8;
+      border-radius: 7px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #5a8070;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .close-pip-btn:hover { border-color: #c0341d; color: #c0341d; }
+
+    /* ── Note bar ── */
+    .note-bar {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 12px 16px;
+      background: #fff8f5;
+      border: 1px solid #ffd4c0;
+      border-radius: 8px;
+      font-size: 12px;
+      color: #8a4030;
+      line-height: 1.5;
+    }
+    .note-bar-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+
+    /* ── Footer ── */
+    footer {
+      border-top: 1px solid var(--light);
+      padding: 14px 40px;
+      text-align: center;
+      font-size: 11px;
+      color: var(--mid);
+      background: #fff;
+    }
+
+    @media (max-width: 640px) {
+      .masthead-inner, main { padding-left: 20px; padding-right: 20px; }
+      .hero { grid-template-columns: 1fr; }
+      .preview-card { display: none; }
+      .workflow { grid-template-columns: 1fr; }
+      .launch-zone { flex-direction: column; align-items: stretch; }
+      #launch-btn { justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Masthead -->
+  <header class="masthead">
+    <div class="masthead-inner">
+      <span class="masthead-badge">RFE/RL</span>
+      <div>
+        <div class="masthead-title">Morning Briefing</div>
+      </div>
+      <div class="masthead-right">
+        <div id="support-pill" class="err">
+          <span class="pip"></span>
+          <span id="support-text">Checking…</span>
+        </div>
+        <a href="../" class="back-link">
+          ← Full briefing tool
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- Hero -->
+    <div class="hero">
+      <div>
+        <div class="hero-eyebrow">Floating Window Launcher</div>
+        <h1 class="hero-title">Keep the briefing<br>open while you work</h1>
+        <p class="hero-desc">
+          Launch the Morning Briefing as a <strong>floating window</strong> that stays on top of Outlook and Copilot.
+          Build your prompt, copy it, and paste it into Copilot — all without switching tabs.
+        </p>
+      </div>
+      <div>
+        <div class="preview-card">
+          <div class="preview-titlebar">
+            <div class="preview-dot" style="background:#ff5f57"></div>
+            <div class="preview-dot" style="background:#febc2e"></div>
+            <div class="preview-dot" style="background:#28c840"></div>
+            <span class="preview-title-text">Morning Briefing</span>
+          </div>
+          <div class="preview-content">
+            <div class="preview-line" style="width:80%"></div>
+            <div class="preview-line" style="width:60%"></div>
+            <div class="preview-line" style="width:90%"></div>
+            <div class="preview-line" style="width:50%"></div>
+            <div class="preview-line" style="width:75%"></div>
+          </div>
+          <div class="preview-btn-row">
+            <div class="preview-btn"></div>
+          </div>
+        </div>
+        <div class="preview-label">Floats above everything</div>
+      </div>
+    </div>
+
+    <!-- Active banner -->
+    <div id="active-banner">
+      <div class="active-left">
+        <div class="active-dot-wrap">
+          <span class="pip" style="width:8px;height:8px"></span>
+        </div>
+        <div>
+          <div class="active-label-text">Floating window is live</div>
+          <div class="active-sub">morning-briefing is open above your other windows</div>
+        </div>
+      </div>
+      <button class="close-pip-btn" id="close-btn">✕ Close float</button>
+    </div>
+
+    <!-- Workflow steps -->
+    <div class="workflow">
+      <div class="step-card highlight">
+        <div class="step-num">1</div>
+        <span class="step-icon">🚀</span>
+        <div class="step-title">Launch the float</div>
+        <div class="step-text">Press the button below. The Morning Briefing opens as a small window that stays above everything else on your screen.</div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">2</div>
+        <span class="step-icon">📧</span>
+        <div class="step-title">Open Outlook + Copilot</div>
+        <div class="step-text">Go to <strong>Outlook in your browser</strong> and find the Copilot swirl in the left sidebar. Arrange it next to the float.</div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">3</div>
+        <span class="step-icon">📋</span>
+        <div class="step-title">Generate &amp; paste</div>
+        <div class="step-text">Use the float to configure your briefing, hit <strong>Copy</strong>, then paste into Copilot with <kbd style="font-family:monospace;background:var(--faint);padding:1px 5px;border:1px solid var(--light);border-radius:3px;font-size:11px">Ctrl+V</kbd>.</div>
+      </div>
+    </div>
+
+    <!-- Launch zone -->
+    <div class="launch-zone">
+      <div class="launch-info">
+        <div class="launch-label">Ready to launch</div>
+        <div class="launch-title">Morning Briefing · Floating Window</div>
+        <div class="launch-url">kehqan.github.io/rfe-rl-plan/morning-briefing</div>
+      </div>
+      <button id="launch-btn" disabled>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <rect x="1" y="1" width="14" height="10" rx="2" stroke="white" stroke-width="1.5"/>
+          <path d="M4 15H12M8 11V15" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M5 6.5L8 4.5L11 6.5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Launch Floating Window
+      </button>
+    </div>
+
+    <!-- Note -->
+    <div class="note-bar">
+      <span class="note-bar-icon">ℹ️</span>
+      <span>
+        Requires <strong>Chrome 116+</strong> or <strong>Edge 116+</strong>. The floating window stays on top of all other apps — including Outlook and Copilot.
+        Firefox is not supported. Must be triggered by a button click (browser security requirement).
+      </span>
+    </div>
+
+  </main>
+
+  <footer>
+    RFE/RL · Morning Briefing System · Digital Transformation Department
+  </footer>
+
+  <script>
+    const TARGET = 'https://kehqan.github.io/rfe-rl-plan/morning-briefing/';
+    const W = 520, H = 680; // portrait: good for the briefing builder UI
+
+    const launchBtn    = document.getElementById('launch-btn');
+    const activeBar    = document.getElementById('active-banner');
+    const closeBtn     = document.getElementById('close-btn');
+    const pill         = document.getElementById('support-pill');
+    const pillText     = document.getElementById('support-text');
+
+    let pipWin = null;
+
+    // ── Browser support check ──
+    const supported = 'documentPictureInPicture' in window;
+    if (supported) {
+      pill.className = 'ok';
+      pillText.textContent = 'PiP supported';
+      launchBtn.disabled = false;
+    } else {
+      pill.className = 'err';
+      pillText.textContent = 'Chrome/Edge 116+ required';
+      launchBtn.disabled = true;
+      launchBtn.title = 'This browser does not support Document Picture-in-Picture.';
+    }
+
+    // ── Auto-launch on first user gesture ──
+    let autoLaunched = false;
+    function tryAuto() {
+      if (!autoLaunched && supported) {
+        autoLaunched = true;
+        doLaunch();
+      }
+    }
+    document.addEventListener('click', tryAuto, { once: true });
+    document.addEventListener('keydown', tryAuto, { once: true });
+
+    // ── Close ──
+    function closePip() {
+      if (pipWin) { try { pipWin.close(); } catch(e){} pipWin = null; }
+      activeBar.classList.remove('visible');
+      setBtn('idle');
+    }
+    closeBtn.addEventListener('click', closePip);
+
+    // ── Button states ──
+    function setBtn(state) {
+      launchBtn.disabled = !supported;
+      if (state === 'loading') {
+        launchBtn.disabled = true;
+        launchBtn.innerHTML = '<span style="opacity:.6;font-size:13px">Opening…</span>';
+      } else if (state === 'relauneh') {
+        launchBtn.innerHTML = `
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <rect x="1" y="1" width="14" height="10" rx="2" stroke="white" stroke-width="1.5"/>
+            <path d="M4 15H12M8 11V15" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M5 6.5L8 4.5L11 6.5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Relaunch Window`;
+      } else {
+        launchBtn.innerHTML = `
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <rect x="1" y="1" width="14" height="10" rx="2" stroke="white" stroke-width="1.5"/>
+            <path d="M4 15H12M8 11V15" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M5 6.5L8 4.5L11 6.5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Launch Floating Window`;
+      }
+    }
+
+    // ── Core launch ──
+    async function doLaunch() {
+      if (!supported) return;
+      if (pipWin) closePip();
+
+      setBtn('loading');
+
+      try {
+        pipWin = await window.documentPictureInPicture.requestWindow({ width: W, height: H });
+
+        const doc = pipWin.document;
+
+        doc.head.innerHTML = `
+          <meta charset="UTF-8">
+          <style>
+            *{margin:0;padding:0;box-sizing:border-box}
+            body{display:flex;flex-direction:column;height:100vh;overflow:hidden;background:#1A3948;font-family:system-ui,sans-serif}
+            .bar{
+              display:flex;align-items:center;padding:0 10px;height:30px;
+              background:#1A3948;border-bottom:2px solid #FF5400;
+              flex-shrink:0;gap:6px;
+            }
+            .bar-title{font-size:10px;color:rgba(255,255,255,.55);font-family:monospace;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+            .bar-btn{
+              width:22px;height:22px;border:none;background:rgba(255,255,255,.08);
+              border-radius:5px;color:rgba(255,255,255,.6);cursor:pointer;
+              display:flex;align-items:center;justify-content:center;font-size:12px;
+              transition:background .15s;flex-shrink:0;
+            }
+            .bar-btn:hover{background:rgba(255,255,255,.18);color:#fff}
+            .err-bar{
+              display:none;padding:6px 10px;
+              background:#2a1010;border-bottom:1px solid #6a2a1a;
+              font-size:10px;color:#ff9a8a;font-family:monospace;line-height:1.4;
+            }
+            iframe{flex:1;border:none;width:100%;background:#F8F7F6}
+          </style>
+        `;
+
+        doc.body.innerHTML = `
+          <div class="bar">
+            <div class="bar-title">RFE/RL · Morning Briefing</div>
+            <button class="bar-btn" id="rb" title="Reload">↺</button>
+            <button class="bar-btn" id="ob" title="Open in tab">⤤</button>
+          </div>
+          <div class="err-bar" id="eb">⚠ Site blocked embedding — click ⤤ to open in a tab.</div>
+          <iframe
+            id="f"
+            src="${TARGET}"
+            sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-presentation"
+            allow="autoplay;camera;microphone;encrypted-media;fullscreen;geolocation"
+          ></iframe>
+        `;
+
+        doc.getElementById('rb').onclick = () => { const f=doc.getElementById('f'); f.src=f.src; };
+        doc.getElementById('ob').onclick = () => window.open(TARGET, '_blank');
+        doc.getElementById('f').onerror  = () => { doc.getElementById('eb').style.display='block'; };
+
+        pipWin.addEventListener('pagehide', () => {
+          pipWin = null;
+          activeBar.classList.remove('visible');
+          setBtn('idle');
+        });
+
+        activeBar.classList.add('visible');
+        setBtn('relauneh');
+
+      } catch(e) {
+        console.error(e);
+        setBtn('idle');
+        if (e.name !== 'NotAllowedError') alert('Could not open floating window: ' + e.message);
+      }
+    }
+
+    launchBtn.addEventListener('click', doLaunch);
+  </script>
+</body>
+</html>
