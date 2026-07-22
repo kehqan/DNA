@@ -88,25 +88,34 @@ html[dir="rtl"] .kw-num,html[dir="rtl"] .art-clicks,html[dir="rtl"] .sn{directio
 
 /* ===== NAV ===== */
 .nav-wrap{position:sticky;top:0;z-index:50;display:flex;justify-content:center;padding:16px 24px 0;pointer-events:none}
-.nav-pill{display:inline-flex;align-items:center;gap:2px;flex-wrap:wrap;justify-content:center;
+.nav-pill{position:relative;display:inline-flex;align-items:center;gap:2px;flex-wrap:wrap;justify-content:center;
   background:var(--glass);backdrop-filter:var(--glass-filter);-webkit-backdrop-filter:var(--glass-filter);
   border-radius:100px;padding:5px;box-shadow:var(--ambient),var(--rim);pointer-events:all}
 .wordmark{font-family:var(--serif);font-size:17px;color:var(--lt-1);text-shadow:var(--ts);
-  padding:6px 16px 6px 12px;border-right:1px solid var(--border);margin-right:4px;white-space:nowrap}
+  padding:6px 16px 6px 12px;border-right:1px solid var(--border);margin-right:4px;white-space:nowrap;
+  position:relative;z-index:1}
 .wordmark em{font-style:normal;color:#FFB07A;font-weight:600}
-.ntab{font-size:13px;font-weight:500;color:var(--lt-3);text-shadow:var(--ts);padding:7px 16px;border-radius:100px;
-  cursor:pointer;transition:color 180ms,background 180ms;white-space:nowrap}
-.ntab:hover{color:var(--lt-1);background:rgba(255,255,255,0.08)}
+
+/* Shared sliding highlight — one element that glides between whichever
+   nav item is hovered, instead of each item fading its own background in/out. */
+.nav-highlight{position:absolute;top:5px;left:0;height:calc(100% - 10px);width:0;border-radius:100px;
+  background:rgba(255,255,255,0.09);box-shadow:var(--rim-sm);pointer-events:none;opacity:0;z-index:0;
+  transition:left 150ms cubic-bezier(0.22,1,0.36,1),width 150ms cubic-bezier(0.22,1,0.36,1),opacity 100ms ease-out}
+.nav-highlight.show{opacity:1}
+
+.ntab{position:relative;z-index:1;font-size:13px;font-weight:500;color:var(--lt-3);text-shadow:var(--ts);padding:7px 16px;border-radius:100px;
+  cursor:pointer;transition:color 110ms ease-out;white-space:nowrap}
+.ntab:hover{color:var(--lt-1)}
 .ntab.on{background:rgba(255,255,255,0.82);color:#0E2531;text-shadow:none;font-weight:600;box-shadow:var(--rim-sm)}
-.nav-sep{width:1px;height:20px;background:var(--border);margin:0 2px}
-.langtoggle{display:flex;gap:2px;margin-left:2px}
-.lt-opt{font-size:11px;font-weight:600;color:var(--lt-3);text-shadow:var(--ts);padding:5px 9px;border-radius:100px;cursor:pointer;transition:background 180ms,color 180ms}
+.nav-sep{position:relative;z-index:1;width:1px;height:20px;background:var(--border);margin:0 2px}
+.langtoggle{display:flex;gap:2px;margin-left:2px;position:relative;z-index:1}
+.lt-opt{font-size:11px;font-weight:600;color:var(--lt-3);text-shadow:var(--ts);padding:5px 9px;border-radius:100px;cursor:pointer;transition:background 110ms ease-out,color 110ms ease-out}
 .lt-opt:hover{color:var(--lt-1)}
 .lt-opt.on{background:rgba(255,255,255,0.82);color:#0E2531;text-shadow:none;box-shadow:var(--rim-sm)}
 
 /* Prompt nav button — states driven by JS (idle/pending/ready) */
-.gen-ntab{font-size:13px;font-weight:600;padding:7px 16px;border-radius:100px;cursor:pointer;white-space:nowrap;
-  transition:transform 200ms var(--eo),background 200ms,box-shadow 200ms,color 200ms;
+.gen-ntab{position:relative;z-index:1;font-size:13px;font-weight:600;padding:7px 16px;border-radius:100px;cursor:pointer;white-space:nowrap;
+  transition:transform 130ms cubic-bezier(0.22,1,0.36,1),background 130ms ease-out,box-shadow 130ms ease-out,color 130ms ease-out;
   background:rgba(255,255,255,0.10);color:var(--lt-3);text-shadow:var(--ts);box-shadow:var(--rim-sm)}
 .gen-ntab:hover{background:rgba(255,120,50,0.16);color:var(--lt-1);transform:translateY(-1px)}
 .gen-ntab.idle{opacity:.55;cursor:default}
@@ -119,10 +128,10 @@ html[dir="rtl"] .kw-num,html[dir="rtl"] .art-clicks,html[dir="rtl"] .sn{directio
 .gen-ntab.ready:hover{transform:translateY(-1.5px) scale(1.02);background:linear-gradient(180deg,#FF8A45 0%,var(--flame) 52%,#DC4400 100%)}
 
 /* ===== PROFILE DROPDOWN ===== */
-.profile-wrap{position:relative}
+.profile-wrap{position:relative;z-index:1}
 .profile-trigger{display:flex;align-items:center;gap:8px;font-family:var(--sans);font-size:13px;font-weight:500;
   color:var(--lt-3);text-shadow:var(--ts);padding:5px 12px 5px 6px;border-radius:100px;cursor:pointer;
-  border:none;background:transparent;transition:color 180ms,background 180ms;white-space:nowrap}
+  border:none;background:transparent;transition:color 110ms ease-out,background 110ms ease-out;white-space:nowrap}
 .profile-trigger:hover{color:var(--lt-1);background:rgba(255,255,255,0.08)}
 .profile-wrap.open .profile-trigger{background:rgba(255,255,255,0.10);color:var(--lt-1)}
 .profile-avatar{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;
@@ -479,10 +488,8 @@ select.mini-in:hover{background-color:var(--chip-hover)}
 
 <div class="nav-wrap">
   <div class="nav-pill">
+    <span class="nav-highlight" id="navHighlight"></span>
     <div class="wordmark">Desk Headline<em>.</em></div>
-    <div class="ntab" data-i18n="nav.briefs">Briefs</div>
-    <div class="ntab on" data-i18n="nav.searchIntel">Search Intelligence</div>
-    <div class="ntab" data-i18n="nav.library">Library</div>
     <a href="/desk/search-intelligence/content-gap/" class="ntab" data-i18n="nav.contentGap">Content Gap</a>
     <div class="nav-sep"></div>
     <div class="ntab" id="compareBtn" data-i18n="nav.compare" data-i18n-title="nav.compareTitle" title="Compare two keywords">⇄ Compare</div>
@@ -1801,6 +1808,23 @@ $('logoutBtn').addEventListener('click', ()=>{
 
 /* ==================== Boot (runs once per successful session) ==================== */
 applyStaticI18n();
+
+/* ==================== Nav — sliding hover highlight ==================== */
+(function initNavHighlight(){
+  const pill = document.querySelector('.nav-pill');
+  const glow = $('navHighlight');
+  if (!pill || !glow) return;
+  const targets = pill.querySelectorAll('.ntab, .profile-trigger');
+  function moveTo(el){
+    const pr = pill.getBoundingClientRect();
+    const r = el.getBoundingClientRect();
+    glow.style.left = (r.left - pr.left) + 'px';
+    glow.style.width = r.width + 'px';
+    glow.classList.add('show');
+  }
+  targets.forEach(el => el.addEventListener('mouseenter', () => moveTo(el)));
+  pill.addEventListener('mouseleave', () => glow.classList.remove('show'));
+})();
 
 /* ==================== Profile dropdown ==================== */
 function renderProfile(session){
