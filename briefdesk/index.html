@@ -1356,8 +1356,8 @@ function showView(name) {
   window.scrollTo(0, 0);
 }
 
-/* ==================== Routing: /briefdesk (library) + /briefdesk/<slug>--<id> (brief) ==================== */
-const ROUTE_BASE = '/briefdesk';
+/* ==================== Routing: /desk/brief (library) + /desk/brief/<slug>--<id> (brief) ==================== */
+const ROUTE_BASE = '/desk/brief';
 function slugify(s) {
   return String(s || 'untitled').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g, '')
     .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 48) || 'untitled';
@@ -1375,7 +1375,7 @@ function goToBrief(row) {
 }
 function routeFromLocation() {
   const path = window.location.pathname.replace(/\/+$/, '');
-  const m = path.match(/^\/briefdesk\/(.+)--([a-f0-9]{6,10})$/i);
+  const m = path.match(new RegExp('^' + ROUTE_BASE.replace(/\//g, '\\/') + '\\/(.+)--([a-f0-9]{6,10})$', 'i'));
   if (m) {
     const shortId = m[2].toLowerCase();
     const row = LIBRARY_CACHE.find(r => briefShortId(r.id) === shortId);
@@ -1384,7 +1384,7 @@ function routeFromLocation() {
   }
   showView('library');
 }
-/* If arriving via the GitHub Pages 404.html redirect trick (?p=/briefdesk/...), restore the real URL first. */
+/* If arriving via the GitHub Pages 404.html redirect trick (?p=/desk/brief/...), restore the real URL first. */
 (function restoreGhPagesRedirect() {
   const params = new URLSearchParams(window.location.search);
   const p = params.get('p');
@@ -1415,7 +1415,7 @@ function openIntake() {
   updateCharCount(); showView('paste');
 }
 document.getElementById('navPaste').addEventListener('click', openIntake);
-document.getElementById('navToDesk').addEventListener('click', () => { window.location.href = '/desk'; });
+document.getElementById('navToDesk').addEventListener('click', () => { window.location.href = '/desk/investigative'; });
 
 /* ---------- Intake ---------- */
 function updateCharCount() {
@@ -3161,7 +3161,7 @@ function materialQuestion(kind) {
 function regMat(m) { const id = 'm' + (matSeq++); COMPOSE_MATERIALS[id] = m; return id; }
 
 /* ---------- Handoff to the Desk product: pick among existing pieces, or start a new one ---------- */
-const DESK_BASE = '/desk';
+const DESK_BASE = '/desk/investigative';
 function deskDocPath(doc) { return `${DESK_BASE}/doc/${slugify(doc.title)}--${String(doc.id).replace(/-/g, '').slice(0, 8)}`; }
 function navigateToDeskDoc(doc) { window.location.href = deskDocPath(doc); }
 
