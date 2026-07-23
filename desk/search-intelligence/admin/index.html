@@ -135,10 +135,18 @@ pre#preview{white-space:pre-wrap;word-break:break-word;font-family:ui-monospace,
 .access-card a.ghost, .access-card .ghost{display:inline-block;text-decoration:none}
 
 /* ===== SERVICE SWITCH ===== */
-.svc-switch{display:inline-flex;gap:2px;background:rgba(26,57,72,0.06);border-radius:100px;padding:3px}
-.svc-opt{font-size:12px;font-weight:600;color:var(--muted);padding:6px 14px;border-radius:100px;cursor:pointer;transition:all 150ms}
-.svc-opt.on{background:var(--teal);color:var(--ivory)}
-.svc-opt:hover:not(.on){color:var(--teal)}
+.site-select{font-family:var(--sans);font-size:12.5px;font-weight:600;color:var(--teal);
+  padding:8px 30px 8px 14px;border-radius:100px;border:none;background:rgba(26,57,72,0.06);
+  cursor:pointer;outline:none;appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%231A3948'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 12px center}
+.site-select:disabled{opacity:.7;cursor:default;background-image:none}
+.site-locked-label{font-size:12.5px;font-weight:600;color:var(--teal);padding:8px 14px;
+  border-radius:100px;background:rgba(26,57,72,0.06)}
+.role-badge{font-size:10px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;padding:3px 9px;border-radius:100px;white-space:nowrap}
+.role-badge.user{background:rgba(26,57,72,0.10);color:var(--soft)}
+.role-badge.site_admin{background:rgba(196,97,30,0.14);color:#C4611E}
+.role-badge.super_admin{background:rgba(31,122,69,0.14);color:#1F7A45}
 
 /* ===== MODAL (users) ===== */
 .modal-overlay{position:fixed;inset:0;z-index:200;display:none;align-items:flex-start;justify-content:center;
@@ -155,8 +163,7 @@ pre#preview{white-space:pre-wrap;word-break:break-word;font-family:ui-monospace,
 .user-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .user-name{font-family:var(--serif);font-size:15px;color:var(--teal);flex:1;min-width:90px}
 .user-badge{font-size:10px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;padding:3px 9px;border-radius:100px;white-space:nowrap}
-.user-badge.fa{background:rgba(62,111,190,0.14);color:#3E6FBE}
-.user-badge.en{background:rgba(196,97,30,0.14);color:#C4611E}
+.user-badge.site{background:rgba(62,111,190,0.14);color:#3E6FBE}
 .user-badge.admin{background:rgba(31,122,69,0.14);color:#1F7A45}
 .user-badge.off{background:rgba(26,57,72,0.10);color:var(--soft)}
 .user-actions{display:flex;gap:6px}
@@ -246,13 +253,12 @@ pre#preview{white-space:pre-wrap;word-break:break-word;font-family:ui-monospace,
     <div class="new-user-row" id="newUserRow">
       <input id="nuUsername" placeholder="Username" style="flex:1;min-width:110px">
       <input id="nuPassword" placeholder="Password (6+ chars)" style="flex:1;min-width:140px">
-      <select id="nuService">
-        <option value="fa">Farsi service</option>
-        <option value="en">English service</option>
+      <select id="nuSite"></select>
+      <select id="nuRole">
+        <option value="user">Editor</option>
+        <option value="site_admin">Site admin</option>
+        <option value="super_admin">Super admin</option>
       </select>
-      <label style="font-size:11.5px;color:var(--muted);display:flex;align-items:center;gap:5px">
-        <input type="checkbox" id="nuAdmin" style="width:auto"> Admin
-      </label>
       <button class="btn-flame" id="nuCreate" style="padding:7px 16px;font-size:12px">Create</button>
     </div>
     <div id="usersList"></div>
@@ -302,10 +308,8 @@ pre#preview{white-space:pre-wrap;word-break:break-word;font-family:ui-monospace,
   </div>
 
   <div class="toolbar">
-    <div class="svc-switch" id="svcSwitch">
-      <div class="svc-opt on" data-svc="fa">Farsi</div>
-      <div class="svc-opt" data-svc="en">English</div>
-    </div>
+    <select class="site-select" id="siteSelect" style="display:none"></select>
+    <span class="site-locked-label" id="siteLockedLabel" style="display:none"></span>
     <button class="ghost" id="btnManageUsers">👤 Manage users</button>
     <button class="ghost" id="btnTrending">📈 Trending data</button>
     <button class="ghost" id="btnReset">↺ Reset to default</button>
@@ -366,27 +370,33 @@ let BLOCKS = [];
 let lastFocusedBody = null;
 let dirty = false;
 let dragIdx = null;
-let activeService = 'fa';
+let activeSite = 'fa';
+let CURRENT_SESSION = null;
 
 /* ---------- sample scenarios for preview ---------- */
 const SAMPLE_ARTICLE = `دولت ایران روز سه‌شنبه اعلام کرد که مذاکرات هسته‌ای با نمایندگان آمریکا در دور تازه‌ای در وین از سر گرفته خواهد شد. به گفته یک منبع نزدیک به وزارت خارجه، تمرکز اصلی این دور بر تضمین‌های مربوط به راستی‌آزمایی و رفع بخشی از تحریم‌های بانکی خواهد بود.
 
 ناظران می‌گویند فاصله میان دو طرف در روزهای اخیر کاهش یافته، اما هیچ تضمینی برای دستیابی به توافق نهایی در این دور وجود ندارد.`;
 const SAMPLES = {
-  full: { SITE:'radiofarda.com', DAYS:28, HEADLINE:'ایران و آمریکا مذاکرات هسته‌ای را از سر می‌گیرند', ARTICLE:SAMPLE_ARTICLE, ARTICLE_WORDCOUNT:74,
+  full: { SITE:'radiofarda.com', TARGET_LANGUAGE:'Persian', DAYS:28, HEADLINE:'ایران و آمریکا مذاکرات هسته‌ای را از سر می‌گیرند', ARTICLE:SAMPLE_ARTICLE, ARTICLE_WORDCOUNT:74,
     QUERY_TABLE:'مذاکرات هسته ای ایران | 4210 | 18400 | 22.9% | 2.1 | /a/nuclear-talks-vienna/33800001.html\nتوافق هسته ای ایران و آمریکا | 1875 | 9200 | 20.4% | 3.4 | /a/nuclear-talks-vienna/33800001.html',
     QUERY_COUNT:2, OPPORTUNITY:'  · تحریم بانکی ایران — pos 8.7, 12300 impressions, only 640 clicks',
     CANNIBALIZATION:'  · "مذاکرات هسته ای ایران" → already ranked (pos 2.1) by: /a/nuclear-talks-vienna/33800001.html',
     NO_QUERY_DATA:'', DISCOVER:'· "گفتگوی مقامات ایران و آمریکا در وین آغاز شد" — 91200 clicks, 640000 impressions, 14.2% CTR',
     DISCOVER_COUNT:1, DISCOVER_WINDOW_LABEL:'last 3 days' },
-  breaking: { SITE:'radiofarda.com', DAYS:28, HEADLINE:'', ARTICLE:SAMPLE_ARTICLE, ARTICLE_WORDCOUNT:74,
+  breaking: { SITE:'radiofarda.com', TARGET_LANGUAGE:'Persian', DAYS:28, HEADLINE:'', ARTICLE:SAMPLE_ARTICLE, ARTICLE_WORDCOUNT:74,
     QUERY_TABLE:'', QUERY_COUNT:0, OPPORTUNITY:'', CANNIBALIZATION:'', NO_QUERY_DATA:'1', DISCOVER:'', DISCOVER_COUNT:0, DISCOVER_WINDOW_LABEL:'last 3 days' },
-  clean: { SITE:'radiofarda.com', DAYS:28, HEADLINE:'گزارش ویژه از قطعی برق در تهران', ARTICLE:SAMPLE_ARTICLE, ARTICLE_WORDCOUNT:74,
+  clean: { SITE:'radiofarda.com', TARGET_LANGUAGE:'Persian', DAYS:28, HEADLINE:'گزارش ویژه از قطعی برق در تهران', ARTICLE:SAMPLE_ARTICLE, ARTICLE_WORDCOUNT:74,
     QUERY_TABLE:'قطعی برق تهران | 2100 | 9800 | 21.4% | 1.8 | /a/tehran-blackout-report/33810003.html',
     QUERY_COUNT:1, OPPORTUNITY:'', CANNIBALIZATION:'', NO_QUERY_DATA:'', DISCOVER:'', DISCOVER_COUNT:0, DISCOVER_WINDOW_LABEL:'this week' }
 };
 const SCENARIOS = [{id:'full',label:'Full data'},{id:'breaking',label:'Breaking — no search history'},{id:'clean',label:'Clean — no cannibalization'}];
 let activeScenario = 'full';
+
+function refreshSampleVarsForSite(site){
+  const info = PromptEngine.siteOf(site);
+  Object.values(SAMPLES).forEach(s => { s.SITE = info.hostname || site; s.TARGET_LANGUAGE = info.language; });
+}
 
 /* ---------- render token palette ---------- */
 function renderTokens(){
@@ -490,11 +500,11 @@ window.addEventListener('beforeunload', e => { if (dirty) { e.preventDefault(); 
 $('btnSave').addEventListener('click', async () => {
   $('btnSave').disabled = true; $('btnSave').textContent = 'Saving…';
   try {
-    await PromptEngine.saveRemote(activeService, BLOCKS);
-    PromptEngine.saveLocal(activeService, BLOCKS);
+    await PromptEngine.saveRemote(activeSite, BLOCKS);
+    PromptEngine.saveLocal(activeSite, BLOCKS);
     markClean(new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}));
     setStatus('ok', 'Synced to Supabase · live on Search Intelligence now');
-    toast(`Published — every ${activeService==='en'?'English':'Farsi'}-service editor now sees this version`);
+    toast(`Published — every ${PromptEngine.siteOf(activeSite).label} editor now sees this version`);
   } catch(e){
     $('btnSave').disabled = false;
     setStatus('warn', 'Save failed: ' + e.message);
@@ -510,17 +520,35 @@ $('btnReset').addEventListener('click', () => {
   toast('Reset — click "Save & publish" to make this live');
 });
 
-$('btnReload').addEventListener('click', () => boot(true, activeService));
+$('btnReload').addEventListener('click', () => boot(true, activeSite));
 
-$('svcSwitch').addEventListener('click', e => {
-  const el = e.target.closest('.svc-opt'); if (!el) return;
-  const next = el.dataset.svc;
-  if (next === activeService) return;
-  if (dirty && !confirm('You have unsaved changes on the ' + (activeService==='en'?'English':'Farsi') + ' template. Switch anyway and lose them?')) return;
-  activeService = next;
-  document.querySelectorAll('.svc-opt').forEach(o => o.classList.toggle('on', o.dataset.svc===activeService));
-  boot(false, activeService);
+$('siteSelect').addEventListener('change', e => {
+  const next = e.target.value;
+  if (next === activeSite) return;
+  if (dirty && !confirm('You have unsaved changes on the ' + PromptEngine.siteOf(activeSite).label + ' template. Switch anyway and lose them?')) {
+    e.target.value = activeSite;
+    return;
+  }
+  activeSite = next;
+  boot(false, activeSite);
 });
+
+/* Renders the site switcher: a full dropdown for super admins, a locked
+   read-only label for site admins (server enforces this regardless — this
+   is just so a site admin isn't shown a control that would fail on submit). */
+function renderSiteSwitcher(session){
+  const isSuper = !!session.isSuperAdmin;
+  if (isSuper){
+    $('siteSelect').innerHTML = PromptEngine.SITE_CODES.map(code =>
+      `<option value="${code}" ${code===activeSite?'selected':''}>${PromptEngine.siteOf(code).label}</option>`).join('');
+    $('siteSelect').style.display = '';
+    $('siteLockedLabel').style.display = 'none';
+  } else {
+    $('siteLockedLabel').textContent = PromptEngine.siteOf(activeSite).label;
+    $('siteLockedLabel').style.display = '';
+    $('siteSelect').style.display = 'none';
+  }
+}
 
 function setStatus(kind, text){
   $('statusDot').className = 'dot' + (kind==='ok'?' ok':kind==='warn'?' warn':'');
@@ -528,12 +556,14 @@ function setStatus(kind, text){
 }
 
 /* ---------- boot ---------- */
-async function boot(manual, service){
-  service = service || activeService;
+async function boot(manual, site){
+  site = site || activeSite;
+  activeSite = site;
+  refreshSampleVarsForSite(site);
   setStatus('', manual ? 'Reloading…' : 'Loading…');
   $('errArea').innerHTML = '';
   try {
-    const { blocks, source } = await PromptEngine.getBlocks(service);
+    const { blocks, source } = await PromptEngine.getBlocks(site);
     BLOCKS = JSON.parse(JSON.stringify(blocks));
     renderBlocks(); renderPreview(); markClean();
     if (source === 'remote') setStatus('ok', 'Loaded from Supabase — shared, up to date');
@@ -573,7 +603,7 @@ async function doLogin(){
     $('loginPassword').value = '';
     if (!res.session.isAdmin) return showAccessDenied(res.session.username);
     hideLoginGate();
-    startAdmin();
+    startAdmin(res.session);
   }catch(e){
     showLoginError(String((e && e.message) || e));
   }finally{
@@ -586,11 +616,14 @@ $('loginPassword').addEventListener('keydown', e=>{ if (e.key==='Enter') doLogin
 $('logoutBtn').addEventListener('click', ()=>{ AuthEngine.logout(); location.reload(); });
 $('accessDeniedLogout').addEventListener('click', ()=>{ AuthEngine.logout(); hideAccessDenied(); showLoginGate(); });
 
-function startAdmin(){
+function startAdmin(session){
+  CURRENT_SESSION = session;
+  activeSite = session.isSuperAdmin ? (activeSite || session.site) : session.site;
   try {
     renderTokens();
     renderScenarios();
-    boot(false, activeService);
+    renderSiteSwitcher(session);
+    boot(false, activeSite);
   } catch(e){
     $('errArea').innerHTML = `<div class="errbox"><b>Admin page crashed on startup.</b><br>${esc(e.message)}</div>`;
     setStatus('warn','Startup error — see message above');
@@ -607,20 +640,37 @@ function startAdmin(){
   if (!existing){ showLoginGate(); return; }
   if (!existing.isAdmin){ showAccessDenied(existing.username); return; }
   hideLoginGate();
-  startAdmin();
+  startAdmin(existing);
 })();
 
 /* ==================== USER MANAGEMENT ==================== */
 let USERS = [];
+const ROLE_LABELS = { user:'Editor', site_admin:'Site admin', super_admin:'Super admin' };
+
+/* A site_admin can only ever hand out 'user' or 'site_admin' — the
+   super_admin option simply isn't in the DOM for them, on top of the
+   server-side check that would reject it anyway. */
+function roleOptionsHtml(selected){
+  const canGrantSuper = !!(CURRENT_SESSION && CURRENT_SESSION.isSuperAdmin);
+  return Object.keys(ROLE_LABELS)
+    .filter(r => r !== 'super_admin' || canGrantSuper)
+    .map(r => `<option value="${r}" ${r===selected?'selected':''}>${ROLE_LABELS[r]}</option>`).join('');
+}
+function siteOptionsHtml(selected){
+  const isSuper = !!(CURRENT_SESSION && CURRENT_SESSION.isSuperAdmin);
+  const codes = isSuper ? PromptEngine.SITE_CODES : [CURRENT_SESSION.site];
+  return codes.map(c => `<option value="${c}" ${c===selected?'selected':''}>${PromptEngine.siteOf(c).label}</option>`).join('');
+}
 
 function userRowHtml(u){
-  const svcLabel = u.service === 'en' ? 'English' : 'Farsi';
+  const siteLabel = PromptEngine.siteOf(u.service).label;
+  const roleLabel = ROLE_LABELS[u.role] || (u.is_admin ? 'Site admin' : 'Editor');
   return `
   <div class="user-row ${u.active===false?'inactive':''}" data-id="${u.id}">
     <div class="user-top">
       <div class="user-name">${esc(u.username)}</div>
-      <span class="user-badge ${u.service}">${svcLabel}</span>
-      ${u.is_admin ? '<span class="user-badge admin">Admin</span>' : ''}
+      <span class="user-badge site">${esc(siteLabel)}</span>
+      ${u.role && u.role !== 'user' ? `<span class="role-badge ${u.role}">${esc(roleLabel)}</span>` : ''}
       ${u.active===false ? '<span class="user-badge off">Disabled</span>' : ''}
       <div class="user-actions">
         <button class="ghost" data-action="edit">Edit</button>
@@ -629,11 +679,8 @@ function userRowHtml(u){
     </div>
     <div class="user-edit" id="edit-${u.id}">
       <input type="password" placeholder="New password (leave blank to keep)" data-field="password" style="flex:1;min-width:160px">
-      <select data-field="service">
-        <option value="fa" ${u.service==='fa'?'selected':''}>Farsi service</option>
-        <option value="en" ${u.service==='en'?'selected':''}>English service</option>
-      </select>
-      <label><input type="checkbox" data-field="isAdmin" ${u.is_admin?'checked':''} style="width:auto"> Admin</label>
+      <select data-field="site">${siteOptionsHtml(u.service)}</select>
+      <select data-field="role">${roleOptionsHtml(u.role || (u.is_admin ? 'site_admin' : 'user'))}</select>
       <label><input type="checkbox" data-field="active" ${u.active!==false?'checked':''} style="width:auto"> Active</label>
       <button class="btn-flame" data-action="save" style="padding:7px 16px;font-size:12px">Save</button>
       <button class="ghost" data-action="cancel" style="padding:7px 12px;font-size:12px">Cancel</button>
@@ -656,9 +703,15 @@ async function loadUsers(){
   renderUsers();
 }
 
+function populateNewUserForm(){
+  $('nuSite').innerHTML = siteOptionsHtml(CURRENT_SESSION.site);
+  $('nuRole').innerHTML = roleOptionsHtml('user');
+}
+
 $('btnManageUsers').addEventListener('click', () => {
   $('usersModal').classList.add('show');
   $('newUserRow').classList.remove('open');
+  populateNewUserForm();
   loadUsers();
 });
 $('usersClose').addEventListener('click', () => $('usersModal').classList.remove('show'));
@@ -670,20 +723,21 @@ $('addUserToggle').addEventListener('click', () => {
 $('nuCreate').addEventListener('click', async () => {
   const username = $('nuUsername').value.trim();
   const password = $('nuPassword').value;
-  const service = $('nuService').value;
-  const isAdmin = $('nuAdmin').checked;
+  const site = $('nuSite').value;
+  const role = $('nuRole').value;
   if (!username || password.length < 6){
     $('usersError').innerHTML = '<div class="errbox">Username and a password of 6+ characters are required.</div>';
     return;
   }
   $('nuCreate').disabled = true;
-  const res = await AuthEngine.authedPost({ mode:'adminCreateUser', username, password, service, isAdmin });
+  const res = await AuthEngine.authedPost({ mode:'adminCreateUser', username, password, site, role });
   $('nuCreate').disabled = false;
   if (!res.ok){
     $('usersError').innerHTML = `<div class="errbox">${esc(res.error||'Failed to create user')}</div>`;
     return;
   }
-  $('nuUsername').value=''; $('nuPassword').value=''; $('nuAdmin').checked=false; $('nuService').value='fa';
+  $('nuUsername').value=''; $('nuPassword').value='';
+  populateNewUserForm();
   $('newUserRow').classList.remove('open');
   toast('User created');
   loadUsers();
@@ -712,10 +766,10 @@ $('usersList').addEventListener('click', async e => {
   }
   if (action === 'save'){
     const password = editPanel.querySelector('[data-field="password"]').value;
-    const service = editPanel.querySelector('[data-field="service"]').value;
-    const isAdmin = editPanel.querySelector('[data-field="isAdmin"]').checked;
+    const site = editPanel.querySelector('[data-field="site"]').value;
+    const role = editPanel.querySelector('[data-field="role"]').value;
     const active = editPanel.querySelector('[data-field="active"]').checked;
-    const patch = { mode:'adminUpdateUser', id, service, isAdmin, active };
+    const patch = { mode:'adminUpdateUser', id, site, role, active };
     if (password) patch.password = password;
     const res = await AuthEngine.authedPost(patch);
     if (!res.ok){ $('usersError').innerHTML = `<div class="errbox">${esc(res.error||'Failed to update user')}</div>`; return; }
