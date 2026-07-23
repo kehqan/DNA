@@ -58,10 +58,6 @@ body{font-family:var(--sans);color:var(--lt-2);min-height:100vh;-webkit-font-smo
   cursor:pointer;text-decoration:none;transition:color 110ms ease-out;white-space:nowrap;display:inline-block;border:none;background:transparent;font-family:var(--sans)}
 .ntab:hover{color:var(--lt-1)}
 .nav-sep{position:relative;z-index:1;width:1px;height:20px;background:var(--border);margin:0 2px}
-.langtoggle{display:flex;gap:2px;margin-left:2px;position:relative;z-index:1}
-.lt-opt{font-size:11px;font-weight:600;color:var(--lt-3);text-shadow:var(--ts);padding:5px 9px;border-radius:100px;cursor:pointer;transition:background 110ms ease-out,color 110ms ease-out}
-.lt-opt:hover{color:var(--lt-1)}
-.lt-opt.on{background:rgba(255,255,255,0.82);color:#0E2531;text-shadow:none;box-shadow:var(--rim-sm)}
 
 .profile-wrap{position:relative;z-index:1}
 .profile-trigger{display:flex;align-items:center;gap:8px;font-family:var(--sans);font-size:13px;font-weight:500;
@@ -99,7 +95,14 @@ html[dir="rtl"] .profile-menu-item{text-align:right}
 .hero h1{font-family:var(--serif);font-size:38px;font-weight:400;letter-spacing:-0.02em;line-height:1.1;
   margin-bottom:12px;color:var(--lt-1);text-shadow:var(--ts-lg)}
 .hero p{font-family:var(--serif);font-size:14.5px;color:var(--lt-3);text-shadow:var(--ts);line-height:1.6;max-width:560px}
-.mode-toggle{display:flex;gap:8px;margin-top:20px}
+.mode-toggle{display:flex;gap:8px;margin-top:20px;align-items:center}
+.site-context{font-size:12px;color:var(--lt-3);text-shadow:var(--ts);margin-top:14px;display:flex;align-items:center;gap:6px}
+.site-badge{font-size:10.5px;font-weight:700;letter-spacing:.02em;color:#FFE0CC;background:rgba(255,84,0,0.28);
+  padding:3px 11px;border-radius:100px;box-shadow:var(--rim-sm);white-space:nowrap}
+.site-select{font-family:var(--sans);font-size:12px;font-weight:600;color:var(--lt-1);text-shadow:var(--ts);
+  padding:8px 14px;border-radius:100px;border:none;cursor:pointer;outline:none;
+  background:rgba(255,255,255,0.10);box-shadow:var(--ambient),var(--rim-sm)}
+.site-select option{color:#0E2531}
 .ghost-sm{font-family:var(--sans);font-size:12px;font-weight:600;color:var(--lt-1);text-shadow:var(--ts);
   padding:8px 16px;border-radius:100px;border:none;cursor:pointer;
   background:rgba(255,255,255,0.10);box-shadow:var(--ambient),var(--rim-sm);
@@ -263,11 +266,6 @@ html[dir="rtl"] .login-field{text-align:right}
         </button>
       </div>
     </div>
-    <div class="nav-sep"></div>
-    <div class="langtoggle" id="langToggle">
-      <div class="lt-opt on" data-lang="en">EN</div>
-      <div class="lt-opt" data-lang="fa">فا</div>
-    </div>
   </div>
 </div>
 
@@ -275,7 +273,7 @@ html[dir="rtl"] .login-field{text-align:right}
   <div class="login-card">
     <div class="login-wordmark">Desk<em>.</em></div>
     <div class="login-title" data-i18n="login.title">Sign in</div>
-    <div class="login-sub" data-i18n="login.sub">Search Intelligence — Radio Farda</div>
+    <div class="login-sub" data-i18n="login.sub">Search Intelligence</div>
     <div class="login-error" id="loginError"></div>
     <div class="login-field">
       <label data-i18n="login.username">Username</label>
@@ -291,9 +289,12 @@ html[dir="rtl"] .login-field{text-align:right}
 
 <div class="wrap" id="mainWrap">
   <div class="hero">
-    <div class="eyebrow"><span class="pdot"></span> <span data-i18n="sv.eyebrow">Test phase — six languages, one round of feedback</span></div>
+    <div class="eyebrow"><span class="pdot"></span> <span data-i18n="sv.eyebrow">Test phase — one round of feedback</span></div>
     <h1 data-i18n="sv.title">Tell us how it's going</h1>
     <p data-i18n="sv.sub">A few minutes on what's working, what isn't, and what would make Desk Headline genuinely useful for your service. You can revisit and update your answers any time during the test phase.</p>
+    <div class="site-context" id="siteContext" style="display:none">
+      <span data-i18n="sv.testingFor">Answering for:</span> <span class="site-badge" id="siteBadge">–</span>
+    </div>
     <div class="mode-toggle">
       <button class="ghost-sm on" id="modeSurveyBtn" data-i18n="sv.tabSurvey">📝 Survey</button>
       <button class="ghost-sm hide" id="modeResultsBtn" data-i18n="sv.tabResults">📊 Results</button>
@@ -321,10 +322,11 @@ html[dir="rtl"] .login-field{text-align:right}
 
 <div class="wrap wide hide" id="resultsWrap">
   <div class="hero">
-    <div class="eyebrow"><span class="pdot"></span> <span data-i18n="sv.resEyebrow">Admin — aggregated across every submitted response</span></div>
+    <div class="eyebrow"><span class="pdot"></span> <span data-i18n="sv.resEyebrow">Aggregated across every submitted response</span></div>
     <h1 data-i18n="sv.resTitle">Survey results</h1>
     <div class="mode-toggle">
       <button class="ghost-sm" id="backToSurveyBtn" data-i18n="sv.tabSurvey">📝 Survey</button>
+      <select class="site-select" id="resultsSiteFilter" style="display:none"></select>
     </div>
   </div>
   <div id="resultsHost"></div>
@@ -333,86 +335,54 @@ html[dir="rtl"] .login-field{text-align:right}
 <div class="toast" id="toast"></div>
 
 <script src="/desk/search-intelligence/auth-engine.js"></script>
+<script src="/desk/search-intelligence/prompt-engine.js"></script>
 <script>
 const $ = id => document.getElementById(id);
 const esc = s => String(s??'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-/* ==================== i18n (survey chrome: EN/FA — see note in the question set below) ==================== */
+/* ==================== i18n (chrome is English-only; only the AI's own
+   headline/reasoning output varies by site, handled elsewhere) ==================== */
 const I18N = {
 en: {
   'nav.back':'← Search Intelligence', 'nav.logout':'⏻ Sign out',
-  'login.title':'Sign in', 'login.sub':'Search Intelligence — Radio Farda',
+  'login.title':'Sign in', 'login.sub':'Search Intelligence',
   'login.username':'Username', 'login.usernamePh':'e.g. user1',
   'login.password':'Password', 'login.passwordPh':'••••••••',
   'login.submit':'Sign in →', 'login.submitting':'Signing in…',
   'login.error':'Invalid username or password', 'login.fillBoth':'Enter a username and password',
-  'sv.eyebrow':'Test phase — six languages, one round of feedback',
+  'sv.eyebrow':'Test phase — one round of feedback',
   'sv.title':'Tell us how it\'s going',
   'sv.sub':'A few minutes on what\'s working, what isn\'t, and what would make Desk Headline genuinely useful for your service. You can revisit and update your answers any time during the test phase.',
+  'sv.testingFor':'Answering for:',
   'sv.tabSurvey':'📝 Survey', 'sv.tabResults':'📊 Results',
   'sv.submit':'Submit survey →', 'sv.submitting':'Submitting…',
   'sv.thanksTitle':'Thank you',
   'sv.thanksSub':'Your answers are saved. Come back and update them any time — this survey stays open for the whole test phase.',
   'sv.editAgain':'✎ Edit my answers',
-  'sv.resEyebrow':'Admin — aggregated across every submitted response',
+  'sv.resEyebrow':'Aggregated across every submitted response',
   'sv.resTitle':'Survey results',
   'sv.progress':'{done} of {total} answered',
   'sv.loadFailed':'Couldn\'t load: {msg}', 'sv.saveFailed':'Couldn\'t submit: {msg}',
   'sv.scaleNa':'Haven\'t used this',
   'sv.notEnough':'Not enough data yet',
-  'sv.responses':'Responses', 'sv.avgSatisfaction':'Avg. satisfaction', 'sv.avgNps':'Avg. recommend score', 'sv.languages':'Languages testing',
+  'sv.responses':'Responses', 'sv.avgSatisfaction':'Avg. satisfaction', 'sv.avgNps':'Avg. recommend score', 'sv.languages':'Sites represented',
   'sv.commentsMissing':'"What\'s missing" comments', 'sv.commentsOther':'Other comments',
-  'sv.noComments':'No comments yet.'
-},
-fa: {
-  'nav.back':'→ سرمقاله‌گزین', 'nav.logout':'⏻ خروج',
-  'login.title':'ورود', 'login.sub':'هوش جست‌وجو — رادیو فردا',
-  'login.username':'نام کاربری', 'login.usernamePh':'مثلاً user1',
-  'login.password':'رمز عبور', 'login.passwordPh':'••••••••',
-  'login.submit':'ورود ←', 'login.submitting':'در حال ورود…',
-  'login.error':'نام کاربری یا رمز عبور اشتباه است', 'login.fillBoth':'نام کاربری و رمز عبور را وارد کنید',
-  'sv.eyebrow':'فاز آزمایشی — شش زبان، یک دور نظرسنجی',
-  'sv.title':'نظرتان را بگویید',
-  'sv.sub':'چند دقیقه دربارهٔ آنچه خوب کار می‌کند، آنچه نه، و آنچه سرمقاله‌گزین دسک را برای سرویس شما واقعاً مفید می‌کند. در طول فاز آزمایشی هر زمان می‌توانید پاسخ‌هایتان را ویرایش کنید.',
-  'sv.tabSurvey':'📝 نظرسنجی', 'sv.tabResults':'📊 نتایج',
-  'sv.submit':'ارسال نظرسنجی ←', 'sv.submitting':'در حال ارسال…',
-  'sv.thanksTitle':'سپاسگزاریم',
-  'sv.thanksSub':'پاسخ‌های شما ذخیره شد. هر زمان خواستید می‌توانید برگردید و آن‌ها را ویرایش کنید — این نظرسنجی در تمام فاز آزمایشی باز می‌ماند.',
-  'sv.editAgain':'✎ ویرایش پاسخ‌ها',
-  'sv.resEyebrow':'مدیر — تجمیع‌شده از همهٔ پاسخ‌های ارسالی',
-  'sv.resTitle':'نتایج نظرسنجی',
-  'sv.progress':'{done} از {total} پاسخ داده شد',
-  'sv.loadFailed':'بارگذاری ناموفق بود: {msg}', 'sv.saveFailed':'ارسال ناموفق بود: {msg}',
-  'sv.scaleNa':'استفاده نکرده‌ام',
-  'sv.notEnough':'هنوز داده کافی نیست',
-  'sv.responses':'پاسخ‌ها', 'sv.avgSatisfaction':'میانگین رضایت', 'sv.avgNps':'میانگین امتیاز پیشنهاد', 'sv.languages':'زبان‌های آزمایش‌کننده',
-  'sv.commentsMissing':'نظرات «چه چیزی کم است»', 'sv.commentsOther':'سایر نظرات',
-  'sv.noComments':'هنوز نظری ثبت نشده است.'
+  'sv.noComments':'No comments yet.',
+  'sv.allSites':'All sites'
 }
 };
-let LANG = localStorage.getItem('desk.si.lang') || 'en';
+const LANG = 'en';
 function t(key, vars){
-  let s = (I18N[LANG] && I18N[LANG][key]) || I18N.en[key] || key;
+  let s = I18N.en[key] || key;
   if (vars) Object.keys(vars).forEach(k => { s = s.split('{'+k+'}').join(vars[k]); });
   return s;
 }
 function applyStaticI18n(){
-  document.documentElement.dir = LANG==='fa' ? 'rtl' : 'ltr';
-  document.documentElement.lang = LANG;
+  document.documentElement.dir = 'ltr';
+  document.documentElement.lang = 'en';
   document.querySelectorAll('[data-i18n]').forEach(el => { el.innerHTML = t(el.dataset.i18n); });
   document.querySelectorAll('[data-i18n-ph]').forEach(el => { el.placeholder = t(el.dataset.i18nPh); });
-  document.querySelectorAll('.lt-opt').forEach(el => el.classList.toggle('on', el.dataset.lang===LANG));
 }
-function setLang(l){
-  LANG = l;
-  try{ localStorage.setItem('desk.si.lang', l); }catch(e){}
-  applyStaticI18n();
-  renderForm(); updateProgress();
-}
-document.getElementById('langToggle').addEventListener('click', e=>{
-  const el = e.target.closest('.lt-opt'); if(!el) return;
-  setLang(el.dataset.lang);
-});
 applyStaticI18n();
 
 /* ==================== toast ==================== */
@@ -442,6 +412,12 @@ function renderProfile(session){
   const initials = String(session.username||'?').trim().slice(0,2).toUpperCase();
   $('profileAvatar').textContent = initials;
   $('profileName').textContent = session.username;
+  const siteInfo = (typeof PromptEngine !== 'undefined') ? PromptEngine.siteOf(session.site) : null;
+  const label = session.siteLabel || (siteInfo && siteInfo.label) || session.site;
+  if (label){
+    $('siteBadge').textContent = label;
+    $('siteContext').style.display = 'flex';
+  }
 }
 $('profileTrigger').addEventListener('click', e=>{ e.stopPropagation(); $('profileWrap').classList.toggle('open'); });
 document.addEventListener('click', e=>{ if (!$('profileWrap').contains(e.target)) $('profileWrap').classList.remove('open'); });
@@ -472,17 +448,11 @@ $('loginUsername').addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(
 $('loginPassword').addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
 
 /* ==================== the question set ====================
-   NOTE ON LANGUAGE: this survey's own chrome (labels, buttons) is
-   translated EN/FA only, matching the rest of the site. Respondents
-   testing in Russian, Ukrainian, Armenian, or Albanian will fill it out
-   in English, but Q13 lets them self-identify which service they're
-   testing for regardless of what language the form itself is in — so
-   responses are still correctly attributed even though the UI isn't
-   (yet) localized into all six. Full localization is a separate job. */
-const SERVICES = [
-  {v:'en', l:'English'}, {v:'fa', l:'فارسی (Farsi)'}, {v:'ru', l:'Русский (Russian)'},
-  {v:'uk', l:'Українська (Ukrainian)'}, {v:'hy', l:'Հայերեն (Armenian)'}, {v:'sq', l:'Shqip (Albanian)'}
-];
+   Which service someone is testing for used to be self-reported here
+   (Q13) because the login system only distinguished Farsi/English. Now
+   that every one of the 8 sites has its own login, the site comes
+   straight from the session — see submitSurvey() — so there's no need
+   to ask, and no risk of someone mis-selecting it. */
 const QUESTIONS = [
   { id:'ov_satisfaction', section:0, type:'scale5',
     label:'Overall, how satisfied are you with Desk Headline?',
@@ -523,9 +493,6 @@ const QUESTIONS = [
       {v:'few_times', l:'A few times total'}, {v:'rarely', l:'Rarely'}, {v:'first_time', l:'This is my first time'}
     ]},
 
-  { id:'lang_service', section:3, type:'single',
-    label:'Which language service are you testing for?',
-    options: SERVICES.map(s=>({v:s.v, l:s.l})) },
   { id:'lang_fit', section:3, type:'scale5',
     label:'How well does the tool support your language — grammar, script, and cultural fit in the AI-suggested headlines?' },
   { id:'missing', section:3, type:'text',
@@ -534,9 +501,9 @@ const QUESTIONS = [
     label:'Anything else — bugs, frustrations, praise? Tell us.' }
 ];
 const SECTIONS = [
-  {title:'Overall'}, {title:'Features'}, {title:'Experience'}, {title:'Your language & final thoughts'}
+  {title:'Overall'}, {title:'Features'}, {title:'Experience'}, {title:'Language fit & final thoughts'}
 ];
-const REQUIRED = new Set(['ov_satisfaction','nps','feat_relevance','feat_quality','ease','speed','freq','lang_service','lang_fit']);
+const REQUIRED = new Set(['ov_satisfaction','nps','feat_relevance','feat_quality','ease','speed','freq','lang_fit']);
 
 let ANSWERS = {};
 let SESSION = null;
@@ -636,14 +603,13 @@ $('formHost').addEventListener('input', e=>{
 async function submitSurvey(){
   const missing = QUESTIONS.filter(q=>REQUIRED.has(q.id) && (ANSWERS[q.id]===undefined || ANSWERS[q.id]===''));
   if (missing.length){
-    toast(LANG==='fa' ? 'لطفاً به سؤالات ضروری پاسخ دهید' : 'Please answer the required questions first');
+    toast('Please answer the required questions first');
     document.querySelector(`[data-qid="${missing[0].id}"]`)?.closest('.qcard')?.scrollIntoView({behavior:'smooth', block:'center'});
     return;
   }
   $('submitBtn').disabled = true; $('submitBtn').textContent = t('sv.submitting');
   try{
-    const service = ANSWERS['lang_service'] || (SESSION && SESSION.service) || 'en';
-    const res = await AuthEngine.authedPost({ mode:'submitSurvey', service, answers: ANSWERS });
+    const res = await AuthEngine.authedPost({ mode:'submitSurvey', answers: ANSWERS });
     if (!res.ok){
       if (res.authError) return showLoginGate();
       toast(t('sv.saveFailed', {msg:res.error||''}));
@@ -669,6 +635,14 @@ async function loadMySurvey(){
 }
 
 /* ==================== admin results ==================== */
+let ALL_RESULTS = [];
+let resultsSiteFilterValue = 'all';
+
+function siteLabel(code){
+  if (typeof PromptEngine !== 'undefined') return PromptEngine.siteOf(code).label;
+  return code;
+}
+
 function avg(nums){ return nums.length ? nums.reduce((a,b)=>a+b,0)/nums.length : null; }
 function renderResults(rows){
   const host = $('resultsHost');
@@ -740,8 +714,8 @@ function renderResults(rows){
     else {
       html += '<div class="comments-list">' + comments.map(c=>`
         <div class="comment-card">
-          <div class="comment-meta"><span class="comment-user">${esc(c.username)}</span><span class="svc-badge">${esc(c.service)}</span></div>
-          <div class="comment-text">${esc(c.text)}</div>
+          <div class="comment-meta"><span class="comment-user">${esc(c.username)}</span><span class="svc-badge">${esc(siteLabel(c.service))}</span></div>
+          <div class="comment-text" dir="auto">${esc(c.text)}</div>
         </div>`).join('') + '</div>';
     }
     html += `</div>`;
@@ -749,12 +723,40 @@ function renderResults(rows){
 
   host.innerHTML = html;
 }
+
+function applyResultsSiteFilter(){
+  const rows = resultsSiteFilterValue === 'all'
+    ? ALL_RESULTS
+    : ALL_RESULTS.filter(r => r.service === resultsSiteFilterValue);
+  renderResults(rows);
+}
+
+/* The filter dropdown only makes sense for a super admin — a site admin's
+   rows are already scoped to exactly one site server-side, so there's
+   nothing to filter and the control stays hidden for them. */
+function populateResultsSiteFilter(){
+  if (!SESSION || !SESSION.isSuperAdmin) return;
+  const sitesPresent = Array.from(new Set(ALL_RESULTS.map(r=>r.service))).sort();
+  if (!sitesPresent.length) return;
+  const opts = [`<option value="all">${t('sv.allSites')}</option>`]
+    .concat(sitesPresent.map(code => `<option value="${code}">${esc(siteLabel(code))}</option>`));
+  $('resultsSiteFilter').innerHTML = opts.join('');
+  $('resultsSiteFilter').value = resultsSiteFilterValue;
+  $('resultsSiteFilter').style.display = '';
+}
+
 async function loadResults(){
   $('resultsHost').innerHTML = `<div class="empty">…</div>`;
   const res = await AuthEngine.authedPost({ mode:'adminListSurveyResponses' });
   if (!res.ok){ $('resultsHost').innerHTML = `<div class="errbox">${esc(t('sv.loadFailed',{msg:res.error||''}))}</div>`; return; }
-  renderResults(res.responses || []);
+  ALL_RESULTS = res.responses || [];
+  populateResultsSiteFilter();
+  applyResultsSiteFilter();
 }
+$('resultsSiteFilter').addEventListener('change', e=>{
+  resultsSiteFilterValue = e.target.value;
+  applyResultsSiteFilter();
+});
 
 $('modeResultsBtn').addEventListener('click', ()=>{
   $('mainWrap').classList.add('hide'); $('resultsWrap').classList.remove('hide');
