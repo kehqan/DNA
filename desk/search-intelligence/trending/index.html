@@ -78,7 +78,7 @@ html[dir="rtl"] .wordmark{border-right:none;border-left:1px solid rgba(255,255,2
 .hero p{font-family:var(--serif);font-size:14.5px;color:var(--lt-3);text-shadow:var(--ts);line-height:1.6;max-width:560px}
 
 /* ===== STATS ===== */
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:14px}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:14px}
 .stat{padding:18px 20px}
 .sn{font-family:var(--serif);font-size:33px;font-weight:400;line-height:1;margin-bottom:6px;letter-spacing:-0.02em;
   color:var(--lt-1);text-shadow:var(--ts-lg)}
@@ -225,23 +225,18 @@ html[dir="rtl"] .login-field{text-align:right}
     <div>
       <div class="eyebrow" data-i18n="hero.eyebrow">Search Intelligence · External Signal</div>
       <h1 data-i18n="hero.title">Trending Topics</h1>
-      <p data-i18n="hero.sub">What's rising on Hacker News and Reddit right now — a quick read on what people outside Radio Farda are already talking about.</p>
+      <p data-i18n="hero.sub">What's rising on Hacker News right now — a quick read on what people outside Radio Farda are already talking about.</p>
     </div>
   </div>
 
   <div class="stats">
     <div class="card stat"><div class="sn pending" id="statHn">—</div><div class="sl" data-i18n="stats.hn">Hacker News stories</div></div>
-    <div class="card stat"><div class="sn pending" id="statReddit">—</div><div class="sl" data-i18n="stats.reddit">Reddit posts</div></div>
     <div class="card stat"><div class="sn pending" id="statUpdated">—</div><div class="sl" data-i18n="stats.updated">Last synced</div></div>
   </div>
 
   <div class="syncbar">
     <div class="sb-text" id="syncText"><span class="spin"></span> <span data-i18n="sync.loading">Loading…</span></div>
     <div style="flex:1"></div>
-    <div class="filter-chip on" data-filter="all" data-i18n="filter.all">All sources</div>
-    <div class="filter-chip" data-filter="hn" data-i18n="filter.hn">Hacker News</div>
-    <div class="filter-chip" data-filter="reddit" data-i18n="filter.reddit">Reddit</div>
-    <div class="nav-sep" style="height:22px"></div>
     <div class="filter-chip on" data-sort="score" data-i18n="sort.score">Top score</div>
     <div class="filter-chip" data-sort="recent" data-i18n="sort.recent">Newest</div>
     <button class="ghost-sm" id="refreshBtn" data-i18n="sync.refresh">↻ Refresh</button>
@@ -267,10 +262,9 @@ const I18N = {
     'login.title':'Sign in', 'login.sub':'Trending Topics — Radio Farda', 'login.username':'Username', 'login.password':'Password',
     'login.submit':'Sign in →', 'login.submitting':'Signing in…', 'login.fillBoth':'Enter a username and password', 'login.error':'Invalid username or password',
     'hero.eyebrow':'Search Intelligence · External Signal', 'hero.title':'Trending Topics',
-    'hero.sub':"What's rising on Hacker News and Reddit right now — a quick read on what people outside Radio Farda are already talking about.",
-    'stats.hn':'Hacker News stories', 'stats.reddit':'Reddit posts', 'stats.updated':'Last synced',
+    'hero.sub':"What's rising on Hacker News right now — a quick read on what people outside Radio Farda are already talking about.",
+    'stats.hn':'Hacker News stories', 'stats.updated':'Last synced',
     'sync.loading':'Loading…', 'sync.refresh':'↻ Refresh', 'sync.loaded':'Loaded {n} topics',
-    'filter.all':'All sources', 'filter.hn':'Hacker News', 'filter.reddit':'Reddit',
     'sort.score':'Top score', 'sort.recent':'Newest',
     'list.header':'Right now', 'list.count':'{n} topics',
     'list.empty':'Nothing synced yet — the Apps Script trigger runs every few hours. Check back soon.',
@@ -282,10 +276,9 @@ const I18N = {
     'login.title':'ورود', 'login.sub':'موضوعات داغ — رادیو فردا', 'login.username':'نام کاربری', 'login.password':'رمز عبور',
     'login.submit':'ورود ←', 'login.submitting':'در حال ورود…', 'login.fillBoth':'نام کاربری و رمز عبور را وارد کنید', 'login.error':'نام کاربری یا رمز عبور نادرست است',
     'hero.eyebrow':'هوش جست‌وجو · سیگنال بیرونی', 'hero.title':'موضوعات داغ',
-    'hero.sub':'چه چیزی همین حالا در Hacker News و Reddit داغ است — نگاهی سریع به آنچه بیرون از رادیو فردا دربارهٔ آن صحبت می‌شود.',
-    'stats.hn':'مطالب Hacker News', 'stats.reddit':'پست‌های Reddit', 'stats.updated':'آخرین به‌روزرسانی',
+    'hero.sub':'چه چیزی همین حالا در Hacker News داغ است — نگاهی سریع به آنچه بیرون از رادیو فردا دربارهٔ آن صحبت می‌شود.',
+    'stats.hn':'مطالب Hacker News', 'stats.updated':'آخرین به‌روزرسانی',
     'sync.loading':'در حال بارگذاری…', 'sync.refresh':'↻ به‌روزرسانی', 'sync.loaded':'{n} موضوع بارگذاری شد',
-    'filter.all':'همهٔ منابع', 'filter.hn':'Hacker News', 'filter.reddit':'Reddit',
     'sort.score':'بیشترین امتیاز', 'sort.recent':'جدیدترین',
     'list.header':'همین الان', 'list.count':'{n} موضوع',
     'list.empty':'هنوز چیزی همگام‌سازی نشده — تریگر Apps Script هر چند ساعت یک‌بار اجرا می‌شود. کمی بعد دوباره سر بزنید.',
@@ -350,9 +343,7 @@ function domainOf(url){
 /* ==================== Render ==================== */
 function renderStats(){
   const hn = ROWS.filter(r => r.source === 'hn').length;
-  const reddit = ROWS.filter(r => r.source === 'reddit').length;
   $('statHn').textContent = hn; $('statHn').classList.remove('pending');
-  $('statReddit').textContent = reddit; $('statReddit').classList.remove('pending');
   const latest = ROWS.reduce((max, r) => (!max || new Date(r.fetched_at) > new Date(max)) ? r.fetched_at : max, null);
   $('statUpdated').textContent = latest ? relTime(latest) : '—';
   $('statUpdated').classList.remove('pending');
