@@ -50,8 +50,15 @@
     const sess = {
       token: data.token,
       username: data.username,
-      service: data.service,
+      site: data.site,
+      // kept as an alias of `site` for any older code that still reads .service
+      service: data.site,
+      role: data.role,
       isAdmin: !!data.isAdmin,
+      isSuperAdmin: !!data.isSuperAdmin,
+      language: data.language,
+      siteLabel: data.siteLabel,
+      hostname: data.hostname,
       // Client-side hint only, mirrors the server's 8h token TTL.
       expiresAt: Date.now() + 8 * 60 * 60 * 1000
     };
