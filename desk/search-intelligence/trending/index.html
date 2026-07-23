@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trending Topics — Desk</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&family=Noto+Sans:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --flame:#FF5400;
+  --teal:#1A3948; --teal2:#24506A; --honey:#FFC047; --stone:#B9CCCC; --ivory:#F8F7F6;
+  --glass:rgba(255,255,255,0.16);
+  --glass-filter: blur(38px) saturate(2.4) brightness(1.10);
+  --lt-1:#FFFFFF; --lt-2:rgba(255,255,255,0.92); --lt-3:rgba(255,255,255,0.74);
+  --border:rgba(255,255,255,0.16);
+  --muted:rgba(255,255,255,0.74);
+  --ts:    0 1px 2px rgba(4,12,16,0.85), 0 2px 10px rgba(4,12,16,0.55);
+  --ts-lg: 0 1px 3px rgba(4,12,16,0.90), 0 3px 16px rgba(4,12,16,0.60), 0 1px 1px rgba(4,12,16,0.70);
+  --rim: inset 0 0 0 1px rgba(255,255,255,0.14), inset 0 1.5px 2px rgba(255,255,255,0.34),
+    inset 0 -2px 3px rgba(4,12,16,0.20), inset 0 0 32px rgba(255,255,255,0.045);
+  --rim-sm: inset 0 0 0 1px rgba(255,255,255,0.11), inset 0 1px 1.5px rgba(255,255,255,0.26),
+    inset 0 -1.5px 2px rgba(4,12,16,0.18);
+  --ambient:    0 1px 2px rgba(6,20,28,0.44), 0 10px 30px rgba(6,20,28,0.40), 0 30px 70px rgba(6,20,28,0.34);
+  --ambient-lg: 0 1px 2px rgba(6,20,28,0.46), 0 14px 36px rgba(6,20,28,0.40), 0 44px 90px rgba(6,20,28,0.38);
+  --ambient-hi: 0 1px 2px rgba(6,20,28,0.50), 0 20px 46px rgba(6,20,28,0.44), 0 56px 110px rgba(6,20,28,0.42);
+  --chip:rgba(255,255,255,0.10); --chip-hover:rgba(255,255,255,0.18);
+  --sunk: inset 0 3px 6px rgba(4,12,16,0.30), inset 0 1px 2px rgba(4,12,16,0.20),
+    inset 0 -1px 2px rgba(255,255,255,0.12), inset 0 0 0 1px rgba(255,255,255,0.10);
+  --eo:cubic-bezier(0.25,0.46,0.45,0.94);
+  --serif:'Lora',Georgia,serif; --sans:'Noto Sans',system-ui,sans-serif;
+}
+html[dir="rtl"]{ --serif:'Vazirmatn','Noto Sans',sans-serif; --sans:'Vazirmatn','Noto Sans',sans-serif; }
+*{box-sizing:border-box;margin:0;padding:0}
+html{color-scheme:dark}
+body{font-family:var(--sans);color:var(--lt-2);min-height:100vh;-webkit-font-smoothing:antialiased;
+  background:linear-gradient(160deg,#0F1622 0%,#0B1016 45%,#0C0E14 75%,#120E18 100%)}
+html[dir="rtl"] body{direction:rtl}
+a{color:inherit}
+
+.scene{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;
+  background:linear-gradient(160deg,#0F1622 0%,#0B1016 45%,#0C0E14 75%,#120E18 100%)}
+.orb{position:absolute;z-index:2;border-radius:50%;filter:blur(100px)}
+.o1{width:640px;height:520px;top:-160px;left:-100px;
+  background:radial-gradient(ellipse,rgba(255,84,0,0.42) 0%,rgba(255,140,60,0.16) 45%,transparent 74%)}
+.o2{width:560px;height:460px;top:20%;right:-160px;
+  background:radial-gradient(ellipse,rgba(36,80,106,0.44) 0%,rgba(36,80,106,0.14) 55%,transparent 76%)}
+
+.wrap{position:relative;z-index:1;max-width:1120px;margin:0 auto;padding:26px 24px 60px}
+
+/* ===== NAV ===== */
+.nav-wrap{position:sticky;top:0;z-index:50;display:flex;justify-content:center;padding:16px 24px 0;pointer-events:none}
+.nav-pill{display:inline-flex;align-items:center;gap:2px;background:rgba(10,16,22,0.74);
+  backdrop-filter:blur(30px) saturate(2.2);-webkit-backdrop-filter:blur(30px) saturate(2.2);
+  border-radius:100px;padding:5px;
+  box-shadow:0 1px 2px rgba(0,0,0,0.28),0 10px 34px rgba(0,0,0,0.30),0 26px 60px rgba(0,0,0,0.18),
+    inset 0 1.5px 0 rgba(255,255,255,0.16),inset 0 -1.5px 2px rgba(0,0,0,0.30);
+  pointer-events:all;flex-wrap:wrap}
+.wordmark{font-family:var(--serif);font-size:17px;font-weight:400;color:rgba(255,255,255,0.94);
+  padding:6px 16px 6px 12px;border-right:1px solid rgba(255,255,255,0.12);margin-right:4px}
+html[dir="rtl"] .wordmark{border-right:none;border-left:1px solid rgba(255,255,255,0.12);margin-right:0;margin-left:4px}
+.wordmark em{font-style:normal;color:var(--flame);font-weight:600}
+.ntab{font-size:13px;font-weight:500;color:rgba(185,204,204,0.74);padding:7px 16px;border-radius:100px;
+  cursor:pointer;text-decoration:none;transition:color 180ms,background 180ms;white-space:nowrap}
+.ntab:hover{color:#fff}
+.ntab.on{background:rgba(255,255,255,0.14);color:#fff;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.24),inset 0 -1px 1px rgba(0,0,0,0.20)}
+.nav-sep{width:1px;height:20px;background:rgba(255,255,255,0.10);margin:0 2px}
+.langtoggle{display:flex;gap:2px;background:rgba(255,255,255,0.06);border-radius:100px;padding:3px;margin-left:2px}
+.lt-opt{font-size:11px;font-weight:700;color:rgba(185,204,204,0.60);padding:5px 11px;border-radius:100px;cursor:pointer;transition:all 160ms}
+.lt-opt.on{background:rgba(255,255,255,0.90);color:#0E2531}
+
+/* ===== HERO ===== */
+.hero{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin:30px 0 22px;flex-wrap:wrap}
+.eyebrow{font-size:10.5px;font-weight:700;letter-spacing:0.10em;text-transform:uppercase;color:var(--lt-3);
+  text-shadow:var(--ts);margin-bottom:12px;display:flex;align-items:center;gap:7px}
+.hero h1{font-family:var(--serif);font-size:40px;font-weight:400;letter-spacing:-0.02em;line-height:1.1;
+  margin-bottom:10px;color:var(--lt-1);text-shadow:var(--ts-lg)}
+.hero p{font-family:var(--serif);font-size:14.5px;color:var(--lt-3);text-shadow:var(--ts);line-height:1.6;max-width:560px}
+
+/* ===== STATS ===== */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:14px}
+.stat{padding:18px 20px}
+.sn{font-family:var(--serif);font-size:33px;font-weight:400;line-height:1;margin-bottom:6px;letter-spacing:-0.02em;
+  color:var(--lt-1);text-shadow:var(--ts-lg)}
+.sn.pending{color:var(--lt-3);opacity:.5}
+.sl{font-size:11.5px;color:var(--lt-3);text-shadow:var(--ts)}
+
+/* ===== CARD ===== */
+.card{position:relative;border-radius:24px;padding:22px;background:var(--glass);
+  backdrop-filter:var(--glass-filter);-webkit-backdrop-filter:var(--glass-filter);
+  box-shadow:var(--ambient-lg),var(--rim);animation:rise 460ms var(--eo) both}
+.card::before{content:'';position:absolute;inset:0;border-radius:24px;pointer-events:none;
+  background:radial-gradient(130% 90% at 22% -12%,rgba(255,255,255,0.26) 0%,rgba(255,255,255,0.07) 26%,transparent 52%);
+  mix-blend-mode:screen}
+.card>*{position:relative;z-index:1}
+@keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+/* ===== SYNCBAR / FILTERS ===== */
+.syncbar{position:relative;display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:100px;margin-bottom:14px;
+  background:var(--glass);backdrop-filter:var(--glass-filter);-webkit-backdrop-filter:var(--glass-filter);
+  box-shadow:var(--ambient),var(--rim);flex-wrap:wrap;animation:rise 460ms var(--eo) both}
+.sb-text{display:flex;align-items:center;gap:9px;font-size:12px;color:var(--lt-3);text-shadow:var(--ts);white-space:nowrap}
+.spin{width:12px;height:12px;border-radius:50%;border:2px solid rgba(255,84,0,0.28);border-top-color:var(--flame);
+  animation:sp 900ms linear infinite;flex-shrink:0;display:inline-block}
+@keyframes sp{to{transform:rotate(360deg)}}
+.filter-chip{font-size:11.5px;font-weight:600;color:var(--lt-3);padding:6px 14px;border-radius:100px;cursor:pointer;
+  background:rgba(255,255,255,0.07);transition:all 180ms;white-space:nowrap;border:none}
+.filter-chip:hover{background:rgba(255,255,255,0.13);color:var(--lt-1)}
+.filter-chip.on{background:rgba(255,84,0,0.30);color:#FFE0CC}
+.ghost-sm{font-family:var(--sans);font-size:11.5px;font-weight:600;color:var(--lt-1);text-shadow:var(--ts);
+  padding:7px 15px;border-radius:100px;border:none;cursor:pointer;
+  background:rgba(255,255,255,0.10);box-shadow:var(--ambient),var(--rim-sm);
+  transition:transform 200ms var(--eo),background 200ms;white-space:nowrap}
+.ghost-sm:hover{background:rgba(255,120,50,0.16);transform:translateY(-2px)}
+
+/* ===== TOPIC LIST ===== */
+.chead{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.chead h2{font-family:var(--serif);font-size:19px;font-weight:400;color:var(--lt-1);text-shadow:var(--ts-lg);white-space:nowrap}
+.rule{flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.20),transparent)}
+.uchip{font-size:11px;font-weight:600;color:#FFE0CC;background:rgba(255,84,0,0.35);
+  padding:3px 11px;border-radius:100px;box-shadow:var(--rim-sm);white-space:nowrap}
+.errbox{font-size:11.5px;color:var(--flame);background:rgba(255,84,0,.08);border:1px solid rgba(255,84,0,.20);
+  border-radius:12px;padding:10px 13px;line-height:1.5}
+.empty{font-size:12.5px;color:var(--lt-3);text-shadow:var(--ts);text-align:center;padding:30px 10px}
+
+.topic-list{display:flex;flex-direction:column;gap:9px}
+.topic-row{display:grid;grid-template-columns:26px 1fr auto;gap:12px;align-items:center;
+  border-radius:14px;padding:12px 14px;background:var(--chip);box-shadow:var(--rim-sm);transition:background 200ms}
+.topic-row:hover{background:var(--chip-hover)}
+.topic-rank{font-family:var(--serif);font-size:12px;color:var(--lt-3);text-align:center}
+.topic-main{min-width:0}
+.topic-title{font-size:13.5px;color:var(--lt-1);text-shadow:var(--ts);text-decoration:none;line-height:1.4;
+  display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.topic-title:hover{text-decoration:underline}
+.topic-meta{display:flex;align-items:center;gap:8px;margin-top:4px;flex-wrap:wrap}
+.src-badge{font-size:9.5px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;
+  padding:2px 8px;border-radius:100px;white-space:nowrap}
+.src-hn{background:rgba(255,102,0,0.28);color:#FFC08A}
+.src-reddit{background:rgba(255,69,0,0.24);color:#FF9C7A}
+.topic-sub{font-size:10.5px;color:var(--lt-3)}
+.topic-stats{display:flex;flex-direction:column;align-items:flex-end;gap:2px;white-space:nowrap}
+.topic-score{font-size:12px;font-weight:700;color:var(--lt-2)}
+.topic-comments{font-size:10.5px;color:var(--lt-3)}
+.topic-discuss{font-size:10.5px;color:#FFB07A;text-decoration:none}
+.topic-discuss:hover{text-decoration:underline}
+
+/* ===== LOGIN GATE ===== */
+.login-gate{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(160deg,#0F1622 0%,#0B1016 45%,#0C0E14 75%,#120E18 100%);padding:20px}
+.login-gate.hide{display:none}
+.login-card{width:100%;max-width:380px;border-radius:26px;padding:36px 32px;
+  background:var(--glass);backdrop-filter:var(--glass-filter);-webkit-backdrop-filter:var(--glass-filter);
+  border:1px solid var(--border);box-shadow:var(--ambient-lg),var(--rim);text-align:center;animation:rise 500ms var(--eo) both}
+.login-wordmark{font-family:var(--serif);font-size:20px;color:var(--lt-1);text-shadow:var(--ts-lg);margin-bottom:28px}
+.login-wordmark em{font-style:normal;color:var(--flame);font-weight:600}
+.login-title{font-family:var(--serif);font-size:23px;color:var(--lt-1);text-shadow:var(--ts-lg);margin-bottom:6px}
+.login-sub{font-size:12px;color:var(--lt-3);text-shadow:var(--ts);margin-bottom:24px}
+.login-field{margin-bottom:12px;text-align:left}
+html[dir="rtl"] .login-field{text-align:right}
+.login-field label{display:block;font-size:11px;color:var(--lt-3);text-shadow:var(--ts);margin-bottom:6px;padding:0 4px}
+.login-field input{width:100%;font-family:var(--sans);font-size:13.5px;color:var(--lt-1);
+  padding:11px 15px;border-radius:14px;border:none;outline:none;
+  background:var(--chip);box-shadow:var(--rim-sm);transition:background 200ms,box-shadow 200ms}
+.login-field input::placeholder{color:rgba(255,255,255,0.4)}
+.login-field input:focus{background:var(--chip-hover);box-shadow:var(--rim-sm),inset 0 0 0 1.5px rgba(255,150,80,0.45)}
+.login-submit{width:100%;margin-top:10px;font-family:var(--sans);font-size:13px;font-weight:600;color:#fff;
+  padding:11px 21px;border-radius:100px;border:none;cursor:pointer;
+  background:linear-gradient(180deg,#FF7A33 0%,var(--flame) 55%,#E84A00 100%);
+  box-shadow:0 1px 2px rgba(160,48,0,0.42),0 6px 18px rgba(255,84,0,0.46),
+    inset 0 1.5px 0 rgba(255,255,255,0.52),inset 0 -1.5px 2px rgba(140,40,0,0.34);
+  transition:transform 160ms var(--eo)}
+.login-submit:hover{transform:translateY(-1.5px)}
+.login-error{font-size:11.5px;color:#FF8A5C;background:rgba(255,84,0,0.10);border:1px solid rgba(255,84,0,0.22);
+  border-radius:12px;padding:9px 12px;margin-bottom:12px;display:none;text-align:left}
+.login-error.show{display:block}
+
+@media (prefers-reduced-motion:reduce){*{animation-duration:0.01ms !important;transition-duration:0.01ms !important}}
+@media(max-width:900px){
+  .stats{grid-template-columns:1fr 1fr}
+  .hero h1{font-size:30px}
+  .topic-row{grid-template-columns:20px 1fr auto}
+}
+</style>
+</head>
+<body>
+
+<div class="scene"><div class="orb o1"></div><div class="orb o2"></div></div>
+
+<div class="nav-wrap">
+  <div class="nav-pill">
+    <div class="wordmark">Desk<em>.</em></div>
+    <a href="/desk/search-intelligence/" class="ntab" data-i18n="nav.searchIntel">Search Intelligence</a>
+    <a href="/desk/search-intelligence/content-gap/" class="ntab" data-i18n="nav.contentGap">Content Gap</a>
+    <div class="ntab on" data-i18n="nav.trending">Trending Topics</div>
+    <div class="nav-sep"></div>
+    <div class="ntab" id="logoutBtn" data-i18n="nav.logout" title="Sign out">⏻ Sign out</div>
+    <div class="nav-sep"></div>
+    <div class="langtoggle" id="langToggle">
+      <div class="lt-opt on" data-lang="en">EN</div>
+      <div class="lt-opt" data-lang="fa">فا</div>
+    </div>
+  </div>
+</div>
+
+<div class="login-gate" id="loginGate">
+  <div class="login-card">
+    <div class="login-wordmark">Desk<em>.</em></div>
+    <div class="login-title" data-i18n="login.title">Sign in</div>
+    <div class="login-sub" data-i18n="login.sub">Trending Topics — Radio Farda</div>
+    <div class="login-error" id="loginError"></div>
+    <div class="login-field">
+      <label data-i18n="login.username">Username</label>
+      <input id="loginUsername" autocomplete="username" placeholder="e.g. sara">
+    </div>
+    <div class="login-field">
+      <label data-i18n="login.password">Password</label>
+      <input id="loginPassword" type="password" autocomplete="current-password" placeholder="••••••••">
+    </div>
+    <button class="login-submit" id="loginSubmit" data-i18n="login.submit">Sign in →</button>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="hero">
+    <div>
+      <div class="eyebrow" data-i18n="hero.eyebrow">Search Intelligence · External Signal</div>
+      <h1 data-i18n="hero.title">Trending Topics</h1>
+      <p data-i18n="hero.sub">What's rising on Hacker News and Reddit right now — a quick read on what people outside Radio Farda are already talking about.</p>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="card stat"><div class="sn pending" id="statHn">—</div><div class="sl" data-i18n="stats.hn">Hacker News stories</div></div>
+    <div class="card stat"><div class="sn pending" id="statReddit">—</div><div class="sl" data-i18n="stats.reddit">Reddit posts</div></div>
+    <div class="card stat"><div class="sn pending" id="statUpdated">—</div><div class="sl" data-i18n="stats.updated">Last synced</div></div>
+  </div>
+
+  <div class="syncbar">
+    <div class="sb-text" id="syncText"><span class="spin"></span> <span data-i18n="sync.loading">Loading…</span></div>
+    <div style="flex:1"></div>
+    <div class="filter-chip on" data-filter="all" data-i18n="filter.all">All sources</div>
+    <div class="filter-chip" data-filter="hn" data-i18n="filter.hn">Hacker News</div>
+    <div class="filter-chip" data-filter="reddit" data-i18n="filter.reddit">Reddit</div>
+    <div class="nav-sep" style="height:22px"></div>
+    <div class="filter-chip on" data-sort="score" data-i18n="sort.score">Top score</div>
+    <div class="filter-chip" data-sort="recent" data-i18n="sort.recent">Newest</div>
+    <button class="ghost-sm" id="refreshBtn" data-i18n="sync.refresh">↻ Refresh</button>
+  </div>
+
+  <div class="card">
+    <div class="chead">
+      <h2 data-i18n="list.header">Right now</h2>
+      <div class="rule"></div>
+      <div class="uchip" id="listCount">—</div>
+    </div>
+    <div id="errArea"></div>
+    <div class="topic-list" id="topicList"></div>
+  </div>
+</div>
+
+<script src="/desk/search-intelligence/auth-engine.js"></script>
+<script>
+/* ==================== i18n ==================== */
+const I18N = {
+  en: {
+    'nav.searchIntel':'Search Intelligence', 'nav.contentGap':'Content Gap', 'nav.trending':'Trending Topics', 'nav.logout':'⏻ Sign out',
+    'login.title':'Sign in', 'login.sub':'Trending Topics — Radio Farda', 'login.username':'Username', 'login.password':'Password',
+    'login.submit':'Sign in →', 'login.submitting':'Signing in…', 'login.fillBoth':'Enter a username and password', 'login.error':'Invalid username or password',
+    'hero.eyebrow':'Search Intelligence · External Signal', 'hero.title':'Trending Topics',
+    'hero.sub':"What's rising on Hacker News and Reddit right now — a quick read on what people outside Radio Farda are already talking about.",
+    'stats.hn':'Hacker News stories', 'stats.reddit':'Reddit posts', 'stats.updated':'Last synced',
+    'sync.loading':'Loading…', 'sync.refresh':'↻ Refresh', 'sync.loaded':'Loaded {n} topics',
+    'filter.all':'All sources', 'filter.hn':'Hacker News', 'filter.reddit':'Reddit',
+    'sort.score':'Top score', 'sort.recent':'Newest',
+    'list.header':'Right now', 'list.count':'{n} topics',
+    'list.empty':'Nothing synced yet — the Apps Script trigger runs every few hours. Check back soon.',
+    'list.error':"Couldn't load trending topics: {msg}",
+    'meta.comments':'{n} comments', 'meta.discuss':'Discuss →'
+  },
+  fa: {
+    'nav.searchIntel':'هوش جست‌وجو', 'nav.contentGap':'شکاف محتوا', 'nav.trending':'موضوعات داغ', 'nav.logout':'⏻ خروج',
+    'login.title':'ورود', 'login.sub':'موضوعات داغ — رادیو فردا', 'login.username':'نام کاربری', 'login.password':'رمز عبور',
+    'login.submit':'ورود ←', 'login.submitting':'در حال ورود…', 'login.fillBoth':'نام کاربری و رمز عبور را وارد کنید', 'login.error':'نام کاربری یا رمز عبور نادرست است',
+    'hero.eyebrow':'هوش جست‌وجو · سیگنال بیرونی', 'hero.title':'موضوعات داغ',
+    'hero.sub':'چه چیزی همین حالا در Hacker News و Reddit داغ است — نگاهی سریع به آنچه بیرون از رادیو فردا دربارهٔ آن صحبت می‌شود.',
+    'stats.hn':'مطالب Hacker News', 'stats.reddit':'پست‌های Reddit', 'stats.updated':'آخرین به‌روزرسانی',
+    'sync.loading':'در حال بارگذاری…', 'sync.refresh':'↻ به‌روزرسانی', 'sync.loaded':'{n} موضوع بارگذاری شد',
+    'filter.all':'همهٔ منابع', 'filter.hn':'Hacker News', 'filter.reddit':'Reddit',
+    'sort.score':'بیشترین امتیاز', 'sort.recent':'جدیدترین',
+    'list.header':'همین الان', 'list.count':'{n} موضوع',
+    'list.empty':'هنوز چیزی همگام‌سازی نشده — تریگر Apps Script هر چند ساعت یک‌بار اجرا می‌شود. کمی بعد دوباره سر بزنید.',
+    'list.error':'بارگذاری موضوعات داغ ناموفق بود: {msg}',
+    'meta.comments':'{n} نظر', 'meta.discuss':'گفت‌وگو ←'
+  }
+};
+let LANG = localStorage.getItem('desk.si.lang') || 'en';
+function t(key, vars){
+  let s = (I18N[LANG] && I18N[LANG][key]) || I18N.en[key] || key;
+  if (vars) Object.keys(vars).forEach(k => { s = s.split('{'+k+'}').join(vars[k]); });
+  return s;
+}
+function applyStaticI18n(){
+  document.documentElement.dir = LANG === 'fa' ? 'rtl' : 'ltr';
+  document.documentElement.lang = LANG;
+  document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.dataset.i18n); });
+  document.querySelectorAll('.lt-opt').forEach(el => el.classList.toggle('on', el.dataset.lang === LANG));
+  renderStats(); renderTopics();
+}
+function setLang(l){
+  LANG = l;
+  try { localStorage.setItem('desk.si.lang', l); } catch (e) {}
+  applyStaticI18n();
+}
+document.getElementById('langToggle').addEventListener('click', e => {
+  const el = e.target.closest('.lt-opt'); if (!el) return;
+  setLang(el.dataset.lang);
+});
+
+/* ==================== Supabase (read-only, anon key — same as other Desk tables) ==================== */
+const SUPABASE_URL = 'https://yiewnykbchfadipznpet.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlpZXdueWtiY2hmYWRpcHpucGV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxNzM3NTUsImV4cCI6MjA5NDc0OTc1NX0.utnlpToZGH7hno0QTXlrtWvzKDgP28Gv3Je7BBIRwmM';
+async function sbSelect(table, query) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${query}`, {
+    headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` }
+  });
+  if (!res.ok) throw new Error(`select failed (${res.status})`);
+  return res.json();
+}
+
+/* ==================== State ==================== */
+let ROWS = [];
+let activeFilter = 'all';
+let activeSort = 'score';
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+function relTime(iso){
+  if (!iso) return '';
+  const s = Math.round((Date.now() - new Date(iso).getTime()) / 1000);
+  if (isNaN(s)) return '';
+  if (s < 60) return 'just now';
+  if (s < 3600) return Math.floor(s/60) + 'm ago';
+  if (s < 86400) return Math.floor(s/3600) + 'h ago';
+  return Math.floor(s/86400) + 'd ago';
+}
+function domainOf(url){
+  try { return new URL(url).hostname.replace(/^www\./, ''); } catch (e) { return ''; }
+}
+
+/* ==================== Render ==================== */
+function renderStats(){
+  const hn = ROWS.filter(r => r.source === 'hn').length;
+  const reddit = ROWS.filter(r => r.source === 'reddit').length;
+  $('statHn').textContent = hn; $('statHn').classList.remove('pending');
+  $('statReddit').textContent = reddit; $('statReddit').classList.remove('pending');
+  const latest = ROWS.reduce((max, r) => (!max || new Date(r.fetched_at) > new Date(max)) ? r.fetched_at : max, null);
+  $('statUpdated').textContent = latest ? relTime(latest) : '—';
+  $('statUpdated').classList.remove('pending');
+}
+function filteredSortedRows(){
+  let rows = activeFilter === 'all' ? ROWS.slice() : ROWS.filter(r => r.source === activeFilter);
+  rows.sort((a, b) => activeSort === 'recent'
+    ? new Date(b.source_created_at || b.fetched_at) - new Date(a.source_created_at || a.fetched_at)
+    : (b.score || 0) - (a.score || 0));
+  return rows;
+}
+function topicRowHtml(row, i){
+  const isHn = row.source === 'hn';
+  const badge = isHn ? `<span class="src-badge src-hn">HN</span>` : `<span class="src-badge src-reddit">Reddit</span>`;
+  const sub = isHn ? domainOf(row.url) : (row.subreddit ? 'r/' + row.subreddit : '');
+  return `<div class="topic-row">
+    <div class="topic-rank">${String(i+1).padStart(2,'0')}</div>
+    <div class="topic-main">
+      <a class="topic-title" href="${esc(row.url)}" target="_blank" rel="noopener noreferrer">${esc(row.title)}</a>
+      <div class="topic-meta">
+        ${badge}
+        ${sub ? `<span class="topic-sub">${esc(sub)}</span>` : ''}
+        <span class="topic-sub">${esc(relTime(row.source_created_at || row.fetched_at))}</span>
+      </div>
+    </div>
+    <div class="topic-stats">
+      <span class="topic-score">▲ ${Number(row.score || 0).toLocaleString()}</span>
+      <span class="topic-comments">${t('meta.comments', {n: Number(row.num_comments || 0).toLocaleString()})}</span>
+      <a class="topic-discuss" href="${esc(row.discussion_url || row.url)}" target="_blank" rel="noopener noreferrer">${t('meta.discuss')}</a>
+    </div>
+  </div>`;
+}
+function renderTopics(){
+  const rows = filteredSortedRows();
+  $('listCount').textContent = t('list.count', {n: rows.length});
+  $('topicList').innerHTML = rows.length
+    ? rows.map(topicRowHtml).join('')
+    : `<div class="empty">${t('list.empty')}</div>`;
+}
+
+/* ==================== Filters ==================== */
+document.querySelectorAll('[data-filter]').forEach(chip => {
+  chip.addEventListener('click', () => {
+    document.querySelectorAll('[data-filter]').forEach(c => c.classList.remove('on'));
+    chip.classList.add('on');
+    activeFilter = chip.dataset.filter;
+    renderTopics();
+  });
+});
+document.querySelectorAll('[data-sort]').forEach(chip => {
+  chip.addEventListener('click', () => {
+    document.querySelectorAll('[data-sort]').forEach(c => c.classList.remove('on'));
+    chip.classList.add('on');
+    activeSort = chip.dataset.sort;
+    renderTopics();
+  });
+});
+
+/* ==================== Load ==================== */
+async function loadTopics(){
+  $('syncText').innerHTML = `<span class="spin"></span> <span>${t('sync.loading')}</span>`;
+  $('errArea').innerHTML = '';
+  try {
+    ROWS = await sbSelect('trending_topics_external', 'select=*&order=score.desc&limit=80');
+    renderStats();
+    renderTopics();
+    $('syncText').innerHTML = t('sync.loaded', {n: ROWS.length});
+  } catch (e) {
+    $('errArea').innerHTML = `<div class="errbox">${t('list.error', {msg: esc(e.message)})}</div>`;
+    $('syncText').textContent = '';
+  }
+}
+document.getElementById('refreshBtn').addEventListener('click', loadTopics);
+setInterval(loadTopics, 5 * 60 * 1000); // data changes every ~3h server-side; a 5min client poll is plenty
+
+/* ==================== AUTH ==================== */
+function showLoginGate(){ $('loginGate').classList.remove('hide'); }
+function hideLoginGate(){ $('loginGate').classList.add('hide'); }
+function showLoginError(msg){ const el = $('loginError'); el.textContent = msg; el.classList.add('show'); }
+function clearLoginError(){ $('loginError').classList.remove('show'); }
+
+async function doLogin(){
+  const u = $('loginUsername').value.trim();
+  const p = $('loginPassword').value;
+  clearLoginError();
+  if (!u || !p) return showLoginError(t('login.fillBoth'));
+  $('loginSubmit').disabled = true; $('loginSubmit').textContent = t('login.submitting');
+  try {
+    const res = await AuthEngine.login(u, p);
+    if (!res.ok) return showLoginError(res.error || t('login.error'));
+    $('loginPassword').value = '';
+    hideLoginGate();
+    startPage();
+  } catch (e) {
+    showLoginError(String((e && e.message) || e));
+  } finally {
+    $('loginSubmit').disabled = false; $('loginSubmit').textContent = t('login.submit');
+  }
+}
+$('loginSubmit').addEventListener('click', doLogin);
+$('loginUsername').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+$('loginPassword').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+$('logoutBtn').addEventListener('click', () => { AuthEngine.logout(); location.reload(); });
+
+async function startPage(){
+  applyStaticI18n();
+  await loadTopics();
+}
+
+(function initAuthGate(){
+  if (typeof AuthEngine === 'undefined') {
+    showLoginGate();
+    showLoginError('auth-engine.js did not load — check it exists at /desk/search-intelligence/auth-engine.js');
+    return;
+  }
+  const existing = AuthEngine.getSession();
+  if (existing) { hideLoginGate(); startPage(); }
+  else { applyStaticI18n(); showLoginGate(); }
+})();
+</script>
+</body>
+</html>
