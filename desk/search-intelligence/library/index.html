@@ -223,11 +223,6 @@ html[dir="rtl"] .login-field{text-align:right}
         </button>
       </div>
     </div>
-    <div class="nav-sep"></div>
-    <div class="langtoggle" id="langToggle">
-      <div class="lt-opt on" data-lang="en">EN</div>
-      <div class="lt-opt" data-lang="fa">فا</div>
-    </div>
   </div>
 </div>
 
@@ -235,7 +230,7 @@ html[dir="rtl"] .login-field{text-align:right}
   <div class="login-card">
     <div class="login-wordmark">Desk<em>.</em></div>
     <div class="login-title" data-i18n="login.title">Sign in</div>
-    <div class="login-sub" data-i18n="login.sub">Search Intelligence — Radio Farda</div>
+    <div class="login-sub" data-i18n="login.sub">Search Intelligence</div>
     <div class="login-error" id="loginError"></div>
     <div class="login-field">
       <label data-i18n="login.username">Username</label>
@@ -284,7 +279,7 @@ const esc = s => String(s??'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;'
 const I18N = {
 en: {
   'nav.back':'← Search Intelligence', 'nav.logout':'⏻ Sign out',
-  'login.title':'Sign in', 'login.sub':'Search Intelligence — Radio Farda',
+  'login.title':'Sign in', 'login.sub':'Search Intelligence',
   'login.username':'Username', 'login.usernamePh':'e.g. user1',
   'login.password':'Password', 'login.passwordPh':'••••••••',
   'login.submit':'Sign in →', 'login.submitting':'Signing in…',
@@ -300,50 +295,23 @@ en: {
   'lib.loadFailed':'Couldn\'t load the library: {msg}',
   'lib.originalWas':'Original headline: {h}',
   'lib.words':'{n} words'
-},
-fa: {
-  'nav.back':'→ سرمقاله‌گزین', 'nav.logout':'⏻ خروج',
-  'login.title':'ورود', 'login.sub':'هوش جست‌وجو — رادیو فردا',
-  'login.username':'نام کاربری', 'login.usernamePh':'مثلاً user1',
-  'login.password':'رمز عبور', 'login.passwordPh':'••••••••',
-  'login.submit':'ورود ←', 'login.submitting':'در حال ورود…',
-  'login.error':'نام کاربری یا رمز عبور اشتباه است', 'login.fillBoth':'نام کاربری و رمز عبور را وارد کنید',
-  'lib.eyebrow':'هر سرتیتری که انتخاب کرده‌اید',
-  'lib.title':'کتابخانه',
-  'lib.sub':'هر سرتیتری که از سرمقاله‌گزین ذخیره کرده‌اید، همراه با خبری که برایش نوشته شد.',
-  'lib.searchPh':'جست‌وجو در سرتیترها یا اخبار…',
-  'lib.filterAll':'همه', 'lib.filterSearch':'مبتنی بر سرچ', 'lib.filterDiscover':'مبتنی بر دیسکاور', 'lib.filterStraight':'مستقیم',
-  'lib.adminBadge':'مدیر — نمایش همهٔ کاربران',
-  'lib.allUsers':'همهٔ کاربران',
-  'lib.empty':'هنوز چیزی ذخیره نشده — سرتیترهایی که از سرمقاله‌گزین ذخیره کنید اینجا نمایش داده می‌شوند.',
-  'lib.loadFailed':'بارگذاری کتابخانه ناموفق بود: {msg}',
-  'lib.originalWas':'سرتیتر اصلی: {h}',
-  'lib.words':'{n} کلمه'
 }
 };
-let LANG = localStorage.getItem('desk.si.lang') || 'en';
+/* UI chrome is English-only across all 8 sites — only saved headline/article
+   text (from whichever site the user is on) varies, handled with dir="auto"
+   on the card text itself rather than a language switch. */
+const LANG = 'en';
 function t(key, vars){
-  let s = (I18N[LANG] && I18N[LANG][key]) || I18N.en[key] || key;
+  let s = I18N.en[key] || key;
   if (vars) Object.keys(vars).forEach(k => { s = s.split('{'+k+'}').join(vars[k]); });
   return s;
 }
 function applyStaticI18n(){
-  document.documentElement.dir = LANG==='fa' ? 'rtl' : 'ltr';
-  document.documentElement.lang = LANG;
+  document.documentElement.dir = 'ltr';
+  document.documentElement.lang = 'en';
   document.querySelectorAll('[data-i18n]').forEach(el => { el.innerHTML = t(el.dataset.i18n); });
   document.querySelectorAll('[data-i18n-ph]').forEach(el => { el.placeholder = t(el.dataset.i18nPh); });
-  document.querySelectorAll('.lt-opt').forEach(el => el.classList.toggle('on', el.dataset.lang===LANG));
 }
-function setLang(l){
-  LANG = l;
-  try{ localStorage.setItem('desk.si.lang', l); }catch(e){}
-  applyStaticI18n();
-  renderGrid();
-}
-document.getElementById('langToggle').addEventListener('click', e=>{
-  const el = e.target.closest('.lt-opt'); if(!el) return;
-  setLang(el.dataset.lang);
-});
 applyStaticI18n();
 
 /* ==================== toast ==================== */
@@ -429,10 +397,10 @@ function cardHtml(r){
       </div>
       ${r.chosen_group ? `<span class="hl-group ${groupClass(r.chosen_group)}">${esc(groupLabel(r.chosen_group))}</span>` : ''}
     </div>
-    <div class="lcard-headline">${esc(r.chosen_headline)}</div>
-    ${r.article_snippet ? `<div class="lcard-snippet">${esc(r.article_snippet)}</div>` : ''}
+    <div class="lcard-headline" dir="auto">${esc(r.chosen_headline)}</div>
+    ${r.article_snippet ? `<div class="lcard-snippet" dir="auto">${esc(r.article_snippet)}</div>` : ''}
     ${(r.article_headline_original && r.article_headline_original !== r.chosen_headline)
-      ? `<div class="lcard-original">${esc(t('lib.originalWas',{h:r.article_headline_original}))}</div>` : ''}
+      ? `<div class="lcard-original" dir="auto">${esc(t('lib.originalWas',{h:r.article_headline_original}))}</div>` : ''}
   </div>`;
 }
 
