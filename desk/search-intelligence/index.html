@@ -154,6 +154,12 @@ html[dir="rtl"] .profile-menu{right:auto;left:0}
 .profile-svc-badge{display:inline-block;font-size:10px;font-weight:600;letter-spacing:.02em;
   padding:3px 9px;border-radius:100px;background:rgba(255,255,255,0.10);color:var(--lt-3);box-shadow:var(--rim-sm)}
 .profile-svc-badge.site{background:rgba(90,160,255,0.18);color:#8FC1FF}
+.view-site-select{font-family:var(--sans);font-size:11.5px;font-weight:600;color:var(--lt-1);text-shadow:var(--ts);
+  padding:6px 26px 6px 12px;border-radius:100px;border:none;outline:none;cursor:pointer;appearance:none;
+  background:rgba(255,255,255,0.10);box-shadow:var(--rim-sm);
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='6'%3E%3Cpath d='M0 0l4.5 6 4.5-6z' fill='white' fill-opacity='0.6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 10px center;margin-left:2px}
+.view-site-select option{color:#0E2531}
 .profile-menu-sep{height:1px;background:var(--border);margin:4px 6px}
 .profile-menu-item{display:flex;align-items:center;gap:10px;width:100%;padding:9px 10px;border-radius:12px;
   border:none;background:transparent;cursor:pointer;text-decoration:none;text-align:left;
@@ -503,6 +509,8 @@ select.mini-in:hover{background-color:var(--chip-hover)}
     <div class="ntab" id="compareBtn" data-i18n="nav.compare" data-i18n-title="nav.compareTitle" title="Compare two keywords">⇄ Compare</div>
     <div class="nav-sep"></div>
     <div class="gen-ntab idle" id="genBtn" data-i18n="nav.promptBtn">◆ Prompt</div>
+    <div class="nav-sep" id="viewSiteSep" style="display:none"></div>
+    <select class="view-site-select" id="viewSiteSelect" style="display:none" title="Super admin — switch which site you're working in"></select>
     <div class="nav-sep"></div>
     <div class="profile-wrap" id="profileWrap">
       <button class="profile-trigger" id="profileTrigger" type="button">
@@ -874,6 +882,12 @@ const MAX_SEEDS = 7;
 /* ==================== State ==================== */
 const S = { article:'', headline:'', seeds:[], keywords:[], articles:[], log:[], window:'day', syncing:false, phase:'idle', lastSyncTime:'', session:null };
 let TPL_BLOCKS = [];   // loaded from PromptEngine at boot
+
+/* Only meaningfully different from S.session.site for a super admin who has
+   switched the site dropdown — everyone else is always working in their own
+   login site, so this just mirrors it. */
+let VIEW_SITE = null;
+function currentSite(){ return VIEW_SITE || (S.session && S.session.site) || 'fa'; }
 const $ = id => document.getElementById(id);
 const esc = s => String(s??'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const num = n => Number(n||0).toLocaleString('en-US');
@@ -932,7 +946,7 @@ function extractSeeds(text, headline){
 
 /* ==================== GSC ==================== */
 async function fetchQueries(term){
-  const url = AuthEngine.authedGetUrl({ mode:'queries', q:term, days:DAYS });
+  const url = AuthEngine.authedGetUrl({ mode:'queries', q:term, days:DAYS, site:currentSite() });
   if (!url){ showLoginGate(); throw new Error('Not logged in'); }
   const res = await fetch(url);
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -944,7 +958,7 @@ async function fetchQueries(term){
   })).filter(r=>r.term);
 }
 async function fetchDiscover(win){
-  const url = AuthEngine.authedGetUrl({ mode:'discover', window:win, limit:8 });
+  const url = AuthEngine.authedGetUrl({ mode:'discover', window:win, limit:8, site:currentSite() });
   if (!url){ showLoginGate(); throw new Error('Not logged in'); }
   const res = await fetch(url);
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -1088,12 +1102,11 @@ function renderAll(){ renderSeeds(); renderKw(); renderLog(); renderArts(); rend
 /* ==================== PROMPT — assembled from admin-designed cards ==================== */
 const truncate = (t,max) => { const s=String(t||'').trim(); return s.length>max ? s.slice(0,max)+'\n\n[…truncated…]' : s; };
 
-/* Strips the site's own domain off a page URL for display — was hardcoded
-   to radiofarda.com; now derived from whichever of the 8 sites the logged-in
-   user belongs to. */
+/* Strips the site's own domain off a page URL for display — derived from
+   whichever site is currently active (currentSite()), which for a super
+   admin may not be their own login site. */
 function stripSiteHost(url){
-  const hostname = (S.session && S.session.hostname) ||
-    ((typeof PromptEngine !== 'undefined' && S.session) ? (PromptEngine.siteOf(S.session.site).hostname || '') : '');
+  const hostname = (typeof PromptEngine !== 'undefined') ? (PromptEngine.siteOf(currentSite()).hostname || '') : '';
   if (!hostname) return String(url || '');
   const re = new RegExp('^https?://(www\\.)?' + hostname.replace(/\./g, '\\.'));
   return String(url || '').replace(re, '');
@@ -1108,10 +1121,9 @@ function buildVars(){
   const cannib = kw.filter(k=>k.page && k.position<=20).slice(0,6);
   const cannibalization = cannib.map(k=>`  · "${k.term}" → already ranked (pos ${k.position.toFixed(1)}) by: ${k.page}`).join('\n');
   const discover = arts.map(a=>`· "${a.title}" — ${a.clicks} clicks, ${a.impressions} impressions, ${(a.ctr*100).toFixed(1)}% CTR`).join('\n');
-  const session = S.session || {};
-  const siteInfo = (typeof PromptEngine !== 'undefined') ? PromptEngine.siteOf(session.site) : null;
+  const siteInfo = (typeof PromptEngine !== 'undefined') ? PromptEngine.siteOf(currentSite()) : null;
   return {
-    SITE: session.hostname || (siteInfo && siteInfo.hostname) || '',
+    SITE: (siteInfo && siteInfo.hostname) || '',
     TARGET_LANGUAGE: (siteInfo && siteInfo.language) || 'English',
     DAYS:DAYS,
     HEADLINE:S.headline||'', ARTICLE:truncate(S.article,6000),
@@ -1293,6 +1305,7 @@ async function saveHeadlineChoice(it){
   try{
     const data = await AuthEngine.authedPost({
       mode:'saveHeadline',
+      site: currentSite(),
       articleHeadlineOriginal: S.headline || '',
       articleSnippet: (S.article||'').slice(0,500),
       articleWordcount: S.article ? S.article.split(/\s+/).length : 0,
@@ -1832,9 +1845,65 @@ function renderProfile(session){
   $('profileMenuName').textContent = session.username;
   $('profileSvcBadge').textContent = svcLabel;
   $('profileSvcBadge').className = 'profile-svc-badge site';
-  const hostname = session.hostname || (siteInfo && siteInfo.hostname) || '';
-  $('heroEyebrow').textContent = hostname ? `Live · Search Console · ${hostname}` : 'Live · Search Console';
 }
+
+/* Reflects whatever site is currently active (currentSite()) — for a super
+   admin mid-switch this can differ from their own account's site, which is
+   why it's separate from renderProfile()'s identity badge above. */
+function updateSiteChrome(){
+  const info = (typeof PromptEngine !== 'undefined') ? PromptEngine.siteOf(currentSite()) : null;
+  const hostname = info && info.hostname;
+  $('heroEyebrow').textContent = hostname ? `Live · Search Console · ${hostname}` : 'Live · Search Console';
+  if ($('viewSiteSelect').style.display !== 'none') $('viewSiteSelect').value = currentSite();
+}
+
+/* Only rendered for super admins — everyone else works in exactly the one
+   site their account is tied to, same as before. */
+function initViewSiteSwitcher(session){
+  if (!session.isSuperAdmin || typeof PromptEngine === 'undefined') return;
+  $('viewSiteSelect').innerHTML = PromptEngine.SITE_CODES.map(code =>
+    `<option value="${code}">${PromptEngine.siteOf(code).label}</option>`).join('');
+  $('viewSiteSelect').value = currentSite();
+  $('viewSiteSelect').style.display = '';
+  $('viewSiteSep').style.display = '';
+}
+
+async function switchViewSite(code){
+  if (code === currentSite()) return;
+  VIEW_SITE = code;
+  updateSiteChrome();
+
+  // GSC-derived state belongs to the old site — clear it. The pasted
+  // article/headline text is the person's own draft, so that stays put.
+  S.keywords = []; S.log = []; S.articles = [];
+  hlHasResult = false; hlLastHeadlines = []; hlLastAnalysis = null;
+  $('hlList').innerHTML = ''; $('hlList').style.display = 'none';
+  renderAll();
+
+  try {
+    const { blocks } = await PromptEngine.getBlocks(code);
+    TPL_BLOCKS = blocks;
+  } catch(e){
+    TPL_BLOCKS = PromptEngine.DEFAULT_BLOCKS;
+    toast(t('misc.promptTplFailed'));
+  }
+
+  if (S.article && S.article.length > 180){
+    runPipeline();
+  } else {
+    try{
+      S.articles = await fetchDiscover(S.window);
+      renderArts(); renderStats();
+      S.phase = 'discover';
+      renderSyncStatus();
+    }catch(e){
+      $('artList').innerHTML = `<div class="errbox">${t('d.discoverFailedFull',{msg:esc(e.message)})}</div>`;
+      S.phase = 'discoverFailed';
+      renderSyncStatus();
+    }
+  }
+}
+$('viewSiteSelect').addEventListener('change', e => switchViewSite(e.target.value));
 $('profileTrigger').addEventListener('click', e=>{
   e.stopPropagation();
   $('profileWrap').classList.toggle('open');
@@ -1846,10 +1915,13 @@ document.addEventListener('keydown', e=>{ if(e.key==='Escape') $('profileWrap').
 
 async function startApp(session){
   S.session = session;
+  VIEW_SITE = session.site;
   renderProfile(session);
+  initViewSiteSwitcher(session);
+  updateSiteChrome();
   try {
     if (typeof PromptEngine === 'undefined') throw new Error('prompt-engine.js did not load — check the file exists at /desk/search-intelligence/prompt-engine.js');
-    const { blocks } = await PromptEngine.getBlocks(session.site);
+    const { blocks } = await PromptEngine.getBlocks(currentSite());
     TPL_BLOCKS = blocks;
   } catch(e){
     console.error(e);
