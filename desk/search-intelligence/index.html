@@ -4,7 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Desk Headline</title>
-<link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&family=Noto+Sans:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&display=swap" rel="stylesheet">
+<!-- Skolar / Skolar Sans are licensed (TypeTogether), not on Google Fonts.
+     Wire in your Adobe Fonts kit link or self-hosted @font-face here — see
+     SKILL.md's Design Tokens section for both options. Vazirmatn (Persian)
+     stays on Google Fonts since it's only used as the RTL fallback. -->
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
   /* Brand */
@@ -51,9 +55,9 @@
     inset 0 0 0 1px rgba(255,255,255,0.10);
 
   --eo:cubic-bezier(0.25,0.46,0.45,0.94);
-  --serif:'Lora',Georgia,serif; --sans:'Noto Sans',system-ui,sans-serif;
+  --serif:'Skolar',Georgia,serif; --sans:'Skolar Sans',system-ui,sans-serif;
 }
-html[dir="rtl"]{ --serif:'Vazirmatn','Noto Sans',sans-serif; --sans:'Vazirmatn','Noto Sans',sans-serif; }
+html[dir="rtl"]{ --serif:'Vazirmatn','Skolar Sans',sans-serif; --sans:'Vazirmatn','Skolar Sans',sans-serif; }
 *{box-sizing:border-box;margin:0;padding:0}
 html{color-scheme:dark}
 body{font-family:var(--sans);color:var(--lt-2);min-height:100vh;-webkit-font-smoothing:antialiased;
@@ -122,10 +126,10 @@ html[dir="rtl"] .kw-num,html[dir="rtl"] .art-clicks,html[dir="rtl"] .sn{directio
 .gen-ntab.idle:hover{background:rgba(255,255,255,0.10);transform:none;color:var(--lt-3)}
 .gen-ntab.pending{color:#FFD9C2;background:rgba(255,120,50,0.14)}
 .gen-ntab.ready{color:#fff;text-shadow:none;
-  background:linear-gradient(180deg,#FF8A45 0%,var(--flame) 52%,#DC4400 100%);
-  box-shadow:0 1px 2px rgba(120,36,0,0.50),0 6px 16px rgba(255,84,0,0.52),
-    inset 0 2px 0 rgba(255,255,255,0.62),inset 0 -2px 2px rgba(120,34,0,0.44),inset 0 0 0 1px rgba(255,140,80,0.50)}
-.gen-ntab.ready:hover{transform:translateY(-1.5px) scale(1.02);background:linear-gradient(180deg,#FF8A45 0%,var(--flame) 52%,#DC4400 100%)}
+  background:linear-gradient(180deg,#FF7A38 0%,var(--flame) 60%,#E24E00 100%);
+  box-shadow:0 1px 2px rgba(120,36,0,0.35),0 8px 20px rgba(255,84,0,0.26),
+    inset 0 1px 0 rgba(255,255,255,0.30),inset 0 -1px 1px rgba(120,34,0,0.30)}
+.gen-ntab.ready:hover{transform:translateY(-1.5px);background:linear-gradient(180deg,#FF7A38 0%,var(--flame) 60%,#E24E00 100%)}
 
 /* ===== PROFILE DROPDOWN ===== */
 .profile-wrap{position:relative;z-index:1}
@@ -297,14 +301,16 @@ html[dir="rtl"] .profile-menu-item{text-align:right}
 .ghost-sm:focus-visible{outline:none;box-shadow:var(--ambient),var(--rim-sm),inset 0 0 0 1.5px rgba(255,150,80,0.60)}
 
 .btn-flame{font-family:var(--sans);font-size:13px;font-weight:600;color:#fff;padding:9px 21px;border-radius:100px;border:none;cursor:pointer;
-  background:linear-gradient(180deg,#FF8A45 0%,var(--flame) 52%,#DC4400 100%);
-  box-shadow:0 1px 2px rgba(120,36,0,0.50),0 6px 16px rgba(255,84,0,0.52),0 18px 40px rgba(255,84,0,0.30),
-    inset 0 2px 0 rgba(255,255,255,0.62),inset 0 -2px 2px rgba(120,34,0,0.44),inset 0 0 0 1px rgba(255,140,80,0.50);
+  background:linear-gradient(180deg,#FF7A38 0%,var(--flame) 60%,#E24E00 100%);
+  box-shadow:0 1px 2px rgba(120,36,0,0.35),0 8px 20px rgba(255,84,0,0.26),
+    inset 0 1px 0 rgba(255,255,255,0.30),inset 0 -1px 1px rgba(120,34,0,0.30);
   transition:transform 120ms cubic-bezier(0.22,1,0.36,1),box-shadow 120ms ease-out;white-space:nowrap}
-.btn-flame:hover{transform:translateY(-1.5px) scale(1.02)}
+.btn-flame:hover{transform:translateY(-1.5px);
+  box-shadow:0 1px 2px rgba(120,36,0,0.38),0 10px 24px rgba(255,84,0,0.30),
+    inset 0 1px 0 rgba(255,255,255,0.34),inset 0 -1px 1px rgba(120,34,0,0.32)}
 .btn-flame:active{transform:scale(0.96)}
-.btn-flame:disabled{opacity:.45;cursor:default;transform:none}
-.btn-flame:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(255,150,80,0.45),0 6px 16px rgba(255,84,0,0.52)}
+.btn-flame:disabled{opacity:.45;cursor:default;transform:none;box-shadow:none}
+.btn-flame:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(255,150,80,0.40),0 8px 20px rgba(255,84,0,0.26)}
 
 /* ===== DISCLOSURE (dd) ===== */
 .dd{margin-top:14px;border-radius:15px;background:var(--chip);box-shadow:var(--rim-sm);overflow:hidden}
@@ -360,7 +366,14 @@ select.mini-in{appearance:none;-webkit-appearance:none;cursor:pointer;padding-ri
   background-size:5px 5px,5px 5px;background-repeat:no-repeat}
 select.mini-in:hover{background-color:var(--chip-hover)}
 
-/* ===== SHEET / MODAL ===== */
+/* ===== SHEET / MODAL =====
+   These are large panels (up to 920px), so they don't do a literal
+   grow-from-trigger size match like a small popup would — scaling from a
+   100px button to a 900px panel looks rubber-bandy, not smooth. Instead,
+   transform-origin is set (via setSheetOrigin() in JS) to whichever button
+   triggered it, so the scale-up visibly emanates from near the click
+   without trying to match its exact size. Falls back to center-center if
+   no trigger is passed. */
 .sheet{position:fixed;inset:0;z-index:100;display:flex;align-items:flex-start;justify-content:center;
   padding:56px 20px;overflow-y:auto;
   background:rgba(5,8,13,0.64);
@@ -370,8 +383,9 @@ select.mini-in:hover{background-color:var(--chip-hover)}
 .sheet-in{position:relative;width:100%;max-width:920px;border-radius:26px;
   background:var(--glass);backdrop-filter:var(--glass-filter);-webkit-backdrop-filter:var(--glass-filter);
   box-shadow:var(--ambient-hi),var(--rim);
-  transform:translateY(16px) scale(0.985);opacity:0;
-  transition:transform 320ms var(--eo),opacity 320ms var(--eo);
+  transform-origin:50% 50%;
+  transform:scale(0.92);opacity:0;
+  transition:transform 380ms cubic-bezier(0.16,1,0.3,1),opacity 240ms ease-out;
   display:flex;flex-direction:column;max-height:calc(100vh - 112px)}
 .sheet.show .sheet-in{transform:none;opacity:1}
 .sheet-in::before{content:'';position:absolute;inset:0;border-radius:26px;pointer-events:none;
@@ -1151,6 +1165,20 @@ function updateGenState(){
   }
 }
 
+/* Sets which point a sheet's scale-up should visibly emanate from — the
+   button that triggered it, as a percentage position (so it survives
+   resizes/scroll between calls). Falls back to dead center if no trigger
+   element is given. Call this right before adding .show. */
+function setSheetOrigin(sheetId, triggerEl){
+  const inEl = document.querySelector('#'+sheetId+' .sheet-in');
+  if (!inEl) return;
+  if (!triggerEl){ inEl.style.transformOrigin = '50% 50%'; return; }
+  const r = triggerEl.getBoundingClientRect();
+  const ox = ((r.left + r.width/2) / window.innerWidth) * 100;
+  const oy = ((r.top + r.height/2) / window.innerHeight) * 100;
+  inEl.style.transformOrigin = `${ox}% ${oy}%`;
+}
+
 function openSheet(){
   if (S.article.length<180) return toast(t('p.pasteFirstToast'));
   openRawPromptSheet(t('p.sheetTitle'), buildPrompt());
@@ -1277,6 +1305,7 @@ function openHlSheet(){
   $('hlMeta').textContent = '';
   startBoatAnim();
   hlCycleJourney();
+  setSheetOrigin('hlSheet', $('genBtn2'));
   $('hlSheet').classList.add('show');
 }
 
@@ -1408,6 +1437,7 @@ function openRawPromptSheet(title, text){
   $('promptPre').textContent = text;
   $('promptMeta').textContent = t('p.meta',{c:num(text.length), t:num(Math.round(text.length/4)), q:num(S.keywords.length), d:num(S.articles.length)});
   $('sheet').style.zIndex = '110';
+  setSheetOrigin('sheet', $('genBtn'));
   $('sheet').classList.add('show');
 }
 
@@ -1420,6 +1450,7 @@ function reopenCachedHlSheet(){
   $('hlList').style.display = 'flex';
   $('hlViewPrompt').style.display = hlLastPromptText ? 'inline-flex' : 'none';
   $('hlRegenerate').style.display = 'inline-flex';
+  setSheetOrigin('hlSheet', $('genBtn2'));
   $('hlSheet').classList.add('show');
 }
 
@@ -1607,6 +1638,7 @@ function ingestCsv(text){
 /* ==================== Compare — two keywords, side by side ==================== */
 function openCompare(){
   if (!$('cmpA').value && S.seeds.length) $('cmpA').value = S.seeds[0];
+  setSheetOrigin('cmpSheet', $('compareBtn'));
   $('cmpSheet').classList.add('show');
 }
 $('compareBtn').addEventListener('click', openCompare);
