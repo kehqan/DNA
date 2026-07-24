@@ -1819,9 +1819,13 @@ $('cmpRun').addEventListener('click', async ()=>{
   wrap.appendChild(link);
 });
 
-/* ==================== AUTH / LOGIN GATE ==================== */
+/* ==================== AUTH / LOGIN GATE ====================
+   Signing in now happens once, centrally, at /desk — not per tool. If
+   there's no valid session (or one expires mid-use), send the person
+   there instead of rendering a login form in place. ?next= brings them
+   straight back to whatever they were doing once they're signed in. */
 function showLoginGate(){
-  $('loginGate').classList.remove('hide');
+  window.location.href = '/desk/?next=' + encodeURIComponent(location.pathname + location.search);
 }
 function hideLoginGate(){
   $('loginGate').classList.add('hide');
@@ -2021,8 +2025,8 @@ async function startApp(session){
 
 (function initAuthGate(){
   if (typeof AuthEngine === 'undefined'){
+    console.error('auth-engine.js did not load — check it exists at /desk/search-intelligence/auth-engine.js');
     showLoginGate();
-    showLoginError('auth-engine.js did not load — check it exists at /desk/search-intelligence/auth-engine.js');
     return;
   }
   const existing = AuthEngine.getSession();
