@@ -148,6 +148,39 @@ pre#preview{white-space:pre-wrap;word-break:break-word;font-family:ui-monospace,
 .role-badge.site_admin{background:rgba(196,97,30,0.14);color:#C4611E}
 .role-badge.super_admin{background:rgba(31,122,69,0.14);color:#1F7A45}
 
+/* ---- Beta Management (super admin only) ---- */
+.site-status-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.site-stat-card{border-radius:14px;padding:13px 15px;background:rgba(255,255,255,0.55);border:1px solid var(--border)}
+.ssc-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+.ssc-label{font-size:12.5px;font-weight:600;color:var(--teal)}
+.status-toggle{font-size:10px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;padding:4px 10px;
+  border-radius:100px;border:none;cursor:pointer;white-space:nowrap;transition:opacity 150ms}
+.status-toggle:hover{opacity:.82}
+.status-toggle.live{background:rgba(31,122,69,0.14);color:#1F7A45}
+.status-toggle.paused{background:rgba(196,97,30,0.14);color:#C4611E}
+.ssc-stats{font-size:11px;color:var(--muted);margin-bottom:8px}
+.ssc-links{display:flex;gap:12px}
+.ssc-links a{font-size:11px;font-weight:600;color:var(--teal2);text-decoration:none}
+.ssc-links a:hover{text-decoration:underline}
+
+.beta-site-group{margin-bottom:16px}
+.beta-site-group:last-child{margin-bottom:0}
+.beta-site-group-head{display:flex;align-items:center;gap:8px;font-family:var(--serif);font-size:14px;
+  color:var(--teal);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+
+.gen-toolbar{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.gen-row{border-radius:12px;padding:10px 13px;background:rgba(255,255,255,0.5);border:1px solid var(--border);margin-bottom:8px;cursor:pointer}
+.gen-row-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:11.5px}
+.gen-user{font-weight:700;color:var(--teal)}
+.gen-time{color:var(--soft);margin-left:auto}
+.gen-fail{color:var(--flame);font-weight:700}
+.gen-detail{display:none;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
+.gen-row.open .gen-detail{display:block}
+.gen-detail-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--soft);margin:8px 0 4px}
+.gen-detail-label:first-child{margin-top:0}
+.gen-detail-text{font-size:11.5px;line-height:1.6;color:var(--teal2);white-space:pre-wrap;max-height:280px;overflow:auto;
+  background:rgba(255,255,255,0.5);border-radius:10px;padding:10px 12px}
+
 /* ===== MODAL (users) ===== */
 .modal-overlay{position:fixed;inset:0;z-index:200;display:none;align-items:flex-start;justify-content:center;
   background:rgba(15,20,25,0.34);backdrop-filter:blur(4px);padding:60px 20px;overflow:auto}
@@ -338,6 +371,49 @@ pre#preview{white-space:pre-wrap;word-break:break-word;font-family:ui-monospace,
         <div class="meta-line" id="metaLine"></div>
       </div>
     </div>
+  </div>
+</div>
+
+<div class="wrap" id="betaWrap" style="display:none">
+  <div class="hero">
+    <div>
+      <div class="eyebrow"><span class="dot ok"></span> Super admin only — not visible to site admins or editors</div>
+      <h1>Beta management</h1>
+      <p>Live status, users, and every headline-generation attempt across all 8 sites, for observing the beta test. Nobody being tested sees or is told about this section.</p>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <div class="chead"><h2>Site status</h2><div class="rule"></div></div>
+    <div class="site-status-grid" id="siteStatusGrid"><div style="font-size:12.5px;color:var(--muted)">Loading…</div></div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <div class="chead"><h2>Users</h2><div class="rule"></div>
+      <button class="ghost" id="betaAddUserToggle">＋ Add user</button>
+    </div>
+    <div class="new-user-row" id="betaNewUserRow">
+      <input id="betaNuUsername" placeholder="Username" style="flex:1;min-width:110px">
+      <input id="betaNuPassword" placeholder="Password (6+ chars)" style="flex:1;min-width:140px">
+      <select id="betaNuSite"></select>
+      <select id="betaNuRole">
+        <option value="user">Editor</option>
+        <option value="site_admin">Site admin</option>
+        <option value="super_admin">Super admin</option>
+      </select>
+      <button class="btn-flame" id="betaNuCreate" style="padding:7px 16px;font-size:12px">Create</button>
+    </div>
+    <div id="betaUsersError"></div>
+    <div id="betaUsersGrouped"></div>
+  </div>
+
+  <div class="card">
+    <div class="chead"><h2>Generation attempts</h2><div class="rule"></div>
+      <select class="site-select" id="genSiteFilter" style="display:inline-block"></select>
+      <button class="ghost" id="btnGenReload">↻ Reload</button>
+    </div>
+    <div id="genLogError"></div>
+    <div id="genLogList"></div>
   </div>
 </div>
 
@@ -624,6 +700,14 @@ function startAdmin(session){
     renderScenarios();
     renderSiteSwitcher(session);
     boot(false, activeSite);
+    // Super admins manage users from Beta Management now, not the modal —
+    // site admins still use the modal exactly as before, scoped to their
+    // own site by the backend regardless.
+    $('btnManageUsers').style.display = session.isSuperAdmin ? 'none' : '';
+    if (session.isSuperAdmin){
+      $('betaWrap').style.display = '';
+      loadBetaOverview();
+    }
   } catch(e){
     $('errArea').innerHTML = `<div class="errbox"><b>Admin page crashed on startup.</b><br>${esc(e.message)}</div>`;
     setStatus('warn','Startup error — see message above');
@@ -677,7 +761,7 @@ function userRowHtml(u){
         <button class="ghost" data-action="delete">Delete</button>
       </div>
     </div>
-    <div class="user-edit" id="edit-${u.id}">
+    <div class="user-edit">
       <input type="password" placeholder="New password (leave blank to keep)" data-field="password" style="flex:1;min-width:160px">
       <select data-field="site">${siteOptionsHtml(u.service)}</select>
       <select data-field="role">${roleOptionsHtml(u.role || (u.is_admin ? 'site_admin' : 'user'))}</select>
@@ -692,92 +776,265 @@ function renderUsers(){
   $('usersList').innerHTML = USERS.map(userRowHtml).join('') || '<div style="font-size:12.5px;color:var(--muted);padding:10px 2px">No users yet.</div>';
 }
 
+/* Grouped-by-site view for Beta Management — same USERS data and same
+   row markup, just bucketed under a site heading instead of a flat list. */
+function renderUsersGrouped(){
+  const host = $('betaUsersGrouped');
+  if (!host) return;
+  if (!USERS.length){
+    host.innerHTML = '<div style="font-size:12.5px;color:var(--muted);padding:10px 2px">No users yet.</div>';
+    return;
+  }
+  const bySite = {};
+  USERS.forEach(u => { (bySite[u.service] = bySite[u.service] || []).push(u); });
+  host.innerHTML = PromptEngine.SITE_CODES.map(code => {
+    const users = bySite[code] || [];
+    if (!users.length) return '';
+    return `<div class="beta-site-group">
+      <div class="beta-site-group-head">${esc(PromptEngine.siteOf(code).label)} <span class="uchip">${users.length}</span></div>
+      ${users.map(userRowHtml).join('')}
+    </div>`;
+  }).join('') || '<div style="font-size:12.5px;color:var(--muted);padding:10px 2px">No users yet.</div>';
+}
+
 async function loadUsers(){
   $('usersError').innerHTML = '';
+  if ($('betaUsersError')) $('betaUsersError').innerHTML = '';
   const res = await AuthEngine.authedPost({ mode:'adminListUsers' });
   if (!res.ok){
-    $('usersError').innerHTML = `<div class="errbox">${esc(res.error||'Failed to load users')}</div>`;
+    const msg = `<div class="errbox">${esc(res.error||'Failed to load users')}</div>`;
+    $('usersError').innerHTML = msg;
+    if ($('betaUsersError')) $('betaUsersError').innerHTML = msg;
     return;
   }
   USERS = res.users || [];
   renderUsers();
+  renderUsersGrouped();
 }
 
-function populateNewUserForm(){
-  $('nuSite').innerHTML = siteOptionsHtml(CURRENT_SESSION.site);
-  $('nuRole').innerHTML = roleOptionsHtml('user');
+/* Wires an "add user" mini-form. Used twice — once for the modal (site
+   admins use this), once for Beta Management (super admins use this) —
+   each with its own element ids, so they share none of the same inputs. */
+function wireAddUserForm(ids){
+  const toggleBtn = $(ids.toggle), rowEl = $(ids.row), userEl = $(ids.username), passEl = $(ids.password),
+        siteEl = $(ids.site), roleEl = $(ids.role), createBtn = $(ids.create), errEl = $(ids.error);
+  function populate(){
+    siteEl.innerHTML = siteOptionsHtml(CURRENT_SESSION.site);
+    roleEl.innerHTML = roleOptionsHtml('user');
+  }
+  toggleBtn.addEventListener('click', () => { rowEl.classList.toggle('open'); populate(); });
+  createBtn.addEventListener('click', async () => {
+    const username = userEl.value.trim();
+    const password = passEl.value;
+    const site = siteEl.value;
+    const role = roleEl.value;
+    if (!username || password.length < 6){
+      errEl.innerHTML = '<div class="errbox">Username and a password of 6+ characters are required.</div>';
+      return;
+    }
+    createBtn.disabled = true;
+    const res = await AuthEngine.authedPost({ mode:'adminCreateUser', username, password, site, role });
+    createBtn.disabled = false;
+    if (!res.ok){
+      errEl.innerHTML = `<div class="errbox">${esc(res.error||'Failed to create user')}</div>`;
+      return;
+    }
+    userEl.value=''; passEl.value='';
+    populate();
+    rowEl.classList.remove('open');
+    toast('User created');
+    loadUsers();
+  });
+  return { populate };
 }
+
+const modalAddUser = wireAddUserForm({
+  toggle:'addUserToggle', row:'newUserRow', username:'nuUsername', password:'nuPassword',
+  site:'nuSite', role:'nuRole', create:'nuCreate', error:'usersError'
+});
+const betaAddUser = wireAddUserForm({
+  toggle:'betaAddUserToggle', row:'betaNewUserRow', username:'betaNuUsername', password:'betaNuPassword',
+  site:'betaNuSite', role:'betaNuRole', create:'betaNuCreate', error:'betaUsersError'
+});
 
 $('btnManageUsers').addEventListener('click', () => {
   $('usersModal').classList.add('show');
   $('newUserRow').classList.remove('open');
-  populateNewUserForm();
+  modalAddUser.populate();
   loadUsers();
 });
 $('usersClose').addEventListener('click', () => $('usersModal').classList.remove('show'));
 $('usersModal').addEventListener('click', e => { if (e.target === $('usersModal')) $('usersModal').classList.remove('show'); });
 
-$('addUserToggle').addEventListener('click', () => {
-  $('newUserRow').classList.toggle('open');
+/* Click delegation for edit/delete/save, wired identically onto both the
+   modal's flat list and Beta Management's grouped list — DOM lookups are
+   always scoped to the clicked row (row.querySelector), never a global id,
+   so having the same user rendered in two places at once is safe. */
+function wireUserRowActions(containerId, errorId){
+  const container = $(containerId);
+  if (!container) return;
+  container.addEventListener('click', async e => {
+    const row = e.target.closest('.user-row'); if (!row) return;
+    const id = row.dataset.id;
+    const action = e.target.dataset.action;
+    const editPanel = row.querySelector('.user-edit');
+    const errEl = $(errorId);
+
+    if (action === 'edit'){
+      document.querySelectorAll('.user-edit.open').forEach(el => { if (el !== editPanel) el.classList.remove('open'); });
+      editPanel.classList.toggle('open');
+    }
+    if (action === 'cancel'){
+      editPanel.classList.remove('open');
+    }
+    if (action === 'delete'){
+      const u = USERS.find(x => String(x.id) === String(id));
+      if (!confirm(`Delete user "${u ? u.username : id}"? This can't be undone.`)) return;
+      const res = await AuthEngine.authedPost({ mode:'adminDeleteUser', id });
+      if (!res.ok){ errEl.innerHTML = `<div class="errbox">${esc(res.error||'Failed to delete user')}</div>`; return; }
+      toast('User deleted');
+      loadUsers();
+    }
+    if (action === 'save'){
+      const password = editPanel.querySelector('[data-field="password"]').value;
+      const site = editPanel.querySelector('[data-field="site"]').value;
+      const role = editPanel.querySelector('[data-field="role"]').value;
+      const active = editPanel.querySelector('[data-field="active"]').checked;
+      const patch = { mode:'adminUpdateUser', id, site, role, active };
+      if (password) patch.password = password;
+      const res = await AuthEngine.authedPost(patch);
+      if (!res.ok){ errEl.innerHTML = `<div class="errbox">${esc(res.error||'Failed to update user')}</div>`; return; }
+      toast('User updated');
+      editPanel.classList.remove('open');
+      loadUsers();
+    }
+  });
+}
+wireUserRowActions('usersList', 'usersError');
+wireUserRowActions('betaUsersGrouped', 'betaUsersError');
+
+/* ==================== BETA MANAGEMENT (super admin only) ==================== */
+let SITE_STATUS = [];
+let SAVED_HEADLINES_ALL = [];
+let SURVEY_ALL = [];
+let GENERATIONS_ALL = [];
+let genSiteFilterValue = 'all';
+
+async function loadSiteStatus(){
+  const res = await AuthEngine.authedPost({ mode:'adminListSiteStatus' });
+  SITE_STATUS = res.ok ? (res.sites || []) : [];
+  return res;
+}
+async function setSiteStatus(site, status){
+  const res = await AuthEngine.authedPost({ mode:'adminSetSiteStatus', site, status });
+  if (!res.ok){ toast(res.error || 'Failed to update site status'); return; }
+  toast(`${PromptEngine.siteOf(site).label} marked ${status}`);
+  await loadSiteStatus();
+  renderSiteStatusGrid();
+}
+
+/* Counts here come from the same list endpoints the Library/Survey pages
+   already use for a super admin (which return every row, unfiltered) —
+   simplest way to get accurate per-site breakdowns without a dedicated
+   stats endpoint. Fine at beta-test volume; worth a real aggregate query
+   later if the row counts grow large. */
+async function loadStatsForCounts(){
+  const [savedRes, surveyRes] = await Promise.all([
+    AuthEngine.authedPost({ mode:'listSavedHeadlines' }),
+    AuthEngine.authedPost({ mode:'adminListSurveyResponses' })
+  ]);
+  SAVED_HEADLINES_ALL = savedRes.ok ? (savedRes.rows || []) : [];
+  SURVEY_ALL = surveyRes.ok ? (surveyRes.responses || []) : [];
+}
+
+function countBySite(rows, field){
+  const counts = {};
+  rows.forEach(r => { const s = r[field]; if (s) counts[s] = (counts[s]||0) + 1; });
+  return counts;
+}
+
+function renderSiteStatusGrid(){
+  const userCounts = countBySite(USERS, 'service');
+  const savedCounts = countBySite(SAVED_HEADLINES_ALL, 'service');
+  const surveyCounts = countBySite(SURVEY_ALL, 'service');
+  const genCounts = countBySite(GENERATIONS_ALL, 'site');
+
+  $('siteStatusGrid').innerHTML = SITE_STATUS.map(s => `
+    <div class="site-stat-card">
+      <div class="ssc-top">
+        <span class="ssc-label">${esc(s.label)}</span>
+        <button class="status-toggle ${s.status}" data-site="${s.site}" data-next="${s.status==='live'?'paused':'live'}">
+          ${s.status==='live' ? '● Live' : '⏸ Paused'}
+        </button>
+      </div>
+      <div class="ssc-stats">${userCounts[s.site]||0} users · ${savedCounts[s.site]||0} saved · ${surveyCounts[s.site]||0} survey · ${genCounts[s.site]||0} generations</div>
+      <div class="ssc-links">
+        <a href="/desk/search-intelligence/library/" target="_blank">Library ↗</a>
+        <a href="/desk/search-intelligence/survey/" target="_blank">Survey ↗</a>
+      </div>
+    </div>`).join('');
+}
+$('siteStatusGrid').addEventListener('click', e => {
+  const btn = e.target.closest('.status-toggle'); if (!btn) return;
+  setSiteStatus(btn.dataset.site, btn.dataset.next);
 });
-$('nuCreate').addEventListener('click', async () => {
-  const username = $('nuUsername').value.trim();
-  const password = $('nuPassword').value;
-  const site = $('nuSite').value;
-  const role = $('nuRole').value;
-  if (!username || password.length < 6){
-    $('usersError').innerHTML = '<div class="errbox">Username and a password of 6+ characters are required.</div>';
-    return;
-  }
-  $('nuCreate').disabled = true;
-  const res = await AuthEngine.authedPost({ mode:'adminCreateUser', username, password, site, role });
-  $('nuCreate').disabled = false;
+
+function genRowHtml(g){
+  const time = g.created_at ? new Date(g.created_at).toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'}) : '';
+  return `
+  <div class="gen-row" data-id="${g.id}">
+    <div class="gen-row-top">
+      <span class="gen-user">${esc(g.username)}</span>
+      <span class="user-badge site">${esc(PromptEngine.siteOf(g.site).label)}</span>
+      ${g.ok===false ? '<span class="gen-fail">failed</span>' : ''}
+      <span class="gen-time">${esc(time)}</span>
+    </div>
+    <div class="gen-detail">
+      <div class="gen-detail-label">Prompt sent</div>
+      <div class="gen-detail-text" dir="auto">${esc(g.prompt||'')}</div>
+      <div class="gen-detail-label">${g.ok===false ? 'Error' : 'Response received'}</div>
+      <div class="gen-detail-text" dir="auto">${esc(g.ok===false ? (g.error||'') : (g.response||''))}</div>
+    </div>
+  </div>`;
+}
+function renderGenerationLog(){
+  $('genLogList').innerHTML = GENERATIONS_ALL.length
+    ? GENERATIONS_ALL.map(genRowHtml).join('')
+    : '<div style="font-size:12.5px;color:var(--muted);padding:10px 2px">No generation attempts recorded yet.</div>';
+}
+$('genLogList').addEventListener('click', e => {
+  const row = e.target.closest('.gen-row'); if (!row) return;
+  row.classList.toggle('open');
+});
+async function loadGenerations(){
+  $('genLogError').innerHTML = '';
+  const body = { mode:'adminListGenerations', limit: 300 };
+  if (genSiteFilterValue !== 'all') body.site = genSiteFilterValue;
+  const res = await AuthEngine.authedPost(body);
   if (!res.ok){
-    $('usersError').innerHTML = `<div class="errbox">${esc(res.error||'Failed to create user')}</div>`;
+    $('genLogError').innerHTML = `<div class="errbox">${esc(res.error||'Failed to load generation log')}</div>`;
     return;
   }
-  $('nuUsername').value=''; $('nuPassword').value='';
-  populateNewUserForm();
-  $('newUserRow').classList.remove('open');
-  toast('User created');
-  loadUsers();
-});
+  GENERATIONS_ALL = res.generations || [];
+  renderGenerationLog();
+  renderSiteStatusGrid(); // refresh per-site generation counts
+}
+function populateGenSiteFilter(){
+  $('genSiteFilter').innerHTML = ['<option value="all">All sites</option>']
+    .concat(PromptEngine.SITE_CODES.map(c => `<option value="${c}">${esc(PromptEngine.siteOf(c).label)}</option>`))
+    .join('');
+  $('genSiteFilter').value = genSiteFilterValue;
+}
+$('genSiteFilter').addEventListener('change', e => { genSiteFilterValue = e.target.value; loadGenerations(); });
+$('btnGenReload').addEventListener('click', loadGenerations);
 
-$('usersList').addEventListener('click', async e => {
-  const row = e.target.closest('.user-row'); if (!row) return;
-  const id = row.dataset.id;
-  const action = e.target.dataset.action;
-  const editPanel = $('edit-'+id);
-
-  if (action === 'edit'){
-    document.querySelectorAll('.user-edit.open').forEach(el => { if (el.id !== 'edit-'+id) el.classList.remove('open'); });
-    editPanel.classList.toggle('open');
-  }
-  if (action === 'cancel'){
-    editPanel.classList.remove('open');
-  }
-  if (action === 'delete'){
-    const u = USERS.find(x => String(x.id) === String(id));
-    if (!confirm(`Delete user "${u ? u.username : id}"? This can't be undone.`)) return;
-    const res = await AuthEngine.authedPost({ mode:'adminDeleteUser', id });
-    if (!res.ok){ $('usersError').innerHTML = `<div class="errbox">${esc(res.error||'Failed to delete user')}</div>`; return; }
-    toast('User deleted');
-    loadUsers();
-  }
-  if (action === 'save'){
-    const password = editPanel.querySelector('[data-field="password"]').value;
-    const site = editPanel.querySelector('[data-field="site"]').value;
-    const role = editPanel.querySelector('[data-field="role"]').value;
-    const active = editPanel.querySelector('[data-field="active"]').checked;
-    const patch = { mode:'adminUpdateUser', id, site, role, active };
-    if (password) patch.password = password;
-    const res = await AuthEngine.authedPost(patch);
-    if (!res.ok){ $('usersError').innerHTML = `<div class="errbox">${esc(res.error||'Failed to update user')}</div>`; return; }
-    toast('User updated');
-    editPanel.classList.remove('open');
-    loadUsers();
-  }
-});
+async function loadBetaOverview(){
+  populateGenSiteFilter();
+  await loadUsers();
+  await loadSiteStatus();
+  await loadStatsForCounts();
+  await loadGenerations(); // also triggers the final renderSiteStatusGrid() with full counts
+}
 
 /* ==================== TRENDING DATA (CSV upload) ==================== */
 let trParsedRows = [];
