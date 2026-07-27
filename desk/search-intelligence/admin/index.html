@@ -153,11 +153,15 @@ pre#preview{white-space:pre-wrap;word-break:break-word;font-family:ui-monospace,
 .site-stat-card{border-radius:14px;padding:13px 15px;background:rgba(255,255,255,0.55);border:1px solid var(--border)}
 .ssc-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
 .ssc-label{font-size:12.5px;font-weight:600;color:var(--teal)}
-.status-toggle{font-size:10px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;padding:4px 10px;
-  border-radius:100px;border:none;cursor:pointer;white-space:nowrap;transition:opacity 150ms}
-.status-toggle:hover{opacity:.82}
-.status-toggle.live{background:rgba(31,122,69,0.14);color:#1F7A45}
-.status-toggle.paused{background:rgba(196,97,30,0.14);color:#C4611E}
+.health-icon{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:700;flex-shrink:0}
+.health-icon.ok{background:rgba(31,122,69,0.16);color:#1F7A45}
+.health-icon.fail{background:rgba(196,60,40,0.16);color:#C43C28}
+.health-icon.pending{background:rgba(26,57,72,0.10);color:var(--muted)}
+.ssc-health-detail{font-size:10.5px;margin-bottom:6px}
+.ssc-health-detail.fail{color:#C43C28}
+.ssc-health-detail.ok{color:#1F7A45}
+.ssc-health-detail.pending{color:var(--muted)}
 .ssc-stats{font-size:11px;color:var(--muted);margin-bottom:8px}
 .ssc-links{display:flex;gap:12px}
 .ssc-links a{font-size:11px;font-weight:600;color:var(--teal2);text-decoration:none}
@@ -384,7 +388,10 @@ pre#preview{white-space:pre-wrap;word-break:break-word;font-family:ui-monospace,
   </div>
 
   <div class="card" style="margin-bottom:16px">
-    <div class="chead"><h2>Site status</h2><div class="rule"></div></div>
+    <div class="chead"><h2>Site status</h2><div class="rule"></div>
+      <span class="uchip" id="healthLastChecked" style="display:none"></span>
+      <button class="ghost" id="btnCheckHealth">⟳ Run health check</button>
+    </div>
     <div class="site-status-grid" id="siteStatusGrid"><div style="font-size:12.5px;color:var(--muted)">Loading…</div></div>
   </div>
 
@@ -449,28 +456,90 @@ let dragIdx = null;
 let activeSite = 'fa';
 let CURRENT_SESSION = null;
 
-/* ---------- sample scenarios for preview ---------- */
-const SAMPLE_ARTICLE = `دولت ایران روز سه‌شنبه اعلام کرد که مذاکرات هسته‌ای با نمایندگان آمریکا در دور تازه‌ای در وین از سر گرفته خواهد شد. به گفته یک منبع نزدیک به وزارت خارجه، تمرکز اصلی این دور بر تضمین‌های مربوط به راستی‌آزمایی و رفع بخشی از تحریم‌های بانکی خواهد بود.
-
-ناظران می‌گویند فاصله میان دو طرف در روزهای اخیر کاهش یافته، اما هیچ تضمینی برای دستیابی به توافق نهایی در این دور وجود ندارد.`;
-const SAMPLES = {
-  full: { SITE:'radiofarda.com', TARGET_LANGUAGE:'Persian', DAYS:28, HEADLINE:'ایران و آمریکا مذاکرات هسته‌ای را از سر می‌گیرند', ARTICLE:SAMPLE_ARTICLE, ARTICLE_WORDCOUNT:74,
-    QUERY_TABLE:'مذاکرات هسته ای ایران | 4210 | 18400 | 22.9% | 2.1 | /a/nuclear-talks-vienna/33800001.html\nتوافق هسته ای ایران و آمریکا | 1875 | 9200 | 20.4% | 3.4 | /a/nuclear-talks-vienna/33800001.html',
-    QUERY_COUNT:2, OPPORTUNITY:'  · تحریم بانکی ایران — pos 8.7, 12300 impressions, only 640 clicks',
-    CANNIBALIZATION:'  · "مذاکرات هسته ای ایران" → already ranked (pos 2.1) by: /a/nuclear-talks-vienna/33800001.html',
-    NO_QUERY_DATA:'', DISCOVER:'· "گفتگوی مقامات ایران و آمریکا در وین آغاز شد" — 91200 clicks, 640000 impressions, 14.2% CTR',
-    DISCOVER_COUNT:1, DISCOVER_WINDOW_LABEL:'last 3 days' },
-  breaking: { SITE:'radiofarda.com', TARGET_LANGUAGE:'Persian', DAYS:28, HEADLINE:'', ARTICLE:SAMPLE_ARTICLE, ARTICLE_WORDCOUNT:74,
-    QUERY_TABLE:'', QUERY_COUNT:0, OPPORTUNITY:'', CANNIBALIZATION:'', NO_QUERY_DATA:'1', DISCOVER:'', DISCOVER_COUNT:0, DISCOVER_WINDOW_LABEL:'last 3 days' },
-  clean: { SITE:'radiofarda.com', TARGET_LANGUAGE:'Persian', DAYS:28, HEADLINE:'گزارش ویژه از قطعی برق در تهران', ARTICLE:SAMPLE_ARTICLE, ARTICLE_WORDCOUNT:74,
-    QUERY_TABLE:'قطعی برق تهران | 2100 | 9800 | 21.4% | 1.8 | /a/tehran-blackout-report/33810003.html',
-    QUERY_COUNT:1, OPPORTUNITY:'', CANNIBALIZATION:'', NO_QUERY_DATA:'', DISCOVER:'', DISCOVER_COUNT:0, DISCOVER_WINDOW_LABEL:'this week' }
+/* ---------- sample scenarios for preview — one per language ----------
+   Each service admin previews the prompt with a sample article and
+   query/Discover data in THEIR OWN language, since that's what a real
+   article/query would look like for their site. The prompt's own
+   instruction blocks (Role, Task, Constraints) stay English regardless —
+   only this preview content is per-language. Same story (Iran/Vienna
+   nuclear talks) reused across all 8 as a neutral placeholder topic, just
+   translated — these are serviceable translations, not reviewed by a
+   native editor per service, same caveat as elsewhere in this project. */
+const SAMPLE_I18N = {
+  fa: {
+    article: 'دولت ایران روز سه‌شنبه اعلام کرد که مذاکرات هسته‌ای با نمایندگان آمریکا در دور تازه‌ای در وین از سر گرفته خواهد شد. به گفته یک منبع نزدیک به وزارت خارجه، تمرکز اصلی این دور بر تضمین‌های مربوط به راستی‌آزمایی و رفع بخشی از تحریم‌های بانکی خواهد بود.\n\nناظران می‌گویند فاصله میان دو طرف در روزهای اخیر کاهش یافته، اما هیچ تضمینی برای دستیابی به توافق نهایی در این دور وجود ندارد.',
+    headlineFull:'ایران و آمریکا مذاکرات هسته‌ای را از سر می‌گیرند', q1:'مذاکرات هسته ای ایران', q2:'توافق هسته ای ایران و آمریکا',
+    oppQ:'تحریم بانکی ایران', discoverTitle:'گفتگوی مقامات ایران و آمریکا در وین آغاز شد',
+    headlineClean:'گزارش ویژه از قطعی برق در تهران', cleanQ:'قطعی برق تهران', wordcount:74
+  },
+  en: {
+    article: "Iran's government announced Tuesday that nuclear talks with U.S. representatives will resume in a new round in Vienna. According to a source close to the foreign ministry, the round will focus mainly on verification guarantees and lifting some banking sanctions.\n\nObservers say the gap between the two sides has narrowed in recent days, but there is no guarantee of a final agreement in this round.",
+    headlineFull:'Iran and US resume nuclear talks', q1:'iran nuclear talks', q2:'iran us nuclear deal',
+    oppQ:'iran banking sanctions', discoverTitle:'Iran, US officials begin talks in Vienna',
+    headlineClean:'Special report: Tehran power outage', cleanQ:'tehran power outage', wordcount:68
+  },
+  ru: {
+    article: 'Правительство Ирана объявило во вторник, что переговоры по ядерной программе с представителями США возобновятся в новом раунде в Вене. По словам источника, близкого к министерству иностранных дел, основное внимание в этом раунде будет уделено гарантиям проверки и снятию части банковских санкций.\n\nНаблюдатели говорят, что разрыв между двумя сторонами в последние дни сократился, но нет никаких гарантий достижения окончательного соглашения в этом раунде.',
+    headlineFull:'Иран и США возобновляют ядерные переговоры', q1:'ядерные переговоры ирана', q2:'ядерная сделка ирана и сша',
+    oppQ:'банковские санкции ирана', discoverTitle:'Официальные лица Ирана и США начали переговоры в Вене',
+    headlineClean:'Спецрепортаж: отключение электричества в Тегеране', cleanQ:'отключение света в тегеране', wordcount:66
+  },
+  uk: {
+    article: 'Уряд Ірану оголосив у вівторок, що ядерні переговори з представниками США відновляться в новому раунді у Відні. За словами джерела, близького до міністерства закордонних справ, основна увага в цьому раунді буде приділена гарантіям перевірки та скасуванню частини банківських санкцій.\n\nСпостерігачі кажуть, що розрив між двома сторонами останніми днями скоротився, але немає жодних гарантій досягнення остаточної угоди в цьому раунді.',
+    headlineFull:'Іран і США відновлюють ядерні переговори', q1:'ядерні переговори ірану', q2:'ядерна угода ірану і сша',
+    oppQ:'банківські санкції ірану', discoverTitle:'Посадовці Ірану та США розпочали переговори у Відні',
+    headlineClean:'Спецрепортаж: відключення електрики в Тегерані', cleanQ:'відключення світла в тегерані', wordcount:64
+  },
+  hy: {
+    article: 'Իրանի կառավարությունը երեքշաբթի հայտարարեց, որ ԱՄՆ ներկայացուցիչների հետ միջուկային բանակցությունների նոր փուլը կվերսկսվի Վիեննայում։ Արտաքին գործերի նախարարությանը մոտ կանգնած աղբյուրի խոսքով՝ այս փուլի հիմնական ուշադրությունը կդարձվի ստուգման երաշխիքներին և բանկային պատժամիջոցների մի մասի վերացմանը։\n\nԴիտորդներն ասում են, որ վերջին օրերին կողմերի միջև հեռավորությունը կրճատվել է, բայց վերջնական համաձայնության հասնելու երաշխիք չկա։',
+    headlineFull:'Իրանն ու ԱՄՆ-ը վերսկսում են միջուկային բանակցությունները', q1:'իրանի միջուկային բանակցություններ', q2:'իրան ԱՄՆ միջուկային համաձայնագիր',
+    oppQ:'Իրանի բանկային պատժամիջոցներ', discoverTitle:'Իրանի և ԱՄՆ պաշտոնյաների բանակցությունները սկսվել են Վիեննայում',
+    headlineClean:'Հատուկ ռեպորտաժ՝ Թեհրանի էլեկտրամատակարարման խափանում', cleanQ:'Թեհրանի էլեկտրական խափանում', wordcount:60
+  },
+  ka: {
+    article: 'ირანის მთავრობამ სამშაბათს განაცხადა, რომ აშშ-ის წარმომადგენლებთან ბირთვული მოლაპარაკებების ახალი რაუნდი განახლდება ვენაში. საგარეო საქმეთა სამინისტროსთან დაახლოებული წყაროს თქმით, ამ რაუნდის მთავარი ყურადღება მიექცევა შემოწმების გარანტიებსა და საბანკო სანქციების ნაწილის მოხსნას.\n\nდამკვირვებლები ამბობენ, რომ ბოლო დღეებში მხარეებს შორის სხვაობა შემცირდა, მაგრამ საბოლოო შეთანხმების მიღწევის გარანტია არ არსებობს.',
+    headlineFull:'ირანი და აშშ ბირთვულ მოლაპარაკებებს განაახლებენ', q1:'ირანის ბირთვული მოლაპარაკებები', q2:'ირან-აშშ ბირთვული შეთანხმება',
+    oppQ:'ირანის საბანკო სანქციები', discoverTitle:'ირანისა და აშშ-ის ოფიციალური პირების მოლაპარაკებები ვენაში დაიწყო',
+    headlineClean:'სპეციალური რეპორტაჟი: თეირანში დენის გათიშვა', cleanQ:'თეირანის დენის გათიშვა', wordcount:58
+  },
+  ro: {
+    article: 'Guvernul Iranului a anunțat marți că negocierile nucleare cu reprezentanții SUA vor fi reluate într-o nouă rundă la Viena. Potrivit unei surse apropiate Ministerului de Externe, accentul principal al acestei runde va fi pe garanțiile de verificare și ridicarea parțială a sancțiunilor bancare.\n\nObservatorii spun că decalajul dintre cele două părți s-a redus în ultimele zile, dar nu există nicio garanție că se va ajunge la un acord final în această rundă.',
+    headlineFull:'Iranul și SUA reiau negocierile nucleare', q1:'negocieri nucleare iran', q2:'acord nuclear iran sua',
+    oppQ:'sancțiuni bancare iran', discoverTitle:'Oficialii Iranului și SUA încep discuțiile la Viena',
+    headlineClean:'Reportaj special: pană de curent la Teheran', cleanQ:'pană de curent teheran', wordcount:70
+  },
+  sq: {
+    article: 'Qeveria e Iranit njoftoi të martën se bisedimet bërthamore me përfaqësuesit e SHBA-së do të rifillojnë në një raund të ri në Vjenë. Sipas një burimi pranë ministrisë së jashtme, fokusi kryesor i këtij raundi do të jetë te garancitë e verifikimit dhe heqja e pjesshme e sanksioneve bankare.\n\nVëzhguesit thonë se hendeku mes dy palëve është ngushtuar në ditët e fundit, por nuk ka garanci për arritjen e një marrëveshjeje përfundimtare në këtë raund.',
+    headlineFull:'Irani dhe SHBA rifillojnë bisedimet bërthamore', q1:'bisedimet bërthamore irani', q2:'marrëveshja bërthamore irani shba',
+    oppQ:'sanksionet bankare të iranit', discoverTitle:'Zyrtarët e Iranit dhe SHBA-së nisin bisedimet në Vjenë',
+    headlineClean:'Raport special: ndërprerja e energjisë në Teheran', cleanQ:'ndërprerja e energjisë teheran', wordcount:68
+  }
 };
+
+function buildSamplesForLang(code){
+  const L = SAMPLE_I18N[code] || SAMPLE_I18N.en;
+  return {
+    full: { SITE:'', TARGET_LANGUAGE:'', DAYS:28, HEADLINE:L.headlineFull, ARTICLE:L.article, ARTICLE_WORDCOUNT:L.wordcount,
+      QUERY_TABLE:`${L.q1} | 4210 | 18400 | 22.9% | 2.1 | /a/nuclear-talks-vienna/33800001.html\n${L.q2} | 1875 | 9200 | 20.4% | 3.4 | /a/nuclear-talks-vienna/33800001.html`,
+      QUERY_COUNT:2, OPPORTUNITY:`  · ${L.oppQ} — pos 8.7, 12300 impressions, only 640 clicks`,
+      CANNIBALIZATION:`  · "${L.q1}" → already ranked (pos 2.1) by: /a/nuclear-talks-vienna/33800001.html`,
+      NO_QUERY_DATA:'', DISCOVER:`· "${L.discoverTitle}" — 91200 clicks, 640000 impressions, 14.2% CTR`,
+      DISCOVER_COUNT:1, DISCOVER_WINDOW_LABEL:'last 3 days' },
+    breaking: { SITE:'', TARGET_LANGUAGE:'', DAYS:28, HEADLINE:'', ARTICLE:L.article, ARTICLE_WORDCOUNT:L.wordcount,
+      QUERY_TABLE:'', QUERY_COUNT:0, OPPORTUNITY:'', CANNIBALIZATION:'', NO_QUERY_DATA:'1', DISCOVER:'', DISCOVER_COUNT:0, DISCOVER_WINDOW_LABEL:'last 3 days' },
+    clean: { SITE:'', TARGET_LANGUAGE:'', DAYS:28, HEADLINE:L.headlineClean, ARTICLE:L.article, ARTICLE_WORDCOUNT:L.wordcount,
+      QUERY_TABLE:`${L.cleanQ} | 2100 | 9800 | 21.4% | 1.8 | /a/tehran-blackout-report/33810003.html`,
+      QUERY_COUNT:1, OPPORTUNITY:'', CANNIBALIZATION:'', NO_QUERY_DATA:'', DISCOVER:'', DISCOVER_COUNT:0, DISCOVER_WINDOW_LABEL:'this week' }
+  };
+}
+
+let SAMPLES = buildSamplesForLang('fa'); // replaced by refreshSampleVarsForSite() on boot
 const SCENARIOS = [{id:'full',label:'Full data'},{id:'breaking',label:'Breaking — no search history'},{id:'clean',label:'Clean — no cannibalization'}];
 let activeScenario = 'full';
 
 function refreshSampleVarsForSite(site){
   const info = PromptEngine.siteOf(site);
+  SAMPLES = buildSamplesForLang(site);
   Object.values(SAMPLES).forEach(s => { s.SITE = info.hostname || site; s.TARGET_LANGUAGE = info.language; });
 }
 
@@ -692,21 +761,29 @@ $('loginPassword').addEventListener('keydown', e=>{ if (e.key==='Enter') doLogin
 $('logoutBtn').addEventListener('click', ()=>{ AuthEngine.logout(); location.reload(); });
 $('accessDeniedLogout').addEventListener('click', ()=>{ AuthEngine.logout(); hideAccessDenied(); showLoginGate(); });
 
-function startAdmin(session){
+async function startAdmin(session){
   CURRENT_SESSION = session;
   activeSite = session.isSuperAdmin ? (activeSite || session.site) : session.site;
   try {
     renderTokens();
     renderScenarios();
     renderSiteSwitcher(session);
-    boot(false, activeSite);
+    // Awaited, not fire-and-forget: firing this concurrently with
+    // loadBetaOverview() below sent a burst of simultaneous requests to
+    // the same Apps Script backend right after login, which is what was
+    // causing Users/Generation attempts to come back empty on first load
+    // (one step in that concurrent burst would fail, silently aborting
+    // everything queued after it, since nothing had a .catch()). Sequencing
+    // these — and adding per-step error handling in loadBetaOverview()
+    // below — fixes both.
+    await boot(false, activeSite);
     // Super admins manage users from Beta Management now, not the modal —
     // site admins still use the modal exactly as before, scoped to their
     // own site by the backend regardless.
     $('btnManageUsers').style.display = session.isSuperAdmin ? 'none' : '';
     if (session.isSuperAdmin){
       $('betaWrap').style.display = '';
-      loadBetaOverview();
+      await loadBetaOverview();
     }
   } catch(e){
     $('errArea').innerHTML = `<div class="errbox"><b>Admin page crashed on startup.</b><br>${esc(e.message)}</div>`;
@@ -914,23 +991,43 @@ wireUserRowActions('usersList', 'usersError');
 wireUserRowActions('betaUsersGrouped', 'betaUsersError');
 
 /* ==================== BETA MANAGEMENT (super admin only) ==================== */
-let SITE_STATUS = [];
+let SITE_HEALTH = [];
 let SAVED_HEADLINES_ALL = [];
 let SURVEY_ALL = [];
 let GENERATIONS_ALL = [];
 let genSiteFilterValue = 'all';
+let healthChecking = false;
 
-async function loadSiteStatus(){
-  const res = await AuthEngine.authedPost({ mode:'adminListSiteStatus' });
-  SITE_STATUS = res.ok ? (res.sites || []) : [];
-  return res;
+/* Starts every site in a "not yet checked" state so the grid has
+   something to show immediately, before the first real check runs. */
+function resetSiteHealth(){
+  SITE_HEALTH = PromptEngine.SITE_CODES.map(code => {
+    const info = PromptEngine.siteOf(code);
+    return { site: code, label: info.label, hostname: info.hostname, ok: null, queriesOk: null, discoverOk: null, error: null };
+  });
 }
-async function setSiteStatus(site, status){
-  const res = await AuthEngine.authedPost({ mode:'adminSetSiteStatus', site, status });
-  if (!res.ok){ toast(res.error || 'Failed to update site status'); return; }
-  toast(`${PromptEngine.siteOf(site).label} marked ${status}`);
-  await loadSiteStatus();
+
+/* Actually calls the Search Console API for each site (via
+   adminCheckSiteHealth in Code.gs) rather than trusting a manually-set
+   flag — this is a live connectivity test, not a status you set by hand. */
+async function loadSiteHealth(){
+  healthChecking = true;
+  $('btnCheckHealth').disabled = true;
+  $('btnCheckHealth').textContent = '⟳ Checking…';
   renderSiteStatusGrid();
+  try {
+    const res = await AuthEngine.authedPost({ mode:'adminCheckSiteHealth' });
+    if (!res.ok){ toast(res.error || 'Health check failed'); return; }
+    SITE_HEALTH = res.sites || [];
+    const when = res.checkedAt ? new Date(res.checkedAt).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : '';
+    $('healthLastChecked').textContent = 'Checked ' + when;
+    $('healthLastChecked').style.display = '';
+  } finally {
+    healthChecking = false;
+    $('btnCheckHealth').disabled = false;
+    $('btnCheckHealth').textContent = '⟳ Run health check';
+    renderSiteStatusGrid();
+  }
 }
 
 /* Counts here come from the same list endpoints the Library/Survey pages
@@ -953,20 +1050,32 @@ function countBySite(rows, field){
   return counts;
 }
 
+function healthIconHtml(s){
+  if (healthChecking || s.ok === null) return `<span class="health-icon pending">…</span>`;
+  return s.ok ? `<span class="health-icon ok">✓</span>` : `<span class="health-icon fail">✕</span>`;
+}
+function healthDetailHtml(s){
+  if (healthChecking || s.ok === null) return `<div class="ssc-health-detail pending">Not yet checked</div>`;
+  if (s.ok) return `<div class="ssc-health-detail ok">Queries ✓ · Discover ✓</div>`;
+  const parts = [];
+  parts.push(s.queriesOk ? 'Queries ✓' : 'Queries ✕');
+  parts.push(s.discoverOk ? 'Discover ✓' : 'Discover ✕');
+  return `<div class="ssc-health-detail fail" title="${esc(s.error||'')}">${parts.join(' · ')}</div>`;
+}
+
 function renderSiteStatusGrid(){
   const userCounts = countBySite(USERS, 'service');
   const savedCounts = countBySite(SAVED_HEADLINES_ALL, 'service');
   const surveyCounts = countBySite(SURVEY_ALL, 'service');
   const genCounts = countBySite(GENERATIONS_ALL, 'site');
 
-  $('siteStatusGrid').innerHTML = SITE_STATUS.map(s => `
+  $('siteStatusGrid').innerHTML = SITE_HEALTH.map(s => `
     <div class="site-stat-card">
       <div class="ssc-top">
         <span class="ssc-label">${esc(s.label)}</span>
-        <button class="status-toggle ${s.status}" data-site="${s.site}" data-next="${s.status==='live'?'paused':'live'}">
-          ${s.status==='live' ? '● Live' : '⏸ Paused'}
-        </button>
+        ${healthIconHtml(s)}
       </div>
+      ${healthDetailHtml(s)}
       <div class="ssc-stats">${userCounts[s.site]||0} users · ${savedCounts[s.site]||0} saved · ${surveyCounts[s.site]||0} survey · ${genCounts[s.site]||0} generations</div>
       <div class="ssc-links">
         <a href="/desk/search-intelligence/library/" target="_blank">Library ↗</a>
@@ -974,10 +1083,7 @@ function renderSiteStatusGrid(){
       </div>
     </div>`).join('');
 }
-$('siteStatusGrid').addEventListener('click', e => {
-  const btn = e.target.closest('.status-toggle'); if (!btn) return;
-  setSiteStatus(btn.dataset.site, btn.dataset.next);
-});
+$('btnCheckHealth').addEventListener('click', loadSiteHealth);
 
 function genRowHtml(g){
   const time = g.created_at ? new Date(g.created_at).toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'}) : '';
@@ -1030,10 +1136,24 @@ $('btnGenReload').addEventListener('click', loadGenerations);
 
 async function loadBetaOverview(){
   populateGenSiteFilter();
-  await loadUsers();
-  await loadSiteStatus();
-  await loadStatsForCounts();
-  await loadGenerations(); // also triggers the final renderSiteStatusGrid() with full counts
+  resetSiteHealth();
+  renderSiteStatusGrid();
+
+  // Each step wrapped individually — a failure in one (network hiccup,
+  // a slow cold-start on the Apps Script backend, whatever) surfaces in
+  // that section's own error box instead of silently aborting everything
+  // queued after it, which is what made Users/Generation attempts look
+  // like they "only load after some other action" — they weren't broken,
+  // they just never got a turn once something earlier in one flat
+  // unguarded await chain failed.
+  try { await loadUsers(); } catch(e){ $('betaUsersError').innerHTML = `<div class="errbox">${esc(e.message||String(e))}</div>`; }
+  try { await loadStatsForCounts(); } catch(e){ /* feeds site-status counts only; non-fatal */ }
+  try { await loadGenerations(); } catch(e){ $('genLogError').innerHTML = `<div class="errbox">${esc(e.message||String(e))}</div>`; }
+
+  // Health check runs last and isn't awaited here — it's several
+  // sequential live GSC calls and can take a few seconds; Users and
+  // Generation attempts shouldn't sit waiting on it to finish.
+  loadSiteHealth();
 }
 
 /* ==================== TRENDING DATA (CSV upload) ==================== */
