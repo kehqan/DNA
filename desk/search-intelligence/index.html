@@ -848,7 +848,7 @@ en: {
   'intake.wordsSuffix':'{n} words',
   'sync.loadingDiscover':'Loading Discover…', 'sync.waitPaste':'Paste an article to begin',
   'sync.reading':'Reading the article…', 'sync.notEnough':'Not enough text yet to extract terms.',
-  'sync.checking':'Checking <b>{t}</b> — {i} of {n}', 'sync.pullingDiscover':'Pulling Discover winners…',
+  'sync.checking':'Checking <b>{t}</b> — {i} of {n}', 'sync.pullingDiscover':'Pulling Discover winners…', 'sync.extractingQueries':'Finding your best queries…',
   'sync.summary':'<b>{n}</b> queries from {hit} term{hitS} {dry}{bad} · Discover {d} · {time}',
   'sync.dryPart':' · {n} no data', 'sync.badPart':' · <b style="color:var(--flame)">{n} failed</b>',
   'sync.refresh':'↻ Resync', 'sync.checkingSingle':'Checking <b>{t}</b>…',
@@ -936,7 +936,7 @@ function applyStaticI18n(){
 /* ==================== CONFIG ==================== */
 const GSC_URL = 'https://script.google.com/macros/s/AKfycbyijNimY56S9pRdVvCpXv4LmCtirWHTmLpASLzttJ-xRqUjSuXeBU-zvlhyBhD9MzEK/exec';
 const DAYS = 28;
-const MAX_SEEDS = 7;
+const MAX_SEEDS = 8;
 
 /* ==================== State ==================== */
 const S = { article:'', headline:'', seeds:[], keywords:[], articles:[], log:[], window:'day', syncing:false, phase:'idle', lastSyncTime:'', session:null };
@@ -980,6 +980,19 @@ const STOP_EN = new Set(['the','a','an','and','or','of','to','in','on','for','wi
 const STOP_FA = new Set(['و','در','به','از','که','این','را','با','است','برای','آن','یک','تا','هم','یا','بر','شده','شد','می','های','ها','کرد','کند','خود','نیز','اما','هر','دو','باید','بود','بودند','چه','همه','بین','پس','دیگر','گفت','گفته','کرده','شود','داد','دارد','داشت','روز','سال','مورد','کشور','گزارش','اعلام','حال','وی','او','ما','آنها','بیش','کمتر','طور','عنوان','برخی','چند','همچنین','درباره','نسبت','هستند','نیست','بدون','روی','زیر','کنند','کردند','خواهد','میشود','میکند']);
 const isStop = w => STOP_EN.has(w) || STOP_FA.has(w) || w.length < 2 || /^\d+$/.test(w);
 const tokenize = t => String(t||'').split(/[^\p{L}\p{N}\u200c]+/u).map(w=>w.trim()).filter(Boolean);
+
+/* AI-based extraction — fast, cheap call that reads the pasted text and
+   returns the 8 search-style phrases a reader would actually type to find
+   this story, in the article's own language. Falls back to the local
+   heuristic extractSeeds() below if the AI call fails for any reason
+   (network hiccup, API error) so pasting never gets stuck waiting. */
+async function extractSeedsAI(article, headline){
+  const res = await AuthEngine.authedPost({ mode:'extractQueries', article: article.slice(0,4000), headline, site: currentSite() });
+  if (!res.ok || !Array.isArray(res.queries) || !res.queries.length) throw new Error(res.error||'extraction failed');
+  const seen = new Set(); const out = [];
+  res.queries.forEach(q=>{ const v=String(q).trim().toLowerCase(); if(v && !seen.has(v)){ seen.add(v); out.push(v); } });
+  return out.slice(0, MAX_SEEDS);
+}
 
 function extractSeeds(text, headline){
   const words = tokenize(text).map(w=>w.toLowerCase());
@@ -1035,14 +1048,30 @@ async function runPipeline(){
   const mine = ++syncToken;
   S.article = $('articleText').value.trim();
   S.headline = $('articleHl').value.trim();
-  S.seeds = extractSeeds(S.article, S.headline);
-  renderSeeds();
-  if (!S.seeds.length){ S.syncing=false; $('intake').classList.remove('syncing'); S.phase='notEnough'; renderSyncStatus(); return; }
 
+  if (S.article.trim().length < 180){
+    S.seeds = []; renderSeeds();
+    S.syncing=false; $('intake').classList.remove('syncing'); S.phase='notEnough'; renderSyncStatus();
+    return;
+  }
+
+  // Box locks here, before extraction even starts — finding the queries
+  // is now part of "syncing," not a separate instant local step.
   S.syncing = true;
   $('intake').classList.add('syncing');
-  S.keywords = []; S.log = [];
-  renderKw(); renderLog(); updateGenState();
+  S.seeds = []; S.keywords = []; S.log = [];
+  renderSeeds(); renderKw(); renderLog(); updateGenState();
+
+  sbSet(t('sync.extractingQueries'), 4);
+  try {
+    S.seeds = await extractSeedsAI(S.article, S.headline);
+  } catch(e) {
+    S.seeds = extractSeeds(S.article, S.headline); // AI failed — fall back to the local heuristic rather than get stuck
+  }
+  if (mine!==syncToken) return;
+  renderSeeds();
+
+  if (!S.seeds.length){ S.syncing=false; $('intake').classList.remove('syncing'); S.phase='notEnough'; renderSyncStatus(); return; }
 
   for (let i=0;i<S.seeds.length;i++){
     if (mine!==syncToken) return;
