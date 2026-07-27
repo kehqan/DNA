@@ -130,23 +130,7 @@ body{font-family:var(--sans);color:var(--lt-2);min-height:100vh;-webkit-font-smo
   animation:pulse 1.3s ease-in-out infinite}
 @keyframes pulse{0%,100%{opacity:.5}50%{opacity:.9}}
 
-/* ===== LOGIN GATE ===== */
 .hide{display:none!important}
-.login-gate{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;
-  background:linear-gradient(160deg,#0F1622 0%,#0B1016 45%,#0C0E14 75%,#120E18 100%);padding:20px}
-.login-card{width:100%;max-width:380px;border-radius:26px;padding:36px 32px;
-  background:var(--glass);backdrop-filter:var(--glass-filter);-webkit-backdrop-filter:var(--glass-filter);
-  border:1px solid var(--border);box-shadow:var(--ambient-lg),var(--rim);text-align:center}
-.login-wordmark{font-family:var(--serif);font-size:20px;color:var(--lt-1);text-shadow:var(--ts-lg);margin-bottom:28px}
-.login-title{font-family:var(--serif);font-size:23px;color:var(--lt-1);text-shadow:var(--ts-lg);margin-bottom:6px}
-.login-sub{font-size:12px;color:var(--lt-3);text-shadow:var(--ts);margin-bottom:24px}
-.login-field{margin-bottom:14px;text-align:left}
-.login-field label{display:block;font-size:11px;color:var(--lt-3);text-shadow:var(--ts);margin-bottom:6px;padding-left:4px}
-.login-field input{width:100%;font-family:var(--sans);font-size:13.5px;color:var(--lt-1);
-  padding:11px 15px;border-radius:14px;border:none;outline:none;
-  background:var(--chip);box-shadow:var(--rim-sm);transition:background 130ms ease-out,box-shadow 130ms ease-out}
-.login-field input::placeholder{color:rgba(255,255,255,0.4)}
-.login-field input:focus{background:var(--chip-hover);box-shadow:var(--rim-sm),inset 0 0 0 1.5px rgba(255,150,80,0.45)}
 .btn-flame{font-family:var(--sans);font-size:13px;font-weight:600;color:#fff;padding:9px 21px;border-radius:100px;border:none;cursor:pointer;
   background:linear-gradient(180deg,#FF7A38 0%,var(--flame) 60%,#E24E00 100%);
   box-shadow:0 1px 2px rgba(120,36,0,0.35),0 8px 20px rgba(255,84,0,0.26),
@@ -156,10 +140,6 @@ body{font-family:var(--sans);color:var(--lt-2);min-height:100vh;-webkit-font-smo
   box-shadow:0 1px 2px rgba(120,36,0,0.38),0 10px 24px rgba(255,84,0,0.30),
     inset 0 1px 0 rgba(255,255,255,0.34),inset 0 -1px 1px rgba(120,34,0,0.32)}
 .btn-flame:disabled{opacity:.45;cursor:default;transform:none;box-shadow:none}
-.login-submit{width:100%;margin-top:10px}
-.login-error{font-size:11.5px;color:#FF8A5C;background:rgba(255,84,0,0.10);border:1px solid rgba(255,84,0,0.22);
-  border-radius:12px;padding:9px 12px;margin-bottom:12px;display:none;text-align:left}
-.login-error.show{display:block}
 
 /* ===== ADMIN MANAGE MODAL ===== */
 /* Same pattern as the Search Intelligence sheets: stays display:flex at
@@ -226,24 +206,6 @@ body{font-family:var(--sans);color:var(--lt-2);min-height:100vh;-webkit-font-smo
         </button>
       </div>
     </div>
-  </div>
-</div>
-
-<div class="login-gate" id="loginGate">
-  <div class="login-card">
-    <div class="login-wordmark">Desk<em>.</em></div>
-    <div class="login-title" data-i18n="login.title">Sign in</div>
-    <div class="login-sub" data-i18n="login.sub">Newsroom AI tools</div>
-    <div class="login-error" id="loginError"></div>
-    <div class="login-field">
-      <label data-i18n="login.username">Username</label>
-      <input id="loginUsername" autocomplete="username" data-i18n-ph="login.usernamePh" placeholder="e.g. user1">
-    </div>
-    <div class="login-field">
-      <label data-i18n="login.password">Password</label>
-      <input id="loginPassword" type="password" autocomplete="current-password" data-i18n-ph="login.passwordPh" placeholder="••••••••">
-    </div>
-    <button class="btn-flame login-submit" id="loginSubmit" data-i18n="login.submit">Sign in →</button>
   </div>
 </div>
 
@@ -369,38 +331,14 @@ document.addEventListener('click', e=>{ if (!$('profileWrap').contains(e.target)
 document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ $('profileWrap').classList.remove('open'); $('manageModal').classList.remove('show'); } });
 $('logoutBtn').addEventListener('click', ()=>{ AuthEngine.logout(); location.reload(); });
 
-/* ==================== auth gate ==================== */
-function showLoginGate(){ $('loginGate').classList.remove('hide'); }
-function hideLoginGate(){ $('loginGate').classList.add('hide'); }
-function showLoginError(msg){ const el=$('loginError'); el.textContent=msg; el.classList.add('show'); }
-function clearLoginError(){ $('loginError').classList.remove('show'); }
-/* Only ever redirect to a same-site relative path — never trust ?next=
-   as a full URL, or this becomes an open redirect. */
-function safeNextPath(){
-  const next = new URLSearchParams(window.location.search).get('next');
-  if (next && next.startsWith('/') && !next.startsWith('//')) return next;
-  return null;
+/* ==================== auth gate ====================
+   Signing in is now a separate page (/desk/login/) — this page never
+   renders a login form itself, so there's nothing for it to overlap with
+   the shelf. If there's no session (or one expires mid-use), redirect
+   there with ?next= pointing back to wherever the person was. */
+function redirectToLogin(){
+  window.location.href = '/desk/login/?next=' + encodeURIComponent(location.pathname + location.search);
 }
-
-async function doLogin(){
-  const u = $('loginUsername').value.trim(), p = $('loginPassword').value;
-  clearLoginError();
-  if (!u || !p) return showLoginError(t('login.fillBoth'));
-  $('loginSubmit').disabled = true; $('loginSubmit').textContent = t('login.submitting');
-  try{
-    const res = await AuthEngine.login(u, p);
-    if (!res.ok) return showLoginError(res.error || t('login.error'));
-    $('loginPassword').value = '';
-    const next = safeNextPath();
-    if (next){ window.location.href = next; return; }
-    hideLoginGate();
-    startApp(res.session);
-  }catch(e){ showLoginError(String((e&&e.message)||e)); }
-  finally{ $('loginSubmit').disabled = false; $('loginSubmit').textContent = t('login.submit'); }
-}
-$('loginSubmit').addEventListener('click', doLogin);
-$('loginUsername').addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
-$('loginPassword').addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
 
 /* ==================== tool grid ==================== */
 let TOOLS = [], SESSION = null;
@@ -426,7 +364,7 @@ async function loadTools(){
   try{
     const data = await AuthEngine.authedPost({ mode:'listTools' });
     if (!data.ok){
-      if (data.authError) return showLoginGate();
+      if (data.authError) return redirectToLogin();
       throw new Error(data.error || 'Unknown error');
     }
     TOOLS = data.tools || [];
@@ -554,18 +492,13 @@ async function startApp(session){
 
 (function initAuthGate(){
   if (typeof AuthEngine === 'undefined'){
-    showLoginGate();
-    showLoginError('auth-engine.js did not load — check it exists at /desk/search-intelligence/auth-engine.js');
+    console.error('auth-engine.js did not load — check it exists at /desk/search-intelligence/auth-engine.js');
+    redirectToLogin();
     return;
   }
   const existing = AuthEngine.getSession();
-  if (existing){
-    const next = safeNextPath();
-    if (next){ window.location.href = next; return; }
-    hideLoginGate(); startApp(existing);
-  } else {
-    showLoginGate();
-  }
+  if (existing){ startApp(existing); }
+  else { redirectToLogin(); }
 })();
 </script>
 </body>
