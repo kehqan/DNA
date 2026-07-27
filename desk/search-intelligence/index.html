@@ -1820,12 +1820,13 @@ $('cmpRun').addEventListener('click', async ()=>{
 });
 
 /* ==================== AUTH / LOGIN GATE ====================
-   Signing in now happens once, centrally, at /desk — not per tool. If
-   there's no valid session (or one expires mid-use), send the person
-   there instead of rendering a login form in place. ?next= brings them
-   straight back to whatever they were doing once they're signed in. */
+   Signing in happens on its own page (/desk/login/) — not per tool, and
+   not mixed into the shelf either (that combination is what caused the
+   shelf/login overlap bug; a dedicated page has nothing else in its DOM
+   to bleed through). ?next= brings them straight back to whatever tool
+   they were trying to open once they're signed in. */
 function showLoginGate(){
-  window.location.href = '/desk/?next=' + encodeURIComponent(location.pathname + location.search);
+  window.location.href = '/desk/login/?next=' + encodeURIComponent(location.pathname + location.search);
 }
 function hideLoginGate(){
   $('loginGate').classList.add('hide');
