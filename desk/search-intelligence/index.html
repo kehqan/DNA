@@ -522,6 +522,36 @@ select.mini-in:hover{background-color:var(--chip-hover)}
   .sheet-in{max-height:calc(100vh - 60px)}
   .sheet{padding:24px 12px}
 }
+.coach-highlight{position:absolute;border-radius:16px;pointer-events:none;z-index:900;
+  box-shadow:0 0 0 3px rgba(255,84,0,0.55),0 0 0 8px rgba(255,84,0,0.16);
+  transition:top 320ms var(--eo),left 320ms var(--eo),width 320ms var(--eo),height 320ms var(--eo);display:none}
+.coach-card{position:absolute;z-index:901;width:250px;border-radius:18px;padding:16px 17px;
+  background:var(--glass);backdrop-filter:var(--glass-filter);-webkit-backdrop-filter:var(--glass-filter);
+  box-shadow:var(--ambient-hi),var(--rim);opacity:0;transform:scale(.94);
+  transition:opacity 220ms var(--eo),transform 220ms var(--eo),top 320ms var(--eo),left 320ms var(--eo)}
+.coach-card.show{opacity:1;transform:scale(1)}
+.coach-arrow{position:absolute;width:14px;height:14px;background:inherit}
+.coach-card.arrow-top .coach-arrow{top:-6px;left:28px;transform:rotate(45deg)}
+.coach-card.arrow-left .coach-arrow{left:-6px;top:22px;transform:rotate(45deg)}
+.coach-step{font-size:9.5px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--lt-3);text-shadow:var(--ts);margin-bottom:6px}
+.coach-title{font-family:var(--serif);font-size:15.5px;color:var(--lt-1);text-shadow:var(--ts-lg);margin-bottom:5px}
+.coach-body{font-size:11.5px;line-height:1.5;color:var(--lt-3);text-shadow:var(--ts);margin-bottom:14px}
+.coach-foot{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.coach-dots{display:flex;gap:5px}
+.coach-dot{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.22);transition:all 220ms var(--eo)}
+.coach-dot.on{width:13px;background:var(--flame)}
+.coach-skip{font-family:var(--sans);font-size:11px;font-weight:600;color:var(--lt-3);background:none;border:none;cursor:pointer;padding:6px 8px}
+.coach-skip:hover{color:var(--lt-1)}
+.coach-next{font-family:var(--sans);font-size:11.5px;font-weight:700;color:#fff;padding:7px 14px;border-radius:100px;border:none;cursor:pointer;
+  background:linear-gradient(180deg,#FF7A38 0%,var(--flame) 60%,#E24E00 100%);box-shadow:0 4px 12px rgba(255,84,0,.30),inset 0 1px 0 rgba(255,255,255,.30)}
+.sample-sheet-mini{position:fixed;z-index:850;top:50%;left:50%;transform:translate(-50%,-50%) scale(.94);width:100%;max-width:440px;
+  border-radius:24px;padding:18px 20px;background:var(--glass);backdrop-filter:var(--glass-filter);-webkit-backdrop-filter:var(--glass-filter);
+  box-shadow:var(--ambient-hi),var(--rim);opacity:0;pointer-events:none;transition:opacity 240ms var(--eo),transform 240ms var(--eo)}
+.sample-sheet-mini.show{opacity:1;transform:translate(-50%,-50%) scale(1);pointer-events:auto}
+.sample-item-mini{border-radius:14px;padding:12px 13px;background:var(--chip);box-shadow:var(--rim-sm);margin-bottom:8px}
+.sample-item-mini:last-child{margin-bottom:0}
+.sample-tag-mini{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:2px 8px;border-radius:100px;background:rgba(90,160,255,.2);color:#8FC1FF;margin-bottom:6px}
+.sample-headline-mini{font-family:var(--serif);font-size:13.5px;color:var(--lt-1);text-shadow:var(--ts);line-height:1.4}
 </style>
 </head>
 <body>
@@ -2037,6 +2067,81 @@ async function startApp(session){
   } else {
     showLoginGate();
   }
+})();
+</script>
+
+<div class="coach-highlight" id="coachHighlight"></div>
+<div class="coach-card" id="coachCard">
+  <span class="coach-arrow"></span>
+  <div class="coach-step" id="coachStep">Step 1 of 4</div>
+  <div class="coach-title" id="coachTitle"></div>
+  <div class="coach-body" id="coachBody"></div>
+  <div class="coach-foot">
+    <div class="coach-dots" id="coachDots"></div>
+    <div><button class="coach-skip" id="coachSkip">Skip</button><button class="coach-next" id="coachNext">Next →</button></div>
+  </div>
+</div>
+<div class="sample-sheet-mini" id="sampleSheetMini">
+  <div class="sample-item-mini" id="coachAnchorResult">
+    <span class="sample-tag-mini">Search-led</span>
+    <div class="sample-headline-mini">Iran nuclear talks resume in Vienna, again</div>
+  </div>
+  <div class="sample-item-mini">
+    <span class="sample-tag-mini" style="background:rgba(255,166,77,.2);color:#FFC98F">Discover-led</span>
+    <div class="sample-headline-mini">What's actually on the table in Vienna this time</div>
+  </div>
+</div>
+<script>
+(function(){
+  var CS=[
+    {a:'intake',t:'Paste your article',b:'Drop the article text in here. That is the only thing you do by hand.',ar:'bottom',pl:'below'},
+    {a:'syncbar',t:'Let it sync',b:'Queries and Discover data pull in automatically — usually just a few seconds.',ar:'top',pl:'above'},
+    {a:'genBtn2',t:'Suggest headlines',b:'Once the sync finishes, tap here. Five AI options come from what you pasted.',ar:'top',pl:'above'},
+    {a:'coachAnchorResult',t:'Pick your favorite',b:'Save or copy the one that fits best. That is the whole workflow.',ar:'left',pl:'right'}
+  ];
+  var step=0, $=function(id){return document.getElementById(id)};
+  function pos(el,place){
+    var r=el.getBoundingClientRect();
+    if(place==='below') return {top:r.bottom+scrollY+14,left:r.left+scrollX+4};
+    if(place==='above') return {top:r.top+scrollY-14,left:r.left+scrollX+4,above:true};
+    if(place==='right') return {top:r.top+scrollY-4,left:r.right+scrollX+14};
+  }
+  function render(){
+    var s=CS[step];
+    if(s.a==='coachAnchorResult'){
+      $('sampleSheetMini').classList.add('show');
+      setTimeout(place,200);
+    } else place();
+    function place(){
+      var anchor=$(s.a); if(!anchor) return;
+      var r=anchor.getBoundingClientRect(), hl=$('coachHighlight'), card=$('coachCard');
+      hl.style.display='block';
+      hl.style.top=(r.top+scrollY-4)+'px'; hl.style.left=(r.left+scrollX-4)+'px';
+      hl.style.width=(r.width+8)+'px'; hl.style.height=(r.height+8)+'px';
+      var p=pos(anchor,s.pl);
+      card.classList.remove('arrow-top','arrow-left'); card.classList.add('arrow-'+s.ar);
+      card.style.left=p.left+'px';
+      if(p.above){ card.style.top=(p.top-10)+'px'; requestAnimationFrame(function(){card.style.top=(p.top-card.offsetHeight)+'px'}); }
+      else card.style.top=p.top+'px';
+      $('coachStep').textContent='Step '+(step+1)+' of '+CS.length;
+      $('coachTitle').textContent=s.t; $('coachBody').textContent=s.b;
+      $('coachDots').innerHTML=CS.map(function(_,i){return '<span class="coach-dot'+(i===step?' on':'')+'"></span>'}).join('');
+      $('coachNext').textContent = step===CS.length-1?'Got it':'Next →';
+      $('coachSkip').style.visibility = step===CS.length-1?'hidden':'visible';
+      card.classList.add('show');
+      if(s.a!=='coachAnchorResult') anchor.scrollIntoView({block:'center',behavior:'smooth'});
+    }
+  }
+  function start(){ step=0; $('sampleSheetMini').classList.remove('show'); $('coachCard').classList.remove('show'); requestAnimationFrame(render); }
+  function end(){ $('coachCard').classList.remove('show'); $('coachHighlight').style.display='none'; $('sampleSheetMini').classList.remove('show'); try{localStorage.setItem('desk.tutorial.seen','1')}catch(e){} }
+  $('coachNext').addEventListener('click',function(){ if(step===CS.length-1){end();return} step++; render(); });
+  $('coachSkip').addEventListener('click',end);
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape') end(); });
+  window.addEventListener('resize',function(){ if($('coachCard').classList.contains('show')) render(); });
+  // Auto-run once per browser, after the normal app boot has had a moment to render.
+  try{
+    if(!localStorage.getItem('desk.tutorial.seen')){ setTimeout(start, 900); }
+  }catch(e){}
 })();
 </script>
 </body>
