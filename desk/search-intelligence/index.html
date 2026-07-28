@@ -700,6 +700,11 @@ select.mini-in:hover{background-color:var(--chip-hover)}
     </div>
 
     <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="card" id="trendNowCard" style="animation-delay:160ms;display:none">
+        <div class="chead"><h2>Trending now</h2><div class="rule"></div><div class="uchip" id="trendNowUpdated" style="background:rgba(255,255,255,0.10);color:var(--lt-3)"></div></div>
+        <div class="chips" id="trendNowChips"></div>
+        <div style="font-size:10.5px;color:var(--soft);margin-top:10px;line-height:1.5">Refreshed every 48h — flagged automatically in headline suggestions when it overlaps this article.</div>
+      </div>
       <div class="card" style="animation-delay:175ms">
         <div class="chead"><h2 data-i18n="d.header">Discover winners</h2><div class="rule"></div><div class="uchip" id="artCount">…</div></div>
         <div class="chips" style="margin-bottom:12px">
@@ -939,7 +944,7 @@ const DAYS = 28;
 const MAX_SEEDS = 8;
 
 /* ==================== State ==================== */
-const S = { article:'', headline:'', seeds:[], keywords:[], articles:[], log:[], window:'month', syncing:false, phase:'idle', lastSyncTime:'', session:null };
+const S = { article:'', headline:'', seeds:[], keywords:[], articles:[], log:[], window:'month', syncing:false, phase:'idle', lastSyncTime:'', session:null, trendingNowSummary:'', trendingNowTerms:[], trendingNowFetchedAt:null };
 let TPL_BLOCKS = [];   // loaded from PromptEngine at boot
 
 /* Only meaningfully different from S.session.site for a super admin who has
@@ -1040,6 +1045,50 @@ async function fetchDiscover(win){
     title:r.title||'', url:r.url, clicks:+r.clicks||0,
     impressions:+r.impressions||0, ctr:+r.ctr||0, source:'Discover'
   }));
+}
+
+/* ==================== Trending Now — static 48h summary (read-only) ====================
+   No live SerpApi call ever happens here — this reads whatever the Apps
+   Script cron job last saved (refreshed every 48h). Failing quietly is the
+   right behavior: a missing/stale summary just means the card stays empty
+   and TRENDING_NOW resolves to '' in the prompt — never worth blocking the
+   rest of the page over. */
+async function loadTrendingNowSummary(){
+  try{
+    const res = await AuthEngine.authedPost({ mode:'getTrendingNowSummary', site: currentSite() });
+    if (!res.ok || !res.found){
+      S.trendingNowSummary = ''; S.trendingNowTerms = []; S.trendingNowFetchedAt = null;
+    } else {
+      S.trendingNowSummary = res.summary || '';
+      S.trendingNowTerms = res.terms || [];
+      S.trendingNowFetchedAt = res.fetchedAt || null;
+    }
+  }catch(e){
+    console.error('Trending Now summary failed:', e);
+    S.trendingNowSummary = ''; S.trendingNowTerms = []; S.trendingNowFetchedAt = null;
+  }
+  renderTrendingNowCard();
+}
+function trendRelTime(iso){
+  if (!iso) return '';
+  const hrs = Math.round((Date.now() - new Date(iso).getTime()) / 3600000);
+  if (hrs < 1) return 'under an hour ago';
+  if (hrs < 48) return `${hrs}h ago`;
+  return `${Math.round(hrs/24)}d ago`;
+}
+function renderTrendingNowCard(){
+  const card = $('trendNowCard');
+  if (!card) return;
+  if (!S.trendingNowTerms.length){
+    card.style.display = 'none';
+    return;
+  }
+  card.style.display = '';
+  $('trendNowUpdated').textContent = S.trendingNowFetchedAt ? `Updated ${trendRelTime(S.trendingNowFetchedAt)}` : '';
+  $('trendNowChips').innerHTML = S.trendingNowTerms.slice(0, 10).map(t => {
+    const badge = t.searchVolume != null ? esc(String(t.searchVolume)) : '';
+    return `<span class="fc" style="cursor:default" title="${esc(t.term)}${badge ? ' — '+badge+' searches' : ''}">${esc(t.term)}</span>`;
+  }).join('');
 }
 
 /* ==================== Pipeline ==================== */
@@ -1225,7 +1274,16 @@ function buildVars(discoverCount){
     OPPORTUNITY:opportunity, CANNIBALIZATION:cannibalization,
     NO_QUERY_DATA:kw.length?'':'1',
     DISCOVER:discover, DISCOVER_COUNT:arts.length,
-    DISCOVER_WINDOW_LABEL:S.window==='quarter'?'last 3 months':'last 30 days'
+    DISCOVER_WINDOW_LABEL:S.window==='quarter'?'last 3 months':'last 30 days',
+    /* Static — refreshed every 48h by the Apps Script cron job, never
+       fetched live from here. A short digest of what's currently trending
+       for this site's region, so an admin's prompt block can ask the model
+       to flag any overlap between this article's queries/Discover terms
+       and what's trending right now. Empty string if no snapshot exists
+       yet (new site, or the 48h job hasn't run) — blocks referencing it
+       should degrade gracefully, not assume it's always populated. */
+    TRENDING_NOW: S.trendingNowSummary || '',
+    NO_TRENDING_NOW: S.trendingNowSummary ? '' : '1'
   };
 }
 
@@ -2050,6 +2108,7 @@ async function switchViewSite(code){
     TPL_BLOCKS = PromptEngine.DEFAULT_BLOCKS;
     toast(t('misc.promptTplFailed'));
   }
+  await loadTrendingNowSummary();
 
   if (S.article && S.article.length > 180){
     runPipeline();
@@ -2091,6 +2150,7 @@ async function startApp(session){
     TPL_BLOCKS = (typeof PromptEngine !== 'undefined') ? PromptEngine.DEFAULT_BLOCKS : [];
     toast(t('misc.promptTplFailed'));
   }
+  await loadTrendingNowSummary();
 
   try{
     S.articles = await fetchDiscover('month');
