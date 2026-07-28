@@ -1,140 +1,285 @@
-/* ============================================================
-   Desk — Prompt Engine v3
-   Template = an ordered array of BLOCKS. Each block is a card
-   in the admin UI. One template PER SERVICE ('fa' | 'en').
-
-   v2 → v3 change: blocks used to be fetched/saved directly against
-   Supabase using the public anon key (visible in this file, in the
-   browser). That let anyone who opened dev tools rewrite the live
-   prompt. v3 routes all reads/writes through the Apps Script backend,
-   which requires a valid login session and uses a service_role key
-   that never leaves the server.
-   ============================================================ */
+/**
+ * PromptEngine — the shared brain behind the headline-prompt system.
+ * Loaded by both Search Intelligence (index.html) and Prompt Admin
+ * (admin.html). Neither file talks to Supabase or builds prompt text on
+ * its own — everything about *what tokens exist*, *what the default
+ * template says*, and *how a template turns into a prompt string* lives
+ * here, so the two pages can never drift out of sync with each other.
+ *
+ * PUBLIC API (used by index.html and admin.html — keep this contract
+ * stable, both pages call these by name):
+ *   PromptEngine.SITE_CODES                     → ['fa','en','ru','uk','hy','ka','ro','sq']
+ *   PromptEngine.siteOf(code)                    → { code, label, hostname, language }
+ *   PromptEngine.TOKENS                          → [{ key, group, cond? }, ...]
+ *   PromptEngine.DEFAULT_BLOCKS                  → [{ id, title, showIf, enabled, body }, ...]
+ *   PromptEngine.uid()                           → short unique block id
+ *   PromptEngine.assembleBlocks(blocks, vars)     → final prompt string
+ *   PromptEngine.getBlocks(site)                  → async { blocks, source }
+ *   PromptEngine.saveRemote(site, blocks)          → async, throws on failure
+ *   PromptEngine.saveLocal(site, blocks)           → sync, browser-only cache
+ *
+ * This file does its own network calls through AuthEngine.authedPost —
+ * it never touches fetch()/UrlFetchApp directly, so auth-engine.js must
+ * be loaded first (both pages already load it first).
+ */
 (function (global) {
-  const LOCAL_KEY_PREFIX = 'desk.si.promptBlocks.v4.';
+  'use strict';
 
-  /* One entry per RFE/RL property. Site code doubles as the site's ISO-ish
-     language code, and matches what the Apps Script backend uses to select
-     the right GSC property server-side. This list only drives display (the
-     admin dropdown, badges) — the backend is the source of truth for access. */
-  const SITES = {
-    fa: { code:'fa', hostname:'radiofarda.com', label:'Persian — Radio Farda',        language:'Persian' },
-    en: { code:'en', hostname:'rferl.org', label:'English — RFE/RL',             language:'English' },
-    ru: { code:'ru', hostname:'svoboda.org', label:'Russian — Radio Svoboda',      language:'Russian' },
-    uk: { code:'uk', hostname:'radiosvoboda.org', label:'Ukrainian — Radio Svoboda',    language:'Ukrainian' },
-    hy: { code:'hy', hostname:'azatutyun.am', label:'Armenian — Azatutyun',         language:'Armenian' },
-    ka: { code:'ka', hostname:'radiotavisupleba.ge', label:'Georgian — Radio Tavisupleba', language:'Georgian' },
-    ro: { code:'ro', hostname:'moldova.europalibera.org', label:'Romanian — Moldova',           language:'Romanian' },
-    sq: { code:'sq', hostname:'evropaelire.org', label:'Albanian — Kosovo',            language:'Albanian' }
+  /* =========================== site registry ===========================
+     Mirrors SITES in Code.gs exactly — same 8 codes, same labels, same
+     hostnames, same language names. If a site is ever added/renamed on
+     the backend, update it here too or the two will silently disagree on
+     what a site is called in the UI (the backend's copy is what actually
+     enforces access; this one only drives display). */
+  var SITES = {
+    fa: { code: 'fa', label: 'Persian — Radio Farda',        hostname: 'radiofarda.com',           language: 'Persian' },
+    en: { code: 'en', label: 'English — RFE/RL',             hostname: 'rferl.org',                language: 'English' },
+    ru: { code: 'ru', label: 'Russian — Radio Svoboda',      hostname: 'svoboda.org',              language: 'Russian' },
+    uk: { code: 'uk', label: 'Ukrainian — Radio Svoboda',    hostname: 'radiosvoboda.org',         language: 'Ukrainian' },
+    hy: { code: 'hy', label: 'Armenian — Azatutyun',         hostname: 'azatutyun.am',             language: 'Armenian' },
+    ka: { code: 'ka', label: 'Georgian — Radio Tavisupleba', hostname: 'radiotavisupleba.ge',      language: 'Georgian' },
+    ro: { code: 'ro', label: 'Romanian — Moldova',           hostname: 'moldova.europalibera.org', language: 'Romanian' },
+    sq: { code: 'sq', label: 'Albanian — Kosovo',            hostname: 'evropaelire.org',          language: 'Albanian' }
   };
-  const SITE_CODES = Object.keys(SITES);
-  function siteOf(code){ return SITES[code] || SITES.fa; }
+  var SITE_CODES = Object.keys(SITES);
+  function siteOf(code) { return SITES[code] || SITES.fa; }
 
-  /* Tokens available for insertion. `cond:true` = meaningful as a block's "show only if". */
-  const TOKENS = [
-    { key:'SITE',                 label:'Site name',               group:'Meta',     cond:false },
-    { key:'TARGET_LANGUAGE',      label:'Target output language',  group:'Meta',     cond:false },
-    { key:'DAYS',                 label:'Lookback window (days)',  group:'Meta',     cond:false },
-    { key:'HEADLINE',             label:'Current headline',        group:'Article',  cond:true  },
-    { key:'ARTICLE',              label:'Article body',            group:'Article',  cond:false },
-    { key:'ARTICLE_WORDCOUNT',    label:'Article word count',      group:'Article',  cond:false },
-    { key:'QUERY_TABLE',          label:'Query table rows',        group:'Search',   cond:true  },
-    { key:'QUERY_COUNT',          label:'Query count',             group:'Search',   cond:false },
-    { key:'OPPORTUNITY',          label:'Opportunity bullets',     group:'Search',   cond:true  },
-    { key:'CANNIBALIZATION',      label:'Cannibalization bullets', group:'Search',   cond:true  },
-    { key:'NO_QUERY_DATA',        label:'"No data" flag',          group:'Search',   cond:true  },
-    { key:'DISCOVER',             label:'Discover bullets',        group:'Discover', cond:true  },
-    { key:'DISCOVER_COUNT',       label:'Discover count',          group:'Discover', cond:false },
-    { key:'DISCOVER_WINDOW_LABEL',label:'Discover window label',   group:'Discover', cond:false }
+  /* =========================== tokens ===========================
+     `cond: true` marks a token as usable in a card's "show only if"
+     dropdown, in addition to being insertable as {{TOKEN}} text. A cond
+     token is just any variable checked for truthiness — a non-empty
+     string, a non-zero number, or the literal '1' flag some booleans use
+     (NO_QUERY_DATA / NO_TRENDING_NOW) — so both "show this card only when
+     there IS data" (showIf: 'QUERY_TABLE') and "show this card only when
+     there's NO data" (showIf: 'NO_QUERY_DATA') are expressible without
+     any extra logic beyond a truthiness check. */
+  var TOKENS = [
+    { key: 'SITE',                 group: 'Site' },
+    { key: 'TARGET_LANGUAGE',      group: 'Site' },
+
+    { key: 'HEADLINE',             group: 'Article' },
+    { key: 'ARTICLE',              group: 'Article' },
+    { key: 'ARTICLE_WORDCOUNT',    group: 'Article' },
+
+    { key: 'DAYS',                 group: 'Search data' },
+    { key: 'QUERY_TABLE',          group: 'Search data', cond: true },
+    { key: 'QUERY_COUNT',          group: 'Search data' },
+    { key: 'OPPORTUNITY',          group: 'Search data' },
+    { key: 'CANNIBALIZATION',      group: 'Search data' },
+    { key: 'NO_QUERY_DATA',        group: 'Search data', cond: true },
+
+    { key: 'DISCOVER',             group: 'Discover data', cond: true },
+    { key: 'DISCOVER_COUNT',       group: 'Discover data' },
+    { key: 'DISCOVER_WINDOW_LABEL',group: 'Discover data' },
+
+    { key: 'TRENDING_NOW',         group: 'Trending now', cond: true },
+    { key: 'NO_TRENDING_NOW',      group: 'Trending now', cond: true }
   ];
 
-  const uid = () => 'b' + Math.random().toString(36).slice(2, 9);
+  /* =========================== default template ===========================
+     This is what a brand-new site (or a "Reset to default") starts from.
+     Design notes, since this is the part that actually shapes headline
+     quality:
 
-  /* Built-in fallback if nothing has been saved yet for a service
-     (Farsi wording — used verbatim for 'fa'; 'en' is the same structure
-     with "Persian" swapped to "English", matching the live EN template). */
-  const DEFAULT_BLOCKS = [
-    { id:uid(), title:'Role & voice', showIf:'', enabled:true,
-      body:'You are a senior headline editor at RFE/RL, writing for the {{TARGET_LANGUAGE}}-language service.\nYou write headlines that are accurate first, findable second, and never sensational.\nYou do not invent facts, overstate what the reporting supports, or write bait.' },
-    { id:uid(), title:'Article — section header', showIf:'', enabled:true,
-      body:'════════ THE ARTICLE ════════' },
-    { id:uid(), title:'Current headline', showIf:'HEADLINE', enabled:true,
-      body:'CURRENT HEADLINE: {{HEADLINE}}' },
-    { id:uid(), title:'Article body', showIf:'', enabled:true,
-      body:'{{ARTICLE}}' },
-    { id:uid(), title:'Search data — header', showIf:'QUERY_TABLE', enabled:true,
-      body:'════════ WHAT READERS ACTUALLY SEARCH ════════\nLive Google Search Console data for {{SITE}} — last {{DAYS}} days.\nThese are real queries this newsroom already ranks for. Position = current average rank.' },
-    { id:uid(), title:'Query table', showIf:'QUERY_TABLE', enabled:true,
-      body:'QUERY | CLICKS | IMPRESSIONS | CTR | POSITION | RANKING PAGE\n{{QUERY_TABLE}}' },
-    { id:uid(), title:'Opportunity callout', showIf:'OPPORTUNITY', enabled:true,
-      body:'OPPORTUNITY — high impressions, ranking below position 5. A sharper headline could move these:\n{{OPPORTUNITY}}' },
-    { id:uid(), title:'Cannibalization warning', showIf:'CANNIBALIZATION', enabled:true,
-      body:'CANNIBALIZATION WARNING — an existing article already ranks for these terms.\nIf the new article targets the same query, differentiate the headline from the archive piece below, or it competes with itself in search results:\n{{CANNIBALIZATION}}' },
-    { id:uid(), title:'Fallback — no search history', showIf:'NO_QUERY_DATA', enabled:true,
-      body:'════════ SEARCH DATA ════════\nNo Search Console history matched this story. It is likely breaking or genuinely novel.\nDo not chase established keywords — prioritise the plain words a reader would actually type.' },
-    { id:uid(), title:'Discover winners', showIf:'DISCOVER', enabled:true,
-      body:'════════ WHAT IS WINNING ON DISCOVER RIGHT NOW ════════\nTop {{SITE}} pages in Google Discover, {{DISCOVER_WINDOW_LABEL}}.\nStudy the HEADLINE PATTERNS — what earns the click here.\n\n{{DISCOVER}}' },
-    { id:uid(), title:'Task instructions', showIf:'', enabled:true,
-      body:'════════ YOUR TASK ════════\nWrite 5 headline options for the article above, in this exact mix and order:\n  1–2  SEARCH-LED — built on the highest-value queries above. Front-load the term readers type.\n  3–4  DISCOVER-LED — echo the patterns winning on Discover above. Curiosity with substance, never bait.\n  5    STRAIGHT — the plain wire-service statement of what happened.\n\nFor EACH headline:\n  · Written in {{TARGET_LANGUAGE}}, between 90–105 characters where possible.\n  · Explain what it\'s going for and why — the way an editor would talk a reporter through a headline choice, not the way an SEO report reads. Say things like "this is the phrase people already have in their head when they search" or "this matches what\'s pulling clicks on the app right now" — never "targets high-volume queries," "optimized for CTR," or similar analytics phrasing. If you would not say it out loud in a newsroom, do not write it.\n  · Explain the one real risk or tradeoff in the same plain, editorial voice: what might mislead a reader, undersell the story, or promise more than the reporting delivers — not a technical scoring concern.\n\nIf a current headline was supplied above, also assess it on the same terms: does it misrepresent, bury, or overstate anything the reporting actually supports? Or does it hold up?' },
-    { id:uid(), title:'Constraints', showIf:'', enabled:true,
-      body:'CONSTRAINTS: Output must be in {{TARGET_LANGUAGE}}. No invented facts. No question-mark headlines unless the article genuinely poses one. Nothing the reporting does not support.' }
+     - Every data block is gated with showIf on the data's own token
+       (QUERY_TABLE / DISCOVER / TRENDING_NOW) rather than always shown —
+       an empty "SEARCH CONSOLE DATA:\n" section with nothing under it is
+       worse than no section at all; it reads to the model as "there was
+       supposed to be something here."
+     - TRENDING_NOW gets an explicit instruction to surface real overlap
+       in the ADVANTAGE line and NOT invent a connection — asking for
+       overlap-awareness without that guardrail tends to produce headlines
+       that force a trending word in for its own sake.
+     - Quantity (5, split across three named strategies) matches what the
+       rest of the product already tells users to expect (see the
+       onboarding coach-mark copy: "Five AI options come from what you
+       pasted") — change this here if that copy ever changes too.
+     - The output format itself (the ### HEADLINE / GROUP / TEXT /
+       ADVANTAGE / RISK contract) is intentionally NOT a card here — it's
+       appended separately by buildOutputContract() in index.html, in
+       whichever language the site's headline UI is in, because it's
+       parsing-critical wire-format instruction, not editorial content an
+       admin should be able to accidentally disable or reorder. */
+  var DEFAULT_BLOCKS = [
+    {
+      id: 'role', title: 'Role & context', showIf: '', enabled: true,
+      body:
+        'You are the in-house SEO and audience-development editor for {{SITE}}, an RFE/RL {{TARGET_LANGUAGE}}-language ' +
+        'news service. You write headlines the way a sharp wire-service editor would: accurate to the reporting, ' +
+        'native-sounding in {{TARGET_LANGUAGE}}, and tuned to how real readers actually search for and discover this ' +
+        'story — never clickbait, never a claim the article does not support.'
+    },
+    {
+      id: 'task', title: 'Task', showIf: '', enabled: true,
+      body:
+        'Propose 5 headline options in {{TARGET_LANGUAGE}}, distributed across three strategies:\n' +
+        '- SEARCH — optimized to match how people are actually querying Google for this story (use the Search Console ' +
+        'data below)\n' +
+        '- DISCOVER — optimized for the Google Discover feed, competing for a swipe/tap in a mobile feed rather than a ' +
+        'search result\n' +
+        '- STRAIGHT — a clean, editorially conventional headline with no SEO angle at all — the version you would run ' +
+        'if search and Discover did not exist\n' +
+        'Include at least one STRAIGHT headline and a mix of SEARCH/DISCOVER for the rest. Every headline must be ' +
+        'something the article actually supports — never invent a detail, a number, or a quote to make a headline ' +
+        'stronger.'
+    },
+    {
+      id: 'article', title: 'Article', showIf: '', enabled: true,
+      body:
+        'Current headline (if any): {{HEADLINE}}\n\n' +
+        'Article text ({{ARTICLE_WORDCOUNT}} words):\n{{ARTICLE}}'
+    },
+    {
+      id: 'search_data', title: 'Search Console data', showIf: 'QUERY_TABLE', enabled: true,
+      body:
+        'SEARCH CONSOLE — last {{DAYS}} days, {{QUERY_COUNT}} queries already driving traffic to this story or its ' +
+        'topic (columns: query | clicks | impressions | CTR | avg. position | landing page):\n{{QUERY_TABLE}}\n\n' +
+        'Underserved opportunities — real search demand this article could capture better (high impressions, weak ' +
+        'position or clicks):\n{{OPPORTUNITY}}\n\n' +
+        'Cannibalization risk — other live pages already ranking for these exact queries; a SEARCH headline that ' +
+        'duplicates their phrasing competes with your own site\'s existing page instead of this new one:\n{{CANNIBALIZATION}}'
+    },
+    {
+      id: 'no_search_data', title: 'No search history yet', showIf: 'NO_QUERY_DATA', enabled: true,
+      body:
+        'No Search Console history exists yet for this topic — this is breaking or unusually fresh ground. Do not ' +
+        'force a SEARCH-style headline around invented query data; lean on DISCOVER and STRAIGHT instead. If you do ' +
+        'write a SEARCH-leaning headline, base it on the most obvious, high-intent terms a reader would type given ' +
+        'the article alone.'
+    },
+    {
+      id: 'discover_data', title: 'Discover feed data', showIf: 'DISCOVER', enabled: true,
+      body:
+        'GOOGLE DISCOVER — top-performing related pages from {{DISCOVER_WINDOW_LABEL}} ({{DISCOVER_COUNT}} pages), ' +
+        'showing what phrasing and framing is already working with this feed\'s readers:\n{{DISCOVER}}'
+    },
+    {
+      id: 'trending_now', title: 'Trending now', showIf: 'TRENDING_NOW', enabled: true,
+      body:
+        'GOOGLE TRENDS — TRENDING NOW for {{SITE}}\'s region, refreshed within the last 48 hours:\n{{TRENDING_NOW}}\n\n' +
+        'If any of these trending terms genuinely overlap this article\'s subject — a person, a place, an event it ' +
+        'covers — say so explicitly in the ADVANTAGE line of the relevant headline; that overlap is real, timely ' +
+        'search demand worth naming. Do not force a connection that is not actually there — a coincidentally shared ' +
+        'word is not an overlap.'
+    },
+    {
+      id: 'constraints', title: 'Constraints', showIf: '', enabled: true,
+      body:
+        'Constraints:\n' +
+        '- Write only in {{TARGET_LANGUAGE}} — no mixed-language headlines.\n' +
+        '- Every headline must scan in under two seconds — no subheads, no colon stacking two ideas unless that is ' +
+        'genuinely this service\'s house style.\n' +
+        '- Never state something the article does not report. No invented statistics, quotes, or outcomes.\n' +
+        '- Avoid manufactured urgency (\u201cBREAKING\u201d, excessive punctuation, ALL CAPS) unless the article itself ' +
+        'is breaking news.\n' +
+        '- A SEARCH headline should read like a headline, not a keyword list — natural phrasing that happens to ' +
+        'contain the target query, never an awkward string of terms.'
+    }
   ];
 
-  function substituteTokens(text, vars){
-    return String(text||'').replace(/{{(\w+)}}/g, (m,key) =>
-      (vars[key] !== undefined && vars[key] !== null) ? String(vars[key]) : '');
+  /* =========================== id generation =========================== */
+  function uid() {
+    return 'b' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
   }
 
-  function assembleBlocks(blocks, vars){
-    const parts = (blocks||[])
-      .filter(b => b.enabled !== false)
-      .filter(b => !b.showIf || (vars[b.showIf] !== undefined && String(vars[b.showIf]).trim() !== ''))
-      .map(b => substituteTokens(b.body, vars));
-    return parts.join('\n\n').replace(/\n{3,}/g, '\n\n').trim();
+  /* =========================== assembly =========================== */
+  function truthy(v) {
+    if (v === undefined || v === null) return false;
+    if (typeof v === 'number') return v !== 0;
+    return String(v).trim().length > 0;
+  }
+  /* Unknown tokens are left as literal {{LIKE_THIS}} rather than silently
+     dropped — a typo'd token name in a card body should be visible in the
+     preview (and therefore in the actual prompt) rather than vanishing,
+     which is a much easier bug to spot and fix from the admin UI. */
+  function substituteTokens(text, vars) {
+    return String(text || '').replace(/\{\{(\w+)\}\}/g, function (whole, key) {
+      if (!Object.prototype.hasOwnProperty.call(vars, key)) return whole;
+      var v = vars[key];
+      return (v === undefined || v === null) ? '' : String(v);
+    });
+  }
+  function assembleBlocks(blocks, vars) {
+    vars = vars || {};
+    return (blocks || [])
+      .filter(function (b) { return b && b.enabled !== false; })
+      .filter(function (b) { return !b.showIf || truthy(vars[b.showIf]); })
+      .map(function (b) { return substituteTokens(b.body, vars).trim(); })
+      .filter(Boolean)
+      .join('\n\n');
   }
 
-  /* ---------- local cache (instant load, offline fallback), per site ---------- */
-  function loadLocal(site){
-    try { const raw = localStorage.getItem(LOCAL_KEY_PREFIX + site); return raw ? JSON.parse(raw) : null; }
-    catch(e){ return null; }
+  /* =========================== storage =========================== */
+  var LOCAL_KEY_PREFIX = 'desk_prompt_blocks_v1_';
+  function localKey(site) { return LOCAL_KEY_PREFIX + site; }
+
+  function saveLocal(site, blocks) {
+    try {
+      localStorage.setItem(localKey(site), JSON.stringify({ blocks: blocks, savedAt: Date.now() }));
+    } catch (e) {
+      // Private browsing / storage quota — local cache is a nice-to-have
+      // fallback, never allowed to break the save-and-publish flow itself.
+    }
   }
-  function saveLocal(site, blocks){
-    try { localStorage.setItem(LOCAL_KEY_PREFIX + site, JSON.stringify(blocks)); } catch(e){}
+  function loadLocal(site) {
+    try {
+      var raw = localStorage.getItem(localKey(site));
+      if (!raw) return null;
+      var parsed = JSON.parse(raw);
+      return Array.isArray(parsed.blocks) ? parsed.blocks : null;
+    } catch (e) {
+      return null;
+    }
   }
 
-  /* ---------- backend (Apps Script — requires login, service_role on the server) ---------- */
-  async function fetchRemote(site){
-    if (typeof AuthEngine === 'undefined') throw new Error('AuthEngine not loaded — check auth-engine.js is included before prompt-engine.js');
-    const res = await AuthEngine.authedPost({ mode:'getPromptBlocks', site });
-    if (!res.ok) throw new Error(res.error || 'Failed to load prompt blocks');
-    return { blocks: res.blocks, site: res.site };
+  /* Reads the shared, Supabase-backed template for a site. Three possible
+     outcomes, distinguished by `source` (index.html and admin.html both
+     branch on this exact string):
+       'remote'      — loaded fine, this is the live shared template
+       'local-cache' — Supabase unreachable, fell back to this browser's
+                       last-known copy of that site's template
+       'default'     — no saved template exists yet (brand-new site) OR
+                       both the network call and the local cache failed;
+                       either way, DEFAULT_BLOCKS above is what's shown */
+  async function getBlocks(site) {
+    try {
+      var res = await AuthEngine.authedPost({ mode: 'getPromptBlocks', site: site });
+      if (res && res.ok) {
+        if (Array.isArray(res.blocks) && res.blocks.length) {
+          saveLocal(site, res.blocks); // keep the offline fallback fresh
+          return { blocks: res.blocks, source: 'remote' };
+        }
+        return { blocks: JSON.parse(JSON.stringify(DEFAULT_BLOCKS)), source: 'default' };
+      }
+      throw new Error((res && res.error) || 'Failed to load prompt template');
+    } catch (err) {
+      var cached = loadLocal(site);
+      if (cached) return { blocks: cached, source: 'local-cache' };
+      return { blocks: JSON.parse(JSON.stringify(DEFAULT_BLOCKS)), source: 'default' };
+    }
   }
-  async function saveRemote(site, blocks){
-    if (typeof AuthEngine === 'undefined') throw new Error('AuthEngine not loaded — check auth-engine.js is included before prompt-engine.js');
-    const res = await AuthEngine.authedPost({ mode:'savePromptBlocks', site, blocks });
-    if (!res.ok) throw new Error(res.error || 'Failed to save prompt blocks');
+
+  /* Publishes to Supabase via savePromptBlocks — throws on failure so
+     callers (admin.html's Save button) can show the real error message
+     rather than a generic failure. Does NOT also saveLocal(); admin.html
+     calls saveLocal() itself right after a successful saveRemote(), so a
+     network hiccup between the two calls can't leave the local cache
+     claiming a save succeeded when Supabase never actually got it. */
+  async function saveRemote(site, blocks) {
+    var res = await AuthEngine.authedPost({ mode: 'savePromptBlocks', site: site, blocks: blocks });
+    if (!res || !res.ok) throw new Error((res && res.error) || 'Save failed');
     return true;
   }
 
-  /* getBlocks(site): remote if reachable (also refreshes local cache), else local cache, else built-in default. */
-  async function getBlocks(site){
-    site = SITE_CODES.indexOf(site) !== -1 ? site : 'fa';
-    try {
-      const remote = await fetchRemote(site);
-      if (remote && Array.isArray(remote.blocks) && remote.blocks.length){
-        saveLocal(site, remote.blocks);
-        return { blocks: remote.blocks, source: 'remote', site };
-      }
-    } catch(e){ /* fall through */ }
-    const local = loadLocal(site);
-    if (local && local.length) return { blocks: local, source: 'local-cache', site };
-    return { blocks: DEFAULT_BLOCKS, source: 'default', site };
-  }
-
   global.PromptEngine = {
-    SITES, SITE_CODES, siteOf,
-    TOKENS, DEFAULT_BLOCKS, assembleBlocks, substituteTokens,
-    loadLocal, saveLocal, fetchRemote, saveRemote, getBlocks,
-    uid
+    SITE_CODES: SITE_CODES,
+    siteOf: siteOf,
+    TOKENS: TOKENS,
+    DEFAULT_BLOCKS: DEFAULT_BLOCKS,
+    uid: uid,
+    assembleBlocks: assembleBlocks,
+    getBlocks: getBlocks,
+    saveRemote: saveRemote,
+    saveLocal: saveLocal
   };
 })(window);
