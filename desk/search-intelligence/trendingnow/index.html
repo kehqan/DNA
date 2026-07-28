@@ -644,7 +644,8 @@ select.mini-in:hover{background-color:var(--chip-hover)}
       <h2 style="margin:0">Live searches</h2>
       <div class="rule"></div>
       <div class="uchip" id="trendCount">loading</div>
-      <button class="ghost-sm" id="btnRefresh">↻ Refresh</button>
+      <button class="ghost-sm" id="btnRefresh">↻ Preview</button>
+      <button class="ghost-sm" id="btnForceRefresh">⟳ Force refresh &amp; save</button>
     </div>
     <div id="trendGrid" class="trend-grid">
       <div class="trend-skel"></div><div class="trend-skel"></div><div class="trend-skel"></div>
@@ -771,7 +772,7 @@ async function loadTrendingNow(){
     renderTrendGrid(res.items || [], res.geo);
     $('trendCount').textContent = String((res.items||[]).length);
     $('trendMetaNote').textContent = res.fetchedAt
-      ? `Refreshed ${relTime(res.fetchedAt)} · geo ${esc(res.geo||'')} · cached ~30 min`
+      ? `Refreshed ${relTime(res.fetchedAt)} · geo ${esc(res.geo||'')} · preview only, not saved`
       : '';
   }catch(e){
     console.error('Trending now failed:', e);
@@ -806,8 +807,50 @@ function renderTrendGrid(items, geo){
 
 $('btnRefresh').addEventListener('click', loadTrendingNow);
 
-/* ==================== boot ==================== */
+/* Saves what it fetches — writes to trending_now_latest/history, same as
+   the 48h cron job, so the static summary card on Desk Headline and the
+   prompt's TRENDING_NOW variable pick it up immediately instead of waiting
+   for the next scheduled run. Used sparingly: this spends a SerpApi
+   credit, same as the plain live-preview refresh above. */
+async function forceRefreshAndSave(){
+  const btn = $('btnForceRefresh');
+  btn.disabled = true; btn.textContent = 'Saving…';
+  try{
+    const res = await AuthEngine.authedPost({ mode:'adminRefreshTrendingNow', site: currentSite() });
+    if (!res.ok){
+      if (res.authError) return showLoginGate();
+      throw new Error(res.error || 'Refresh failed');
+    }
+    renderTrendGrid(res.items || [], res.geo);
+    $('trendCount').textContent = String((res.items||[]).length);
+    $('trendMetaNote').textContent = `Saved just now · geo ${esc(res.geo||'')} · this is now the live 48h snapshot`;
+    toast('Snapshot saved — this is now the current 48h summary.');
+  }catch(e){
+    console.error('Force refresh failed:', e);
+    toast(e.message || 'Refresh failed');
+  }finally{
+    btn.disabled = false; btn.textContent = '⟳ Force refresh & save';
+  }
+}
+$('btnForceRefresh').addEventListener('click', forceRefreshAndSave);
+
+/* ==================== access gate + boot ==================== */
+/* This page is a super-admin-only backside tool — it spends live SerpApi
+   credits on every load and every refresh, so it's deliberately not linked
+   from anywhere ordinary users see. Anyone who lands here without the
+   super_admin role gets a plain access-restricted message, not the tool. */
+function showAccessRestricted(){
+  document.querySelector('.wrap').innerHTML = `
+    <div class="card" style="max-width:480px;margin:80px auto;text-align:center">
+      <div style="font-size:34px;margin-bottom:10px">🔒</div>
+      <div class="chead" style="justify-content:center"><h2 style="margin:0">Restricted</h2></div>
+      <div class="empty">This tool is only available to super admins.</div>
+      <a class="ghost-sm" href="/desk/search-intelligence/" style="display:inline-block;margin-top:14px;text-decoration:none">← Back to Search Intelligence</a>
+    </div>`;
+}
+
 async function startApp(session){
+  if (!session.isSuperAdmin){ showAccessRestricted(); return; }
   S.session = session;
   VIEW_SITE = session.site;
   renderProfile(session);
