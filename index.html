@@ -97,22 +97,49 @@ body {
   background: linear-gradient(160deg,
     rgba(15,22,34,0.76) 0%, rgba(11,16,22,0.81) 45%, rgba(12,14,20,0.85) 75%, rgba(18,14,24,0.89) 100%);
 }
+/* Orb opacity is driven by --p (0→1 scroll progress, set on .scene from JS).
+   The upper-left bloom owns the top of the page and fades as you descend;
+   the mid-right and lower blooms take over. Opacity only — transform stays
+   with the drift keyframes below, so the two never fight over it. The
+   existing 700ms opacity transition makes it trail the scroll instead of
+   tracking it exactly, which is what keeps it atmospheric. */
 .orb { position: absolute; z-index: 2; border-radius: 50%; filter: blur(100px);
   transition: opacity 700ms var(--eo), transform 700ms var(--eo); }
 .o1 { width: 660px; height: 540px; top: -170px; left: -120px;
+  opacity: calc(1 - var(--p, 0) * 0.55);
   background: radial-gradient(ellipse, rgba(96,58,150,0.16) 0%, rgba(70,44,110,0.07) 46%, transparent 72%);
   animation: d1 34s ease-in-out infinite; }
 .o2 { width: 640px; height: 520px; top: 22%; right: -170px;
+  opacity: calc(0.75 + var(--p, 0) * 0.25);
   background: radial-gradient(ellipse, rgba(118,72,176,0.18) 0%, rgba(80,52,128,0.08) 50%, transparent 76%);
   animation: d2 40s ease-in-out infinite; }
 .o3 { width: 540px; height: 440px; bottom: -2%; left: 14%;
+  opacity: calc(0.35 + var(--p, 0) * 0.65);
   background: radial-gradient(ellipse, rgba(58,66,108,0.12) 0%, transparent 70%);
   animation: d3 37s ease-in-out infinite; }
 @keyframes d1 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(50px,35px) scale(1.08); } }
 @keyframes d2 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(-40px,-30px) scale(1.06); } }
 @keyframes d3 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(35px,-25px) scale(1.08); } }
 
-@keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+/* ===== SCROLL REVEAL =====
+   Replaces the old load-time `rise` keyframe. Everything arrives as you
+   reach it instead of all firing at once before anyone has scrolled.
+   Transitions rather than keyframes, because these re-arm on the way
+   back up and a class toggle handles that cleanly.
+   Default unit: a whole block fades + rises as one piece.
+   [data-seq] children stagger AFTER their parent — used only for the
+   two signature moments (the loop steps, the chapters list). */
+.reveal, [data-seq] {
+  opacity: 0; transform: translateY(14px);
+  transition: opacity 560ms var(--eo), transform 560ms var(--eo);
+}
+/* Chapter lines settle from a shorter distance — reads as type dropping
+   into place rather than a card sliding in. Must come BEFORE the .in rule:
+   .chap[data-seq] and [data-seq].in have equal specificity, so whichever
+   is declared last wins, and if this sat below it the lines would never
+   travel back to 0. */
+.chap[data-seq] { transform: translateY(8px); }
+.reveal.in, [data-seq].in { opacity: 1; transform: translateY(0); }
 
 /* ===== NAV ===== */
 .nav-wrap { position: sticky; top: 0; z-index: 50; display: flex; justify-content: center;
@@ -176,7 +203,6 @@ body {
   background: var(--glass);
   backdrop-filter: var(--glass-filter); -webkit-backdrop-filter: var(--glass-filter);
   box-shadow: var(--ambient-lg), var(--rim);
-  animation: rise 460ms var(--eo) both;
 }
 .card::before {
   content: ''; position: absolute; inset: 0; border-radius: 24px; pointer-events: none;
@@ -220,20 +246,17 @@ body {
   padding: 68px 0 20px;
 }
 .hero-copy { text-align: left; }
-.hero-copy .eyebrow { animation: rise 460ms var(--eo) both; }
 .hero-copy h1 {
   font-family: var(--serif); font-size: 52px; font-weight: 400; letter-spacing: -0.02em; line-height: 1.07;
   color: var(--lt-1); text-shadow: var(--ts-lg); margin-bottom: 16px;
-  animation: rise 460ms var(--eo) 40ms both;
 }
 .hero-copy h1 em { font-style: normal; color: #FFB07A; }
 .hero-copy .sub {
   font-family: var(--serif); font-size: 16px; color: var(--lt-3); text-shadow: var(--ts);
   line-height: 1.5; max-width: 400px; margin-bottom: 28px;
-  animation: rise 460ms var(--eo) 80ms both;
 }
 .cta-row { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; flex-wrap: wrap;
-  animation: rise 460ms var(--eo) 120ms both; }
+}
 
 /* The ONE primary action on this page */
 .btn-flame {
@@ -267,7 +290,7 @@ body {
 
 .trust-row {
   font-size: 12.5px; color: var(--lt-3); text-shadow: var(--ts);
-  display: flex; align-items: center; gap: 11px; animation: rise 460ms var(--eo) 150ms both;
+  display: flex; align-items: center; gap: 11px;
 }
 .avatar-stack { display: flex; flex-shrink: 0; }
 .avatar-stack span {
@@ -278,7 +301,7 @@ body {
 .avatar-stack span:first-child { margin-left: 0; }
 
 /* ===== HERO VISUAL — a human moment, not a metrics panel ===== */
-.hero-visual { position: relative; animation: rise 500ms var(--eo) 190ms both; }
+.hero-visual { position: relative; }
 .moment {
   position: relative; border-radius: 24px; padding: 24px 26px;
   background: var(--glass);
@@ -336,9 +359,94 @@ body {
   box-shadow: var(--ambient), var(--rim-sm);
   display: flex; align-items: center; gap: 7px; white-space: nowrap;
 }
-.chip-a { top: -16px; right: 22px; animation: rise 460ms var(--eo) 320ms both; }
-.chip-b { bottom: -18px; left: 26px; animation: rise 460ms var(--eo) 380ms both; }
+.chip-a { top: -16px; right: 22px; }
+.chip-b { bottom: -18px; left: 26px; }
 .chip-mark { color: var(--flame); font-size: 10px; }
+
+/* ===== SIGNAL MAP =====
+   Dot-matrix world, pressed into the card on a flat --chip surface with
+   --sunk. No backdrop-filter of its own (nested-card rule). The landmass
+   is ONE <path> — each dot is a zero-length segment with a round linecap,
+   so 588 dots cost one DOM node instead of 588 circles. */
+.map-panel {
+  position: relative; border-radius: 16px; padding: 12px 13px 0;
+  background: var(--chip); box-shadow: var(--sunk);
+  /* visible, not hidden: the hover card is allowed to break the panel
+     edge the same way the hero's float chips break the visual's rectangle */
+  overflow: visible;
+}
+.map-svg { display: block; width: 100%; height: auto; }
+.map-land { fill: none; stroke: rgba(255,255,255,0.20); stroke-width: 2.8; stroke-linecap: round; }
+
+/* Signal markers. Most rest at muted white — flame is reserved for the few
+   genuinely "live" pings, not sprayed across every dot. */
+.ping { fill: rgba(255,255,255,0.50); }
+.ping-live { fill: var(--flame); }
+.ping-ring {
+  fill: none; stroke: var(--flame); stroke-width: 1.3;
+  transform-box: fill-box; transform-origin: center;
+  animation: ringOut 3.4s var(--eo) infinite;
+}
+@keyframes ringOut {
+  0%       { transform: scale(0.30); opacity: 0.75; }
+  70%,100% { transform: scale(2.60); opacity: 0; }
+}
+.home-dot { fill: #fff; }
+.home-ring { fill: none; stroke: rgba(255,255,255,0.45); stroke-width: 1.1; }
+.map-label {
+  font-family: var(--sans); font-size: 9px; font-weight: 600; letter-spacing: 0.08em;
+  text-transform: uppercase; fill: rgba(255,255,255,0.62);
+}
+
+/* Invisible, generous hit target over each small marker */
+.sig-hit { fill: transparent; cursor: pointer; outline: none; }
+.sig-hit:focus-visible + .sig-halo, .sig-halo { pointer-events: none; }
+
+/* Hover record. Near-opaque rather than thin glass — at this size there's
+   nothing for a low-fill panel to refract, same reasoning as the float chips. */
+.sig-pop {
+  position: absolute; z-index: 6; width: 214px; pointer-events: none;
+  background: rgba(20,25,34,0.94);
+  border-radius: 14px; padding: 12px 14px;
+  box-shadow: var(--ambient), var(--rim-sm);
+  opacity: 0; transform: translateY(4px) scale(0.97);
+  transition: opacity 160ms var(--eo), transform 160ms var(--eo);
+}
+.sig-pop.show { opacity: 1; transform: translateY(0) scale(1); }
+.sp-top { display: flex; align-items: center; gap: 8px; margin-bottom: 9px; }
+.sp-kind {
+  font-size: 9px; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase;
+  color: #FFC9A8; background: rgba(255,84,0,0.26); padding: 3px 8px; border-radius: 100px;
+}
+.sp-city { font-size: 10.5px; font-weight: 600; color: var(--lt-2); }
+.sp-ago { margin-left: auto; font-size: 10px; color: var(--lt-3); }
+.sp-title {
+  font-family: var(--serif); font-size: 13.5px; line-height: 1.4;
+  color: var(--lt-1); text-shadow: var(--ts); margin-bottom: 8px;
+}
+.sp-src { font-size: 10.5px; color: var(--lt-3); }
+.sp-src a { color: #FFB07A; text-decoration: none; }
+
+/* Cycling source line — labelled Illustrative in the card header, because a
+   feed that looks live on a newsroom site had better not be mistaken for one. */
+.map-feed {
+  display: flex; align-items: center; gap: 9px;
+  margin-top: 6px; padding: 9px 4px 10px; border-top: 1px solid var(--border);
+  font-size: 11.5px; color: var(--lt-3); text-shadow: var(--ts);
+}
+.fdot { width: 5px; height: 5px; border-radius: 50%; background: var(--flame); flex-shrink: 0;
+  box-shadow: 0 0 8px rgba(255,84,0,0.80); }
+#feedText { transition: opacity 280ms var(--eo); }
+
+/* Two numbers, deliberately inverted emphasis: the big gathered count is
+   dimmed, the zero is bright. */
+.readout { display: flex; align-items: center; gap: 22px; margin-top: 15px; }
+.ro-n { font-family: var(--serif); font-size: 27px; font-weight: 400; line-height: 1;
+  letter-spacing: -0.02em; color: var(--lt-1); text-shadow: var(--ts-lg);
+  font-variant-numeric: tabular-nums; }
+.ro-n.dim { color: var(--lt-3); opacity: 0.62; }
+.ro-l { font-size: 11.5px; color: var(--lt-3); text-shadow: var(--ts); margin-top: 6px; }
+.ro-sep { width: 1px; height: 36px; background: var(--border); }
 
 /* ===== SECTION HEADING (for full-width blocks) ===== */
 .chead { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
@@ -399,7 +507,7 @@ body {
   color: var(--lt-3); text-shadow: var(--ts); }
 .tool-state.live { color: #FFC9A8; }
 .desk-foot {
-  margin-top: 16px; padding-top: 15px; border-top: 1px solid var(--border);
+  margin-top: 14px; padding-top: 13px; border-top: 1px solid var(--border);
   font-size: 11.5px; color: var(--lt-3); text-shadow: var(--ts);
   display: flex; align-items: center; gap: 8px;
 }
@@ -506,9 +614,17 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  /* Belt and braces: reveal units are visible from CSS alone here, so
+     nothing depends on JS having run. */
+  .reveal, [data-seq] { opacity: 1 !important; transform: none !important; }
   html { scroll-behavior: auto; }
 }
 </style>
+<noscript><style>
+  /* Reveals start at opacity 0, so without JS the page would be blank.
+     This is the safety net — no motion, everything visible. */
+  .reveal, [data-seq] { opacity: 1 !important; transform: none !important; }
+</style></noscript>
 </head>
 <body>
 
@@ -538,7 +654,7 @@ body {
 
   <!-- ===== HERO ===== -->
   <div class="hero-grid">
-    <div class="hero-copy">
+    <div class="hero-copy reveal" data-reveal>
       <div class="eyebrow"><span class="pdot"></span> Chapter one opens soon</div>
       <h1>The tools are new.<br>The <em>judgment isn't.</em></h1>
       <p class="sub">Journalists, in their own words, on what changed when AI sat down next to them.</p>
@@ -559,7 +675,7 @@ body {
     </div>
 
     <!-- The visual is a human moment, not a metrics panel -->
-    <div class="hero-visual">
+    <div class="hero-visual reveal" data-reveal data-seq-base="300" data-step="100">
       <div class="moment" id="triggerMoment">
         <div class="m-top">
           <span class="m-slug">A night on the desk</span>
@@ -568,22 +684,22 @@ body {
         <div class="m-quote" dir="auto">The documents were there. The shape of the story wasn't.</div>
 
         <div class="m-loop">
-          <div class="m-step human">
+          <div class="m-step human" data-seq>
             <span class="m-mark"></span>
             <span class="m-label">A reporter saw what didn't add up</span>
             <span class="m-who">Human</span>
           </div>
-          <div class="m-step">
+          <div class="m-step" data-seq>
             <span class="m-mark"></span>
             <span class="m-label">The Desk laid out three possible openings</span>
             <span class="m-who">Tool</span>
           </div>
-          <div class="m-step human">
+          <div class="m-step human" data-seq>
             <span class="m-mark"></span>
             <span class="m-label">None of them worked. She wrote her own</span>
             <span class="m-who">Human</span>
           </div>
-          <div class="m-step human">
+          <div class="m-step human" data-seq>
             <span class="m-mark"></span>
             <span class="m-label">It ran under a human byline</span>
             <span class="m-who">Human</span>
@@ -600,7 +716,7 @@ body {
 
   <!-- ===== THE PROJECT / THE LOOP ===== -->
   <div class="sect" id="project">
-    <div class="sect-copy">
+    <div class="sect-copy reveal" data-reveal>
       <div class="eyebrow"><span class="pdot"></span> What PilotDesk is</div>
       <h2>Not a platform.<br>A <em>record</em> of how it went.</h2>
       <p>Most writing about AI in journalism is about the model. This is about the person holding it.</p>
@@ -610,28 +726,28 @@ body {
       </a>
     </div>
 
-    <div class="card">
+    <div class="card reveal" data-reveal data-seq-base="240" data-step="110">
       <div class="chead" style="margin-bottom:14px">
         <h2 style="font-size:19px">Where the human sits</h2>
         <div class="rule"></div>
       </div>
       <div class="m-loop" style="margin-bottom:0">
-        <div class="m-step human">
+        <div class="m-step human" data-seq>
           <span class="m-mark"></span>
           <span class="m-label">You notice something worth chasing</span>
           <span class="m-who">You</span>
         </div>
-        <div class="m-step">
+        <div class="m-step" data-seq>
           <span class="m-mark"></span>
           <span class="m-label">A tool widens it — angles, gaps, prior coverage</span>
           <span class="m-who">Desk</span>
         </div>
-        <div class="m-step human">
+        <div class="m-step human" data-seq>
           <span class="m-mark"></span>
           <span class="m-label">You decide what's true, and what's worth saying</span>
           <span class="m-who">You</span>
         </div>
-        <div class="m-step human">
+        <div class="m-step human" data-seq>
           <span class="m-mark"></span>
           <span class="m-label">You publish it. Your name, your call</span>
           <span class="m-who">You</span>
@@ -641,14 +757,61 @@ body {
     </div>
   </div>
 
+  <!-- ===== SIGNAL MAP — information vs understanding ===== -->
+  <div class="sect" id="signals">
+    <div class="sect-copy reveal" data-reveal>
+      <div class="eyebrow"><span class="pdot"></span> What the tools actually do</div>
+      <h2>We gather information.<br>Information <em>is not understanding.</em></h2>
+      <p>Understanding is yours to add.</p>
+    </div>
+
+    <div class="card reveal" data-reveal>
+      <div class="chead" style="margin-bottom:14px">
+        <h2 style="font-size:19px">Signals, right now</h2>
+        <div class="rule"></div>
+        <div class="uchip quiet">Sample data</div>
+      </div>
+
+      <div class="map-panel">
+        <svg class="map-svg" viewBox="0 0 290 110" role="img"
+             aria-label="Dot map of Europe, Russia, the Caucasus, Central Asia and the Middle East with signal markers across RFE/RL coverage countries">
+          <!-- generated land mask, cropped wide to RFE/RL's footprint: one path, 261 round dots -->
+          <path class="map-land" d="M5 5h.01M15 5h.01M65 5h.01M75 5h.01M145 5h.01M155 5h.01M165 5h.01M175 5h.01M185 5h.01M195 5h.01M205 5h.01M215 5h.01M5 15h.01M15 15h.01M65 15h.01M75 15h.01M85 15h.01M95 15h.01M105 15h.01M115 15h.01M125 15h.01M135 15h.01M145 15h.01M155 15h.01M165 15h.01M175 15h.01M185 15h.01M195 15h.01M205 15h.01M215 15h.01M225 15h.01M235 15h.01M245 15h.01M255 15h.01M265 15h.01M275 15h.01M285 15h.01M5 25h.01M15 25h.01M25 25h.01M55 25h.01M65 25h.01M75 25h.01M85 25h.01M95 25h.01M105 25h.01M115 25h.01M125 25h.01M135 25h.01M145 25h.01M155 25h.01M165 25h.01M175 25h.01M185 25h.01M195 25h.01M205 25h.01M215 25h.01M225 25h.01M235 25h.01M245 25h.01M255 25h.01M265 25h.01M275 25h.01M285 25h.01M35 35h.01M45 35h.01M55 35h.01M65 35h.01M75 35h.01M85 35h.01M95 35h.01M105 35h.01M115 35h.01M125 35h.01M135 35h.01M145 35h.01M155 35h.01M165 35h.01M175 35h.01M185 35h.01M195 35h.01M205 35h.01M215 35h.01M225 35h.01M235 35h.01M245 35h.01M255 35h.01M265 35h.01M275 35h.01M285 35h.01M25 45h.01M35 45h.01M45 45h.01M55 45h.01M65 45h.01M75 45h.01M85 45h.01M95 45h.01M105 45h.01M115 45h.01M125 45h.01M135 45h.01M145 45h.01M155 45h.01M165 45h.01M175 45h.01M185 45h.01M195 45h.01M205 45h.01M215 45h.01M225 45h.01M235 45h.01M245 45h.01M255 45h.01M265 45h.01M275 45h.01M285 45h.01M35 55h.01M45 55h.01M55 55h.01M65 55h.01M75 55h.01M85 55h.01M95 55h.01M105 55h.01M115 55h.01M125 55h.01M135 55h.01M145 55h.01M155 55h.01M165 55h.01M175 55h.01M185 55h.01M195 55h.01M205 55h.01M215 55h.01M225 55h.01M235 55h.01M245 55h.01M255 55h.01M265 55h.01M275 55h.01M285 55h.01M25 65h.01M35 65h.01M45 65h.01M55 65h.01M65 65h.01M75 65h.01M85 65h.01M95 65h.01M105 65h.01M115 65h.01M125 65h.01M135 65h.01M145 65h.01M165 65h.01M175 65h.01M185 65h.01M195 65h.01M205 65h.01M215 65h.01M225 65h.01M235 65h.01M245 65h.01M255 65h.01M265 65h.01M275 65h.01M285 65h.01M25 75h.01M35 75h.01M45 75h.01M55 75h.01M65 75h.01M75 75h.01M85 75h.01M95 75h.01M105 75h.01M115 75h.01M125 75h.01M135 75h.01M145 75h.01M155 75h.01M165 75h.01M175 75h.01M185 75h.01M195 75h.01M205 75h.01M215 75h.01M225 75h.01M235 75h.01M245 75h.01M255 75h.01M265 75h.01M275 75h.01M25 85h.01M35 85h.01M45 85h.01M55 85h.01M65 85h.01M75 85h.01M85 85h.01M95 85h.01M105 85h.01M115 85h.01M125 85h.01M135 85h.01M145 85h.01M155 85h.01M165 85h.01M175 85h.01M185 85h.01M195 85h.01M205 85h.01M215 85h.01M225 85h.01M235 85h.01M245 85h.01M15 95h.01M25 95h.01M35 95h.01M45 95h.01M55 95h.01M65 95h.01M75 95h.01M85 95h.01M95 95h.01M105 95h.01M115 95h.01M125 95h.01M135 95h.01M145 95h.01M155 95h.01M165 95h.01M175 95h.01M185 95h.01M195 95h.01M205 95h.01M215 95h.01M225 95h.01M15 105h.01M25 105h.01M35 105h.01M45 105h.01M55 105h.01M65 105h.01M75 105h.01M85 105h.01M95 105h.01M105 105h.01M115 105h.01M165 105h.01M175 105h.01M185 105h.01M195 105h.01M205 105h.01M215 105h.01M225 105h.01M235 105h.01M245 105h.01M255 105h.01"/>
+          <g id="sigLayer"></g>
+        </svg>
+
+        <div class="sig-pop" id="sigPop" role="tooltip" aria-hidden="true"></div>
+
+        <div class="map-feed">
+          <span class="fdot"></span>
+          <span id="feedText">&nbsp;</span>
+        </div>
+      </div>
+
+      <div class="readout">
+        <div>
+          <div class="ro-n dim" id="sigCount">0</div>
+          <div class="ro-l">signals gathered</div>
+        </div>
+        <div class="ro-sep"></div>
+        <div>
+          <div class="ro-n">0</div>
+          <div class="ro-l">conclusions drawn</div>
+        </div>
+      </div>
+
+      <div class="desk-foot">We can move the first number. Only you can move the second.</div>
+    </div>
+  </div>
+
   <!-- ===== PRINCIPLES ===== -->
   <div class="block" id="principles">
-    <div class="chead">
+    <div class="chead reveal" data-reveal>
       <h2>What we hold to</h2>
       <div class="rule"></div>
       <div class="uchip quiet">3 commitments</div>
     </div>
-    <div class="card" style="animation-delay:55ms">
+    <div class="card reveal" data-reveal>
       <div class="principles">
         <div class="prin">
           <h3>Nothing publishes itself.</h3>
@@ -669,28 +832,28 @@ body {
   <!-- ===== CHAPTERS — a glimpse only. No titles, no bylines, no dates
        promised. Fill these in with real accounts as they're written. ===== -->
   <div class="block" id="chapters">
-    <div class="chead">
+    <div class="chead reveal" data-reveal>
       <h2>The chapters</h2>
       <div class="rule"></div>
       <div class="uchip">Coming soon</div>
     </div>
-    <p class="block-lede">Accounts from the desk, each one about a decision a tool couldn't make. Here's the ground they'll cover.</p>
+    <p class="block-lede reveal" data-reveal>Accounts from the desk, each one about a decision a tool couldn't make. Here's the ground they'll cover.</p>
 
-    <div class="card" style="animation-delay:55ms">
+    <div class="card reveal" data-reveal data-seq-base="230" data-step="125">
       <div class="chapters">
-        <div class="chap pending">
+        <div class="chap pending" data-seq>
           <span class="chap-no">01</span>
           <span class="chap-title" dir="auto">When the fastest account of an event is also the least reliable one</span>
         </div>
-        <div class="chap pending">
+        <div class="chap pending" data-seq>
           <span class="chap-no">02</span>
           <span class="chap-title" dir="auto">What a transcript records, and what it leaves out</span>
         </div>
-        <div class="chap pending">
+        <div class="chap pending" data-seq>
           <span class="chap-no">03</span>
           <span class="chap-title" dir="auto">One word, two defensible translations, and a story that changes either way</span>
         </div>
-        <div class="chap pending">
+        <div class="chap pending" data-seq>
           <span class="chap-no">04</span>
           <span class="chap-title" dir="auto">The ten minutes before a photograph runs</span>
         </div>
@@ -701,7 +864,7 @@ body {
 
   <!-- ===== THE DESK ===== -->
   <div class="sect" id="desk">
-    <div class="sect-copy">
+    <div class="sect-copy reveal" data-reveal>
       <div class="eyebrow"><span class="pdot"></span> The working part</div>
       <h2>And a small <em>library of tools</em> for the actual shift.</h2>
       <p>The Desk is one part of this project, not the whole of it. It's the part that's already live.</p>
@@ -711,7 +874,7 @@ body {
       </a>
     </div>
 
-    <div class="card">
+    <div class="card reveal" data-reveal>
       <div class="chead" style="margin-bottom:14px">
         <h2 style="font-size:19px">Inside the Desk</h2>
         <div class="rule"></div>
@@ -750,7 +913,7 @@ body {
 
   <!-- ===== NOTIFY ===== -->
   <div class="block">
-    <div class="card notify" style="animation-delay:55ms">
+    <div class="card notify reveal" data-reveal>
       <div>
         <h2>The first chapter lands soon.</h2>
         <p>Leave an address and we'll send it once — no series of updates, no newsletter machinery.</p>
@@ -764,7 +927,7 @@ body {
   </div>
 
   <!-- ===== FOOTER ===== -->
-  <div class="foot">
+  <div class="foot reveal" data-reveal>
     <div>
       <strong>PilotDesk</strong> — a human-centered look at AI in the newsroom.<br>
       A project of the <strong>Digital Transformation Department (DTD)</strong>, RFE/RL.
@@ -939,6 +1102,192 @@ document.getElementById('notifyBtn').addEventListener('click', async () => {
 });
 emailEl.addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('notifyBtn').click(); });
 emailEl.addEventListener('input', () => errEl.classList.remove('show'));
+
+/* ============================================================
+   SCROLL CHOREOGRAPHY
+
+   Three behaviours, all driven from one place:
+   1. Every [data-reveal] block fades + rises as you reach it, and
+      re-arms once it's fully out of view so it plays again on the way
+      back up.
+   2. [data-seq] children stagger in after their parent — used only for
+      the loop steps (the human/tool argument builds line by line) and
+      the chapters list (lines settling like typeset copy).
+   3. Scroll progress feeds --p on .scene, which shifts orb opacity so
+      the ambient light travels down the page with the reader.
+
+   Reduced-motion and no-IntersectionObserver both fall back to
+   everything visible, immediately.
+   ============================================================ */
+const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const scene = document.getElementById('scene');
+const units = document.querySelectorAll('[data-reveal]');
+
+function setUnit(target, on) {
+  target.classList.toggle('in', on);
+  const base = +(target.dataset.seqBase || 0);
+  const step = +(target.dataset.step || 90);
+  target.querySelectorAll('[data-seq]').forEach((el, i) => {
+    el.style.transitionDelay = on ? (base + i * step) + 'ms' : '0ms';
+    el.classList.toggle('in', on);
+  });
+}
+
+if (REDUCED || !('IntersectionObserver' in window)) {
+  units.forEach(u => setUnit(u, true));
+} else {
+  // Two thresholds: reveal as soon as a sliver is in view, but only
+  // re-arm at exactly 0, so a block sitting half on screen never
+  // flickers between states.
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.intersectionRatio >= 0.08) setUnit(e.target, true);
+      else if (e.intersectionRatio === 0) setUnit(e.target, false);
+    });
+  }, { threshold: [0, 0.08] });
+  units.forEach(u => io.observe(u));
+
+  let ticking = false;
+  function updateProgress() {
+    ticking = false;
+    const max = document.documentElement.scrollHeight - window.innerHeight;
+    const p = max > 0 ? Math.min(Math.max(window.scrollY / max, 0), 1) : 0;
+    scene.style.setProperty('--p', p.toFixed(3));
+  }
+  window.addEventListener('scroll', () => {
+    if (!ticking) { ticking = true; requestAnimationFrame(updateProgress); }
+  }, { passive: true });
+  window.addEventListener('resize', updateProgress, { passive: true });
+  updateProgress();
+}
+/* ============================================================
+   SIGNAL MAP — SAMPLE DATA, NOT A LIVE FEED.
+
+   Every record below is a placeholder describing a *type* of source
+   ("court registry published a docket entry"), deliberately not a
+   headline and deliberately not attributed to a real outlet — putting
+   invented copy in a real newsroom's mouth is the one thing this card
+   must never do. The header chip says "Sample data" for the same reason.
+
+   TO WIRE UP REAL RECORDS: keep the shape and fill `url`. Any item with
+   a url renders a working link in the hover card; items without one show
+   the source name as plain text. Sensible backing: a Supabase table
+   polled on an interval, or your existing Edge Function returning the
+   last N items. Drop the "Sample data" chip in the same commit.
+
+   Markers are positioned from real lat/lon through proj(), so adding a
+   city is one line — no pixel maths.
+   ============================================================ */
+const MAP = { lon0: -24, lat0: 76, step: 6, pitch: 10 };
+function proj(lat, lon) {
+  return {
+    x: (lon - MAP.lon0) / MAP.step * MAP.pitch + MAP.pitch / 2,
+    y: (MAP.lat0 - lat) / MAP.step * MAP.pitch + MAP.pitch / 2
+  };
+}
+
+const HOME = { city: 'Prague', lat: 50.09, lon: 14.42 };
+
+const SIGNALS = [
+  { city:'Kyiv',      lat:50.45, lon:30.52, live:true,  kind:'Video',     source:'Regional broadcaster', title:'Council session recording published',  ago:'4m',  url:null },
+  { city:'Moscow',    lat:55.75, lon:37.62, live:true,  kind:'Document',  source:'Court registry',       title:'Docket entry added to the public file', ago:'9m',  url:null },
+  { city:'Tehran',    lat:35.70, lon:51.42, live:true,  kind:'Wire',      source:'Exchange notice',      title:'Currency rate table updated',          ago:'12m', url:null },
+  { city:'Minsk',     lat:53.90, lon:27.57, live:false, kind:'Document',  source:'State gazette',        title:'Decree text posted overnight',         ago:'21m', url:null },
+  { city:'Belgrade',  lat:44.79, lon:20.45, live:false, kind:'Broadcast', source:'Regional broadcaster', title:'Evening bulletin transcript available', ago:'27m', url:null },
+  { city:'Bucharest', lat:44.43, lon:26.10, live:false, kind:'Document',  source:'Parliament record',    title:'Committee vote entered in the register',ago:'34m', url:null },
+  { city:'Tbilisi',   lat:41.72, lon:44.79, live:false, kind:'Video',     source:'Local correspondent',  title:'Footage submitted, verification pending',ago:'41m',url:null },
+  { city:'Baku',      lat:40.41, lon:49.87, live:false, kind:'Document',  source:'Customs filing',       title:'Shipment manifest published',           ago:'48m', url:null },
+  { city:'Baghdad',   lat:33.31, lon:44.36, live:false, kind:'Wire',      source:'Ministry press office',title:'Statement circulated to wires',         ago:'55m', url:null },
+  { city:'Ashgabat',  lat:37.95, lon:58.38, live:false, kind:'Broadcast', source:'State television',     title:'Programme schedule change logged',      ago:'1h',  url:null },
+  { city:'Tashkent',  lat:41.31, lon:69.28, live:false, kind:'Document',  source:'Statistics agency',    title:'Quarterly figures released',            ago:'1h',  url:null },
+  { city:'Bishkek',   lat:42.87, lon:74.60, live:false, kind:'Article',   source:'Local correspondent',  title:'Court hearing notice posted',           ago:'2h',  url:null },
+  { city:'Astana',    lat:51.17, lon:71.43, live:false, kind:'Document',  source:'Procurement portal',   title:'Tender documents made public',          ago:'2h',  url:null },
+  { city:'Kabul',     lat:34.53, lon:69.18, live:false, kind:'Photo',     source:'Satellite provider',   title:'New imagery pass available',            ago:'3h',  url:null },
+  { city:'Islamabad', lat:33.68, lon:73.05, live:false, kind:'Wire',      source:'Wire service',         title:'Advisory issued to subscribers',        ago:'3h',  url:null }
+];
+
+const layer  = document.getElementById('sigLayer');
+const panel  = document.querySelector('.map-panel');
+const pop    = document.getElementById('sigPop');
+const feedEl = document.getElementById('feedText');
+const countEl= document.getElementById('sigCount');
+
+// --- draw markers ---
+let ringsHTML = '', dotsHTML = '', hitsHTML = '';
+SIGNALS.forEach((s, i) => {
+  const { x, y } = proj(s.lat, s.lon);
+  if (s.live) ringsHTML += `<circle class="ping-ring" cx="${x}" cy="${y}" r="4.5" style="animation-delay:${(i * 1.1).toFixed(1)}s"/>`;
+  dotsHTML += `<circle class="ping${s.live ? ' ping-live' : ''}" cx="${x}" cy="${y}" r="${s.live ? 2.5 : 2}"/>`;
+  hitsHTML += `<circle class="sig-hit" cx="${x}" cy="${y}" r="5.5" data-i="${i}" tabindex="0" role="button" aria-label="${s.city}: ${s.title}"/>`;
+});
+const hp = proj(HOME.lat, HOME.lon);
+layer.innerHTML =
+  ringsHTML + dotsHTML +
+  `<circle class="home-ring" cx="${hp.x}" cy="${hp.y}" r="6"/>` +
+  `<circle class="home-dot" cx="${hp.x}" cy="${hp.y}" r="2.2"/>` +
+  `<text class="map-label" x="${hp.x}" y="${hp.y - 10}" text-anchor="middle">Prague</text>` +
+  hitsHTML;
+
+// --- hover / focus record ---
+let openIdx = -1;
+function showPop(i, el) {
+  const s = SIGNALS[i];
+  pop.innerHTML =
+    `<div class="sp-top"><span class="sp-kind">${s.kind}</span>` +
+    `<span class="sp-city">${s.city}</span><span class="sp-ago">${s.ago}</span></div>` +
+    `<div class="sp-title">${s.title}</div>` +
+    `<div class="sp-src">` +
+      (s.url ? `<a href="${s.url}" target="_blank" rel="noopener">${s.source} &#8599;</a>` : s.source) +
+    `</div>`;
+  pop.classList.add('show');
+  pop.setAttribute('aria-hidden', 'false');
+
+  const pr = panel.getBoundingClientRect(), hr = el.getBoundingClientRect();
+  const cx = hr.left + hr.width / 2 - pr.left;
+  const cy = hr.top - pr.top;
+  let left = cx - pop.offsetWidth / 2;
+  left = Math.max(4, Math.min(left, pr.width - pop.offsetWidth - 4));
+  let top = cy - pop.offsetHeight - 12;
+  if (top < 2) top = cy + hr.height + 10;   // flip below when near the top edge
+  pop.style.left = left + 'px';
+  pop.style.top  = top + 'px';
+  openIdx = i;
+}
+function hidePop() {
+  pop.classList.remove('show');
+  pop.setAttribute('aria-hidden', 'true');
+  openIdx = -1;
+}
+
+layer.querySelectorAll('.sig-hit').forEach(el => {
+  const i = +el.dataset.i;
+  el.addEventListener('pointerenter', () => showPop(i, el));
+  el.addEventListener('pointerleave', () => hidePop());
+  el.addEventListener('focus', () => showPop(i, el));
+  el.addEventListener('blur', hidePop);
+  // tap-to-toggle, since touch has no hover
+  el.addEventListener('click', e => {
+    e.preventDefault();
+    openIdx === i ? hidePop() : showPop(i, el);
+  });
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') hidePop(); });
+window.addEventListener('scroll', () => { if (openIdx !== -1) hidePop(); }, { passive: true });
+
+// --- the two numbers + cycling source line ---
+let sig = 11482, fi = 0;
+function paintCount() { countEl.textContent = sig.toLocaleString('en-US'); }
+function paintFeed()  { feedEl.textContent = SIGNALS[fi].title + ' · ' + SIGNALS[fi].city; }
+paintCount(); paintFeed();
+
+if (!REDUCED) {
+  setInterval(() => {
+    fi = (fi + 1) % SIGNALS.length;
+    feedEl.style.opacity = '0';
+    setTimeout(() => { paintFeed(); feedEl.style.opacity = '1'; }, 280);
+  }, 3000);
+  setInterval(() => { sig += 1 + Math.floor(Math.random() * 4); paintCount(); }, 1500);
+}
 </script>
 
 </body>
