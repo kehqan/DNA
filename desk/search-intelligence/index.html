@@ -97,8 +97,9 @@ html[dir="rtl"] .kw-num,html[dir="rtl"] .art-clicks,html[dir="rtl"] .sn{directio
   border-radius:100px;padding:5px;box-shadow:var(--ambient),var(--rim);pointer-events:all}
 .wordmark{font-family:var(--serif);font-size:17px;color:var(--lt-1);text-shadow:var(--ts);
   padding:6px 16px 6px 12px;border-right:1px solid var(--border);margin-right:4px;white-space:nowrap;
-  position:relative;z-index:1;text-decoration:none;display:inline-block}
+  position:relative;z-index:1;text-decoration:none;display:inline-flex;align-items:center;gap:10px}
 .wordmark em{font-style:normal;color:#FFB07A;font-weight:600}
+.wordmark-logo{height:50px;width:auto;display:block;flex-shrink:0}
 
 /* Shared sliding highlight — one element that glides between whichever
    nav item is hovered, instead of each item fading its own background in/out. */
@@ -565,7 +566,7 @@ select.mini-in:hover{background-color:var(--chip-hover)}
 <div class="nav-wrap">
   <div class="nav-pill">
     <span class="nav-highlight" id="navHighlight"></span>
-    <div class="wordmark">Desk Headline<em>.</em></div>
+    <div class="wordmark"><img class="wordmark-logo" src="/desk/assets/desk-logo.svg" alt="">Desk Headline<em>.</em></div>
     <div class="nav-sep"></div>
     <div class="gen-ntab idle" id="genBtn" data-i18n="nav.promptBtn">◆ Prompt</div>
     <div class="nav-sep" id="viewSiteSep" style="display:none"></div>
