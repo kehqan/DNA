@@ -21,6 +21,17 @@
  * This file does its own network calls through AuthEngine.authedPost —
  * it never touches fetch()/UrlFetchApp directly, so auth-engine.js must
  * be loaded first (both pages already load it first).
+ *
+ * IMPORTANT — how a site actually gets its prompt: getBlocks(site) checks
+ * Supabase's prompt_templates table FIRST. Only a site with no saved row
+ * there falls back to DEFAULT_BLOCKS below. That means editing this file
+ * only affects sites with no saved override — a site an admin has ever
+ * hit "Save & publish" on on will keep using its own saved copy forever,
+ * frozen at whatever it looked like on that save, until someone opens
+ * Prompt Admin and either edits it directly or hits "Reset to default"
+ * + "Save & publish" again. As of 2026-07-28, no site has a saved
+ * override — every site reads this file directly. Keep it that way
+ * unless a site genuinely needs to diverge from the shared template.
  */
 (function (global) {
   'use strict';
@@ -52,7 +63,19 @@
      (NO_QUERY_DATA / NO_TRENDING_NOW) — so both "show this card only when
      there IS data" (showIf: 'QUERY_TABLE') and "show this card only when
      there's NO data" (showIf: 'NO_QUERY_DATA') are expressible without
-     any extra logic beyond a truthiness check. */
+     any extra logic beyond a truthiness check.
+
+     Deliberately NOT included as cond tokens: HEADLINE and CANNIBALIZATION.
+     A previous version of this file (or an old manual edit — the exact
+     history wasn't recoverable) had the live 'fa' template's Article block
+     gated on showIf:'HEADLINE' and its Constraints block gated on
+     showIf:'CANNIBALIZATION' — which meant the article text vanished from
+     the prompt on any story without a pre-existing headline, and the
+     house-style constraints vanished on any story without a search
+     cannibalization conflict (i.e. almost always). Neither block should
+     ever be conditional, so DEFAULT_BLOCKS below hardcodes both as always-
+     shown rather than exposing them as toggleable — see the Article and
+     Constraints blocks. */
   var TOKENS = [
     { key: 'SITE',                 group: 'Site' },
     { key: 'TARGET_LANGUAGE',      group: 'Site' },
@@ -77,81 +100,76 @@
   ];
 
   /* =========================== default template ===========================
-     This is what a brand-new site (or a "Reset to default") starts from.
-     Design notes, since this is the part that actually shapes headline
-     quality:
+     This is what every site reads today (see the note at the top of the
+     file), and what a "Reset to default" restores. Folds in the best of
+     what was previously hand-tuned per-site in Supabase — the English
+     template's section dividers, explicit SEARCH/DISCOVER/STRAIGHT
+     numbering, and "does the current headline hold up" check were
+     genuinely good and now benefit all 8 sites instead of just one.
 
-     - Every data block is gated with showIf on the data's own token
-       (QUERY_TABLE / DISCOVER / TRENDING_NOW) rather than always shown —
-       an empty "SEARCH CONSOLE DATA:\n" section with nothing under it is
-       worse than no section at all; it reads to the model as "there was
-       supposed to be something here."
-     - TRENDING_NOW gets an explicit instruction to surface real overlap
-       in the ADVANTAGE line and NOT invent a connection — asking for
-       overlap-awareness without that guardrail tends to produce headlines
-       that force a trending word in for its own sake.
-     - Quantity (5, split across three named strategies) matches what the
-       rest of the product already tells users to expect (see the
-       onboarding coach-mark copy: "Five AI options come from what you
-       pasted") — change this here if that copy ever changes too.
-     - The output format itself (the ### HEADLINE / GROUP / TEXT /
-       ADVANTAGE / RISK contract) is intentionally NOT a card here — it's
-       appended separately by buildOutputContract() in index.html, in
-       whichever language the site's headline UI is in, because it's
-       parsing-critical wire-format instruction, not editorial content an
-       admin should be able to accidentally disable or reorder. */
+     Design notes:
+     - Article is NEVER conditional (see the TOKENS comment above) — it's
+       one block, always shown, headline + body together, so there's no
+       showIf to ever misconfigure into hiding it.
+     - Every DATA block (search, no-search-fallback, Discover, Trending
+       Now) is gated on that data's own token rather than always shown —
+       an empty "SEARCH CONSOLE DATA:" section with nothing under it reads
+       to the model as "there was supposed to be something here."
+     - Constraints is NEVER conditional either, for the same reason as
+       Article — house style should apply to every generation, not just
+       ones with a particular kind of search data present.
+     - TRENDING_NOW carries an explicit guardrail: name a real overlap,
+       never force one. Asking for overlap-awareness without that second
+       half tends to produce headlines that shoehorn a trending word in
+       for its own sake.
+     - The output format itself (### HEADLINE / GROUP / TEXT / ADVANTAGE /
+       RISK) is intentionally NOT a card here — it's appended separately
+       by buildOutputContract() in index.html, in whichever language the
+       site's headline UI is in, because it's parsing-critical wire-format
+       instruction, not editorial content an admin should be able to
+       accidentally disable or reorder. */
   var DEFAULT_BLOCKS = [
     {
-      id: 'role', title: 'Role & context', showIf: '', enabled: true,
+      id: 'role', title: 'Role & voice', showIf: '', enabled: true,
       body:
-        'You are the in-house SEO and audience-development editor for {{SITE}}, an RFE/RL {{TARGET_LANGUAGE}}-language ' +
-        'news service. You write headlines the way a sharp wire-service editor would: accurate to the reporting, ' +
-        'native-sounding in {{TARGET_LANGUAGE}}, and tuned to how real readers actually search for and discover this ' +
-        'story — never clickbait, never a claim the article does not support.'
-    },
-    {
-      id: 'task', title: 'Task', showIf: '', enabled: true,
-      body:
-        'Propose 5 headline options in {{TARGET_LANGUAGE}}, distributed across three strategies:\n' +
-        '- SEARCH — optimized to match how people are actually querying Google for this story (use the Search Console ' +
-        'data below)\n' +
-        '- DISCOVER — optimized for the Google Discover feed, competing for a swipe/tap in a mobile feed rather than a ' +
-        'search result\n' +
-        '- STRAIGHT — a clean, editorially conventional headline with no SEO angle at all — the version you would run ' +
-        'if search and Discover did not exist\n' +
-        'Include at least one STRAIGHT headline and a mix of SEARCH/DISCOVER for the rest. Every headline must be ' +
-        'something the article actually supports — never invent a detail, a number, or a quote to make a headline ' +
-        'stronger.'
+        'You are a senior headline editor for {{SITE}}, an RFE/RL {{TARGET_LANGUAGE}}-language news service. You write ' +
+        'headlines that are accurate first, findable second, and never sensational — native-sounding in ' +
+        '{{TARGET_LANGUAGE}}, tuned to how real readers actually search for and discover this story, and never a claim ' +
+        'the reporting does not support.'
     },
     {
       id: 'article', title: 'Article', showIf: '', enabled: true,
       body:
+        '════════ THE ARTICLE ════════\n' +
         'Current headline (if any): {{HEADLINE}}\n\n' +
         'Article text ({{ARTICLE_WORDCOUNT}} words):\n{{ARTICLE}}'
     },
     {
       id: 'search_data', title: 'Search Console data', showIf: 'QUERY_TABLE', enabled: true,
       body:
-        'SEARCH CONSOLE — last {{DAYS}} days, {{QUERY_COUNT}} queries already driving traffic to this story or its ' +
-        'topic (columns: query | clicks | impressions | CTR | avg. position | landing page):\n{{QUERY_TABLE}}\n\n' +
-        'Underserved opportunities — real search demand this article could capture better (high impressions, weak ' +
-        'position or clicks):\n{{OPPORTUNITY}}\n\n' +
-        'Cannibalization risk — other live pages already ranking for these exact queries; a SEARCH headline that ' +
+        '════════ WHAT READERS ACTUALLY SEARCH ════════\n' +
+        'Live Search Console data for {{SITE}} — last {{DAYS}} days, {{QUERY_COUNT}} queries already driving traffic ' +
+        'to this story or its topic (columns: query | clicks | impressions | CTR | avg. position | landing page):\n' +
+        '{{QUERY_TABLE}}\n\n' +
+        'OPPORTUNITY — high impressions, weak position or clicks. A sharper headline could move these:\n{{OPPORTUNITY}}\n\n' +
+        'CANNIBALIZATION WARNING — other live pages already rank for these exact queries. A SEARCH headline that ' +
         'duplicates their phrasing competes with your own site\'s existing page instead of this new one:\n{{CANNIBALIZATION}}'
     },
     {
       id: 'no_search_data', title: 'No search history yet', showIf: 'NO_QUERY_DATA', enabled: true,
       body:
-        'No Search Console history exists yet for this topic — this is breaking or unusually fresh ground. Do not ' +
-        'force a SEARCH-style headline around invented query data; lean on DISCOVER and STRAIGHT instead. If you do ' +
-        'write a SEARCH-leaning headline, base it on the most obvious, high-intent terms a reader would type given ' +
-        'the article alone.'
+        '════════ SEARCH DATA ════════\n' +
+        'No Search Console history matched this story — it is likely breaking or genuinely novel. Do not force a ' +
+        'SEARCH-style headline around invented query data; lean on DISCOVER and STRAIGHT instead. If you do write a ' +
+        'SEARCH-leaning headline, base it on the most obvious, high-intent terms a reader would type given the ' +
+        'article alone.'
     },
     {
       id: 'discover_data', title: 'Discover feed data', showIf: 'DISCOVER', enabled: true,
       body:
-        'GOOGLE DISCOVER — top-performing related pages from {{DISCOVER_WINDOW_LABEL}} ({{DISCOVER_COUNT}} pages), ' +
-        'showing what phrasing and framing is already working with this feed\'s readers:\n{{DISCOVER}}'
+        '════════ WHAT IS WINNING ON DISCOVER RIGHT NOW ════════\n' +
+        'Top {{SITE}} pages in Google Discover, {{DISCOVER_WINDOW_LABEL}} ({{DISCOVER_COUNT}} pages). Study the ' +
+        'headline patterns — what earns the click here:\n{{DISCOVER}}'
     },
     {
       id: 'trending_now', title: 'Trending now', showIf: 'TRENDING_NOW', enabled: true,
@@ -163,13 +181,27 @@
         'word is not an overlap.'
     },
     {
+      id: 'task', title: 'Task', showIf: '', enabled: true,
+      body:
+        '════════ YOUR TASK ════════\n' +
+        'Write 5 headline options for the article above, in this exact mix and order:\n' +
+        '  1–2  SEARCH-LED — built on the highest-value queries above. Front-load the term readers actually type.\n' +
+        '  3–4  DISCOVER-LED — echo the patterns winning on Discover above. Curiosity with substance, never bait.\n' +
+        '  5    STRAIGHT — the plain, editorially conventional statement of what happened. No SEO angle at all.\n\n' +
+        'For EACH headline:\n' +
+        '  · Write in {{TARGET_LANGUAGE}}, between 90–105 characters where possible.\n' +
+        '  · Never state something the article does not report — no invented facts, statistics, quotes, or outcomes.\n' +
+        '  · If a trending term or search query genuinely overlaps this headline\'s angle, say so in ADVANTAGE — never ' +
+        'force a connection that is not really there.\n\n' +
+        'If a current headline was supplied above, also judge it on the same terms: does it misrepresent, bury, or ' +
+        'overstate anything the reporting actually supports — or does it hold up?'
+    },
+    {
       id: 'constraints', title: 'Constraints', showIf: '', enabled: true,
       body:
-        'Constraints:\n' +
-        '- Write only in {{TARGET_LANGUAGE}} — no mixed-language headlines.\n' +
-        '- Headlines should be between 90–105 characters where possible. — no subheads, no colon stacking two ideas unless that is ' +
-        'genuinely this service\'s house style.\n' +
-        '- Never state something the article does not report. No invented statistics, quotes, or outcomes.\n' +
+        'CONSTRAINTS:\n' +
+        '- {{TARGET_LANGUAGE}} output only — no mixed-language headlines.\n' +
+        '- No question-mark headlines unless the article genuinely poses one.\n' +
         '- Avoid manufactured urgency (\u201cBREAKING\u201d, excessive punctuation, ALL CAPS) unless the article itself ' +
         'is breaking news.\n' +
         '- A SEARCH headline should read like a headline, not a keyword list — natural phrasing that happens to ' +
@@ -238,9 +270,10 @@
        'remote'      — loaded fine, this is the live shared template
        'local-cache' — Supabase unreachable, fell back to this browser's
                        last-known copy of that site's template
-       'default'     — no saved template exists yet (brand-new site) OR
-                       both the network call and the local cache failed;
-                       either way, DEFAULT_BLOCKS above is what's shown */
+       'default'     — no saved template exists yet (brand-new site, or
+                       every site as of 2026-07-28 — see the file header)
+                       OR both the network call and the local cache
+                       failed; either way, DEFAULT_BLOCKS above is shown */
   async function getBlocks(site) {
     try {
       var res = await AuthEngine.authedPost({ mode: 'getPromptBlocks', site: site });
