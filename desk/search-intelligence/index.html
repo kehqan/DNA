@@ -700,6 +700,11 @@ select.mini-in:hover{background-color:var(--chip-hover)}
     </div>
 
     <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="card" style="animation-delay:160ms">
+        <div class="chead"><h2 data-i18n="tn.header">Trending now</h2><div class="rule"></div><div class="uchip" id="trendNowState" data-i18n="tn.loading">loading</div></div>
+        <div class="chips" id="trendNowList"><span class="empty" data-i18n="tn.empty">No live trends yet.</span></div>
+        <div class="meta-note" style="font-size:10.5px;color:var(--soft);margin-top:10px;line-height:1.5" data-i18n="tn.subtitle">Live Google Trends for your site's region. Click a term to compare it.</div>
+      </div>
       <div class="card" style="animation-delay:175ms">
         <div class="chead"><h2 data-i18n="d.header">Discover winners</h2><div class="rule"></div><div class="uchip" id="artCount">…</div></div>
         <div class="chips" style="margin-bottom:12px">
@@ -870,6 +875,9 @@ en: {
   'q.logReturned':'{n} quer{s} returned', 'q.logNone':'none', 'q.logError':'error',
   'q.addHeader':'Add a term or import manually', 'q.addPlaceholder':'Type a term, press Enter — syncs immediately',
   'q.pasteRows':'⧉ Paste rows', 'q.csv':'⭱ CSV', 'q.clear':'Clear',
+  'tn.header':'Trending now', 'tn.loading':'loading', 'tn.empty':'No live trends yet.',
+  'tn.subtitle':'Live Google Trends for your site\\'s region. Click a term to compare it.',
+  'tn.error':'Trending data unavailable', 'tn.stale':'cached',
   'd.header':'Discover winners', 'd.last30d':'Last 30 days', 'd.last3m':'Last 3 months',
   'd.loadingShort':'Loading…', 'd.empty':'No Discover rows for this window.', 'd.noUrl':' · no URL returned',
   'd.untitled':'Untitled page', 'd.impr':'impr', 'd.count':'{n} pages',
@@ -1040,6 +1048,40 @@ async function fetchDiscover(win){
     title:r.title||'', url:r.url, clicks:+r.clicks||0,
     impressions:+r.impressions||0, ctr:+r.ctr||0, source:'Discover'
   }));
+}
+
+/* ==================== Trending now (live Google Trends via SerpApi) ==================== */
+async function loadTrendingNow(){
+  const stateEl = $('trendNowState'), listEl = $('trendNowList');
+  try{
+    const res = await AuthEngine.authedPost({ mode:'getTrendingNow', site: currentSite() });
+    if (!res.ok) throw new Error(res.error || 'failed');
+    renderTrendNow(res.items || []);
+    stateEl.textContent = (res.items||[]).length ? String(res.items.length) : '0';
+  }catch(e){
+    console.error('Trending now failed:', e);
+    stateEl.textContent = t('tn.error');
+    listEl.innerHTML = `<span class="empty">${esc(t('tn.error'))}</span>`;
+  }
+}
+function renderTrendNow(items){
+  const listEl = $('trendNowList');
+  if (!items.length){ listEl.innerHTML = `<span class="empty">${esc(t('tn.empty'))}</span>`; return; }
+  listEl.innerHTML = items.slice(0, 15).map(it => {
+    const vol = it.searchVolume ? esc(String(it.searchVolume)) : '';
+    const pct = (it.trendPct != null) ? `+${esc(String(it.trendPct))}%` : '';
+    const badge = [vol, pct].filter(Boolean).join(' · ');
+    return `<div class="fc trend-chip" data-term="${esc(it.term)}" title="${esc(it.term)}${badge ? ' — '+esc(badge) : ''}">
+      ${esc(it.term)}${badge ? `<span style="opacity:.55;font-weight:400;margin-left:6px">${esc(badge)}</span>` : ''}
+    </div>`;
+  }).join('');
+  listEl.querySelectorAll('.trend-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      $('cmpA').value = chip.getAttribute('data-term');
+      openCompare();
+      $('cmpRun').click();
+    });
+  });
 }
 
 /* ==================== Pipeline ==================== */
@@ -2091,6 +2133,8 @@ async function startApp(session){
     TPL_BLOCKS = (typeof PromptEngine !== 'undefined') ? PromptEngine.DEFAULT_BLOCKS : [];
     toast(t('misc.promptTplFailed'));
   }
+
+  loadTrendingNow(); // non-blocking — a stalled or empty trends feed shouldn't hold up Discover
 
   try{
     S.articles = await fetchDiscover('month');
