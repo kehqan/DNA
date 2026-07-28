@@ -92,11 +92,6 @@ html[dir="rtl"] .kw-num,html[dir="rtl"] .art-clicks,html[dir="rtl"] .sn{directio
 
 /* ===== NAV ===== */
 .nav-wrap{position:sticky;top:0;z-index:50;display:flex;justify-content:center;padding:16px 24px 0;pointer-events:none}
-.tutorial-replay-btn{position:absolute;top:16px;right:24px;width:38px;height:38px;border-radius:50%;pointer-events:all;
-  display:flex;align-items:center;justify-content:center;font-size:16px;line-height:1;border:none;cursor:pointer;
-  background:var(--glass);backdrop-filter:var(--glass-filter);-webkit-backdrop-filter:var(--glass-filter);
-  box-shadow:var(--ambient),var(--rim);color:var(--lt-2);transition:transform 150ms var(--eo),background 150ms var(--eo)}
-.tutorial-replay-btn:hover{background:var(--chip-hover);transform:translateY(-1.5px)}
 .nav-pill{position:relative;display:inline-flex;align-items:center;gap:2px;flex-wrap:wrap;justify-content:center;
   background:var(--glass);backdrop-filter:var(--glass-filter);-webkit-backdrop-filter:var(--glass-filter);
   border-radius:100px;padding:5px;box-shadow:var(--ambient),var(--rim);pointer-events:all}
@@ -117,6 +112,10 @@ html[dir="rtl"] .kw-num,html[dir="rtl"] .art-clicks,html[dir="rtl"] .sn{directio
 .ntab:hover{color:var(--lt-1)}
 .ntab.on{background:rgba(255,255,255,0.82);color:#0E2531;text-shadow:none;font-weight:600;box-shadow:var(--rim-sm)}
 .nav-sep{position:relative;z-index:1;width:1px;height:20px;background:var(--border);margin:0 2px}
+.tutorial-replay-btn{position:relative;z-index:1;width:28px;height:28px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:13px;line-height:1;border:none;cursor:pointer;
+  background:transparent;color:var(--lt-3);transition:background 150ms var(--eo),color 150ms var(--eo)}
+.tutorial-replay-btn:hover{background:var(--chip-hover);color:var(--lt-1)}
 .langtoggle{display:flex;gap:2px;margin-left:2px;position:relative;z-index:1}
 .lt-opt{font-size:11px;font-weight:600;color:var(--lt-3);text-shadow:var(--ts);padding:5px 9px;border-radius:100px;cursor:pointer;transition:background 110ms ease-out,color 110ms ease-out}
 .lt-opt:hover{color:var(--lt-1)}
@@ -564,7 +563,6 @@ select.mini-in:hover{background-color:var(--chip-hover)}
 <div class="scene" id="scene"><div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div></div>
 
 <div class="nav-wrap">
-  <button class="tutorial-replay-btn" id="tutorialReplayBtn" type="button" title="Replay the onboarding tour">🎓</button>
   <div class="nav-pill">
     <span class="nav-highlight" id="navHighlight"></span>
     <div class="wordmark">Desk Headline<em>.</em></div>
@@ -573,6 +571,7 @@ select.mini-in:hover{background-color:var(--chip-hover)}
     <div class="nav-sep" id="viewSiteSep" style="display:none"></div>
     <select class="view-site-select" id="viewSiteSelect" style="display:none" title="Super admin — switch which site you're working in"></select>
     <div class="nav-sep"></div>
+    <button class="tutorial-replay-btn" id="tutorialReplayBtn" type="button" title="Replay the onboarding tour">🎓</button>
     <div class="profile-wrap" id="profileWrap">
       <button class="profile-trigger" id="profileTrigger" type="button">
         <span class="profile-avatar" id="profileAvatar">–</span>
