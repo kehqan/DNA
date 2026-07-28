@@ -167,7 +167,7 @@
       body:
         'Constraints:\n' +
         '- Write only in {{TARGET_LANGUAGE}} — no mixed-language headlines.\n' +
-        '- Every headline must scan in under two seconds — no subheads, no colon stacking two ideas unless that is ' +
+        '- Every headline must scan in few seconds — no subheads, no colon stacking two ideas unless that is ' +
         'genuinely this service\'s house style.\n' +
         '- Never state something the article does not report. No invented statistics, quotes, or outcomes.\n' +
         '- Avoid manufactured urgency (\u201cBREAKING\u201d, excessive punctuation, ALL CAPS) unless the article itself ' +
