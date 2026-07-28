@@ -172,7 +172,7 @@
         'headline patterns — what earns the click here:\n{{DISCOVER}}'
     },
     {
-      id: 'trending_now', title: 'Trending now', showIf: 'TRENDING_NOW', enabled: true,
+      id: 'trending_now', title: 'Trending now', showIf: '', enabled: true,
       body:
         'GOOGLE TRENDS — TRENDING NOW for {{SITE}}\'s region, refreshed within the last 48 hours:\n{{TRENDING_NOW}}\n\n' +
         'If any of these trending terms genuinely overlap this article\'s subject — a person, a place, an event it ' +
