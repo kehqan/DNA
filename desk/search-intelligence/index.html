@@ -703,8 +703,8 @@ select.mini-in:hover{background-color:var(--chip-hover)}
       <div class="card" style="animation-delay:175ms">
         <div class="chead"><h2 data-i18n="d.header">Discover winners</h2><div class="rule"></div><div class="uchip" id="artCount">…</div></div>
         <div class="chips" style="margin-bottom:12px">
-          <div class="fc on" data-win="day" data-i18n="d.last3d">Last 3d</div>
-          <div class="fc" data-win="week" data-i18n="d.thisWeek">This week</div>
+          <div class="fc on" data-win="month" data-i18n="d.last30d">Last 30 days</div>
+          <div class="fc" data-win="quarter" data-i18n="d.last3m">Last 3 months</div>
         </div>
         <div class="artlist" id="artList"><div class="empty" data-i18n="sync.loadingDiscover">Loading Discover…</div></div>
         <details class="dd">
@@ -870,7 +870,7 @@ en: {
   'q.logReturned':'{n} quer{s} returned', 'q.logNone':'none', 'q.logError':'error',
   'q.addHeader':'Add a term or import manually', 'q.addPlaceholder':'Type a term, press Enter — syncs immediately',
   'q.pasteRows':'⧉ Paste rows', 'q.csv':'⭱ CSV', 'q.clear':'Clear',
-  'd.header':'Discover winners', 'd.last3d':'Last 3d', 'd.thisWeek':'This week',
+  'd.header':'Discover winners', 'd.last30d':'Last 30 days', 'd.last3m':'Last 3 months',
   'd.loadingShort':'Loading…', 'd.empty':'No Discover rows for this window.', 'd.noUrl':' · no URL returned',
   'd.untitled':'Untitled page', 'd.impr':'impr', 'd.count':'{n} pages',
   'd.addHeader':'Add an article by hand', 'd.titlePlaceholder':'Article title', 'd.added':'Added',
@@ -939,7 +939,7 @@ const DAYS = 28;
 const MAX_SEEDS = 8;
 
 /* ==================== State ==================== */
-const S = { article:'', headline:'', seeds:[], keywords:[], articles:[], log:[], window:'day', syncing:false, phase:'idle', lastSyncTime:'', session:null };
+const S = { article:'', headline:'', seeds:[], keywords:[], articles:[], log:[], window:'month', syncing:false, phase:'idle', lastSyncTime:'', session:null };
 let TPL_BLOCKS = [];   // loaded from PromptEngine at boot
 
 /* Only meaningfully different from S.session.site for a super admin who has
@@ -1030,7 +1030,7 @@ async function fetchQueries(term){
   })).filter(r=>r.term);
 }
 async function fetchDiscover(win){
-  const url = AuthEngine.authedGetUrl({ mode:'discover', window:win, limit:8, site:currentSite() });
+  const url = AuthEngine.authedGetUrl({ mode:'discover', window:win, limit:20, site:currentSite() });
   if (!url){ showLoginGate(); throw new Error('Not logged in'); }
   const res = await fetch(url);
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -1156,7 +1156,7 @@ function renderArts(){
   const list = $('artList');
   if (!S.articles.length){ list.innerHTML=`<div class="empty">${t('d.empty')}</div>`; $('artCount').textContent='0'; return; }
   const max = Math.max(...S.articles.map(a=>a.clicks),1);
-  list.innerHTML = S.articles.slice(0,6).map((a,i)=>{
+  list.innerHTML = S.articles.slice(0,20).map((a,i)=>{
     const s = a.clicks>max*0.6?'sf':a.clicks>max*0.25?'sh':'st';
     const hasUrl = /^https?:\/\//i.test(a.url || '');
     const titleText = esc(a.title && a.title.trim() ? a.title : (hasUrl ? a.url : t('d.untitled')));
@@ -1202,9 +1202,12 @@ function stripSiteHost(url){
   return String(url || '').replace(re, '');
 }
 
-function buildVars(){
+/* discoverCount is adjustable per-call so buildPrompt() below can trim it
+   dynamically — everything else about the prompt stays exactly the same
+   regardless of how many Discover lines end up included. */
+function buildVars(discoverCount){
   const kw = [...S.keywords].sort((a,b)=>b.clicks-a.clicks).slice(0,15);
-  const arts = S.articles.slice(0,6);
+  const arts = S.articles.slice(0, discoverCount == null ? 20 : discoverCount);
   const queryTable = kw.map(k=>`${k.term} | ${k.clicks} | ${k.impressions} | ${(k.ctr*100).toFixed(1)}% | ${k.position.toFixed(1)} | ${k.page||'—'}`).join('\n');
   const weak = kw.filter(k=>k.position>5 && k.impressions>500).slice(0,5);
   const opportunity = weak.map(k=>`  · ${k.term} — pos ${k.position.toFixed(1)}, ${k.impressions} impressions, only ${k.clicks} clicks`).join('\n');
@@ -1222,10 +1225,28 @@ function buildVars(){
     OPPORTUNITY:opportunity, CANNIBALIZATION:cannibalization,
     NO_QUERY_DATA:kw.length?'':'1',
     DISCOVER:discover, DISCOVER_COUNT:arts.length,
-    DISCOVER_WINDOW_LABEL:S.window==='week'?'last 7 days':'last 3 days'
+    DISCOVER_WINDOW_LABEL:S.window==='quarter'?'last 3 months':'last 30 days'
   };
 }
-function buildPrompt(){ return PromptEngine.assembleBlocks(TPL_BLOCKS, buildVars()); }
+
+/* Discover list can now hold up to 20 articles (up from 8), which can
+   push the assembled prompt long once a busy Discover window is included
+   alongside a full query table and article body. Rather than always
+   sending all 20, this trims the Discover count downward — never below
+   MIN_DISCOVER — only when the assembled prompt actually exceeds the
+   character budget. A quiet Discover day with few results is unaffected;
+   this only kicks in when there's genuinely a lot to include. */
+function buildPrompt(){
+  const MAX_DISCOVER = 20, MIN_DISCOVER = 10, STEP = 2;
+  const PROMPT_CHAR_BUDGET = 16000; // soft ceiling, not a hard API limit — tune if needed
+  let n = Math.min(MAX_DISCOVER, S.articles.length || MAX_DISCOVER);
+  let prompt = PromptEngine.assembleBlocks(TPL_BLOCKS, buildVars(n));
+  while (prompt.length > PROMPT_CHAR_BUDGET && n > MIN_DISCOVER){
+    n = Math.max(MIN_DISCOVER, n - STEP);
+    prompt = PromptEngine.assembleBlocks(TPL_BLOCKS, buildVars(n));
+  }
+  return prompt;
+}
 
 function updateGenState(){
   const ready = S.article.length>180 && !S.syncing;
@@ -2072,7 +2093,7 @@ async function startApp(session){
   }
 
   try{
-    S.articles = await fetchDiscover('day');
+    S.articles = await fetchDiscover('month');
     renderArts(); renderStats();
     S.phase = 'discover';
     renderSyncStatus();
