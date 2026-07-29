@@ -53,7 +53,9 @@ body{font-family:var(--sans);color:var(--lt-2);min-height:100vh;-webkit-font-smo
   background:var(--glass);backdrop-filter:var(--glass-filter);-webkit-backdrop-filter:var(--glass-filter);
   border-radius:100px;padding:5px;box-shadow:var(--ambient),var(--rim)}
 .wordmark{font-family:var(--serif);font-size:17px;color:var(--lt-1);text-shadow:var(--ts);
-  padding:6px 16px 6px 12px;border-right:1px solid var(--border);margin-right:4px}
+  padding:6px 16px 6px 12px;border-right:1px solid var(--border);margin-right:4px;
+  display:inline-flex;align-items:center;gap:9px}
+.wordmark-logo{height:45px;width:auto;display:block;flex-shrink:0}
 .wordmark em{font-style:normal;color:#FFB07A;font-weight:600}
 .ntab{font-size:13px;font-weight:500;color:var(--lt-3);text-shadow:var(--ts);padding:7px 16px;
   border-radius:100px;cursor:pointer;text-decoration:none;transition:color 180ms,background 180ms}
@@ -312,7 +314,7 @@ pre#preview{white-space:pre-wrap;word-break:break-word;font-family:ui-monospace,
 
 <div class="nav-wrap">
   <div class="nav-pill">
-    <div class="wordmark">Desk<em>.</em></div>
+    <div class="wordmark"><img class="wordmark-logo" src="/desk/assets/desk-logo.svg" alt="">Desk<em>.</em></div>
     <a href="/desk/search-intelligence/" class="ntab">Search Intelligence</a>
     <a href="/desk/search-intelligence/content-gap/" class="ntab">Content Gap</a>
     <div class="ntab on">Prompt Admin</div>
@@ -600,6 +602,10 @@ const SAMPLE_I18N = {
     headlineClean:'Raport special: ndërprerja e energjisë në Teheran', cleanQ:'ndërprerja e energjisë teheran', wordcount:68
   }
 };
+// Current Time TV shares Radio Svoboda's prompt template and language
+// (both Russian) — reuse the same preview sample rather than falling
+// through to the English default, which would preview the wrong language.
+SAMPLE_I18N.ct = SAMPLE_I18N.ru;
 
 function buildSamplesForLang(code){
   const L = SAMPLE_I18N[code] || SAMPLE_I18N.en;
