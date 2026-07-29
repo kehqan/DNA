@@ -1139,6 +1139,7 @@ function genRowHtml(g){
     <div class="gen-row-top">
       <span class="gen-user">${esc(g.username)}</span>
       <span class="user-badge site">${esc(PromptEngine.siteOf(g.site).label)}</span>
+      ${g.provider && g.provider !== 'anthropic' ? `<span class="role-badge site_admin">${esc(g.provider)}</span>` : ''}
       ${g.ok===false ? '<span class="gen-fail">failed</span>' : ''}
       <span class="gen-time">${esc(time)}</span>
     </div>
