@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Academy — PilotDesk</title>
+<meta name="description" content="The AI Academy of the Digital Transformation Department: foundations, prompts, workflows and role tracks for a newsroom using AI with its eyes open.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- ============================================================
+     FONTS — PLACEHOLDER, same as the index page. Skolar / Skolar Sans
+     are licensed (TypeTogether) with no free CDN. Lora + Work Sans stand
+     in so this reads as editorial type rather than Georgia. --serif and
+     --sans still list Skolar FIRST, so wiring the real faces makes this
+     pair drop out with no other change:
+
+     <link rel="stylesheet" href="https://use.typekit.net/YOUR_KIT_ID.css">
+     ============================================================ -->
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --flame: #FF5400;
+  --teal:  #1A3948; --teal2: #24506A; --honey: #FFC047; --stone: #B9CCCC; --ivory: #F8F7F6;
+  --glass: rgba(255,255,255,0.16);
+  --glass-filter: blur(38px) saturate(2.4) brightness(1.10);
+  --lt-1: #FFFFFF;
+  --lt-2: rgba(255,255,255,0.92);
+  --lt-3: rgba(255,255,255,0.74);
+  --border: rgba(255,255,255,0.16);
+  --ts:    0 1px 2px rgba(4,12,16,0.85), 0 2px 10px rgba(4,12,16,0.55);
+  --ts-lg: 0 1px 3px rgba(4,12,16,0.90), 0 3px 16px rgba(4,12,16,0.60), 0 1px 1px rgba(4,12,16,0.70);
+  --rim:
+    inset 0 0 0 1px rgba(255,255,255,0.14),
+    inset 0 1.5px 2px rgba(255,255,255,0.34),
+    inset 0 -2px 3px rgba(4,12,16,0.20),
+    inset 0 0 32px rgba(255,255,255,0.045);
+  --rim-sm:
+    inset 0 0 0 1px rgba(255,255,255,0.11),
+    inset 0 1px 1.5px rgba(255,255,255,0.26),
+    inset 0 -1.5px 2px rgba(4,12,16,0.18);
+  --ambient:    0 1px 2px rgba(6,20,28,0.44), 0 10px 30px rgba(6,20,28,0.40), 0 30px 70px rgba(6,20,28,0.34);
+  --ambient-lg: 0 1px 2px rgba(6,20,28,0.46), 0 14px 36px rgba(6,20,28,0.40), 0 44px 90px rgba(6,20,28,0.38);
+  --ambient-hi: 0 1px 2px rgba(6,20,28,0.50), 0 20px 46px rgba(6,20,28,0.44), 0 56px 110px rgba(6,20,28,0.42);
+  --chip: rgba(255,255,255,0.10);
+  --chip-hover: rgba(255,255,255,0.18);
+  --sunk:
+    inset 0 3px 6px rgba(4,12,16,0.30),
+    inset 0 1px 2px rgba(4,12,16,0.20),
+    inset 0 -1px 2px rgba(255,255,255,0.12),
+    inset 0 0 0 1px rgba(255,255,255,0.10);
+  --eo: cubic-bezier(0.25,0.46,0.45,0.94);
+  --serif: 'Skolar', 'Lora', Georgia, serif;
+  --sans:  'Skolar Sans', 'Work Sans', system-ui, sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { color-scheme: dark; scroll-behavior: smooth; }
+body {
+  font-family: var(--sans); font-size: 14px; line-height: 1.6;
+  color: var(--lt-2); min-height: 100vh; overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  background: linear-gradient(160deg, #0F1622 0%, #0B1016 45%, #0C0E14 75%, #120E18 100%);
+}
+
+/* ===== SCENE ===== */
+.scene { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
+  background: linear-gradient(160deg, #0F1622 0%, #0B1016 45%, #0C0E14 75%, #120E18 100%); }
+.scene::before {
+  content: ''; position: absolute; inset: 0;
+  background-image: url('https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=1800&q=80');
+  background-size: cover; background-position: center 34%; background-repeat: no-repeat;
+  opacity: 0.46; filter: saturate(1.05) contrast(1.03);
+}
+.scene::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(160deg,
+    rgba(15,22,34,0.78) 0%, rgba(11,16,22,0.83) 45%, rgba(12,14,20,0.86) 75%, rgba(18,14,24,0.90) 100%);
+}
+.orb { position: absolute; z-index: 2; border-radius: 50%; filter: blur(100px);
+  transition: opacity 700ms var(--eo), transform 700ms var(--eo); }
+.o1 { width: 660px; height: 540px; top: -170px; left: -120px;
+  opacity: calc(1 - var(--p, 0) * 0.55);
+  background: radial-gradient(ellipse, rgba(96,58,150,0.16) 0%, rgba(70,44,110,0.07) 46%, transparent 72%);
+  animation: d1 34s ease-in-out infinite; }
+.o2 { width: 640px; height: 520px; top: 24%; right: -170px;
+  opacity: calc(0.75 + var(--p, 0) * 0.25);
+  background: radial-gradient(ellipse, rgba(118,72,176,0.18) 0%, rgba(80,52,128,0.08) 50%, transparent 76%);
+  animation: d2 40s ease-in-out infinite; }
+.o3 { width: 540px; height: 440px; bottom: -2%; left: 16%;
+  opacity: calc(0.35 + var(--p, 0) * 0.65);
+  background: radial-gradient(ellipse, rgba(58,66,108,0.12) 0%, transparent 70%);
+  animation: d3 37s ease-in-out infinite; }
+@keyframes d1 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(50px,35px) scale(1.08); } }
+@keyframes d2 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(-40px,-30px) scale(1.06); } }
+@keyframes d3 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(35px,-25px) scale(1.08); } }
+
+/* ===== SCROLL REVEAL — identical system to the index page ===== */
+.reveal, [data-seq] {
+  opacity: 0; transform: translateY(14px);
+  transition: opacity 560ms var(--eo), transform 560ms var(--eo);
+}
+.trk[data-seq], .phase[data-seq] { transform: translateY(8px); }
+.reveal.in, [data-seq].in { opacity: 1; transform: translateY(0); }
+
+/* ===== NAV ===== */
+.nav-wrap { position: sticky; top: 0; z-index: 50; display: flex; justify-content: center;
+  padding: 16px 24px 0; pointer-events: none; }
+.nav-pill {
+  position: relative; display: inline-flex; align-items: center; gap: 2px; flex-wrap: wrap; justify-content: center;
+  background: var(--glass); backdrop-filter: var(--glass-filter); -webkit-backdrop-filter: var(--glass-filter);
+  border-radius: 100px; padding: 5px; box-shadow: var(--ambient), var(--rim); pointer-events: all;
+}
+.wordmark {
+  font-family: var(--serif); font-size: 17px; color: var(--lt-1); text-shadow: var(--ts);
+  padding: 6px 16px 6px 12px; border-right: 1px solid var(--border); margin-right: 4px; white-space: nowrap;
+  position: relative; z-index: 1; text-decoration: none; display: inline-block;
+}
+.wordmark em { font-style: normal; color: #FFB07A; font-weight: 600; }
+.nav-highlight {
+  position: absolute; top: 5px; left: 0; height: calc(100% - 10px); width: 0; border-radius: 100px;
+  background: rgba(255,255,255,0.09); box-shadow: var(--rim-sm); pointer-events: none; opacity: 0; z-index: 0;
+  transition: left 150ms cubic-bezier(0.22,1,0.36,1), width 150ms cubic-bezier(0.22,1,0.36,1), opacity 100ms ease-out;
+}
+.nav-highlight.show { opacity: 1; }
+.ntab {
+  position: relative; z-index: 1; font-size: 13px; font-weight: 500; color: var(--lt-3); text-shadow: var(--ts);
+  padding: 7px 16px; border-radius: 100px; cursor: pointer; transition: color 110ms ease-out;
+  white-space: nowrap; text-decoration: none; display: inline-block;
+}
+.ntab:hover { color: var(--lt-1); }
+.nav-sep { position: relative; z-index: 1; width: 1px; height: 20px; background: var(--border); margin: 0 2px; }
+.ghost-sm {
+  font-family: var(--sans); font-size: 12px; font-weight: 600; color: var(--lt-1); text-shadow: var(--ts);
+  padding: 7px 14px; border-radius: 100px; border: none; cursor: pointer;
+  background: rgba(255,255,255,0.10); box-shadow: var(--ambient), var(--rim-sm);
+  transition: transform 120ms cubic-bezier(0.22,1,0.36,1), background 120ms ease-out, box-shadow 120ms ease-out;
+  white-space: nowrap; text-decoration: none; position: relative; z-index: 1;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.ghost-sm:hover {
+  background: rgba(255,120,50,0.16); transform: translateY(-2px);
+  box-shadow: var(--ambient-hi), var(--rim-sm), inset 0 0 20px rgba(255,120,50,0.10);
+}
+.ghost-sm:active { transform: scale(0.96); }
+
+.wrap { position: relative; z-index: 1; max-width: 1180px; margin: 0 auto; padding: 0 24px 90px; }
+
+/* ===== SHARED ===== */
+.eyebrow {
+  font-size: 10px; font-weight: 600; letter-spacing: 0.10em; text-transform: uppercase;
+  color: var(--lt-3); text-shadow: var(--ts); margin-bottom: 18px;
+  display: flex; align-items: center; gap: 7px;
+}
+.pdot { width: 6px; height: 6px; border-radius: 50%; background: var(--flame);
+  box-shadow: 0 0 10px rgba(255,84,0,0.90); animation: pring 2.5s ease-in-out infinite; flex-shrink: 0; }
+@keyframes pring {
+  0%,100% { box-shadow: 0 0 10px rgba(255,84,0,0.90), 0 0 0 0 rgba(255,84,0,0.50); }
+  50%     { box-shadow: 0 0 10px rgba(255,84,0,0.90), 0 0 0 6px rgba(255,84,0,0); }
+}
+.card {
+  position: relative; border-radius: 24px; padding: 22px;
+  background: var(--glass);
+  backdrop-filter: var(--glass-filter); -webkit-backdrop-filter: var(--glass-filter);
+  box-shadow: var(--ambient-lg), var(--rim);
+}
+.card::before {
+  content: ''; position: absolute; inset: 0; border-radius: 24px; pointer-events: none;
+  background: radial-gradient(130% 90% at 22% -12%, rgba(255,255,255,0.26) 0%, rgba(255,255,255,0.07) 26%, transparent 52%);
+  mix-blend-mode: screen;
+}
+.card::after {
+  content: ''; position: absolute; left: 12%; right: 12%; bottom: -1px; height: 2px; pointer-events: none;
+  border-radius: 100px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.24), transparent);
+}
+.card > * { position: relative; z-index: 1; }
+
+.sect { display: grid; grid-template-columns: 0.95fr 1.05fr; gap: 48px; align-items: center; padding: 92px 0 0; }
+.sect-copy { text-align: left; }
+.sect-copy h2 {
+  font-family: var(--serif); font-size: 33px; font-weight: 400; letter-spacing: -0.02em; line-height: 1.14;
+  color: var(--lt-1); text-shadow: var(--ts-lg); margin-bottom: 14px;
+}
+.sect-copy h2 em { font-style: normal; color: #FFB07A; }
+.sect-copy p {
+  font-family: var(--serif); font-size: 15.5px; color: var(--lt-3); text-shadow: var(--ts);
+  line-height: 1.6; max-width: 400px;
+}
+.arrow-link {
+  display: inline-flex; align-items: center; gap: 8px; margin-top: 22px;
+  font-family: var(--sans); font-size: 13.5px; font-weight: 600; color: var(--lt-1); text-shadow: var(--ts);
+  text-decoration: none; padding: 11px 22px; border-radius: 100px;
+  background: var(--chip); box-shadow: var(--rim-sm);
+  transition: background 130ms ease-out, transform 130ms var(--eo);
+}
+.arrow-link:hover { background: var(--chip-hover); transform: translateY(-1.5px); }
+.arrow-link svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 1.4; }
+
+.chead { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; flex-wrap: wrap; }
+.chead h2 { font-family: var(--serif); font-size: 26px; font-weight: 400; letter-spacing: -0.015em;
+  color: var(--lt-1); text-shadow: var(--ts-lg); white-space: nowrap; }
+.rule { flex: 1; height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.20), transparent); min-width: 20px; }
+.uchip { font-size: 11px; font-weight: 600; color: #FFE0CC; background: rgba(255,84,0,0.35);
+  padding: 3px 11px; border-radius: 100px; box-shadow: var(--rim-sm); white-space: nowrap; }
+.uchip.quiet { color: var(--lt-3); background: rgba(255,255,255,0.10); }
+.block { padding: 92px 0 0; }
+.block-lede {
+  font-family: var(--serif); font-size: 15.5px; color: var(--lt-3); text-shadow: var(--ts);
+  max-width: 500px; margin-bottom: 22px;
+}
+.foot-note {
+  margin-top: 16px; padding-top: 15px; border-top: 1px solid var(--border);
+  font-size: 11.5px; color: var(--lt-3); text-shadow: var(--ts);
+}
+.foot-note b { color: var(--lt-2); font-weight: 600; }
+
+/* ===== HERO ===== */
+.hero-grid { display: grid; grid-template-columns: 0.95fr 1.05fr; gap: 44px; align-items: center; padding: 68px 0 20px; }
+.hero-copy h1 {
+  font-family: var(--serif); font-size: 50px; font-weight: 400; letter-spacing: -0.02em; line-height: 1.08;
+  color: var(--lt-1); text-shadow: var(--ts-lg); margin-bottom: 16px;
+}
+.hero-copy h1 em { font-style: normal; color: #FFB07A; }
+.hero-copy .sub {
+  font-family: var(--serif); font-size: 16px; color: var(--lt-3); text-shadow: var(--ts);
+  line-height: 1.5; max-width: 410px; margin-bottom: 28px;
+}
+.cta-row { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+
+/* The single primary action on this page */
+.btn-flame {
+  font-family: var(--sans); font-size: 14.5px; font-weight: 700; color: #fff;
+  padding: 13px 28px; border-radius: 100px; border: none; cursor: pointer;
+  text-decoration: none; display: inline-flex; align-items: center; gap: 9px;
+  background: linear-gradient(180deg, #FF7A38 0%, var(--flame) 60%, #E24E00 100%);
+  box-shadow:
+    0 1px 2px rgba(120,36,0,0.35), 0 8px 20px rgba(255,84,0,0.26),
+    inset 0 1px 0 rgba(255,255,255,0.30), inset 0 -1px 1px rgba(120,34,0,0.30);
+  transition: transform 120ms cubic-bezier(0.22,1,0.36,1), box-shadow 120ms ease-out;
+}
+.btn-flame:hover { transform: translateY(-1.5px); }
+.btn-flame:active { transform: scale(0.96); }
+.btn-flame svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 1.5; }
+
+.ghost-lg {
+  font-family: var(--sans); font-size: 14.5px; font-weight: 600; color: var(--lt-1); text-shadow: var(--ts);
+  padding: 12px 24px; border-radius: 100px; border: none; cursor: pointer;
+  background: var(--chip); box-shadow: var(--rim-sm);
+  transition: background 120ms ease-out, transform 120ms var(--eo);
+  display: inline-flex; align-items: center; gap: 8px;
+}
+.ghost-lg:hover { background: var(--chip-hover); transform: translateY(-1.5px); }
+.ghost-lg svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 1.4; }
+
+.trust-row { font-size: 12.5px; color: var(--lt-3); text-shadow: var(--ts); display: flex; align-items: center; gap: 11px; }
+.avatar-stack { display: flex; flex-shrink: 0; }
+.avatar-stack span {
+  width: 24px; height: 24px; border-radius: 50%; margin-left: -8px;
+  background: linear-gradient(160deg, #6B4A9E 0%, #3A4270 100%);
+  box-shadow: 0 0 0 2px #0B1016, var(--rim-sm);
+}
+.avatar-stack span:first-child { margin-left: 0; }
+
+/* ===== HERO VISUAL — one exercise, which is the whole pedagogy ===== */
+.hero-visual { position: relative; }
+.exercise {
+  position: relative; border-radius: 24px; padding: 24px 26px;
+  background: var(--glass);
+  backdrop-filter: var(--glass-filter); -webkit-backdrop-filter: var(--glass-filter);
+  box-shadow: var(--ambient-hi), var(--rim);
+  cursor: pointer; transition: transform 150ms cubic-bezier(0.22,1,0.36,1);
+}
+.exercise:hover { transform: translateY(-3px); }
+.exercise::before {
+  content: ''; position: absolute; inset: 0; border-radius: 24px; pointer-events: none;
+  background: radial-gradient(130% 90% at 22% -12%, rgba(255,255,255,0.26) 0%, rgba(255,255,255,0.07) 26%, transparent 52%);
+  mix-blend-mode: screen;
+}
+.exercise > * { position: relative; z-index: 1; }
+.ex-top { display: flex; align-items: center; gap: 9px; padding-bottom: 15px; border-bottom: 1px solid var(--border); margin-bottom: 18px; }
+.ex-slug { font-size: 10px; font-weight: 600; letter-spacing: 0.10em; text-transform: uppercase; color: var(--lt-3); text-shadow: var(--ts); }
+.ex-time { margin-left: auto; font-size: 11px; color: var(--lt-3); text-shadow: var(--ts); }
+.ex-quote {
+  font-family: var(--serif); font-size: 21px; line-height: 1.42; font-style: italic;
+  color: var(--lt-1); text-shadow: var(--ts-lg); margin-bottom: 20px;
+}
+.claims { display: flex; flex-direction: column; gap: 2px; margin-bottom: 18px; }
+.claim {
+  display: grid; grid-template-columns: 16px 1fr auto; gap: 11px; align-items: center;
+  padding: 10px 13px; border-radius: 12px; background: var(--chip); box-shadow: var(--rim-sm);
+}
+.claim.caught { background: rgba(255,84,0,0.13); }
+.cl-mark { width: 8px; height: 8px; border-radius: 50%; justify-self: center;
+  box-shadow: inset 0 0 0 1.5px rgba(255,255,255,0.45); }
+.claim.caught .cl-mark { background: var(--flame); box-shadow: 0 0 9px rgba(255,84,0,0.75); }
+.cl-label { font-size: 12.5px; color: var(--lt-2); text-shadow: var(--ts); }
+.claim.caught .cl-label { color: var(--lt-1); font-weight: 500; }
+.cl-state { font-size: 9.5px; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase; color: var(--lt-3); text-shadow: var(--ts); }
+.claim.caught .cl-state { color: #FFC9A8; }
+.ex-foot { padding-top: 15px; border-top: 1px solid var(--border); font-size: 11.5px; color: var(--lt-3); text-shadow: var(--ts); }
+
+.float-chip {
+  position: absolute; z-index: 3; font-size: 11.5px; font-weight: 600;
+  color: var(--lt-1); text-shadow: var(--ts);
+  background: rgba(22,27,36,0.88); padding: 8px 14px; border-radius: 100px;
+  box-shadow: var(--ambient), var(--rim-sm);
+  display: flex; align-items: center; gap: 7px; white-space: nowrap;
+}
+.chip-a { top: -16px; right: 22px; }
+.chip-b { bottom: -18px; left: 26px; }
+.chip-mark { color: var(--flame); font-size: 10px; }
+
+/* ===== FLAT ROWS (layers, strands, synergy) ===== */
+.row {
+  display: grid; grid-template-columns: 30px 1fr auto; gap: 12px; align-items: center;
+  padding: 12px 14px; border-radius: 13px; margin-bottom: 6px;
+  background: var(--chip); box-shadow: var(--rim-sm);
+  transition: background 130ms ease-out;
+}
+.row:last-of-type { margin-bottom: 0; }
+.row:hover { background: var(--chip-hover); }
+.row.key { background: rgba(255,84,0,0.13); }
+.r-ico { width: 30px; height: 30px; border-radius: 9px; display: flex; align-items: center; justify-content: center;
+  background: rgba(255,255,255,0.10); box-shadow: var(--rim-sm); color: var(--lt-2); }
+.r-ico svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 1.3; }
+.r-name { display: block; font-family: var(--serif); font-size: 14.5px; color: var(--lt-1); text-shadow: var(--ts); }
+.r-sub { display: block; font-size: 11px; color: var(--lt-3); text-shadow: var(--ts); margin-top: 1px; }
+.r-state { font-size: 10px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--lt-3); text-shadow: var(--ts); white-space: nowrap; }
+.r-state.live { color: #FFC9A8; }
+.r-num { justify-self: center; font-family: var(--serif); font-size: 13px; color: var(--lt-3); text-shadow: var(--ts); }
+
+/* ===== ROLE TRACKS ===== */
+.tracks { display: flex; flex-direction: column; }
+.trk {
+  display: grid; grid-template-columns: 1fr auto; gap: 18px; align-items: center;
+  padding: 17px 10px; border-radius: 14px; cursor: pointer; text-align: left;
+  border: none; background: transparent; width: 100%; font-family: var(--sans);
+  transition: background 140ms ease-out, transform 140ms var(--eo);
+}
+.trk + .trk { border-top: 1px solid var(--border); }
+.trk:hover { background: var(--chip); transform: translateX(3px); }
+.trk-name { display: block; font-family: var(--serif); font-size: 18px; color: var(--lt-1); text-shadow: var(--ts-lg); margin-bottom: 3px; }
+.trk-use { display: block; font-size: 11.5px; color: var(--lt-3); text-shadow: var(--ts); }
+.trk-teach {
+  font-size: 10.5px; font-weight: 600; color: #FFC9A8; background: rgba(255,84,0,0.20);
+  padding: 5px 12px; border-radius: 100px; box-shadow: var(--rim-sm); text-shadow: var(--ts);
+  max-width: 210px; text-align: right; line-height: 1.35;
+}
+
+/* ===== ROADMAP ===== */
+.phase { display: grid; grid-template-columns: 104px 1fr; gap: 20px; padding: 20px 8px; }
+.phase + .phase { border-top: 1px solid var(--border); }
+.ph-no { font-family: var(--serif); font-size: 26px; line-height: 1; color: var(--lt-1); text-shadow: var(--ts-lg); }
+.ph-when { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--lt-3); text-shadow: var(--ts); margin-top: 7px; }
+.ph-title { font-family: var(--serif); font-size: 18px; color: var(--lt-1); text-shadow: var(--ts-lg); margin-bottom: 9px; }
+.ph-items { display: flex; flex-direction: column; gap: 5px; margin-bottom: 10px; }
+.ph-items span { font-size: 12.5px; color: var(--lt-3); text-shadow: var(--ts); padding-left: 14px; position: relative; }
+.ph-items span::before { content: ''; position: absolute; left: 0; top: 8px; width: 5px; height: 1px; background: rgba(255,255,255,0.45); }
+.ph-gate { font-size: 11.5px; color: #FFC9A8; background: rgba(255,84,0,0.14); box-shadow: var(--rim-sm);
+  border-radius: 10px; padding: 8px 12px; text-shadow: var(--ts); }
+.ph-gate b { color: #FFE0CC; font-weight: 600; }
+
+/* ===== PRINCIPLES ===== */
+.prin-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 2px; }
+.prin { padding: 16px 22px; }
+.prin:nth-child(odd) { border-right: 1px solid var(--border); }
+.prin:not(:nth-child(-n+2)) { border-top: 1px solid var(--border); }
+/* 7 items in a 2-col grid leaves the last one alone with a divider pointing
+   at nothing. Span it instead — it's the closing line anyway. */
+.prin:last-child:nth-child(odd) { grid-column: 1 / -1; border-right: none; }
+.prin h3 { font-family: var(--serif); font-size: 17px; font-weight: 400; line-height: 1.3; color: var(--lt-1); text-shadow: var(--ts-lg); margin-bottom: 6px; }
+.prin p { font-size: 12px; color: var(--lt-3); text-shadow: var(--ts); line-height: 1.6; }
+
+/* ===== NEEDS / CLOSE ===== */
+.needs { display: grid; grid-template-columns: 1fr auto; gap: 26px; align-items: center; }
+.needs h2 { font-family: var(--serif); font-size: 25px; font-weight: 400; line-height: 1.2; color: var(--lt-1); text-shadow: var(--ts-lg); margin-bottom: 12px; }
+.needs-list { display: flex; flex-direction: column; gap: 6px; }
+.needs-list span { font-size: 12.5px; color: var(--lt-3); text-shadow: var(--ts); padding-left: 15px; position: relative; }
+.needs-list span::before { content: ''; position: absolute; left: 0; top: 8px; width: 6px; height: 1px; background: var(--flame); }
+.needs-list b { color: var(--lt-2); font-weight: 600; }
+
+/* ===== FOOTER ===== */
+.foot {
+  margin-top: 88px; padding-top: 26px; border-top: 1px solid var(--border);
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; flex-wrap: wrap;
+  font-size: 11.5px; color: var(--lt-3); text-shadow: var(--ts); line-height: 1.7;
+}
+.foot strong { color: var(--lt-2); font-weight: 600; }
+.foot a { color: var(--lt-2); text-decoration: none; border-bottom: 1px solid var(--border); }
+.foot a:hover { color: var(--lt-1); }
+.foot-links { display: flex; gap: 18px; flex-wrap: wrap; }
+
+/* ===== POPUP ===== */
+.popup-overlay {
+  position: fixed; inset: 0; z-index: 500; display: none;
+  align-items: center; justify-content: center; padding: 24px;
+  background: rgba(4,8,12,0.62); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  opacity: 0; pointer-events: none; transition: opacity 260ms var(--eo);
+}
+.popup-overlay.show { opacity: 1; pointer-events: all; }
+.popup-card {
+  position: relative; width: 100%; max-width: 460px; border-radius: 24px; padding: 25px 27px;
+  background: var(--glass); backdrop-filter: var(--glass-filter); -webkit-backdrop-filter: var(--glass-filter);
+  box-shadow: var(--ambient-lg), var(--rim);
+  transform-origin: center center; opacity: 0;
+  transition: transform 380ms cubic-bezier(0.16,1,0.3,1), opacity 220ms ease-out;
+  max-height: 84vh; overflow-y: auto;
+}
+.popup-overlay.show .popup-card { opacity: 1; }
+.popup-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; margin-bottom: 15px; }
+.popup-head h3 { font-family: var(--serif); font-size: 21px; font-weight: 400; line-height: 1.25; color: var(--lt-1); text-shadow: var(--ts-lg); }
+.popup-close {
+  width: 30px; height: 30px; border-radius: 50%; border: none; cursor: pointer; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--chip); color: var(--lt-3); box-shadow: var(--rim-sm);
+  transition: background 120ms ease-out, color 120ms ease-out;
+}
+.popup-close:hover { background: var(--chip-hover); color: var(--lt-1); }
+.popup-close svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 1.5; }
+.popup-eyebrow { font-size: 10px; font-weight: 600; letter-spacing: 0.10em; text-transform: uppercase; color: var(--lt-3); text-shadow: var(--ts); margin-bottom: 11px; }
+.popup-body { font-family: var(--serif); font-size: 14.5px; line-height: 1.65; color: var(--lt-2); text-shadow: var(--ts); }
+.popup-body p + p { margin-top: 11px; }
+.popup-body b { color: var(--lt-1); font-weight: 600; }
+.popup-foot { margin-top: 18px; padding-top: 15px; border-top: 1px solid var(--border); font-size: 11.5px; color: var(--lt-3); text-shadow: var(--ts); }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 900px) {
+  .hero-grid, .sect { grid-template-columns: 1fr; gap: 40px; }
+  .hero-copy h1 { font-size: 39px; }
+  .sect-copy h2 { font-size: 27px; }
+  .prin-grid { grid-template-columns: 1fr; }
+  .prin:nth-child(odd) { border-right: none; }
+  .prin:not(:first-child) { border-top: 1px solid var(--border); }
+  .needs { grid-template-columns: 1fr; }
+}
+@media (max-width: 600px) {
+  .wrap { padding: 0 16px 70px; }
+  .hero-copy h1 { font-size: 32px; }
+  .trk { grid-template-columns: 1fr; }
+  .trk-teach { max-width: none; text-align: left; justify-self: start; margin-top: 9px; }
+  .phase { grid-template-columns: 1fr; gap: 10px; }
+  .ph-when { margin-top: 2px; }
+  .float-chip { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  .reveal, [data-seq] { opacity: 1 !important; transform: none !important; }
+  html { scroll-behavior: auto; }
+}
+</style>
+<noscript><style>
+  .reveal, [data-seq] { opacity: 1 !important; transform: none !important; }
+</style></noscript>
+</head>
+<body>
+
+<div class="scene" id="scene">
+  <div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div>
+</div>
+
+<div class="nav-wrap">
+  <div class="nav-pill" id="navPill">
+    <span class="nav-highlight" id="navHighlight"></span>
+    <a href="/" class="wordmark">Pilot<em>Desk</em></a>
+    <a href="#layers" class="ntab">The layers</a>
+    <a href="#tracks" class="ntab">Role tracks</a>
+    <a href="#roadmap" class="ntab">Roadmap</a>
+    <div class="nav-sep"></div>
+    <a href="/desk" class="ghost-sm">
+      The Desk
+      <svg viewBox="0 0 24 24" width="11" height="11" style="stroke:currentColor;fill:none;stroke-width:1.6"><path d="M7 17L17 7M17 7H9M17 7v8" stroke-linecap="round"/></svg>
+    </a>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- ===== HERO ===== -->
+  <div class="hero-grid">
+    <div class="hero-copy reveal" data-reveal>
+      <div class="eyebrow"><span class="pdot"></span> The Academy · a proposal, opening soon</div>
+      <h1>Access isn't skill.<br>This is where <em>skill gets built.</em></h1>
+      <p class="sub">Foundations, prompts and workflows for a newsroom using AI with its eyes open.</p>
+      <div class="cta-row">
+        <button class="btn-flame" id="triggerJoin">
+          Join the first cohort
+          <svg viewBox="0 0 24 24"><path d="M5 12h13M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <button class="ghost-lg" id="triggerWhat">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01" stroke-linecap="round"/></svg>
+          What we're proposing
+        </button>
+      </div>
+      <div class="trust-row">
+        <div class="avatar-stack"><span></span><span></span><span></span><span></span></div>
+        A programme of the Digital Transformation Department
+      </div>
+    </div>
+
+    <!-- One exercise, which is the entire pedagogy in miniature -->
+    <div class="hero-visual reveal" data-reveal data-seq-base="300" data-step="110">
+      <div class="exercise" id="triggerExercise">
+        <div class="ex-top">
+          <span class="ex-slug">Foundations · exercise 01</span>
+          <span class="ex-time">02:14</span>
+        </div>
+        <div class="ex-quote" dir="auto">Three claims in the briefing. One of them isn't real.</div>
+
+        <div class="claims">
+          <div class="claim" data-seq>
+            <span class="cl-mark"></span>
+            <span class="cl-label">Checked against the primary document</span>
+            <span class="cl-state">Verified</span>
+          </div>
+          <div class="claim" data-seq>
+            <span class="cl-mark"></span>
+            <span class="cl-label">Checked against a second source</span>
+            <span class="cl-state">Verified</span>
+          </div>
+          <div class="claim caught" data-seq>
+            <span class="cl-mark"></span>
+            <span class="cl-label">No source exists. It was invented, fluently</span>
+            <span class="cl-state">Caught</span>
+          </div>
+        </div>
+
+        <div class="ex-foot">Session one teaches this before it teaches anything useful.</div>
+      </div>
+
+      <div class="float-chip chip-a"><span class="chip-mark">◆</span> Teach failure first</div>
+      <div class="float-chip chip-b"><span class="chip-mark">✓</span> Found in 2m 14s</div>
+    </div>
+  </div>
+
+  <!-- ===== THE LAYERS ===== -->
+  <div class="sect" id="layers">
+    <div class="sect-copy reveal" data-reveal>
+      <div class="eyebrow"><span class="pdot"></span> How it's built</div>
+      <h2>Three layers.<br>Everyone, then <em>every role.</em></h2>
+      <p>Calibration first. Craft second. And a small cohort who keep the whole thing running without us.</p>
+      <a href="#tracks" class="arrow-link">
+        See the role tracks
+        <svg viewBox="0 0 24 24"><path d="M12 5v14M6 13l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+    </div>
+
+    <div class="card reveal" data-reveal>
+      <div class="chead" style="margin-bottom:14px">
+        <h2 style="font-size:19px">The three layers</h2>
+        <div class="rule"></div>
+      </div>
+      <div class="row">
+        <span class="r-num">01</span>
+        <span><span class="r-name">Foundations</span><span class="r-sub">Not a tool demo — a calibration session</span></span>
+        <span class="r-state">Everyone · 90 min</span>
+      </div>
+      <div class="row">
+        <span class="r-num">02</span>
+        <span><span class="r-name">Craft</span><span class="r-sub">Because a translator and a data reporter share almost nothing here</span></span>
+        <span class="r-state">By role · 2 × 90 min</span>
+      </div>
+      <div class="row key">
+        <span class="r-num">03</span>
+        <span><span class="r-name">Multipliers</span><span class="r-sub">Journalists, not engineers, with time protected in writing</span></span>
+        <span class="r-state live">2–3 per service</span>
+      </div>
+      <div class="foot-note">Layer three is how this scales past one department — and the first thing that gets cut. <b>It shouldn't be.</b></div>
+    </div>
+  </div>
+
+  <!-- ===== WHAT'S INSIDE ===== -->
+  <div class="block" id="inside">
+    <div class="chead reveal" data-reveal>
+      <h2>What's inside</h2>
+      <div class="rule"></div>
+      <div class="uchip">Opening soon</div>
+    </div>
+    <p class="block-lede reveal" data-reveal>Five strands, one place. Written by the desks that use them, not for them.</p>
+
+    <div class="card reveal" data-reveal>
+      <div class="row">
+        <span class="r-ico"><svg viewBox="0 0 24 24"><path d="M4 7l8-4 8 4-8 4-8-4zM4 7v6l8 4 8-4V7" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <span><span class="r-name">Foundations</span><span class="r-sub">What these tools are bad at, demonstrated on our own beats</span></span>
+        <span class="r-state">Everyone</span>
+      </div>
+      <div class="row">
+        <span class="r-ico"><svg viewBox="0 0 24 24"><path d="M5 4h11l3 3v13H5z" stroke-linejoin="round"/><path d="M8 10h8M8 14h5" stroke-linecap="round"/></svg></span>
+        <span><span class="r-name">Prompt library</span><span class="r-sub">Vetted prompts grouped by desk — 15–20 good ones, not 200 unchecked</span></span>
+        <span class="r-state">By desk</span>
+      </div>
+      <div class="row">
+        <span class="r-ico"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="7" height="5" rx="1.5"/><rect x="14" y="15" width="7" height="5" rx="1.5"/><path d="M6.5 9v5.5a2 2 0 0 0 2 2H14" stroke-linecap="round"/></svg></span>
+        <span><span class="r-name">Workflows</span><span class="r-sub">Where a tool fits in a real task, and where it stops</span></span>
+        <span class="r-state">Diagrams</span>
+      </div>
+      <div class="row">
+        <span class="r-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.2"/><path d="M5.5 20c0-3.6 2.9-6.5 6.5-6.5s6.5 2.9 6.5 6.5" stroke-linecap="round"/></svg></span>
+        <span><span class="r-name">Role tracks</span><span class="r-sub">Seven of them, each built around a specific way the tool fails</span></span>
+        <span class="r-state">By role</span>
+      </div>
+      <div class="row">
+        <span class="r-ico"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 10l3 2.5L7 15M12.5 15H17" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <span><span class="r-name">The Desk tools</span><span class="r-sub">The same library, with the training sitting next to it</span></span>
+        <span class="r-state live">Live now</span>
+      </div>
+      <div class="foot-note">Only the last row exists today. Everything above it is what this proposal is asking to build.</div>
+    </div>
+  </div>
+
+  <!-- ===== ROLE TRACKS ===== -->
+  <div class="block" id="tracks">
+    <div class="chead reveal" data-reveal>
+      <h2>Role tracks</h2>
+      <div class="rule"></div>
+      <div class="uchip quiet">7 tracks</div>
+    </div>
+    <p class="block-lede reveal" data-reveal>Each track is built around the specific way the tool fails for that role. That failure mode <em>is</em> the curriculum — the useful applications follow from understanding it.</p>
+
+    <div class="card reveal" data-reveal data-seq-base="230" data-step="105">
+      <div class="tracks">
+        <button class="trk" data-seq data-pop="reporter">
+          <span><span class="trk-name">Reporter</span><span class="trk-use">Background briefing · document triage · interview preparation</span></span>
+          <span class="trk-teach">Teaches: invented sources</span>
+        </button>
+        <button class="trk" data-seq data-pop="editor">
+          <span><span class="trk-name">Editor / desk</span><span class="trk-use">Headline variants · structural critique · what's missing</span></span>
+          <span class="trk-teach">Teaches: homogenised voice</span>
+        </button>
+        <button class="trk" data-seq data-pop="verify">
+          <span><span class="trk-name">Verification / visuals</span><span class="trk-use">Provenance · reverse search · reading metadata</span></span>
+          <span class="trk-teach">Teaches: a score isn't a verdict</span>
+        </button>
+        <button class="trk" data-seq data-pop="data">
+          <span><span class="trk-name">Data</span><span class="trk-use">Cleaning · transformation · chart critique</span></span>
+          <span class="trk-teach">Teaches: silent arithmetic errors</span>
+        </button>
+        <button class="trk" data-seq data-pop="translation">
+          <span><span class="trk-name">Translation</span><span class="trk-use">Terminology · register · back-translation as a check</span></span>
+          <span class="trk-teach">Teaches: loaded near-synonyms</span>
+        </button>
+        <button class="trk" data-seq data-pop="audio">
+          <span><span class="trk-name">Audio / video</span><span class="trk-use">Transcript triage · finding the moment in long tape</span></span>
+          <span class="trk-teach">Teaches: what a transcript can't record</span>
+        </button>
+        <button class="trk" data-seq data-pop="audience">
+          <span><span class="trk-name">Audience / social</span><span class="trk-use">Summaries · variants per platform</span></span>
+          <span class="trk-teach">Teaches: drift to sensationalism</span>
+        </button>
+      </div>
+      <div class="foot-note">Tap any track for what it covers and the failure it's built around.</div>
+    </div>
+  </div>
+
+  <!-- ===== THE SYNERGY ===== -->
+  <div class="sect" id="synergy">
+    <div class="sect-copy reveal" data-reveal>
+      <div class="eyebrow"><span class="pdot"></span> The part that compounds</div>
+      <h2>The tools help <em>teach the tools.</em></h2>
+      <p>Models are exceptional at producing output that's plausible and wrong. Used deliberately, that's an unlimited supply of training material.</p>
+    </div>
+
+    <div class="card reveal" data-reveal>
+      <div class="chead" style="margin-bottom:14px">
+        <h2 style="font-size:19px">Five mechanisms</h2>
+        <div class="rule"></div>
+      </div>
+      <div class="row key">
+        <span class="r-ico"><svg viewBox="0 0 24 24"><path d="M12 3l8 4v6c0 4-3.4 7-8 8-4.6-1-8-4-8-8V7z" stroke-linejoin="round"/><path d="M9.5 12l1.8 1.8L15 10" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <span><span class="r-name">Red-team drills</span><span class="r-sub">Briefings with three seeded errors. Cheap, endless, and it trains the one skill that matters</span></span>
+        <span class="r-state live">Highest value</span>
+      </div>
+      <div class="row">
+        <span class="r-ico"><svg viewBox="0 0 24 24"><path d="M8 10h8M8 14h5" stroke-linecap="round"/><path d="M4 5h16v11H9l-5 4z" stroke-linejoin="round"/></svg></span>
+        <span><span class="r-name">Practice partners</span><span class="r-sub">An evasive spokesperson, or an editor demanding your sourcing</span></span>
+        <span class="r-state">Rehearsal</span>
+      </div>
+      <div class="row">
+        <span class="r-ico"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h11M4 18h7" stroke-linecap="round"/></svg></span>
+        <span><span class="r-name">Exercises from our archive</span><span class="r-sub">Material drawn from pieces the room actually published</span></span>
+        <span class="r-state">In-house</span>
+      </div>
+      <div class="row">
+        <span class="r-ico"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M16 16l4 4" stroke-linecap="round"/></svg></span>
+        <span><span class="r-name">A tutor on the library</span><span class="r-sub">Ask in plain language, get the newsroom's own vetted prompt</span></span>
+        <span class="r-state">Discovery</span>
+      </div>
+      <div class="row">
+        <span class="r-ico"><svg viewBox="0 0 24 24"><path d="M5 19V9M11 19V5M17 19v-7" stroke-linecap="round"/></svg></span>
+        <span><span class="r-name">Instrumentation</span><span class="r-sub">Which prompts get reused, edited, or abandoned tells us what to teach next</span></span>
+        <span class="r-state">Feedback</span>
+      </div>
+      <div class="foot-note">One hard limit: <b>AI generates the exercise. A person reviews the answer.</b> Nothing carrying a sign-off is machine-assessed.</div>
+    </div>
+  </div>
+
+  <!-- ===== ROADMAP ===== -->
+  <div class="block" id="roadmap">
+    <div class="chead reveal" data-reveal>
+      <h2>Roadmap</h2>
+      <div class="rule"></div>
+      <div class="uchip quiet">24 months</div>
+    </div>
+    <p class="block-lede reveal" data-reveal>Timings are starting proposals, not commitments. They should be revised against what the baseline survey actually finds.</p>
+
+    <div class="card reveal" data-reveal data-seq-base="240" data-step="130">
+      <div class="phase" data-seq>
+        <div>
+          <div class="ph-no">00</div>
+          <div class="ph-when">Weeks 1–4</div>
+        </div>
+        <div>
+          <div class="ph-title">Before any training</div>
+          <div class="ph-items">
+            <span>Anonymous baseline survey — what is already being used, and for what</span>
+            <span>Pick three pilot workflows that already hurt, chosen by the desks</span>
+            <span>Write the policy one-pager: disclosure, prohibited inputs, sign-off</span>
+            <span>Recruit four to six volunteers, including at least one open sceptic</span>
+          </div>
+          <div class="ph-gate"><b>Gate —</b> policy signed off by editorial leadership. Nothing below starts without it.</div>
+        </div>
+      </div>
+
+      <div class="phase" data-seq>
+        <div>
+          <div class="ph-no">01</div>
+          <div class="ph-when">Months 1–3 · short term</div>
+        </div>
+        <div>
+          <div class="ph-title">Prove it on real work</div>
+          <div class="ph-items">
+            <span>Foundations delivered once per language service, in-language</span>
+            <span>Prompt library live with 15–20 vetted prompts</span>
+            <span>Three pilot workflows running with before-and-after numbers</span>
+            <span>Weekly 30-minute open clinic, drop-in, no agenda</span>
+          </div>
+          <div class="ph-gate"><b>Not doing —</b> rolling out to everyone. The pressure to do this will be significant and should be resisted.</div>
+        </div>
+      </div>
+
+      <div class="phase" data-seq>
+        <div>
+          <div class="ph-no">02</div>
+          <div class="ph-when">Months 4–9 · medium term</div>
+        </div>
+        <div>
+          <div class="ph-title">Make it role-shaped</div>
+          <div class="ph-items">
+            <span>Four role tracks live, starting where the pilots succeeded</span>
+            <span>Workflow diagrams published</span>
+            <span>AI leads named per service, with time protected in writing</span>
+            <span>Red-team exercise library, refreshed monthly</span>
+            <span>Foundations folded into new-hire induction</span>
+          </div>
+          <div class="ph-gate"><b>Milestone —</b> every desk owns at least one workflow it maintains itself.</div>
+        </div>
+      </div>
+
+      <div class="phase" data-seq>
+        <div>
+          <div class="ph-no">03</div>
+          <div class="ph-when">Months 10–24 · long term</div>
+        </div>
+        <div>
+          <div class="ph-title">Make it self-sustaining</div>
+          <div class="ph-items">
+            <span>The Academy is the default reference — checked before asking a person</span>
+            <span>Light-touch per-track badging, human-reviewed</span>
+            <span>Contribution model: journalists submit, AI leads vet</span>
+            <span>Annual curriculum rewrite, because the tools will have moved</span>
+          </div>
+          <div class="ph-gate"><b>Exit criterion —</b> DTD stops running the training and starts running the platform. Still delivering Foundations in month 24 means this didn't work.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== PRINCIPLES ===== -->
+  <div class="block" id="principles">
+    <div class="chead reveal" data-reveal>
+      <h2>What we hold to</h2>
+      <div class="rule"></div>
+      <div class="uchip quiet">7 commitments</div>
+    </div>
+    <div class="card reveal" data-reveal>
+      <div class="prin-grid">
+        <div class="prin"><h3>Nothing publishes itself.</h3><p>Every tool stops short of the send button, on purpose.</p></div>
+        <div class="prin"><h3>Every output is a draft.</h3><p>Something to argue with, never an answer to accept.</p></div>
+        <div class="prin"><h3>The byline stays human.</h3><p>Credit and accountability sit with the journalist.</p></div>
+        <div class="prin"><h3>Teach failure first.</h3><p>Session one shows the tool being confidently wrong, before it shows anything useful.</p></div>
+        <div class="prin"><h3>Train on live work.</h3><p>No toy exercises. People bring a real task from their own desk.</p></div>
+        <div class="prin"><h3>The trainer is a colleague.</h3><p>Peer-led, in-language, in-house. Not a vendor deck.</p></div>
+        <div class="prin"><h3>Sceptics are quality control.</h3><p>The person who distrusts the tool finds the failure modes. Recruit them.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== WHAT IT NEEDS ===== -->
+  <div class="block">
+    <div class="card needs reveal" data-reveal>
+      <div>
+        <h2>What this needs to start.</h2>
+        <div class="needs-list">
+          <span><b>Protected time</b> — 90 minutes once for every journalist; ~4 hours a month per AI lead, defended</span>
+          <span><b>Policy sign-off</b> from editorial leadership before Phase 00 closes</span>
+          <span><b>One named owner</b> for Academy content. Not a committee</span>
+          <span><b>Tool licences</b> for the pilot cohort, then per service</span>
+          <span><b>Permission to stay small</b> for the first three months</span>
+        </div>
+      </div>
+      <button class="ghost-lg" id="triggerJoin2">
+        Join the first cohort
+        <svg viewBox="0 0 24 24"><path d="M5 12h13M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="foot reveal" data-reveal>
+    <div>
+      <strong>The Academy</strong> — training, prompts and workflows for AI in the newsroom.<br>
+      A project of the <strong>Digital Transformation Department (DTD)</strong>, RFE/RL.
+    </div>
+    <div class="foot-links">
+      <a href="/">PilotDesk</a>
+      <a href="/desk">The Desk</a>
+      <a href="#tracks">Role tracks</a>
+      <a href="#roadmap">Roadmap</a>
+    </div>
+  </div>
+
+</div>
+
+<div class="popup-overlay" id="popup">
+  <div class="popup-card">
+    <div class="popup-head">
+      <h3 id="popupTitle"></h3>
+      <button class="popup-close" data-close aria-label="Close">
+        <svg viewBox="0 0 24 24"><path d="M5 5l14 14M19 5L5 19" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <div class="popup-eyebrow" id="popupEyebrow"></div>
+    <div class="popup-body" id="popupBody"></div>
+    <div class="popup-foot" id="popupFoot"></div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   POPUP — one overlay, content swapped, grown from its trigger
+   ============================================================ */
+const CONTENT = {
+  triggerJoin: {
+    eyebrow: 'Phase 00 · weeks 1–4',
+    title: 'Join the first cohort',
+    body: `<p>Four to six journalists from different desks, for the first three months. Ideally including someone who thinks this is all overhyped — that person will find the failure modes faster than anyone else.</p>
+           <p>What it asks of you: one 90-minute Foundations session, one real workflow from your own desk run with a tool for three months, and honest reporting on whether it helped.</p>
+           <p><b>To put your name down, contact DTD.</b></p>`,
+    /* TODO — replace with the real internal route before sharing this page:
+       either an internal form URL, a Teams/Slack channel, or a mailto. */
+    foot: 'Internal contact route to be added before this page is circulated.'
+  },
+  triggerWhat: {
+    eyebrow: 'The proposal in short',
+    title: 'What we are actually proposing',
+    body: `<p>Not "everyone uses AI." Something narrower and more useful: <b>every journalist knows what these tools are bad at, and has one workflow they trust.</b></p>
+           <p>One reliable workflow per person beats broad, shallow familiarity — and it compounds, because someone who trusts one thing goes looking for the second on their own.</p>
+           <p>Three layers deliver it: calibration for everyone, craft by role, and a small cohort of AI leads who keep it running after DTD steps back.</p>`,
+    foot: 'Full written proposal available from DTD.'
+  },
+  triggerExercise: {
+    eyebrow: 'Foundations · exercise 01',
+    title: 'Why the first session is a failure demo',
+    body: `<p>Participants are shown five outputs. Two contain a fabricated citation or an invented detail. The exercise is to find them — as a group, not as a test.</p>
+           <p>It works because the tool is most confident exactly where it is least reliable: niche facts, names, numbers, anything regional. Reading that confidence correctly is the one skill the whole programme depends on.</p>
+           <p>Everything else — prompts, workflows, tracks — assumes this session already happened.</p>`,
+    foot: 'Illustrative. Exercise sets are generated from our own archive.'
+  },
+  reporter: {
+    eyebrow: 'Role track',
+    title: 'Reporter',
+    body: `<p><b>Covers:</b> background briefing, document triage, interview preparation, finding the question you haven't asked yet.</p>
+           <p><b>The failure it's built around:</b> invented sources and citations, plus false fluency on local specifics. The output reads like a well-briefed colleague and cites things that do not exist.</p>
+           <p><b>Rule taught:</b> nothing enters a draft unless independently verified at source.</p>`,
+    foot: 'Two sessions plus a follow-up clinic.'
+  },
+  editor: {
+    eyebrow: 'Role track',
+    title: 'Editor / desk',
+    body: `<p><b>Covers:</b> headline variants, structural critique, framing and bias checks, "what's missing from this piece."</p>
+           <p><b>The failure it's built around:</b> homogenised voice. Twelve AI-assisted headlines a day converge on the same register, and the house style quietly becomes the model's style.</p>
+           <p><b>Rule taught:</b> use variant generation to find the angle, never to pick the wording.</p>`,
+    foot: 'Two sessions plus a follow-up clinic.'
+  },
+  verify: {
+    eyebrow: 'Role track',
+    title: 'Verification / visuals',
+    body: `<p><b>Covers:</b> provenance questions, reverse-search strategy, metadata reading, and deciding what a detector score is actually worth.</p>
+           <p><b>The failure it's built around:</b> treating a confidence score as a verdict. A tool narrows the question; it never answers it.</p>
+           <p><b>Rule taught:</b> the output of a checker is evidence to weigh, not a decision to inherit.</p>`,
+    foot: 'Pairs with the Image Authenticity tool on the Desk.'
+  },
+  data: {
+    eyebrow: 'Role track',
+    title: 'Data',
+    body: `<p><b>Covers:</b> cleaning and reshaping, transformation code, chart critique, spotting the outlier worth chasing.</p>
+           <p><b>The failure it's built around:</b> silent arithmetic errors. Output that is wrong in a plausible direction is the hardest thing in this entire programme to catch, because nothing looks off.</p>
+           <p><b>Rule taught:</b> every transformation gets a verification step designed in before it runs, not after.</p>`,
+    foot: 'The track with the most built-in checking.'
+  },
+  translation: {
+    eyebrow: 'Role track',
+    title: 'Translation',
+    body: `<p><b>Covers:</b> terminology consistency, register, back-translation as a check.</p>
+           <p><b>The failure it's built around:</b> politically loaded near-synonyms. A term defensible in isolation can carry a claim the original never made — and in diplomatic copy that difference is the story.</p>
+           <p><b>Rule taught:</b> sensitive terminology routes to a second human. Always. No exception for deadline.</p>`,
+    foot: 'Highest-stakes track for the language services.'
+  },
+  audio: {
+    eyebrow: 'Role track',
+    title: 'Audio / video',
+    body: `<p><b>Covers:</b> transcript triage, locating a moment in hours of tape, rough clip selection.</p>
+           <p><b>The failure it's built around:</b> mis-transcribed names, and the loss of everything a transcript cannot hold — a pause, a hesitation, a change of tone.</p>
+           <p><b>Rule taught:</b> the transcript is an index to the interview, not the interview.</p>`,
+    foot: 'Two sessions plus a follow-up clinic.'
+  },
+  audience: {
+    eyebrow: 'Role track',
+    title: 'Audience / social',
+    body: `<p><b>Covers:</b> summaries, variant framings for different platforms, headline testing.</p>
+           <p><b>The failure it's built around:</b> drift toward sensationalism. These tools optimise for engagement-shaped language by default, and the drift is gradual enough to miss.</p>
+           <p><b>Rule taught:</b> compare every variant against the piece, not against the other variants.</p>`,
+    foot: 'Two sessions plus a follow-up clinic.'
+  }
+};
+CONTENT.triggerJoin2 = CONTENT.triggerJoin;   // the closing CTA opens the same card
+
+const overlay = document.getElementById('popup');
+const popupCard = overlay.querySelector('.popup-card');
+
+function openPopup(trigger, key) {
+  const c = CONTENT[key];
+  if (!c) return;
+  document.getElementById('popupEyebrow').textContent = c.eyebrow;
+  document.getElementById('popupTitle').textContent = c.title;
+  document.getElementById('popupBody').innerHTML = c.body;
+  document.getElementById('popupFoot').textContent = c.foot;
+
+  overlay.style.display = 'flex';
+  overlay._trigger = trigger;
+
+  requestAnimationFrame(() => {
+    const cr = popupCard.getBoundingClientRect(), tr = trigger.getBoundingClientRect();
+    const sx = tr.width / cr.width, sy = tr.height / cr.height;
+    const dx = (tr.left + tr.width / 2) - (cr.left + cr.width / 2);
+    const dy = (tr.top + tr.height / 2) - (cr.top + cr.height / 2);
+    popupCard.style.transition = 'none';
+    popupCard.style.transform = `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})`;
+    popupCard.style.opacity = '0';
+    popupCard.offsetHeight;
+    overlay.classList.add('show');
+    popupCard.style.transition = '';
+    requestAnimationFrame(() => {
+      popupCard.style.transform = 'translate(0, 0) scale(1, 1)';
+      popupCard.style.opacity = '1';
+    });
+  });
+}
+
+function closePopup() {
+  const trigger = overlay._trigger;
+  overlay.classList.remove('show');
+  if (trigger) {
+    const cr = popupCard.getBoundingClientRect(), tr = trigger.getBoundingClientRect();
+    const sx = tr.width / cr.width, sy = tr.height / cr.height;
+    const dx = (tr.left + tr.width / 2) - (cr.left + cr.width / 2);
+    const dy = (tr.top + tr.height / 2) - (cr.top + cr.height / 2);
+    popupCard.style.transform = `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})`;
+    popupCard.style.opacity = '0';
+  }
+  setTimeout(() => {
+    overlay.style.display = 'none';
+    popupCard.style.transform = '';
+    popupCard.style.opacity = '';
+  }, 400);
+}
+
+['triggerJoin', 'triggerJoin2', 'triggerWhat', 'triggerExercise'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener('click', () => openPopup(el, id));
+});
+document.querySelectorAll('.trk[data-pop]').forEach(el => {
+  el.addEventListener('click', () => openPopup(el, el.dataset.pop));
+});
+overlay.querySelector('[data-close]').addEventListener('click', closePopup);
+overlay.addEventListener('click', e => { if (e.target === overlay) closePopup(); });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && overlay.classList.contains('show')) closePopup();
+});
+
+/* ============================================================
+   NAV — shared highlight glides between tabs
+   ============================================================ */
+const pill = document.getElementById('navPill');
+const navGlow = document.getElementById('navHighlight');
+function moveTo(el) {
+  const pr = pill.getBoundingClientRect(), er = el.getBoundingClientRect();
+  navGlow.style.left = (er.left - pr.left) + 'px';
+  navGlow.style.width = er.width + 'px';
+  navGlow.classList.add('show');
+}
+pill.querySelectorAll('.ntab').forEach(el => el.addEventListener('mouseenter', () => moveTo(el)));
+pill.addEventListener('mouseleave', () => navGlow.classList.remove('show'));
+
+/* ============================================================
+   SCROLL CHOREOGRAPHY — same system as the index page:
+   blocks fade + rise on arrival and re-arm once fully out of view;
+   [data-seq] children stagger after their parent; scroll progress
+   drives --p on .scene so the ambient light travels with the reader.
+   ============================================================ */
+const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const scene = document.getElementById('scene');
+const units = document.querySelectorAll('[data-reveal]');
+
+function setUnit(target, on) {
+  target.classList.toggle('in', on);
+  const base = +(target.dataset.seqBase || 0);
+  const step = +(target.dataset.step || 90);
+  target.querySelectorAll('[data-seq]').forEach((el, i) => {
+    el.style.transitionDelay = on ? (base + i * step) + 'ms' : '0ms';
+    el.classList.toggle('in', on);
+  });
+}
+
+if (REDUCED || !('IntersectionObserver' in window)) {
+  units.forEach(u => setUnit(u, true));
+} else {
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.intersectionRatio >= 0.08) setUnit(e.target, true);
+      else if (e.intersectionRatio === 0) setUnit(e.target, false);
+    });
+  }, { threshold: [0, 0.08] });
+  units.forEach(u => io.observe(u));
+
+  let ticking = false;
+  function updateProgress() {
+    ticking = false;
+    const max = document.documentElement.scrollHeight - window.innerHeight;
+    const p = max > 0 ? Math.min(Math.max(window.scrollY / max, 0), 1) : 0;
+    scene.style.setProperty('--p', p.toFixed(3));
+  }
+  window.addEventListener('scroll', () => {
+    if (!ticking) { ticking = true; requestAnimationFrame(updateProgress); }
+  }, { passive: true });
+  window.addEventListener('resize', updateProgress, { passive: true });
+  updateProgress();
+}
+</script>
+
+</body>
+</html>
