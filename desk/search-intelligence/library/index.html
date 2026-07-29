@@ -49,7 +49,8 @@ body{font-family:var(--sans);color:var(--lt-2);min-height:100vh;-webkit-font-smo
   border-radius:100px;padding:5px;box-shadow:var(--ambient),var(--rim);pointer-events:all}
 .wordmark{font-family:var(--serif);font-size:17px;color:var(--lt-1);text-shadow:var(--ts);
   padding:6px 16px 6px 12px;border-right:1px solid var(--border);margin-right:4px;white-space:nowrap;
-  position:relative;z-index:1;text-decoration:none;display:inline-block}
+  position:relative;z-index:1;text-decoration:none;display:inline-flex;align-items:center;gap:9px}
+.wordmark-logo{height:40px;width:auto;display:block;flex-shrink:0}
 .wordmark em{font-style:normal;color:#FFB07A;font-weight:600}
 .nav-highlight{position:absolute;top:5px;left:0;height:calc(100% - 10px);width:0;border-radius:100px;
   background:rgba(255,255,255,0.09);box-shadow:var(--rim-sm);pointer-events:none;opacity:0;z-index:0;
@@ -203,7 +204,7 @@ html[dir="rtl"] .login-field{text-align:right}
 <div class="nav-wrap">
   <div class="nav-pill">
     <span class="nav-highlight" id="navHighlight"></span>
-    <a href="/desk/" class="wordmark">Desk Headline<em>.</em></a>
+    <a href="/desk" class="wordmark"><img class="wordmark-logo" src="/desk/assets/desk-logo.svg" alt="">Desk Headline<em>.</em></a>
     <a href="/desk/search-intelligence/" class="ntab" data-i18n="nav.back">← Search Intelligence</a>
     <div class="nav-sep"></div>
     <div class="profile-wrap" id="profileWrap">
