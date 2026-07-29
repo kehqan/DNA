@@ -8,7 +8,7 @@
  *
  * PUBLIC API (used by index.html and admin.html — keep this contract
  * stable, both pages call these by name):
- *   PromptEngine.SITE_CODES                     → ['fa','en','ru','uk','hy','ka','ro','sq']
+ *   PromptEngine.SITE_CODES                     → ['fa','en','ru','ct','uk','hy','ka','ro','sq']
  *   PromptEngine.siteOf(code)                    → { code, label, hostname, language }
  *   PromptEngine.TOKENS                          → [{ key, group, cond? }, ...]
  *   PromptEngine.DEFAULT_BLOCKS                  → [{ id, title, showIf, enabled, body }, ...]
@@ -37,7 +37,7 @@
   'use strict';
 
   /* =========================== site registry ===========================
-     Mirrors SITES in Code.gs exactly — same 8 codes, same labels, same
+     Mirrors SITES in Code.gs exactly — same 9 codes, same labels, same
      hostnames, same language names. If a site is ever added/renamed on
      the backend, update it here too or the two will silently disagree on
      what a site is called in the UI (the backend's copy is what actually
@@ -46,6 +46,7 @@
     fa: { code: 'fa', label: 'Persian — Radio Farda',        hostname: 'radiofarda.com',           language: 'Persian' },
     en: { code: 'en', label: 'English — RFE/RL',             hostname: 'rferl.org',                language: 'English' },
     ru: { code: 'ru', label: 'Russian — Radio Svoboda',      hostname: 'svoboda.org',              language: 'Russian' },
+    ct: { code: 'ct', label: 'Russian — Current Time',       hostname: 'currenttime.tv',           language: 'Russian' },
     uk: { code: 'uk', label: 'Ukrainian — Radio Svoboda',    hostname: 'radiosvoboda.org',         language: 'Ukrainian' },
     hy: { code: 'hy', label: 'Armenian — Azatutyun',         hostname: 'azatutyun.am',             language: 'Armenian' },
     ka: { code: 'ka', label: 'Georgian — Radio Tavisupleba', hostname: 'radiotavisupleba.ge',      language: 'Georgian' },
@@ -172,7 +173,7 @@
         'headline patterns — what earns the click here:\n{{DISCOVER}}'
     },
     {
-      id: 'trending_now', title: 'Trending now', showIf: '', enabled: true,
+      id: 'trending_now', title: 'Trending now', showIf: 'TRENDING_NOW', enabled: true,
       body:
         'GOOGLE TRENDS — TRENDING NOW for {{SITE}}\'s region, refreshed within the last 48 hours:\n{{TRENDING_NOW}}\n\n' +
         'If any of these trending terms genuinely overlap this article\'s subject — a person, a place, an event it ' +
@@ -273,7 +274,13 @@
        'default'     — no saved template exists yet (brand-new site, or
                        every site as of 2026-07-28 — see the file header)
                        OR both the network call and the local cache
-                       failed; either way, DEFAULT_BLOCKS above is shown */
+                       failed; either way, DEFAULT_BLOCKS above is shown
+
+     Current Time TV ('ct') is transparently aliased to Radio Svoboda's
+     ('ru') template on the backend (see CONTENT_ALIAS in Code.gs) — a
+     request for site 'ct' here returns whatever's saved under 'ru',
+     which is intentional: they're the same language/audience and should
+     never drift into two separately-tuned prompts. */
   async function getBlocks(site) {
     try {
       var res = await AuthEngine.authedPost({ mode: 'getPromptBlocks', site: site });
