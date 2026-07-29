@@ -512,6 +512,24 @@ body {
   display: flex; align-items: center; gap: 8px;
 }
 
+/* ===== WHOLE-CARD LINK =====
+   The lift lives on the inner .card, not on the <a> itself. The <a> is the
+   scroll-reveal unit, and .reveal already owns `transform` for 560ms — if the
+   hover lift sat on the same element it would either fight the reveal or drag
+   the hover out to 560ms. Separating them keeps both snappy. */
+.card-link { display: block; text-decoration: none; color: inherit; }
+.card-link .card { transition: transform 160ms cubic-bezier(0.22,1,0.36,1), box-shadow 160ms ease-out; }
+.card-link:hover .card { transform: translateY(-3px); box-shadow: var(--ambient-hi), var(--rim); }
+.card-link:focus-visible { outline: none; }
+.card-link:focus-visible .card {
+  box-shadow: var(--ambient-hi), var(--rim), inset 0 0 0 2px rgba(255,150,80,0.55);
+}
+.go { color: var(--lt-1); font-weight: 600; transition: color 160ms ease-out; }
+.card-link:hover .go { color: #FFB07A; }
+.go svg { width: 12px; height: 12px; stroke: currentColor; fill: none; stroke-width: 1.7;
+  vertical-align: -1px; margin-left: 5px; transition: transform 160ms var(--eo); }
+.card-link:hover .go svg { transform: translateX(3px); }
+
 /* ===== NOTIFY ===== */
 .notify { display: grid; grid-template-columns: 1fr auto; gap: 22px; align-items: center; }
 .notify h2 {
@@ -643,6 +661,10 @@ body {
     <a href="#chapters" class="ntab">Chapters</a>
     <a href="#principles" class="ntab">Principles</a>
     <div class="nav-sep"></div>
+    <a href="/college" class="ghost-sm">
+      Academy
+      <svg viewBox="0 0 24 24" width="11" height="11" style="stroke:currentColor;fill:none;stroke-width:1.6"><path d="M7 17L17 7M17 7H9M17 7v8" stroke-linecap="round"/></svg>
+    </a>
     <a href="/desk" class="ghost-sm">
       The Desk
       <svg viewBox="0 0 24 24" width="11" height="11" style="stroke:currentColor;fill:none;stroke-width:1.6"><path d="M7 17L17 7M17 7H9M17 7v8" stroke-linecap="round"/></svg>
@@ -911,6 +933,60 @@ body {
     </div>
   </div>
 
+  <!-- ===== THE ACADEMY — whole card links through to /college ===== -->
+  <div class="sect" id="academy">
+    <div class="sect-copy reveal" data-reveal>
+      <div class="eyebrow"><span class="pdot"></span> Learning, not onboarding</div>
+      <h2>Access isn't skill.<br>The <em>Academy</em> is where it's built.</h2>
+      <p>Foundations, prompts, and workflows, written by the desks that use them.</p>
+      <a href="/college" class="arrow-link">
+        Enter the Academy
+        <svg viewBox="0 0 24 24"><path d="M7 17L17 7M17 7H9M17 7v8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+    </div>
+
+    <a href="/college" class="card-link reveal" data-reveal aria-label="Open the AI Academy">
+      <div class="card">
+        <div class="chead" style="margin-bottom:14px">
+          <h2 style="font-size:19px">Inside the Academy</h2>
+          <div class="rule"></div>
+          <div class="uchip">Opening soon</div>
+        </div>
+
+        <div class="tool-row">
+          <span class="tool-ico"><svg viewBox="0 0 24 24"><path d="M4 7l8-4 8 4-8 4-8-4zM4 7v6l8 4 8-4V7" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          <span><span class="tool-name">Foundations</span><span class="tool-sub">What these tools are bad at, first</span></span>
+          <span class="tool-state">Everyone</span>
+        </div>
+        <div class="tool-row">
+          <span class="tool-ico"><svg viewBox="0 0 24 24"><path d="M5 4h11l3 3v13H5z" stroke-linejoin="round"/><path d="M8 10h8M8 14h5" stroke-linecap="round"/></svg></span>
+          <span><span class="tool-name">Prompt library</span><span class="tool-sub">Vetted prompts, grouped by desk</span></span>
+          <span class="tool-state">By desk</span>
+        </div>
+        <div class="tool-row">
+          <span class="tool-ico"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="7" height="5" rx="1.5"/><rect x="14" y="15" width="7" height="5" rx="1.5"/><path d="M6.5 9v5.5a2 2 0 0 0 2 2H14" stroke-linecap="round"/></svg></span>
+          <span><span class="tool-name">Workflows</span><span class="tool-sub">Where a tool fits in a real task, step by step</span></span>
+          <span class="tool-state">Diagrams</span>
+        </div>
+        <div class="tool-row">
+          <span class="tool-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.2"/><path d="M5.5 20c0-3.6 2.9-6.5 6.5-6.5s6.5 2.9 6.5 6.5" stroke-linecap="round"/></svg></span>
+          <span><span class="tool-name">Role tracks</span><span class="tool-sub">Reporter, editor, visuals, data, translation</span></span>
+          <span class="tool-state">By role</span>
+        </div>
+        <div class="tool-row">
+          <span class="tool-ico"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 10l3 2.5L7 15M12.5 15H17" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          <span><span class="tool-name">The Desk tools</span><span class="tool-sub">The same library, with the training beside it</span></span>
+          <span class="tool-state live">Live</span>
+        </div>
+
+        <div class="desk-foot">
+          Training, prompts and tools in one place.
+          <span class="go">Enter<svg viewBox="0 0 24 24"><path d="M5 12h13M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        </div>
+      </div>
+    </a>
+  </div>
+
   <!-- ===== NOTIFY ===== -->
   <div class="block">
     <div class="card notify reveal" data-reveal>
@@ -934,6 +1010,7 @@ body {
     </div>
     <div class="foot-links">
       <a href="/desk">The Desk</a>
+      <a href="/college">Academy</a>
       <a href="#chapters">Chapters</a>
       <a href="#principles">Principles</a>
     </div>
