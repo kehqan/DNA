@@ -191,7 +191,6 @@
         '  3–4  Echo the patterns winning on Discover above. Lead with the same entity, but let the tail do more human work: name the real stake, stated straight. These should carry genuine feeling — the weight the facts already hold — without tipping into clickbait. Say what happened; never hide the point to pull a click, and never manufacture a stake, a "secret," or a twist the article does not deliver.\n' +
         '  5    STRAIGHT — the plain, editorially conventional statement of what happened. No SEO angle at all.\n\n' +
         'For EACH headline:\n' +
-        '  · Write in {{TARGET_LANGUAGE}}, between 90–105 characters where possible.\n' +
         '  · Never state something the article does not report — no invented facts, statistics, quotes, or outcomes.\n' +
         '  · If a trending term or search query genuinely overlaps this headline\'s angle, say so in ADVANTAGE — never ' +
         'force a connection that is not really there.\n\n' +
