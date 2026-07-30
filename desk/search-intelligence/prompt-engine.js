@@ -186,8 +186,9 @@
       body:
         '════════ YOUR TASK ════════\n' +
         'Write 5 headline options for the article above, in this exact mix and order:\n' +
-        '  1–2  SEARCH-LED — built on the highest-value queries above. Front-load the term readers actually type.\n' +
-        '  3–4  DISCOVER-LED — echo the patterns winning on Discover above. Curiosity with substance, never bait.\n' +
+        'These are five candidates for a single headline slot, not five separate fields. So each option has to stand on its own: self-contained, written in {{TARGET_LANGUAGE}}, leading with the real entity (for example: the company or the person at the centre of the story), and fully true to the reporting. What separates them is only how they lean.\n' +
+        '  1–2  Build these on the highest-value queries above. Put the word readers actually type — and the entity the story is about — inside the first ~50 characters, where the result is least likely to be cut off. Keep the rest plain and accurate. Carry a number when the story genuinely has one.\n' +
+        '  3–4  Echo the patterns winning on Discover above. Lead with the same entity, but let the tail do more human work: name the real stake, stated straight. These should carry genuine feeling — the weight the facts already hold — without tipping into clickbait. Say what happened; never hide the point to pull a click, and never manufacture a stake, a "secret," or a twist the article does not deliver.\n' +
         '  5    STRAIGHT — the plain, editorially conventional statement of what happened. No SEO angle at all.\n\n' +
         'For EACH headline:\n' +
         '  · Write in {{TARGET_LANGUAGE}}, between 90–105 characters where possible.\n' +
@@ -202,11 +203,11 @@
       body:
         'CONSTRAINTS:\n' +
         '- {{TARGET_LANGUAGE}} output only — no mixed-language headlines.\n' +
-        '- No question-mark headlines unless the article genuinely poses one.\n' +
-        '- Avoid manufactured urgency (\u201cBREAKING\u201d, excessive punctuation, ALL CAPS) unless the article itself ' +
-        'is breaking news.\n' +
-        '- A SEARCH headline should read like a headline, not a keyword list — natural phrasing that happens to ' +
-        'contain the target query, never an awkward string of terms.'
+        '- No question headlines, except for a genuine explainer — never for a hard-news story.\n' +
+        '- Lead with who and what happened — this same line becomes the Search title and gets cut from the right, so the essential must sit early.\n' +
+        '- A SEARCH headline should read like a headline, not a keyword list — natural phrasing that happens to.\n' +
+        '- No invented facts, numbers, or stakes. Nothing the reporting does not support.\n' +
+        '- Optional length guide (not a hard rule): aim for roughly 60–80 characters for the search-led options and 90–105 for the Discover-led ones, leaning shorter rather than longer where you can.'
     }
   ];
 
