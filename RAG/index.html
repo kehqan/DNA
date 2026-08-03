@@ -284,6 +284,28 @@ pre.code code{font-family:var(--mono);font-size:11.5px;line-height:1.72;color:#D
 footer.doc{margin-top:60px;padding-top:20px;border-top:1px solid var(--border);
   font-family:var(--sans);font-size:11px;color:var(--lt-3);text-shadow:var(--ts);line-height:1.7;}
 
+/* ---------- COMPANION BANNER ---------- */
+.companion{display:grid;grid-template-columns:auto 1fr auto;gap:18px;align-items:center;
+  background:rgba(118,72,176,.14);border-radius:18px;
+  box-shadow:var(--ambient),var(--rim-sm),inset 0 0 0 1.5px rgba(140,100,200,.32);
+  padding:16px 20px;margin:8px 0 6px;text-decoration:none;
+  transition:transform 130ms cubic-bezier(0.22,1,0.36,1),box-shadow 130ms ease-out;}
+.companion:hover{transform:translateY(-2px);
+  box-shadow:var(--ambient-hi),var(--rim-sm),inset 0 0 0 1.5px rgba(160,120,220,.45);}
+.companion .cmp-icon{font-family:var(--serif);font-size:26px;color:#D9C2F5;text-shadow:var(--ts-lg);line-height:1;}
+.companion .cmp-t{font-family:var(--sans);font-size:13px;font-weight:600;color:var(--lt-1);text-shadow:var(--ts);margin-bottom:3px;}
+.companion .cmp-d{font-family:var(--sans);font-size:11.5px;color:var(--lt-3);text-shadow:var(--ts);line-height:1.55;}
+.companion .cmp-go{font-family:var(--sans);font-size:11.5px;font-weight:600;color:#fff;white-space:nowrap;
+  background:linear-gradient(180deg,#8A5FC8 0%,#6E44B0 100%);padding:8px 16px;border-radius:100px;
+  box-shadow:0 1px 2px rgba(40,20,70,.4),0 6px 16px rgba(110,68,176,.28),inset 0 1px 0 rgba(255,255,255,.28);}
+@media(max-width:700px){.companion{grid-template-columns:1fr;text-align:left;}.companion .cmp-go{justify-self:start;}}
+
+.mini-hint{display:flex;align-items:center;gap:10px;background:rgba(118,72,176,.10);border-radius:12px;
+  box-shadow:var(--rim-sm),inset 0 0 0 1.5px rgba(140,100,200,.24);padding:11px 15px;margin-top:14px;}
+.mini-hint .mh-t{font-family:var(--sans);font-size:11.5px;color:var(--lt-3);text-shadow:var(--ts);line-height:1.55;}
+.mini-hint .mh-t a{color:#D9C2F5;text-decoration:none;font-weight:600;border-bottom:1px solid rgba(217,194,245,.4);}
+.mini-hint .mh-t a:hover{color:#fff;}
+
 /* ---------- WORKED EXAMPLE ---------- */
 .step-head{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;}
 .step-n{font-family:var(--mono);font-size:10px;font-weight:700;color:#0E2531;background:rgba(255,255,255,.82);
@@ -408,6 +430,7 @@ a:focus-visible,.ntab:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(255,1
     <div class="nav-sep"></div>
     <a href="#glossary" class="ntab">Glossary</a>
     <a href="#refs" class="ntab">Sources</a>
+    <a href="newsroom-kg-rag-implementation-guide.html" class="ntab" style="color:#D9C2F5">Guide ↗</a>
   </div>
 </div>
 
@@ -454,6 +477,16 @@ a:focus-visible,.ntab:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(255,1
       </div>
     </div>
   </section>
+
+  <!-- Companion guide -->
+  <a class="companion" href="newsroom-kg-rag-implementation-guide.html">
+    <span class="cmp-icon">↗</span>
+    <span>
+      <span class="cmp-t">New to these tools? Start with the Implementation Guide</span>
+      <span class="cmp-d">A companion document that decodes every external project in plain language — what each one actually is, how it works, and whether you install it or merely read it — followed by a ten-step build path with the purpose of each step stated before its instructions. <strong>If any part of this document is hard to follow, the answer is almost certainly there.</strong></span>
+    </span>
+    <span class="cmp-go">Open the guide</span>
+  </a>
 
   <!-- Stats -->
   <div class="stats">
@@ -1120,6 +1153,9 @@ DRAFT TEXT: {chunk}
         <div class="prov-src">"How to Query a Knowledge Graph with LLMs Using gRAG"<sup class="cite"><a href="#r6">6</a></sup><span>Cristian Leo · Towards Data Science</span></div>
         <div class="prov-take"><strong>Taken:</strong> the λ-weighted composite score blending cosine similarity with graph relevance, and Personalized PageRank as the proper way to compute the structural term. Its worked rank-inversion example — a lower-similarity item outranking a higher-similarity one once graph relevance enters — became a required eval case here. <strong>Rejected:</strong> its code, on the author's own advice that the implementation is deliberately basic.</div>
       </div>
+    </div>
+    <div class="mini-hint">
+      <span class="mh-t">These are summaries of what each source contributed. For what each project <em>actually is</em>, how it works internally, and a blunt verdict on whether you install it or merely read it, see <a href="newsroom-kg-rag-implementation-guide.html#sources">The sources, decoded</a> in the Implementation Guide.</span>
     </div>
   </div>
 
