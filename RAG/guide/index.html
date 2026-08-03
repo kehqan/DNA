@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Implementation Guide — Newsroom Knowledge Graph RAG</title>
+<style>
+:root{
+  --flame:#FF5400;
+  --glass: rgba(255,255,255,0.16);
+  --glass-filter: blur(38px) saturate(2.4) brightness(1.10);
+  --lt-1:#FFFFFF; --lt-2:rgba(255,255,255,0.92); --lt-3:rgba(255,255,255,0.74);
+  --border:rgba(255,255,255,0.16);
+  --ts:    0 1px 2px rgba(4,12,16,0.85), 0 2px 10px rgba(4,12,16,0.55);
+  --ts-lg: 0 1px 3px rgba(4,12,16,0.90), 0 3px 16px rgba(4,12,16,0.60), 0 1px 1px rgba(4,12,16,0.70);
+  --rim:
+    inset 0 0 0 1px rgba(255,255,255,0.14),
+    inset 0 1.5px 2px rgba(255,255,255,0.34),
+    inset 0 -2px 3px rgba(4,12,16,0.20),
+    inset 0 0 32px rgba(255,255,255,0.045);
+  --rim-sm:
+    inset 0 0 0 1px rgba(255,255,255,0.11),
+    inset 0 1px 1.5px rgba(255,255,255,0.26),
+    inset 0 -1.5px 2px rgba(4,12,16,0.18);
+  --ambient:    0 1px 2px rgba(6,20,28,0.44), 0 10px 30px rgba(6,20,28,0.40), 0 30px 70px rgba(6,20,28,0.34);
+  --ambient-lg: 0 1px 2px rgba(6,20,28,0.46), 0 14px 36px rgba(6,20,28,0.40), 0 44px 90px rgba(6,20,28,0.38);
+  --chip: rgba(255,255,255,0.10);
+  --sunk:
+    inset 0 3px 6px rgba(4,12,16,0.30),
+    inset 0 1px 2px rgba(4,12,16,0.20),
+    inset 0 -1px 2px rgba(255,255,255,0.12),
+    inset 0 0 0 1px rgba(255,255,255,0.10);
+  --eo: cubic-bezier(0.25,0.46,0.45,0.94);
+  --serif:'Skolar', Georgia, 'Iowan Old Style', serif;
+  --sans:'Skolar Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono:'SF Mono','JetBrains Mono',Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{color-scheme:dark;scroll-behavior:smooth;}
+body{font-family:var(--sans);color:var(--lt-2);min-height:100vh;-webkit-font-smoothing:antialiased;
+  background:linear-gradient(160deg,#0F1622 0%,#0B1016 45%,#0C0E14 75%,#120E18 100%);}
+
+.scene{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;
+  background:linear-gradient(160deg,#0F1622 0%,#0B1016 45%,#0C0E14 75%,#120E18 100%);}
+.scene::before{content:'';position:absolute;inset:0;opacity:.85;
+  background:
+    radial-gradient(1100px 700px at 12% 8%, rgba(58,86,132,0.30) 0%, transparent 62%),
+    radial-gradient(900px 620px at 88% 22%, rgba(96,58,150,0.26) 0%, transparent 60%),
+    radial-gradient(800px 560px at 70% 92%, rgba(26,57,72,0.42) 0%, transparent 64%),
+    radial-gradient(600px 400px at 30% 70%, rgba(120,60,30,0.14) 0%, transparent 66%),
+    linear-gradient(200deg,#111A28 0%,#0B1016 50%,#100C18 100%);}
+.scene::after{content:'';position:absolute;inset:0;opacity:.55;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.42'/%3E%3C/svg%3E");}
+.orb{position:absolute;z-index:2;border-radius:50%;filter:blur(100px);}
+.o1{width:660px;height:540px;top:-170px;left:-120px;background:radial-gradient(ellipse,rgba(96,58,150,0.16) 0%,rgba(70,44,110,0.07) 46%,transparent 72%);animation:d1 34s ease-in-out infinite;}
+.o2{width:640px;height:520px;top:18%;right:-170px;background:radial-gradient(ellipse,rgba(118,72,176,0.18) 0%,rgba(80,52,128,0.08) 50%,transparent 76%);animation:d2 40s ease-in-out infinite;}
+.o3{width:540px;height:440px;bottom:-2%;left:14%;background:radial-gradient(ellipse,rgba(58,66,108,0.12) 0%,transparent 70%);animation:d3 37s ease-in-out infinite;}
+.o4{width:520px;height:420px;top:56%;right:8%;background:radial-gradient(ellipse,rgba(90,54,140,0.13) 0%,transparent 72%);animation:d1 43s ease-in-out infinite;}
+@keyframes d1{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(50px,35px) scale(1.08);}}
+@keyframes d2{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(-40px,-30px) scale(1.06);}}
+@keyframes d3{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(35px,-25px) scale(1.08);}}
+
+.nav-wrap{position:sticky;top:0;z-index:50;display:flex;justify-content:center;padding:16px 24px 0;pointer-events:none;}
+.nav-pill{position:relative;display:inline-flex;align-items:center;gap:2px;flex-wrap:wrap;justify-content:center;
+  background:var(--glass);backdrop-filter:var(--glass-filter);-webkit-backdrop-filter:var(--glass-filter);
+  border-radius:100px;padding:5px;box-shadow:var(--ambient),var(--rim);pointer-events:all;max-width:100%;}
+.wordmark{font-family:var(--serif);font-size:17px;color:var(--lt-1);text-shadow:var(--ts);
+  padding:6px 16px 6px 12px;border-right:1px solid var(--border);margin-right:4px;white-space:nowrap;
+  position:relative;z-index:1;text-decoration:none;display:inline-block;}
+.wordmark em{font-style:normal;color:#FFB07A;font-weight:600;}
+.nav-highlight{position:absolute;top:5px;left:0;height:calc(100% - 10px);width:0;border-radius:100px;
+  background:rgba(255,255,255,0.09);box-shadow:var(--rim-sm);pointer-events:none;opacity:0;z-index:0;
+  transition:left 150ms cubic-bezier(0.22,1,0.36,1),width 150ms cubic-bezier(0.22,1,0.36,1),opacity 100ms ease-out;}
+.nav-highlight.show{opacity:1;}
+.ntab{position:relative;z-index:1;font-size:12.5px;font-weight:500;color:var(--lt-3);text-shadow:var(--ts);
+  padding:7px 14px;border-radius:100px;cursor:pointer;transition:color 110ms ease-out;white-space:nowrap;
+  text-decoration:none;display:inline-block;}
+.ntab:hover{color:var(--lt-1);}
+.ntab.on{background:rgba(255,255,255,0.82);color:#0E2531;text-shadow:none;font-weight:600;box-shadow:var(--rim-sm);}
+.nav-sep{position:relative;z-index:1;width:1px;height:20px;background:var(--border);margin:0 2px;}
+
+.wrap{position:relative;z-index:1;max-width:1120px;margin:0 auto;padding:0 24px 90px;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
+@media(max-width:900px){.g2,.g3{grid-template-columns:1fr;}}
+
+.card{position:relative;border-radius:24px;padding:24px;background:var(--glass);
+  backdrop-filter:var(--glass-filter);-webkit-backdrop-filter:var(--glass-filter);
+  box-shadow:var(--ambient-lg),var(--rim);animation:rise 460ms var(--eo) both;}
+.card::before{content:'';position:absolute;inset:0;border-radius:24px;pointer-events:none;
+  background:radial-gradient(130% 90% at 22% -12%,rgba(255,255,255,0.26) 0%,rgba(255,255,255,0.07) 26%,transparent 52%);
+  mix-blend-mode:screen;}
+.card::after{content:'';position:absolute;left:12%;right:12%;bottom:-1px;height:2px;pointer-events:none;
+  border-radius:100px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.24),transparent);}
+.card>*{position:relative;z-index:1;}
+@keyframes rise{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+
+.hero{padding:64px 0 36px;max-width:660px;}
+.eyebrow{font-size:10px;font-weight:600;letter-spacing:.10em;text-transform:uppercase;color:var(--lt-3);
+  text-shadow:var(--ts);margin-bottom:14px;display:flex;align-items:center;gap:7px;}
+.pdot{width:6px;height:6px;border-radius:50%;background:var(--flame);
+  box-shadow:0 0 10px rgba(255,84,0,.9);animation:pring 2.5s ease-in-out infinite;flex-shrink:0;}
+@keyframes pring{0%,100%{box-shadow:0 0 10px rgba(255,84,0,.9),0 0 0 0 rgba(255,84,0,.5);}
+  50%{box-shadow:0 0 10px rgba(255,84,0,.9),0 0 0 6px rgba(255,84,0,0);}}
+.hero h1{font-family:var(--serif);font-size:44px;font-weight:400;letter-spacing:-.02em;line-height:1.1;
+  color:var(--lt-1);text-shadow:var(--ts-lg);margin-bottom:14px;}
+@media(max-width:900px){.hero h1{font-size:33px;}}
+.hero p.lede{font-family:var(--serif);font-size:15.5px;color:var(--lt-3);text-shadow:var(--ts);line-height:1.62;}
+
+.chead{display:flex;align-items:center;gap:10px;margin:54px 0 16px;}
+.chead h2{font-family:var(--serif);font-size:21px;font-weight:400;color:var(--lt-1);text-shadow:var(--ts-lg);white-space:nowrap;}
+.chead .num{font-family:var(--mono);font-size:11px;color:var(--flame);text-shadow:var(--ts);
+  background:rgba(255,84,0,.14);padding:4px 9px;border-radius:6px;box-shadow:var(--rim-sm);}
+.rule{flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.20),transparent);}
+.uchip{font-size:11px;font-weight:600;color:#FFE0CC;background:rgba(255,84,0,.35);
+  padding:3px 11px;border-radius:100px;box-shadow:var(--rim-sm);white-space:nowrap;}
+h3.sub{font-family:var(--serif);font-size:16.5px;font-weight:400;color:var(--lt-1);text-shadow:var(--ts-lg);margin:0 0 10px;}
+h4.subsub{font-family:var(--sans);font-size:11.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--lt-3);text-shadow:var(--ts);margin:20px 0 9px;}
+
+p{font-family:var(--serif);font-size:14px;line-height:1.68;color:var(--lt-2);text-shadow:var(--ts);margin-bottom:13px;}
+p.small{font-family:var(--sans);font-size:12.5px;color:var(--lt-3);line-height:1.62;}
+p:last-child{margin-bottom:0;}
+strong{color:var(--lt-1);font-weight:600;}
+ul.list{list-style:none;margin:0 0 13px;}
+ul.list li{font-family:var(--serif);font-size:13.5px;line-height:1.6;color:var(--lt-2);text-shadow:var(--ts);
+  padding-left:18px;position:relative;margin-bottom:8px;}
+ul.list li:last-child{margin-bottom:0;}
+ul.list li::before{content:'';position:absolute;left:2px;top:8px;width:5px;height:5px;border-radius:50%;
+  background:rgba(255,176,122,.75);box-shadow:0 0 8px rgba(255,84,0,.4);}
+ol.steps{list-style:none;counter-reset:s;margin:0;}
+ol.steps li{font-family:var(--sans);font-size:12.5px;line-height:1.62;color:var(--lt-2);text-shadow:var(--ts);
+  padding-left:30px;position:relative;margin-bottom:10px;counter-increment:s;}
+ol.steps li:last-child{margin-bottom:0;}
+ol.steps li::before{content:counter(s);position:absolute;left:0;top:0;font-family:var(--mono);font-size:10px;
+  color:#0E2531;background:rgba(255,255,255,.8);width:19px;height:19px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-weight:700;}
+span.mono,.mono{font-family:var(--mono);font-size:11.5px;color:#FFD9C2;}
+
+.tbl-wrap{background:var(--chip);border-radius:16px;box-shadow:var(--sunk);padding:4px;overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-family:var(--sans);}
+thead th{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--lt-3);
+  text-shadow:var(--ts);text-align:left;padding:12px 14px 10px;border-bottom:1px solid rgba(255,255,255,.14);white-space:nowrap;}
+tbody td{font-size:12.5px;line-height:1.55;color:var(--lt-2);text-shadow:var(--ts);
+  padding:11px 14px;border-bottom:1px solid rgba(255,255,255,.07);vertical-align:top;}
+tbody tr:last-child td{border-bottom:none;}
+tbody tr:hover td{background:rgba(255,255,255,.045);}
+td.k{color:var(--lt-1);font-weight:600;}
+
+pre.code{background:rgba(4,12,16,.52);border-radius:16px;box-shadow:var(--sunk);padding:15px 17px;overflow-x:auto;margin:6px 0 13px;}
+pre.code code{font-family:var(--mono);font-size:11.5px;line-height:1.72;color:#DCE9EC;white-space:pre;}
+.c-key{color:#8FC4D8;} .c-str{color:#FFC047;} .c-com{color:rgba(255,255,255,.42);font-style:italic;}
+.c-fn{color:#FFB07A;} .c-num{color:#9FE0B0;}
+.code-label{font-family:var(--mono);font-size:10px;color:var(--lt-3);text-shadow:var(--ts);margin-bottom:6px;letter-spacing:.04em;}
+
+.badge{font-family:var(--sans);font-size:9.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+  padding:3px 9px;border-radius:5px;white-space:nowrap;display:inline-block;}
+.b-install{background:rgba(127,227,168,.20);color:#B9F0CE;}
+.b-read{background:rgba(111,180,216,.22);color:#C4E4F5;}
+.b-concept{background:rgba(180,138,232,.24);color:#E0CCF5;}
+.b-optional{background:rgba(255,192,71,.20);color:#FFE9BC;}
+.b-skip{background:rgba(255,122,110,.20);color:#FFCFC9;}
+.b-warn{background:rgba(255,192,71,.22);color:#FFE9BC;}
+.b-block{background:rgba(255,84,0,.26);color:#FFD9C2;}
+
+/* source cards */
+.src{margin-bottom:14px;}
+.src-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:4px;}
+.src-name{font-family:var(--serif);font-size:19px;font-weight:400;color:var(--lt-1);text-shadow:var(--ts-lg);}
+.src-who{font-family:var(--sans);font-size:11px;color:var(--lt-3);text-shadow:var(--ts);margin-top:3px;}
+.src-url{font-family:var(--mono);font-size:10.5px;word-break:break-all;margin-top:6px;}
+.src-url a{color:#FFB07A;text-decoration:none;}
+.src-url a:hover{color:#fff;text-decoration:underline;}
+.qa{background:var(--chip);border-radius:14px;box-shadow:var(--rim-sm);padding:14px 16px;margin-top:11px;}
+.qa .q{font-family:var(--sans);font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  color:#FFB07A;text-shadow:var(--ts);margin-bottom:7px;}
+.qa p, .qa ul.list li{font-size:13px;}
+.qa.neg{background:rgba(255,122,110,.09);box-shadow:var(--rim-sm),inset 0 0 0 1.5px rgba(255,122,110,.22);}
+.qa.neg .q{color:#FFCFC9;}
+.qa.pos{background:rgba(127,227,168,.09);box-shadow:var(--rim-sm),inset 0 0 0 1.5px rgba(127,227,168,.22);}
+.qa.pos .q{color:#B9F0CE;}
+
+/* step cards */
+.stepcard{margin-bottom:14px;}
+.st-head{display:flex;align-items:center;gap:11px;flex-wrap:wrap;margin-bottom:12px;}
+.st-n{font-family:var(--mono);font-size:11px;font-weight:700;color:#0E2531;background:rgba(255,255,255,.84);
+  padding:5px 11px;border-radius:7px;box-shadow:var(--rim-sm);white-space:nowrap;}
+.st-title{font-family:var(--serif);font-size:19px;font-weight:400;color:var(--lt-1);text-shadow:var(--ts-lg);}
+.st-time{font-family:var(--mono);font-size:10px;color:#FFB07A;background:rgba(255,84,0,.14);
+  padding:3px 9px;border-radius:5px;box-shadow:var(--rim-sm);white-space:nowrap;margin-left:auto;}
+.st-why{font-family:var(--serif);font-size:14.5px;line-height:1.62;color:var(--lt-1);text-shadow:var(--ts);
+  border-left:2px solid rgba(255,120,50,.55);padding-left:14px;margin-bottom:16px;}
+.grid-do{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-top:12px;}
+@media(max-width:800px){.grid-do{grid-template-columns:1fr;}}
+.panel{background:var(--chip);border-radius:14px;box-shadow:var(--rim-sm);padding:14px 15px;}
+.panel .pl{font-family:var(--sans);font-size:9.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--lt-3);text-shadow:var(--ts);margin-bottom:9px;}
+.panel.done{background:rgba(127,227,168,.09);box-shadow:var(--rim-sm),inset 0 0 0 1.5px rgba(127,227,168,.20);}
+.panel.done .pl{color:#B9F0CE;}
+.panel.trap{background:rgba(255,122,110,.09);box-shadow:var(--rim-sm),inset 0 0 0 1.5px rgba(255,122,110,.20);}
+.panel.trap .pl{color:#FFCFC9;}
+.uses{display:flex;gap:7px;flex-wrap:wrap;margin-top:13px;align-items:center;}
+.uses .ul{font-family:var(--sans);font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--lt-3);text-shadow:var(--ts);}
+.utag{font-family:var(--sans);font-size:11px;color:var(--lt-2);text-shadow:var(--ts);
+  background:rgba(255,255,255,.10);padding:5px 11px;border-radius:100px;box-shadow:var(--rim-sm);}
+.utag.none{color:var(--lt-3);opacity:.7;}
+
+.callout{background:rgba(255,84,0,.10);border-radius:14px;
+  box-shadow:var(--rim-sm),inset 0 0 0 1.5px rgba(255,120,50,.30);padding:15px 17px;margin:14px 0 0;}
+.callout .co-label{font-family:var(--sans);font-size:9.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  color:#FFB07A;text-shadow:var(--ts);margin-bottom:6px;}
+.callout p{font-size:13px;color:var(--lt-2);}
+.callout.cool{background:rgba(118,72,176,.12);box-shadow:var(--rim-sm),inset 0 0 0 1.5px rgba(140,100,200,.30);}
+.callout.cool .co-label{color:#D9C2F5;}
+
+/* timeline */
+.tl{display:flex;flex-direction:column;gap:0;}
+.tl-row{display:grid;grid-template-columns:92px 1fr;gap:16px;align-items:start;position:relative;padding-bottom:18px;}
+.tl-row:last-child{padding-bottom:0;}
+.tl-row::before{content:'';position:absolute;left:99px;top:22px;bottom:-4px;width:1px;background:rgba(255,255,255,.16);}
+.tl-row:last-child::before{display:none;}
+.tl-when{font-family:var(--mono);font-size:10.5px;color:var(--lt-3);text-shadow:var(--ts);text-align:right;padding-top:4px;}
+.tl-body{background:var(--chip);border-radius:13px;box-shadow:var(--rim-sm);padding:12px 15px;position:relative;}
+.tl-body::before{content:'';position:absolute;left:-22px;top:14px;width:9px;height:9px;border-radius:50%;
+  background:#FFB07A;box-shadow:0 0 10px rgba(255,84,0,.7);}
+.tl-t{font-family:var(--sans);font-size:12.5px;font-weight:600;color:var(--lt-1);text-shadow:var(--ts);margin-bottom:3px;}
+.tl-d{font-family:var(--sans);font-size:11.5px;color:var(--lt-3);text-shadow:var(--ts);line-height:1.55;}
+.tl-body.gate{background:rgba(255,84,0,.12);box-shadow:var(--rim-sm),inset 0 0 0 1.5px rgba(255,120,50,.32);}
+@media(max-width:700px){.tl-row{grid-template-columns:1fr;}.tl-row::before{display:none;}
+  .tl-when{text-align:left;}.tl-body::before{display:none;}}
+
+footer.doc{margin-top:56px;padding-top:20px;border-top:1px solid var(--border);
+  font-family:var(--sans);font-size:11px;color:var(--lt-3);text-shadow:var(--ts);line-height:1.7;}
+
+a:focus-visible,.ntab:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(255,150,80,.45);border-radius:8px;}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01ms !important;transition-duration:.01ms !important;}}
+@media print{
+  body{background:#0B1016;} .nav-wrap{display:none;}
+  .card{break-inside:avoid;backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(255,255,255,.06);}
+  .chead{break-after:avoid;}
+}
+</style>
+</head>
+<body>
+
+<div class="scene">
+  <div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div><div class="orb o4"></div>
+</div>
+
+<div class="nav-wrap">
+  <div class="nav-pill" id="navPill">
+    <a href="#top" class="wordmark">Guide<em>.</em></a>
+    <a href="#verdicts" class="ntab">Verdicts</a>
+    <a href="#sources" class="ntab">Sources decoded</a>
+    <a href="#build" class="ntab">Build steps</a>
+    <a href="#decisions" class="ntab">Decisions</a>
+    <a href="#timeline" class="ntab">Timeline</a>
+    <div class="nav-sep"></div>
+    <a href="#faq" class="ntab">Questions</a>
+    <a href="newsroom-kg-rag-architecture.html" class="ntab" style="color:#FFB07A">↩ Architecture</a>
+  </div>
+</div>
+
+<div class="wrap" id="top">
+
+  <section class="hero">
+    <div class="eyebrow"><span class="pdot"></span>Companion to the architecture document</div>
+    <h1>Implementation Guide</h1>
+    <p class="lede">What each external project actually is, how it works under the hood, whether you install it or merely read it — and then the ordered path from an empty folder to a system running in shadow mode.</p>
+  </section>
+
+  <div class="card">
+    <h3 class="sub">Read this first</h3>
+    <p>The <a href="newsroom-kg-rag-architecture.html" style="color:#FFB07A;text-decoration:none;border-bottom:1px solid rgba(255,176,122,.4)">architecture document</a> says <em>what</em> to build. This one says <em>how to proceed</em> and, more importantly, <em>why each step exists</em>. It exists because a reference list is not the same as understanding: knowing that CVE-KGRAG contributed "taxonomy anchoring" tells you nothing about what that repository actually does, whether you are meant to clone it, or what you would do with it if you did.</p>
+    <p>So Part I decodes every external source in plain language — what problem it solves, how it works mechanically, and a blunt verdict on your relationship to it. Part II is the build path: ten steps, each with its purpose stated before its instructions, because a step you perform without understanding its purpose is a step you will perform badly.</p>
+    <div class="callout">
+      <div class="co-label">The single most important thing on this page</div>
+      <p><strong>You are not adopting any of these projects wholesale.</strong> Four of the six are reference material — things to read, learn a pattern from, and close. Only two involve installing anything, and one of those is optional. If you finish this guide and your dependency list has six new entries, something has gone wrong.</p>
+    </div>
+  </div>
+
+  <!-- ============ VERDICTS ============ -->
+  <div class="chead" id="verdicts"><span class="num">01</span><h2>The verdict table</h2><div class="rule"></div><div class="uchip">start here</div></div>
+
+  <div class="card">
+    <p class="small" style="margin-bottom:14px">Before the detail, the summary. This is the answer to "so what am I supposed to <em>do</em> with these links?"</p>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Source</th><th>Verdict</th><th>What that means in practice</th></tr></thead>
+        <tbody>
+          <tr><td class="k">LightRAG</td><td><span class="badge b-optional">Optional install</span></td><td>Run its REST server only if you want its retrieval engine rather than writing your own. Either choice is defensible; decide at Step 6, not before.</td></tr>
+          <tr><td class="k">RAG-Anything</td><td><span class="badge b-read">Read + borrow one part</span></td><td>Now merged into LightRAG. You want its PDF-parsing stage, which means installing <em>MinerU</em>, not this.</td></tr>
+          <tr><td class="k">MinerU</td><td><span class="badge b-install">Install</span></td><td>The one unambiguous install. It converts your legacy standards PDFs into structured text. Used once during migration, then idle.</td></tr>
+          <tr><td class="k">CVE-KGRAG</td><td><span class="badge b-concept">Concept only</span></td><td>Never install. Read the README, understand how it anchors entities to fixed taxonomies, apply that idea. It is a security tool; nothing in it runs in a newsroom.</td></tr>
+          <tr><td class="k">VectorInstitute/kg-rag</td><td><span class="badge b-concept">Method only</span></td><td>Never install. Copy its <em>discipline</em> — comparing retrieval strategies with a real harness — into your own eval code.</td></tr>
+          <tr><td class="k">pdichone/knowledge-graph-rag</td><td><span class="badge b-skip">Skim or skip</span></td><td>Course material. Useful only if nobody on the team has built a graph before and you want to see the plumbing once.</td></tr>
+          <tr><td class="k">gRAG article</td><td><span class="badge b-concept">Concept only</span></td><td>Read for the λ formula and PageRank reasoning. Its author says the code is deliberately basic — take him at his word.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout cool">
+      <div class="co-label">Why so little gets installed</div>
+      <p>Because the hard part of this system is not retrieval — it is having a rulebook worth retrieving from. Every project above solves retrieval. None of them solves "our standards live in a PDF and nobody agrees what counts as a rule." That work is yours, it cannot be imported, and it is where the schedule will actually go.</p>
+    </div>
+  </div>
+
+  <!-- ============ SOURCES DECODED ============ -->
+  <div class="chead" id="sources"><span class="num">02</span><h2>The sources, decoded</h2><div class="rule"></div><div class="uchip">6 projects</div></div>
+
+  <!-- LightRAG -->
+  <div class="card src">
+    <div class="src-head">
+      <div>
+        <div class="src-name">LightRAG</div>
+        <div class="src-who">HKUDS (University of Hong Kong Data Science lab) · open-source Python framework</div>
+      </div>
+      <span class="badge b-optional">Optional install</span>
+    </div>
+    <div class="src-url"><a href="https://github.com/HKUDS/LightRAG" target="_blank" rel="noopener">https://github.com/HKUDS/LightRAG</a></div>
+
+    <div class="qa">
+      <div class="q">What problem it solves</div>
+      <p>Ordinary RAG chops documents into chunks, embeds them, and retrieves the chunks most similar to your question. That works until the answer depends on a <em>relationship</em> spread across several chunks — "which rules modify this rule" is exactly that kind of question, and similarity search cannot see it. LightRAG's answer is to build a knowledge graph alongside the vector index and search both.</p>
+    </div>
+
+    <div class="qa">
+      <div class="q">How it actually works, step by step</div>
+      <ol class="steps">
+        <li><strong>You hand it documents.</strong> It chunks them using one of several strategies.</li>
+        <li><strong>An LLM reads each chunk and extracts entities and relationships</strong> — "X is a type of Y", "A causes B". These become graph nodes and edges. This is the step that costs money and time, and the step whose output you cannot fully control.</li>
+        <li><strong>It also embeds the chunks</strong> into a vector index, as normal RAG would.</li>
+        <li><strong>At query time it searches both layers</strong> — entity-level detail plus graph-level themes — and merges the results. This dual search is its central claim.</li>
+        <li><strong>New documents merge into the existing graph</strong> without rebuilding everything, which matters if your corpus changes constantly.</li>
+      </ol>
+    </div>
+
+    <div class="qa pos">
+      <div class="q">What we take from it</div>
+      <ul class="list">
+        <li><strong>The dual-layer idea itself</strong> — graph and vectors together, not one or the other. Our λ blend is a version of this with an explicit, tunable knob instead of an internal heuristic.</li>
+        <li><strong>Its model-role split.</strong> LightRAG configures separate models for extraction, querying, keywording and vision, on the reasoning that a cheap fast model suffices for mechanical tagging while the final answer needs your best one. We copy this directly as CLASSIFY / RETRIEVE_ASSIST / REVIEW.</li>
+        <li><strong>Incremental updates</strong> as a design requirement, not a nice-to-have.</li>
+        <li><strong>Its own warning</strong> that the Python SDK is intended for embedded and research use, and production integrations should go through the REST API server. Worth heeding if you use it at all.</li>
+      </ul>
+    </div>
+
+    <div class="qa neg">
+      <div class="q">What we deliberately do not take</div>
+      <p><strong>Its automatic graph construction — the headline feature.</strong> An LLM inferring "these two rules seem related" is not good enough when the relationship carries legal weight. We need an edge that means precisely "R-410 waives the second-source requirement in R-042 under a stated condition", authored by an editor who is accountable for it. An inferred edge cannot carry that meaning, and a confidently wrong inferred edge is worse than no edge.</p>
+    </div>
+
+    <div class="qa">
+      <div class="q">So do you install it?</div>
+      <p>Only if, at Step 6, you would rather run its retrieval server than write roughly two hundred lines of retrieval code yourself. If you do, you feed it your rules and use it purely as a search engine while ignoring its graph builder. Many teams will find writing their own simpler, because the retrieval logic here is not complicated — it is a filter, a similarity lookup, a PageRank call, a weighted sum, and a neighbour expansion.</p>
+    </div>
+  </div>
+
+  <!-- RAG-Anything + MinerU -->
+  <div class="card src">
+    <div class="src-head">
+      <div>
+        <div class="src-name">RAG-Anything <span style="font-size:14px;color:var(--lt-3)">→ and what you actually want, MinerU</span></div>
+        <div class="src-who">RAG-Anything: HKUDS · MinerU: OpenDataLab</div>
+      </div>
+      <span class="badge b-install">MinerU: install</span>
+    </div>
+    <div class="src-url">
+      <a href="https://github.com/HKUDS/RAG-Anything" target="_blank" rel="noopener">https://github.com/HKUDS/RAG-Anything</a><br>
+      <a href="https://github.com/opendatalab/MinerU" target="_blank" rel="noopener">https://github.com/opendatalab/MinerU</a>
+    </div>
+
+    <div class="qa">
+      <div class="q">What problem it solves</div>
+      <p>Standard RAG assumes your documents are text. Real institutional documents are PDFs containing tables, figures, multi-column layouts and scanned pages — and naive text extraction turns a clean table into unreadable soup. RAG-Anything wraps a document parser so that tables, images and equations survive ingestion as structured objects rather than mangled strings.</p>
+    </div>
+
+    <div class="qa">
+      <div class="q">How it actually works</div>
+      <ol class="steps">
+        <li><strong>Parsing.</strong> MinerU (or Docling, or PaddleOCR) reads the PDF and emits typed content blocks — this is a heading, this is a paragraph, this is a table with rows and columns — while preserving reading order and layout hierarchy.</li>
+        <li><strong>Understanding.</strong> Each block type goes to a dedicated handler: a vision model for images, a structured interpreter for tables, a LaTeX-aware parser for equations.</li>
+        <li><strong>Graph construction.</strong> Every element becomes an entity, cross-modal relationships are inferred, and a "belongs to" chain preserves the document's section hierarchy.</li>
+        <li><strong>Retrieval.</strong> Hybrid vector plus graph search, weighted by which modality the query seems to care about.</li>
+      </ol>
+      <p class="small" style="margin-top:10px"><strong>Only stage 1 matters to us.</strong> Stages 2–4 solve a problem we do not have: we are not answering questions about the PDF, we are converting it into a rulebook once and then never reading the PDF again.</p>
+    </div>
+
+    <div class="qa pos">
+      <div class="q">What we take from it</div>
+      <p>The parsing stage, which in practice means installing <strong>MinerU directly</strong> rather than the wrapper around it. You point it at <span class="mono">Editorial_Standards_v3.pdf</span> and it hands back structured markdown with the tables intact and the section hierarchy preserved. That output is the input to your migration script.</p>
+    </div>
+
+    <div class="qa neg">
+      <div class="q">One thing to know before you start</div>
+      <p>RAG-Anything has been <strong>merged into LightRAG</strong> — multimodal parsing is now a built-in feature of the latter rather than a separate package. So it is not really a fork in the road any more. Check the current state of both repositories before installing either; this consolidation is recent and the packaging may have moved again.</p>
+    </div>
+  </div>
+
+  <!-- CVE-KGRAG -->
+  <div class="card src">
+    <div class="src-head">
+      <div>
+        <div class="src-name">CVE-KGRAG</div>
+        <div class="src-who">Yuning-J · cybersecurity threat-intelligence knowledge graph</div>
+      </div>
+      <span class="badge b-concept">Concept only — never install</span>
+    </div>
+    <div class="src-url"><a href="https://github.com/Yuning-J/CVE-KGRAG" target="_blank" rel="noopener">https://github.com/Yuning-J/CVE-KGRAG</a></div>
+
+    <div class="qa">
+      <div class="q">What it is</div>
+      <p>A working production system that ingests the US National Vulnerability Database — around 190,000 catalogued software vulnerabilities — and turns them into a searchable knowledge graph used by a downstream cyberdefence simulation. It is not a demo. It is the most operationally serious project in our reference set.</p>
+    </div>
+
+    <div class="qa">
+      <div class="q">Why a security tool is the closest analogue to a newsroom rulebook</div>
+      <p>Because the shape of the data is nearly identical, once you strip the subject matter away:</p>
+      <div class="tbl-wrap" style="margin-top:10px">
+        <table>
+          <thead><tr><th>CVE-KGRAG</th><th>Our system</th></tr></thead>
+          <tbody>
+            <tr><td>A CVE — one catalogued vulnerability</td><td class="k">A rule — one catalogued standard</td></tr>
+            <tr><td>CWE / CAPEC — fixed external classification schemes every CVE maps onto</td><td class="k">Our taxonomy — fixed categories every rule maps onto</td></tr>
+            <tr><td>CVSS score — standardised severity</td><td class="k">blocking / warning / advisory</td></tr>
+            <tr><td>Affected product and vendor</td><td class="k">Applicable desk and language</td></tr>
+            <tr><td>Relationships between vulnerabilities and attack patterns</td><td class="k"><span class="mono">related_rules</span> and <span class="mono">qualified_by</span> edges</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="qa pos">
+      <div class="q">The one idea we take — taxonomy anchoring</div>
+      <p>CWE and CAPEC are <strong>externally standardised catalogues</strong>. When CVE-KGRAG classifies a vulnerability, it picks from a fixed list somebody else maintains — it cannot invent a new weakness category because it felt like it. That constraint is the reason 190,000 entries stay coherent instead of degenerating into thousands of near-duplicate labels.</p>
+      <p>We have no external standards body for editorial rules, so <strong>we write our own catalogue and then treat it as if it were external</strong> — frozen, versioned, editable only by a small group, and enforced mechanically in CI. Every extraction prompt is told the list and forbidden from extending it.</p>
+    </div>
+
+    <div class="qa">
+      <div class="q">A second, quieter lesson</div>
+      <p>It runs on <strong>NetworkX</strong> — an in-process Python graph library, not a graph database — at 190,000 nodes and millions of relationships. That is a useful calibration: if NetworkX handles that, your few hundred rules do not justify standing up Neo4j on day one. It also runs local models rather than cloud APIs, which is worth remembering if source-protection concerns ever rule out sending draft text to an external provider.</p>
+    </div>
+  </div>
+
+  <!-- kg-rag -->
+  <div class="card src">
+    <div class="src-head">
+      <div>
+        <div class="src-name">kg-rag</div>
+        <div class="src-who">Vector Institute · research comparison of retrieval strategies</div>
+      </div>
+      <span class="badge b-concept">Method only — never install</span>
+    </div>
+    <div class="src-url"><a href="https://github.com/VectorInstitute/kg-rag" target="_blank" rel="noopener">https://github.com/VectorInstitute/kg-rag</a></div>
+
+    <div class="qa">
+      <div class="q">What makes it different from everything else here</div>
+      <p>Every other project asserts that its approach works. This one was built to <strong>find out which approach works</strong>. It implements three competing graph-RAG retrieval strategies over the same data and benchmarks them against each other with a proper evaluation harness and hyperparameter search.</p>
+    </div>
+
+    <div class="qa">
+      <div class="q">The three strategies, and what each teaches us</div>
+      <ul class="list">
+        <li><strong>Entity-based with beam search</strong> — match query terms to graph entities by embedding, then walk outward through their neighbourhood. This is closest to what we are building, and its presence in a serious benchmark is mild reassurance that the approach is sound.</li>
+        <li><strong>LLM-generated Cypher</strong> — let the model write a database query and run it. Attractive: it handles open-ended questions no fixed pipeline anticipated. Dangerous for us: a subtly wrong query returns fewer rules and <em>looks like a clean result</em>. Silent under-retrieval is the worst possible failure in a compliance tool.</li>
+        <li><strong>GraphRAG-style community detection</strong> — cluster the graph and summarise each cluster. Strong for "what is our general posture on X", weak for "which specific rule applies to this sentence". Wrong shape for our problem, and expensive.</li>
+      </ul>
+    </div>
+
+    <div class="qa pos">
+      <div class="q">What we take — the posture, not the code</div>
+      <p><strong>Do not assume the hybrid architecture beats plain vector search. Prove it.</strong> Our five eval arms exist entirely because of this project: arm A is naive RAG as the honest baseline, and arms B through E each add exactly one component so you can see what that component bought you. If arm A scores within noise of arm E, the graph is decoration and should be removed.</p>
+      <p>That is an uncomfortable test to design, which is exactly why it is worth designing.</p>
+    </div>
+  </div>
+
+  <!-- gRAG article -->
+  <div class="card src">
+    <div class="src-head">
+      <div>
+        <div class="src-name">"How to Query a Knowledge Graph with LLMs Using gRAG"</div>
+        <div class="src-who">Cristian Leo · Towards Data Science · tutorial article</div>
+      </div>
+      <span class="badge b-concept">Concept only</span>
+    </div>
+    <div class="src-url"><a href="https://medium.com/data-science/how-to-query-a-knowledge-graph-with-llms-using-grag-38bfac47a322" target="_blank" rel="noopener">https://medium.com/data-science/how-to-query-a-knowledge-graph-with-llms-using-grag-38bfac47a322</a></div>
+
+    <div class="qa">
+      <div class="q">The problem it demonstrates</div>
+      <p>Pure similarity search has a specific, recurring failure: it ranks by <em>wording resemblance</em>, so an item that is genuinely central to the topic can be outranked by one that merely shares vocabulary. The article shows a concrete case where an item with lower similarity ends up ranked higher once graph structure is taken into account — and that single worked example is the clearest argument for the whole hybrid approach.</p>
+    </div>
+
+    <div class="qa">
+      <div class="q">Its mechanism, in plain terms</div>
+      <p>It computes two scores for every candidate and blends them:</p>
+      <pre class="code" style="margin:10px 0 11px"><code>score = λ · <span class="c-fn">semantic_similarity</span>  +  (1 − λ) · <span class="c-fn">graph_relevance</span></code></pre>
+      <ul class="list">
+        <li><strong>Semantic similarity</strong> — cosine distance between embeddings. How much does this <em>sound</em> like the query?</li>
+        <li><strong>Graph relevance</strong> — a Personalized PageRank score. Start a random walk from nodes related to the query and see how often it lands here. How <em>structurally central</em> is this, relative to what was asked?</li>
+        <li><strong>λ</strong> — the dial. At 1.0 you have ordinary vector search. At 0.0 you ignore wording entirely. In between you choose how much each signal counts.</li>
+      </ul>
+    </div>
+
+    <div class="qa pos">
+      <div class="q">How we extend it</div>
+      <p>The article treats λ as one global constant. We make it <strong>per category</strong>, stored in the taxonomy, because the right trade-off differs by stakes: a legal rule must surface even when the draft phrases the problem in unfamiliar words (low λ, favour recall), while a style rule about one specific term should fire only when that term is genuinely in play (high λ, favour precision). Turning one number into five is a small change with a large effect on how the system behaves.</p>
+    </div>
+
+    <div class="qa neg">
+      <div class="q">Do not copy its code</div>
+      <p>The author states plainly that the implementation is a basic version with real limitations, and recommends a proper PageRank-based approach or an established framework for production use. Take him at his word: read it for the reasoning, then implement the idea with <span class="mono">networkx.pagerank()</span>, which supports the personalization vector this needs.</p>
+    </div>
+  </div>
+
+  <!-- pdichone -->
+  <div class="card src">
+    <div class="src-head">
+      <div>
+        <div class="src-name">pdichone/knowledge-graph-rag</div>
+        <div class="src-who">Course material · Neo4j + LangChain worked examples</div>
+      </div>
+      <span class="badge b-skip">Skim or skip</span>
+    </div>
+    <div class="src-url"><a href="https://github.com/pdichone/knowledge-graph-rag" target="_blank" rel="noopener">https://github.com/pdichone/knowledge-graph-rag</a></div>
+    <div class="qa">
+      <div class="q">Honest assessment</div>
+      <p>A teaching repository with several small modules — basic graph creation, a worked RAG example, a healthcare implementation, some text-prep tooling. There is no novel framework here and nothing to depend on. Its one genuine use: if nobody on your team has built a knowledge graph before, the healthcare module shows a compliance-shaped domain modelled as a graph end to end, which makes the abstract concrete in about twenty minutes. Read it once for orientation, then close it. If your team is already comfortable with graphs, skip it entirely — it will not tell you anything the other sources do not.</p>
+    </div>
+  </div>
+
+  <!-- ============ BUILD STEPS ============ -->
+  <div class="chead" id="build"><span class="num">03</span><h2>The build path</h2><div class="rule"></div><div class="uchip">10 steps</div></div>
+
+  <div class="card" style="margin-bottom:14px">
+    <p class="small" style="margin:0">Each step below states its <strong>purpose</strong> first, because the purpose determines whether you have done it correctly. A step performed to the letter but against its purpose is worse than a step skipped — it produces something that looks finished and is not.</p>
+  </div>
+
+  <!-- STEP 1 -->
+  <div class="card stepcard">
+    <div class="st-head"><span class="st-n">STEP 1</span><span class="st-title">Inventory before anything else</span><span class="st-time">3–5 days</span></div>
+    <div class="st-why"><strong>Purpose:</strong> to find out how big the problem actually is before committing to a shape for it. Almost every failed knowledge-base project began by designing a schema for a corpus nobody had counted.</div>
+    <div class="grid-do">
+      <div class="panel">
+        <div class="pl">What you do</div>
+        <ul class="list">
+          <li>List every document that contains a rule — style guides, standards manuals, legal memos, wiki pages, that PDF a departed editor wrote in 2017.</li>
+          <li>For each: rough page count, last updated, who owns it, whether anyone actually follows it.</li>
+          <li>Estimate discrete rules per document. A rough count is fine; an order of magnitude is what matters.</li>
+          <li>Flag contradictions between documents. There will be some. Do not resolve them yet — just record them.</li>
+        </ul>
+      </div>
+      <div class="panel done">
+        <div class="pl">Done looks like</div>
+        <p class="small">A single spreadsheet with every source document, an estimated total rule count, and a named owner per document. You can answer "roughly how many rules are we talking about?" with a number rather than a shrug.</p>
+      </div>
+    </div>
+    <div class="panel trap" style="margin-top:11px">
+      <div class="pl">The trap</div>
+      <p class="small">Starting to write YAML during this step because it feels more productive than counting. Resist. Every hour spent here saves several later, and a schema designed against an imagined corpus will not survive contact with the real one.</p>
+    </div>
+    <div class="uses"><span class="ul">Sources used</span><span class="utag none">None — this is entirely yours</span></div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div class="card stepcard">
+    <div class="st-head"><span class="st-n">STEP 2</span><span class="st-title">The taxonomy workshop</span><span class="st-time">1–2 weeks</span></div>
+    <div class="st-why"><strong>Purpose:</strong> to agree a fixed vocabulary that everything else is built on. This is the highest-leverage step in the project and the one most likely to be rushed, because it involves meetings rather than code.</div>
+    <div class="grid-do">
+      <div class="panel">
+        <div class="pl">What you do</div>
+        <ul class="list">
+          <li>Get standards editors in a room. Not engineers deciding what editors probably mean.</li>
+          <li><strong>Extract the taxonomy that already exists implicitly</strong> — editors already group rules in their heads. Find those groupings rather than inventing new ones.</li>
+          <li>Settle five things: categories, subcategories, desks, languages, severity tiers.</li>
+          <li>Define severity <em>operationally</em>: what does "blocking" permit and forbid, concretely, in the CMS?</li>
+          <li>Decide who may change the taxonomy later, and make that list short.</li>
+        </ul>
+      </div>
+      <div class="panel done">
+        <div class="pl">Done looks like</div>
+        <p class="small"><span class="mono">taxonomy.yaml</span> exists, is committed, and has been read and approved by someone senior enough to defend it. Every category has a one-line definition that distinguishes it from its neighbours.</p>
+      </div>
+    </div>
+    <div class="panel trap" style="margin-top:11px">
+      <div class="pl">The trap</div>
+      <p class="small">Too many categories. If you have fifteen, you have a filing system, not a taxonomy — and classification becomes ambiguous, which defeats the point. Five to seven is the working range. When a rule seems to need a sixteenth category, it usually needs a subcategory instead.</p>
+    </div>
+    <div class="uses"><span class="ul">Sources used</span><span class="utag">CVE-KGRAG — the anchoring principle</span></div>
+  </div>
+
+  <!-- STEP 3 -->
+  <div class="card stepcard">
+    <div class="st-head"><span class="st-n">STEP 3</span><span class="st-title">Schema plus twenty-five hand-written rules</span><span class="st-time">2 weeks</span></div>
+    <div class="st-why"><strong>Purpose:</strong> to discover what the schema is missing while the cost of finding out is still twenty-five files rather than four hundred. This step is a deliberate, small-scale failure test.</div>
+    <div class="grid-do">
+      <div class="panel">
+        <div class="pl">What you do</div>
+        <ul class="list">
+          <li>Write the rule schema as JSON Schema.</li>
+          <li>Pick your two or three most <em>explicit</em> categories — usually sourcing and legal, because they are written down precisely and argued about least.</li>
+          <li>Hand-write twenty-five real rules. By hand. No LLM assistance at this stage.</li>
+          <li>Deliberately include rules with exceptions and cross-references — those are what stress the schema.</li>
+          <li>Write <span class="mono">validate.py</span> and wire it into CI so a bad rule cannot be merged.</li>
+        </ul>
+      </div>
+      <div class="panel done">
+        <div class="pl">Done looks like</div>
+        <p class="small">Twenty-five rules pass validation, and you went at least one full week without needing to add a field. If you are still adding fields, the schema has not stabilised and Step 4 will be built on sand.</p>
+      </div>
+    </div>
+    <div class="panel trap" style="margin-top:11px">
+      <div class="pl">The trap</div>
+      <p class="small">Automating this step. The whole value is in the friction: hand-writing rules is how you discover that your <span class="mono">exceptions</span> field cannot express "unless the subject is a public figure, in which case rule R-088 applies instead". An LLM would have quietly flattened that into prose and you would not have noticed until much later.</p>
+    </div>
+    <div class="uses"><span class="ul">Sources used</span><span class="utag none">None — hand-written by design</span></div>
+  </div>
+
+  <!-- STEP 4 -->
+  <div class="card stepcard">
+    <div class="st-head"><span class="st-n">STEP 4</span><span class="st-title">Build the graph from the YAML</span><span class="st-time">3–5 days</span></div>
+    <div class="st-why"><strong>Purpose:</strong> to turn authored files into a queryable structure — and to establish, permanently, that the graph is <em>derived</em>. Nobody edits it. It is regenerated on every build and is therefore always exactly what the rules say.</div>
+    <div class="grid-do">
+      <div class="panel">
+        <div class="pl">What you do</div>
+        <ul class="list">
+          <li><span class="mono">pip install networkx</span>. That is the entire infrastructure requirement.</li>
+          <li>Write <span class="mono">build_graph.py</span>: read the YAML, create a node per rule and per taxonomy value, create edges from the reference fields.</li>
+          <li>Skip anything not <span class="mono">status: active</span> — drafts must never reach the index.</li>
+          <li>Compute base PageRank with severity as the personalization vector, and cache it.</li>
+          <li>Add <span class="mono">build/</span> to <span class="mono">.gitignore</span>. This is not housekeeping — it is what enforces the derived-not-authored rule.</li>
+        </ul>
+      </div>
+      <div class="panel done">
+        <div class="pl">Done looks like</div>
+        <p class="small">Delete <span class="mono">build/</span> entirely, run one command, and get an identical graph back. If that is not true, something is being hand-maintained and will drift.</p>
+      </div>
+    </div>
+    <div class="panel trap" style="margin-top:11px">
+      <div class="pl">The trap</div>
+      <p class="small">Reaching for Neo4j because a graph "should" live in a graph database. At this scale it is a database to operate, back up and secure in exchange for nothing you need. CVE-KGRAG runs vastly more data on NetworkX. Escalate when you have a query you genuinely cannot express, not before.</p>
+    </div>
+    <div class="uses"><span class="ul">Sources used</span><span class="utag">CVE-KGRAG — NetworkX at scale</span><span class="utag">gRAG article — PageRank</span></div>
+  </div>
+
+  <!-- STEP 5 -->
+  <div class="card stepcard">
+    <div class="st-head"><span class="st-n">STEP 5</span><span class="st-title">Ship the mechanical engine — no LLM yet</span><span class="st-time">1 week</span></div>
+    <div class="st-why"><strong>Purpose:</strong> to put something genuinely useful in front of editors before any model is involved. This is the first point at which the project stops being a plan and starts being a tool — and it earns the credibility that the harder half will need.</div>
+    <div class="grid-do">
+      <div class="panel">
+        <div class="pl">What you do</div>
+        <ul class="list">
+          <li>Compile every <span class="mono">type: mechanical</span> rule into patterns and structural checks.</li>
+          <li>Implement quote-span detection so <span class="mono">unless_in: direct_quote</span> works — banned-term rules almost always exempt direct quotation.</li>
+          <li>Run it over a hundred recent published articles and read every hit yourself.</li>
+          <li>Fix or reclassify anything producing noise. A mechanical rule that misfires is a bug, not a judgement call.</li>
+        </ul>
+      </div>
+      <div class="panel done">
+        <div class="pl">Done looks like</div>
+        <p class="small">Near-zero false positives across a hundred real articles, and an editor who has seen the output says it would have caught something real. No LLM has been called at any point.</p>
+      </div>
+    </div>
+    <div class="callout">
+      <div class="co-label">If the project stops here, it was still worth doing</div>
+      <p>A validated rulebook plus deterministic checking is a real, shippable product. Everything after this point adds capability but also adds risk — and this is the last step where the system cannot possibly be confidently wrong.</p>
+    </div>
+    <div class="uses"><span class="ul">Sources used</span><span class="utag none">None — plain Python by design</span></div>
+  </div>
+
+  <!-- STEP 6 -->
+  <div class="card stepcard">
+    <div class="st-head"><span class="st-n">STEP 6</span><span class="st-title">Retrieval — the λ decision point</span><span class="st-time">1–2 weeks</span></div>
+    <div class="st-why"><strong>Purpose:</strong> to select which rules the LLM will see. This is where retrieval quality is decided; the model can only reason about what you hand it, and everything it never sees is invisible to the system.</div>
+    <div class="grid-do">
+      <div class="panel">
+        <div class="pl">What you do</div>
+        <ul class="list">
+          <li><strong>Decide: build or borrow.</strong> Write ~200 lines yourself, or run LightRAG's REST server as a search engine. Both defensible.</li>
+          <li>Embed each rule's statement, rationale, hints and — most importantly — its <em>bad example</em>, which is the text closest in register to an actual violation.</li>
+          <li>Filter by taxonomy metadata first: desk, language, status. Cheap and exact, before any scoring.</li>
+          <li>Score with the λ blend, reading λ from each rule's own category.</li>
+          <li><strong>Then expand the subgraph.</strong> Pull in every rule connected by <span class="mono">QUALIFIED_BY</span>, <span class="mono">EXCEPTS</span> or <span class="mono">RELATED_TO</span>, regardless of score.</li>
+        </ul>
+      </div>
+      <div class="panel done">
+        <div class="pl">Done looks like</div>
+        <p class="small">Given a test sentence you can print the retrieved set and explain every entry — this one by similarity, that one by PageRank, this third one purely because an edge pointed at it.</p>
+      </div>
+    </div>
+    <div class="panel trap" style="margin-top:11px">
+      <div class="pl">The trap</div>
+      <p class="small">Skipping expansion because scoring "already works". It does work — for finding the rule. It cannot find the <em>exception</em> to that rule, because an exception's wording resembles the article even less than the rule's does. Expansion is the entire justification for having built a graph; without it you have an expensive vector store.</p>
+    </div>
+    <div class="uses"><span class="ul">Sources used</span><span class="utag">gRAG article — λ blend</span><span class="utag">LightRAG — dual-layer, optional server</span></div>
+  </div>
+
+  <!-- STEP 7 -->
+  <div class="card stepcard">
+    <div class="st-head"><span class="st-n">STEP 7</span><span class="st-title">The LLM review layer</span><span class="st-time">1–2 weeks</span></div>
+    <div class="st-why"><strong>Purpose:</strong> to apply judgement to what retrieval selected. Note how late this arrives — six steps in. That ordering is the point: by now the model is a component inside a structure, not the structure itself.</div>
+    <div class="grid-do">
+      <div class="panel">
+        <div class="pl">What you do</div>
+        <ul class="list">
+          <li>Split model roles: cheap model to classify desk and language, strongest model to review.</li>
+          <li>Constrain the prompt hard — only the supplied rules, cite rule IDs exactly, quote spans verbatim, never escalate severity.</li>
+          <li>Require explicit exception handling: if a supplied qualifier applies, report <span class="mono">suppressed_by</span> rather than flagging.</li>
+          <li>Validate every returned <span class="mono">rule_id</span> against the real rule set and discard anything that does not exist.</li>
+          <li>Apply confidence floors by severity — lower for blocking, higher for advisory.</li>
+        </ul>
+      </div>
+      <div class="panel done">
+        <div class="pl">Done looks like</div>
+        <p class="small">It runs end to end on a real draft and every flag cites a rule ID that exists. Hallucinated IDs are caught and dropped by code, not trusted because the model sounded certain.</p>
+      </div>
+    </div>
+    <div class="panel trap" style="margin-top:11px">
+      <div class="pl">The trap</div>
+      <p class="small">Letting the model decide severity. Severity belongs to the rule, is set by editors, and is not a judgement the model is authorised to make. If a model can promote an advisory to blocking, editorial authority has quietly moved from the standards desk to a prompt.</p>
+    </div>
+    <div class="uses"><span class="ul">Sources used</span><span class="utag">LightRAG — model-role split</span></div>
+  </div>
+
+  <!-- STEP 8 -->
+  <div class="card stepcard">
+    <div class="st-head"><span class="st-n">STEP 8</span><span class="st-title">Evaluation — try to disprove your own design</span><span class="st-time">2 weeks</span></div>
+    <div class="st-why"><strong>Purpose:</strong> to establish whether any of the complexity you have just built is earning its keep. Every step so far assumed the hybrid approach is better. This step tests that assumption honestly, with the possibility of a negative answer.</div>
+    <div class="grid-do">
+      <div class="panel">
+        <div class="pl">What you do</div>
+        <ul class="list">
+          <li>Assemble 30–60 real drafts with violations annotated by standards editors.</li>
+          <li>Include all four required case types — clean articles, obvious violations, violations phrased unlike the rule, and violations where an exception legitimately applies.</li>
+          <li>Run arms A through E. Arm A is naive vector RAG, the honest baseline.</li>
+          <li>Sweep λ per category and write the winners back into <span class="mono">taxonomy.yaml</span>.</li>
+          <li>Report intervals, not point estimates. Thirty articles is a small sample and should be described as one.</li>
+        </ul>
+      </div>
+      <div class="panel done">
+        <div class="pl">Done looks like</div>
+        <p class="small">Blocking-rule recall at or above 0.95 at acceptable precision, and you can state what each component contributed by comparing adjacent arms.</p>
+      </div>
+    </div>
+    <div class="callout cool">
+      <div class="co-label">Be prepared for the uncomfortable result</div>
+      <p>If arm A scores within noise of arm E, the graph and the λ machinery are decoration and should be removed. That would be a genuinely good outcome — a simpler system that performs identically is strictly better. The purpose of this step is to make that finding <em>possible</em>, which is precisely what most projects avoid.</p>
+    </div>
+    <div class="uses"><span class="ul">Sources used</span><span class="utag">VectorInstitute/kg-rag — the entire method</span></div>
+  </div>
+
+  <!-- STEP 9 -->
+  <div class="card stepcard">
+    <div class="st-head"><span class="st-n">STEP 9</span><span class="st-title">Migrate the remaining rules</span><span class="st-time">ongoing</span></div>
+    <div class="st-why"><strong>Purpose:</strong> to convert the rest of the corpus now that the schema has been validated by real use and the eval harness can detect when a migrated batch is bad.</div>
+    <div class="grid-do">
+      <div class="panel">
+        <div class="pl">What you do</div>
+        <ul class="list">
+          <li>Install MinerU. Run it on each legacy PDF to get structured markdown with tables intact.</li>
+          <li>Feed sections to an LLM with the vocabulary-constrained migration prompt.</li>
+          <li>Everything emerges as <span class="mono">status: draft</span>. No exceptions, no shortcuts.</li>
+          <li>A named editor reviews each rule and promotes it to <span class="mono">active</span>.</li>
+          <li>Verify <span class="mono">type</span> classification by hand on every rule marked mechanical — a judgement rule mislabelled mechanical produces confident nonsense.</li>
+          <li>Re-run the eval after each batch. A migration that degrades recall is a migration to roll back.</li>
+        </ul>
+      </div>
+      <div class="panel done">
+        <div class="pl">Done looks like</div>
+        <p class="small">Every rule is <span class="mono">active</span> with a named owner and a page reference back to its source document. Nothing was promoted automatically.</p>
+      </div>
+    </div>
+    <div class="panel trap" style="margin-top:11px">
+      <div class="pl">The trap</div>
+      <p class="small">Bulk-promoting drafts to clear a backlog. The review gate is the only thing standing between a machine-extracted approximation of a rule and a rule the newsroom is actually held to. Once it is bypassed, provenance is fiction.</p>
+    </div>
+    <div class="uses"><span class="ul">Sources used</span><span class="utag">MinerU — PDF parsing</span><span class="utag">RAG-Anything — the pipeline pattern</span></div>
+  </div>
+
+  <!-- STEP 10 -->
+  <div class="card stepcard">
+    <div class="st-head"><span class="st-n">STEP 10</span><span class="st-title">Shadow mode, then gated rollout</span><span class="st-time">3+ weeks</span></div>
+    <div class="st-why"><strong>Purpose:</strong> to learn what the system does on live traffic before it can interfere with anyone's work. Offline evaluation on curated cases always flatters a system; real drafts do not.</div>
+    <div class="grid-do">
+      <div class="panel">
+        <div class="pl">What you do</div>
+        <ul class="list">
+          <li>Run the full pipeline on real drafts and <strong>log everything, show nothing</strong>.</li>
+          <li>Have standards editors review the shadow log weekly and mark each flag correct or incorrect.</li>
+          <li>Measure real precision and recall on live traffic, not curated cases.</li>
+          <li>Then enable for one pilot desk — blocking and warning only, advisory suppressed until precision is proven.</li>
+          <li>Log every override with user, rule, timestamp and written reason. That log is both audit trail and future eval data.</li>
+          <li>Word the interface carefully: "no flagged issues", never "approved".</li>
+        </ul>
+      </div>
+      <div class="panel done">
+        <div class="pl">Done looks like</div>
+        <p class="small">Two to four weeks of shadow data, a precision figure you would defend in a newsroom meeting, and one desk using it voluntarily.</p>
+      </div>
+    </div>
+    <div class="panel trap" style="margin-top:11px">
+      <div class="pl">The trap</div>
+      <p class="small">Skipping shadow mode because the eval numbers looked good. Shadow mode is the cheapest possible way to discover that a rule was mis-classified as blocking — and the alternative is discovering it when the tool stops a real story from publishing on a deadline.</p>
+    </div>
+    <div class="uses"><span class="ul">Sources used</span><span class="utag none">None — this is operational discipline</span></div>
+  </div>
+
+  <!-- ============ DECISIONS ============ -->
+  <div class="chead" id="decisions"><span class="num">04</span><h2>Decisions you will actually face</h2><div class="rule"></div></div>
+
+  <div class="card">
+    <div class="g2">
+      <div class="panel">
+        <div class="pl">Build retrieval or run LightRAG?</div>
+        <p class="small"><strong>Build it</strong> if the retrieval logic reads as straightforward to your team — a filter, a similarity lookup, a PageRank call, a weighted sum, a neighbour expansion. Roughly two hundred lines, fully under your control, no version drift.<br><br><strong>Run LightRAG</strong> if you would rather not maintain that, want its storage backends and incremental indexing, and are comfortable pinning a fast-moving dependency. Use its REST server, not the embedded SDK — its own documentation recommends this.</p>
+      </div>
+      <div class="panel">
+        <div class="pl">NetworkX, Postgres or Neo4j?</div>
+        <p class="small"><strong>NetworkX</strong> until you have a concrete reason to move. <strong>Postgres</strong> if the CMS needs to query rules in the same transaction as everything else. <strong>Neo4j</strong> only when editors want ad-hoc graph exploration or qualification chains get genuinely deep. Escalating early costs operational overhead and buys nothing measurable.</p>
+      </div>
+      <div class="panel">
+        <div class="pl">How many rules before the graph earns itself?</div>
+        <p class="small">The graph pays off in proportion to <em>cross-references</em>, not rule count. Two hundred independent rules need no graph. Fifty rules with twenty exception relationships need one badly. Count your <span class="mono">qualified_by</span> edges after Step 3 — if there are almost none, question whether the graph belongs in v1 at all.</p>
+      </div>
+      <div class="panel">
+        <div class="pl">When is a rule mechanical?</div>
+        <p class="small">Only when it can be checked by exact pattern matching with <em>no interpretation whatsoever</em>. "Never use term X outside direct quotes" is mechanical. "Avoid loaded language" is not, however much you wish it were. When uncertain, classify as judgement — an over-cautious classification costs an LLM call, while an over-confident one produces a deterministic wrong answer nobody thinks to question.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ TIMELINE ============ -->
+  <div class="chead" id="timeline"><span class="num">05</span><h2>The whole path, in order</h2><div class="rule"></div></div>
+
+  <div class="card">
+    <div class="tl">
+      <div class="tl-row"><div class="tl-when">Week 1</div><div class="tl-body"><div class="tl-t">Inventory</div><div class="tl-d">Count what exists. No code, no schema, no design.</div></div></div>
+      <div class="tl-row"><div class="tl-when">Weeks 2–3</div><div class="tl-body"><div class="tl-t">Taxonomy workshop</div><div class="tl-d">Editors in a room. Freeze the vocabulary. Highest-leverage step in the project.</div></div></div>
+      <div class="tl-row"><div class="tl-when">Weeks 4–5</div><div class="tl-body"><div class="tl-t">Schema + 25 hand-written rules</div><div class="tl-d">Find the schema's gaps while they are cheap to fix.</div></div></div>
+      <div class="tl-row"><div class="tl-when">Week 6</div><div class="tl-body"><div class="tl-t">Derived graph + PageRank</div><div class="tl-d">One <span class="mono">pip install</span>. The build must be fully reproducible.</div></div></div>
+      <div class="tl-row"><div class="tl-when">Week 7</div><div class="tl-body gate"><div class="tl-t">Mechanical engine ships</div><div class="tl-d">First real value delivered. Still zero LLM involvement. A legitimate place to stop.</div></div></div>
+      <div class="tl-row"><div class="tl-when">Weeks 8–9</div><div class="tl-body"><div class="tl-t">Hybrid retrieval</div><div class="tl-d">λ blend plus mandatory subgraph expansion.</div></div></div>
+      <div class="tl-row"><div class="tl-when">Weeks 10–11</div><div class="tl-body"><div class="tl-t">LLM review layer</div><div class="tl-d">The model arrives last, as a component rather than the architecture.</div></div></div>
+      <div class="tl-row"><div class="tl-when">Weeks 12–13</div><div class="tl-body gate"><div class="tl-t">Evaluation — the honest test</div><div class="tl-d">Arms A–E. Be willing to conclude the graph is not earning its place.</div></div></div>
+      <div class="tl-row"><div class="tl-when">Week 14+</div><div class="tl-body"><div class="tl-t">Migration at scale</div><div class="tl-d">MinerU plus constrained extraction. Every rule human-reviewed before it becomes active.</div></div></div>
+      <div class="tl-row"><div class="tl-when">Week 16+</div><div class="tl-body gate"><div class="tl-t">Shadow mode, then one pilot desk</div><div class="tl-d">Log everything, show nothing, until the numbers hold up on live traffic.</div></div></div>
+    </div>
+    <div class="callout">
+      <div class="co-label">Three flame-marked gates</div>
+      <p>Week 7, week 13 and week 16 are decision points, not milestones. At each one it is legitimate to stop, narrow scope, or reverse a design choice. A project that cannot stop at week 7 with a working mechanical checker has confused shipping software with shipping ambition.</p>
+    </div>
+  </div>
+
+  <!-- ============ FAQ ============ -->
+  <div class="chead" id="faq"><span class="num">06</span><h2>Questions worth answering early</h2><div class="rule"></div></div>
+
+  <div class="card">
+    <div class="qa">
+      <div class="q">Why not just put the whole rulebook in the prompt?</div>
+      <p>For a few hundred rules with a long-context model, you genuinely could — and for a first prototype it is a reasonable shortcut worth testing as a baseline. It stops working when the rulebook grows, when cost per check matters at newsroom volume, and when you need to know <em>which</em> rules were considered for a given flag. Retrieval is what makes the system auditable, not just what makes it cheap.</p>
+    </div>
+    <div class="qa">
+      <div class="q">Why YAML rather than a database table?</div>
+      <p>Because rules have nested structure — exceptions with conditions and required sign-offs, multiple examples, lists of cross-references — that a flat row flattens badly. And because git gives you review, blame, rollback and diffing for free, which is exactly the tooling a disputed rule change needs. A database can come later as a read model; the authored source should stay in files.</p>
+    </div>
+    <div class="qa">
+      <div class="q">Who maintains this after launch?</div>
+      <p>Answer this before Step 2, not after Step 10. The system's accuracy is a direct function of whether someone owns the rulebook. The <span class="mono">owner</span> and <span class="mono">last_reviewed</span> fields exist to make ownership explicit and staleness visible — but they only work if a real person is accountable for acting on the staleness report.</p>
+    </div>
+    <div class="qa">
+      <div class="q">What if editors disagree with a flag?</div>
+      <p>That is the system working. Every flag cites a rule ID with a source document and page, so the disagreement becomes a concrete argument about a specific written rule rather than about the tool. Sometimes the rule is wrong and should change; sometimes the classification is wrong. Both outcomes improve the rulebook, which is why dismiss-with-reason is logged rather than silently discarded.</p>
+    </div>
+    <div class="qa">
+      <div class="q">Could this be built with an off-the-shelf RAG product instead?</div>
+      <p>Partly. Any competent RAG product will retrieve relevant rules and produce plausible commentary. What none of them will do is enforce a fixed taxonomy, guarantee that a rule arrives with its exceptions attached, keep mechanical checks away from the model entirely, or make every flag traceable to a reviewed, owned, versioned rule. If those four properties do not matter for your use case, buy something. If they do — and in a newsroom they do — they are the system, and retrieval is the easy part.</p>
+    </div>
+  </div>
+
+  <footer class="doc">
+    <strong style="color:var(--lt-1)">Implementation Guide — companion to the Newsroom Knowledge Graph RAG architecture document</strong><br>
+    Timings are planning estimates for a small team and will vary with corpus size and how quickly editorial sign-off can be obtained. Descriptions of third-party projects reflect their documentation as reviewed during design; all are actively developed and may have changed — verify current state, packaging and licence terms before installing anything. Nothing here constitutes a recommendation to adopt any particular vendor or library.
+  </footer>
+
+</div>
+
+<script>
+const pill = document.getElementById('navPill');
+const glow = document.createElement('span');
+glow.className = 'nav-highlight';
+pill.insertBefore(glow, pill.firstChild);
+function moveTo(el){
+  const pr = pill.getBoundingClientRect(), er = el.getBoundingClientRect();
+  glow.style.left = (er.left - pr.left) + 'px';
+  glow.style.width = er.width + 'px';
+  glow.classList.add('show');
+}
+pill.querySelectorAll('.ntab').forEach(el => el.addEventListener('mouseenter', () => moveTo(el)));
+pill.addEventListener('mouseleave', () => glow.classList.remove('show'));
+
+const secs = [...document.querySelectorAll('.chead[id]'), document.getElementById('top')];
+const tabs = [...pill.querySelectorAll('.ntab')];
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if(!e.isIntersecting) return;
+    tabs.forEach(t => t.classList.toggle('on', t.getAttribute('href') === '#' + e.target.id));
+  });
+}, { rootMargin: '-20% 0px -70% 0px' });
+secs.forEach(s => s && io.observe(s));
+</script>
+</body>
+</html>
