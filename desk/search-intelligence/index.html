@@ -184,8 +184,9 @@ html[dir="rtl"] .profile-menu-item{text-align:right}
 .hero{padding:46px 0 24px;max-width:660px}
 .eyebrow{font-size:10px;font-weight:600;letter-spacing:0.10em;text-transform:uppercase;color:var(--lt-3);
   text-shadow:var(--ts);margin-bottom:14px;display:flex;align-items:center;gap:7px}
-.pdot{width:6px;height:6px;border-radius:50%;background:var(--flame);box-shadow:0 0 10px rgba(255,84,0,0.90);animation:pring 2.5s ease-in-out infinite;flex-shrink:0}
-@keyframes pring{0%,100%{box-shadow:0 0 10px rgba(255,84,0,0.90),0 0 0 0 rgba(255,84,0,0.50)}50%{box-shadow:0 0 10px rgba(255,84,0,0.90),0 0 0 6px rgba(255,84,0,0)}}
+.pdot{position:relative;width:6px;height:6px;border-radius:50%;background:var(--flame);box-shadow:0 0 10px rgba(255,84,0,0.90);flex-shrink:0}
+.pdot::after{content:'';position:absolute;inset:0;border-radius:50%;background:rgba(255,84,0,0.55);animation:pring 2.5s ease-in-out infinite}
+@keyframes pring{0%{transform:scale(1);opacity:0.55}100%{transform:scale(4.2);opacity:0}}
 .hero h1{font-family:var(--serif);font-size:46px;font-weight:400;letter-spacing:-0.02em;line-height:1.1;
   margin-bottom:12px;color:var(--lt-1);text-shadow:var(--ts-lg)}
 .hero p{font-family:var(--serif);font-size:15px;color:var(--lt-3);text-shadow:var(--ts);line-height:1.6;max-width:540px}
