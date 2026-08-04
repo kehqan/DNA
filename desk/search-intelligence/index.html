@@ -1435,7 +1435,7 @@ function startBoatAnim(){
   try{
     const dataEl = document.getElementById('boatAnimData');
     const animationData = JSON.parse(dataEl.textContent);
-    hlBoatInst = lottie.loadAnimation({ container: el, renderer:'svg', loop:true, autoplay:true, animationData });
+    hlBoatInst = lottie.loadAnimation({ container: el, renderer:'canvas', loop:true, autoplay:true, animationData });
   }catch(e){ /* animation is decorative — silently skip if it fails to load */ }
 }
 function stopBoatAnim(){
