@@ -17,7 +17,7 @@
 
   /* THE glass recipe */
   --glass:rgba(255,255,255,0.16);
-  --glass-filter: blur(38px) saturate(2.4) brightness(1.10);
+  --glass-filter: blur(20px) saturate(1.6) brightness(1.06);
 
   /* Light-text tiers */
   --lt-1:#FFFFFF;
@@ -248,7 +248,7 @@ html[dir="rtl"] .profile-menu-item{text-align:right}
 
 /* ===== SYNCBAR ===== */
 .syncbar{position:relative;display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:100px;margin-bottom:14px;
-  background:var(--glass);backdrop-filter:var(--glass-filter);-webkit-backdrop-filter:var(--glass-filter);
+  background:linear-gradient(160deg,rgba(24,20,34,0.72) 0%,rgba(16,13,24,0.72) 100%);
   box-shadow:var(--ambient),var(--rim);animation:rise 460ms var(--eo) both}
 .sb-text{display:flex;align-items:center;gap:9px;font-size:12px;color:var(--lt-3);text-shadow:var(--ts);white-space:nowrap}
 .spin{width:12px;height:12px;border-radius:50%;border:2px solid rgba(255,84,0,0.28);border-top-color:var(--flame);
@@ -262,7 +262,8 @@ html[dir="rtl"] .profile-menu-item{text-align:right}
 
 /* ===== STATS ===== */
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:14px}
-.stat{padding:18px 20px}
+.stat{padding:18px 20px;background:linear-gradient(160deg,rgba(24,20,34,0.68) 0%,rgba(16,13,24,0.68) 100%) !important;
+  backdrop-filter:none !important;-webkit-backdrop-filter:none !important}
 .sn{font-family:var(--serif);font-size:33px;font-weight:400;line-height:1;margin-bottom:4px;letter-spacing:-0.02em;
   color:var(--lt-1);text-shadow:var(--ts-lg)}
 .sn.pending{color:var(--lt-3);opacity:.55}
@@ -647,6 +648,7 @@ select.mini-in:hover{background-color:var(--chip-hover)}
     <div class="intake-sync-note" id="intakeSyncNote"><span class="spin"></span> <span id="intakeSyncNoteText">Search in progress — editing restarts it</span></div>
     <div class="intake-foot hide" id="intakeFoot">
       <span id="wordCount"></span>
+      <button class="btn-flame hide" id="startAnalysisBtn" data-i18n="p.startAnalysisBtn">▶ Start analysis and generation</button>
     </div>
   </div>
 
@@ -888,7 +890,7 @@ en: {
   'p.header':'Headline prompt', 'p.waiting':'waiting', 'p.building':'building', 'p.ready':'ready',
   'p.summaryDefault':'Assembles from the article, your live queries, and Discover winners. Ready the moment syncing lands.',
   'p.summaryReady':'Article <b>{w}</b> words · <b>{q}</b> live queries · <b>{d}</b> Discover winners · <b>{c}</b> chars assembled.',
-  'p.genBtn':'◆ View raw prompt', 'p.suggestBtn':'✦ Suggest headlines', 'p.sheetTitle':'Headline prompt', 'p.close':'Close',
+  'p.genBtn':'◆ View raw prompt', 'p.suggestBtn':'✦ Suggest headlines', 'p.startAnalysisBtn':'▶ Start analysis and generation', 'p.sheetTitle':'Headline prompt', 'p.close':'Close',
   'p.download':'⭳ .txt', 'p.copy':'⧉ Copy prompt',
   'p.meta':'{c} chars · ~{t} tokens · {q} queries · {d} Discover',
   'p.copiedToast':'Prompt copied — paste into any LLM', 'p.copyBlockedToast':'Copy blocked — select manually',
@@ -1731,16 +1733,22 @@ function onArticleInput(){
   $('intake').classList.toggle('hot', words>40);
   $('intakeFoot').classList.toggle('hide', words===0);
   $('wordCount').textContent = words?t('intake.wordsSuffix',{n:num(words)}):'';
+  $('startAnalysisBtn').classList.toggle('hide', words<40);
   S.article = v.trim();
   updateGenState();
   clearTimeout(debounce);
-  if (words<40){ if(words===0){ S.phase = S.articles.length?'discover':'idle'; renderSyncStatus(); } return; }
-  sbSet(t('sync.reading'),4);
-  debounce = setTimeout(runPipeline, 900);
+  // Analysis no longer auto-starts on input — pasting large blocks of text
+  // shouldn't kick off syncing/API calls until the user is actually ready.
+  if (words<40 && words===0){ S.phase = S.articles.length?'discover':'idle'; renderSyncStatus(); }
+}
+function startAnalysis(){
+  if (S.article.trim().split(/\s+/).length>=40) runPipeline();
+  else toast(t('p.pasteFirstToast'));
 }
 $('articleText').addEventListener('input', onArticleInput);
-$('articleHl').addEventListener('input', ()=>{ S.headline=$('articleHl').value.trim(); clearTimeout(debounce); debounce=setTimeout(runPipeline,900); });
-$('sbRefresh').addEventListener('click', ()=>{ if(S.article.split(/\s+/).length>40) runPipeline(); else toast(t('p.pasteFirstToast')); });
+$('articleHl').addEventListener('input', ()=>{ S.headline=$('articleHl').value.trim(); });
+$('startAnalysisBtn').addEventListener('click', startAnalysis);
+$('sbRefresh').addEventListener('click', startAnalysis);
 
 /* ==================== Manual escape hatches ==================== */
 document.querySelectorAll('[data-win]').forEach(c=>c.addEventListener('click', async ()=>{
