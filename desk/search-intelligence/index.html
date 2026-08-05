@@ -1128,6 +1128,7 @@ async function runPipeline(){
 
   if (!S.seeds.length){ S.syncing=false; $('intake').classList.remove('syncing'); S.phase='notEnough'; renderSyncStatus(); return; }
 
+  let lastHeavyRender = 0;
   for (let i=0;i<S.seeds.length;i++){
     if (mine!==syncToken) return;
     const term = S.seeds[i];
@@ -1139,7 +1140,14 @@ async function runPipeline(){
       rows.forEach(r=>{ const key=(r.term+'|'+r.page).toLowerCase(); if(!seen.has(key)){ S.keywords.push(r); seen.add(key); added++; } });
       S.log.push({term, added, ok:true});
     }catch(e){ S.log.push({term, added:0, ok:false, err:e.message}); }
-    renderKw(); renderLog(); renderSeeds(); renderStats();
+    renderSeeds(); // cheap chip-only update — keep this immediate for progress feedback
+    const now = performance.now();
+    if (i===S.seeds.length-1 || now-lastHeavyRender>350){
+      // The full list rebuilds are the expensive part (they reflow the glass
+      // cards they live in) — throttle them instead of firing on every seed.
+      renderKw(); renderLog(); renderStats();
+      lastHeavyRender = now;
+    }
   }
   if (mine!==syncToken) return;
 
@@ -1438,6 +1446,7 @@ function startBoatAnim(){
     const dataEl = document.getElementById('boatAnimData');
     const animationData = JSON.parse(dataEl.textContent);
     hlBoatInst = lottie.loadAnimation({ container: el, renderer:'canvas', loop:true, autoplay:true, animationData });
+    hlBoatInst.setSubframe(false);
   }catch(e){ /* animation is decorative — silently skip if it fails to load */ }
 }
 function stopBoatAnim(){
