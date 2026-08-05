@@ -193,6 +193,7 @@ html[dir="rtl"] .profile-menu-item{text-align:right}
 
 /* ===== CARD ===== */
 .card{position:relative;border-radius:24px;padding:22px;background:var(--glass);
+  contain:layout style;
   backdrop-filter:var(--glass-filter);-webkit-backdrop-filter:var(--glass-filter);
   box-shadow:var(--ambient-lg),var(--rim);
   transition:transform 130ms cubic-bezier(0.22,1,0.36,1),box-shadow 130ms ease-out;
@@ -208,6 +209,7 @@ html[dir="rtl"] .profile-menu-item{text-align:right}
 
 /* ===== INTAKE ===== */
 .intake{position:relative;border-radius:24px;padding:18px;margin-bottom:14px;background:var(--glass);
+  contain:layout style;
   backdrop-filter:var(--glass-filter);-webkit-backdrop-filter:var(--glass-filter);
   box-shadow:var(--ambient-lg),var(--rim);animation:rise 460ms var(--eo) both}
 .intake::before{content:'';position:absolute;inset:0;border-radius:24px;pointer-events:none;
@@ -1436,6 +1438,10 @@ function parseHeadlinesResponse(text){
 }
 
 let hlBoatInst = null;
+document.addEventListener('visibilitychange', ()=>{
+  if (!hlBoatInst) return;
+  if (document.hidden) hlBoatInst.pause(); else hlBoatInst.play();
+});
 function startBoatAnim(){
   stopBoatAnim();
   const el = $('hlBoatAnim');
