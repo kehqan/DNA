@@ -1116,6 +1116,11 @@ async function runPipeline(){
   S.seeds = []; S.keywords = []; S.log = [];
   renderSeeds(); renderKw(); renderLog(); updateGenState();
 
+  // New analysis run = new article. Any previously-generated headlines were
+  // for the old text and must not be shown again (nor reused as "cached").
+  hlHasResult = false; hlLastHeadlines = []; hlLastAnalysis = null;
+  $('hlList').innerHTML = ''; $('hlList').style.display = 'none';
+
   sbSet(t('sync.extractingQueries'), 4);
   try {
     S.seeds = await extractSeedsAI(S.article, S.headline);
