@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Centrum — Structural Blueprint · Pilot Desk</title>
+<meta name="robots" content="noindex, nofollow">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+<style>
+  /* ============ Design tokens — RFE/RL design system (Liquid Lantern × Desk) ============ */
+  :root{
+    --flame:#FF5400;--teal:#1A3948;--ivory:#F8F7F6;
+    --stone:#B9CCCC;--tender:#F3D4D6;
+    --honey:#FFC047;
+    --flame-teal-1:#d15d2a;--flame-teal-2:#a35431;--flame-teal-3:#764b39;
+    --flame-ivory-1:#fe834c;--flame-ivory-2:#fca077;--flame-ivory-3:#fbbda1;--flame-ivory-4:#f9dacc;
+    --teal-ivory-1:#465f6b;--teal-ivory-2:#73858e;--teal-ivory-3:#9fabb0;--teal-ivory-4:#ccd1d3;
+    --teal-stone-1:#3a5662;--teal-stone-2:#5a747d;--teal-stone-3:#799197;--teal-stone-4:#99afb2;
+    --ivory-stone-1:#ebeeee;--ivory-stone-2:#dfe6e5;--ivory-stone-3:#d2dddd;--ivory-stone-4:#c6d5d4;
+    --surface-page:var(--ivory);--surface-card:#ffffff;--surface-muted:var(--ivory-stone-1);
+    --text-body:var(--teal);--text-muted:var(--teal-stone-2);--text-caption:var(--teal-stone-2);
+    --accent:var(--flame);--accent-hover:#e04a00;--accent-press:#c74200;
+    --border-subtle:var(--ivory-stone-3);--border-strong:var(--teal-ivory-4);
+    --font-serif:"Skolar","PT Serif",Georgia,serif;
+    --font-sans:"Skolar Sans",Lato,"Source Sans Pro",Arial,sans-serif;
+    --radius-sm:2px;--radius-md:4px;
+    --shadow-card:0 1px 3px rgba(26,57,72,.10),0 4px 12px rgba(26,57,72,.06);
+    --shadow-overlay:0 8px 32px rgba(26,57,72,.22);
+  }
+  /* If the sitewide Skolar / Skolar Sans PE webfonts are already linked on pilotdesk.space,
+     this page inherits them automatically via the family names above. To self-host on this
+     page instead, add @font-face rules here pointing at the shared /fonts/ path. */
+
+  *{box-sizing:border-box}
+  body{margin:0;min-height:100vh;background:var(--surface-page);font-family:var(--font-sans);color:var(--text-body)}
+  h1,h2,h3{font-family:var(--font-sans);font-weight:800;line-height:1.15;color:var(--text-body);margin:0}
+  a{color:var(--flame)}
+  button{font-family:inherit}
+  .wrap{max-width:1240px;margin:0 auto;padding:0 40px}
+  @media (max-width:900px){ .wrap{padding:0 18px} }
+
+  .annot{position:relative;border:1px dashed var(--flame);border-radius:var(--radius-sm);background:var(--flame-ivory-4);padding:14px 16px}
+  .annot-label{position:absolute;top:-9px;left:14px;background:var(--ivory);padding:0 6px;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-hover)}
+  .annot-body{margin:0;font-size:12.5px;line-height:1.65;color:var(--flame-teal-3)}
+  .meta{font-size:12px;font-weight:700;letter-spacing:.04em;color:var(--text-muted)}
+  .cap{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted)}
+  .well{background:var(--surface-muted);border:1px solid var(--border-subtle);border-radius:var(--radius-md)}
+  .card{background:var(--surface-card);border:1px solid var(--border-subtle);border-radius:var(--radius-md);box-shadow:var(--shadow-card)}
+  .btn{all:unset;cursor:pointer;font-weight:700;font-size:13px;padding:8px 16px;border-radius:var(--radius-sm)}
+  .btn:focus-visible{outline:2px solid var(--flame);outline-offset:1px}
+  .chip{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--teal);background:#fff;border:1px solid var(--border-strong);padding:4px 10px;border-radius:var(--radius-sm)}
+  .icon{width:13px;height:13px;stroke:var(--flame)}
+
+  /* ---- hero ---- */
+  .hero{display:flex;gap:48px;align-items:center;min-height:360px;padding:48px 0 40px;flex-wrap:wrap}
+  .hero-copy{flex:1 1 380px;min-width:0}
+  .hero-eyebrow{display:flex;align-items:center;gap:8px;margin-bottom:18px}
+  .hero-eyebrow span{font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--flame)}
+  .hero h1{max-width:600px;margin:0 0 20px;font-size:36px;padding-bottom:14px;border-bottom:4px solid var(--flame);display:inline-block}
+  .hero p{max-width:560px;margin:20px 0 0;font-family:var(--font-serif);font-size:17px;line-height:1.6}
+  .hero-img{flex:0 0 auto;width:380px;max-width:100%;height:260px;border-radius:var(--radius-md);overflow:hidden;box-shadow:var(--shadow-card)}
+  .hero-img img{width:100%;height:100%;object-fit:cover;display:block}
+
+  /* ---- review toolbar ---- */
+  .toolbar{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:32px;padding:14px 20px}
+  .toolbar-left{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .toolbar-right{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .btn-flame{background:var(--flame);color:#fff;border:1px solid var(--flame)}
+  .btn-flame.is-active{background:var(--teal);border-color:var(--teal);color:var(--ivory)}
+  .btn-outline{background:transparent;color:var(--teal);border:1px solid var(--teal)}
+  .reviewer-chip{font-size:11.5px;color:var(--text-muted);display:flex;align-items:center;gap:6px}
+  .reviewer-chip button{all:unset;cursor:pointer;color:var(--flame);font-weight:700;font-size:11px}
+
+  /* ---- layout ---- */
+  .layout{display:grid;grid-template-columns:340px 1fr;gap:32px;align-items:start}
+  .layout.collapsed{grid-template-columns:64px 1fr}
+  @media (max-width:900px){ .layout, .layout.collapsed{grid-template-columns:1fr} }
+
+  .sidebar{position:sticky;top:24px;overflow:hidden;display:flex;flex-direction:column}
+  @media (max-width:900px){ .sidebar{position:static} }
+  .sidebar-head{display:flex;align-items:center;justify-content:space-between;gap:7px;padding:16px 14px;border-bottom:1px solid var(--border-subtle)}
+  .sidebar-head-label{display:flex;align-items:center;gap:7px}
+  .sidebar-head-label span{font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--flame)}
+  .sidebar-toggle{all:unset;cursor:pointer;display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:var(--radius-sm);color:var(--teal-stone-2)}
+  .sidebar-toggle:hover{background:var(--ivory-stone-1)}
+  .sidebar-intro{padding:22px 22px 18px;border-bottom:1px solid var(--border-subtle)}
+  .sidebar-intro h2{font-size:19px;margin:0 0 6px}
+  .segs{display:flex;flex-direction:column;gap:8px;padding:14px}
+  .layout.collapsed .segs{padding:10px 6px}
+  .seg-btn{all:unset;cursor:pointer;display:flex;gap:11px;padding:13px 14px;border-radius:var(--radius-sm);background:var(--ivory);align-items:flex-start;transition:background .15s ease;width:100%}
+  .seg-btn:hover{background:var(--ivory-stone-1)}
+  .seg-num{flex:0 0 auto;width:28px;height:28px;border-radius:var(--radius-sm);background:var(--teal);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:var(--ivory)}
+  .seg-body{flex:1;min-width:0;text-align:left}
+  .seg-title-row{display:flex;align-items:center;gap:7px;margin-bottom:4px;flex-wrap:wrap}
+  .seg-title-row .t{font-size:13px;font-weight:800;color:var(--teal)}
+  .seg-time{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:2px 8px;border-radius:var(--radius-sm);background:var(--ivory-stone-2);color:var(--teal)}
+  .seg-desc{margin:4px 0 9px;font-family:var(--font-serif);font-size:12.5px;line-height:1.55;color:var(--teal-stone-2)}
+  .seg-hub{display:flex;align-items:center;gap:7px}
+  .seg-hub .l{font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--accent-hover)}
+  .seg-hub .v{font-size:10px;font-weight:700;padding:2px 9px;border-radius:var(--radius-sm);border:1px solid var(--border-strong);background:#fff;color:var(--teal)}
+  .seg-collapsed{all:unset;cursor:pointer;display:flex;align-items:center;justify-content:center;width:32px;height:32px;margin:0 auto;border-radius:var(--radius-sm);background:var(--teal);color:var(--ivory);font-size:12px;font-weight:800}
+  .seg-collapsed:hover{background:var(--flame-teal-1)}
+  .sidebar-foot{padding:14px 22px 20px;border-top:1px solid var(--border-subtle)}
+  .sidebar-foot p{margin:0;font-size:11px;line-height:1.6;color:var(--text-muted)}
+
+  .hubs{display:flex;flex-direction:column;gap:22px}
+  .hub{overflow:hidden;transition:box-shadow .2s ease}
+  .hub.active{box-shadow:0 0 0 2px var(--flame), var(--shadow-card);border-color:var(--flame)}
+  .hub-head{display:flex;gap:14px;padding:20px 24px 16px;border-bottom:1px solid var(--border-subtle)}
+  .hub-id{flex:0 0 auto;width:44px;height:44px;border-radius:var(--radius-sm);background:var(--teal);display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:800;color:var(--flame)}
+  .hub-head h3{font-size:18px;margin:0 0 6px}
+  .hub-tags{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .hub-seg-tag{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;padding:3px 9px;border-radius:var(--radius-sm);background:var(--tender);color:var(--teal)}
+  .hub-hook{font-family:var(--font-serif);font-style:italic;font-size:13px;color:var(--text-muted)}
+  .hub-body{display:flex;flex-direction:column;gap:18px;padding:20px 24px 24px}
+  .hub-annots{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  @media (max-width:600px){ .hub-annots{grid-template-columns:1fr} }
+  .chips{display:flex;gap:7px;flex-wrap:wrap}
+  .wire-row{display:flex;flex-wrap:wrap;gap:8px;padding:16px}
+  .wire-item{padding:8px 12px;border-radius:var(--radius-sm);background:#fff;border:1px solid var(--border-subtle);font-size:11px;line-height:1.5;color:var(--text-muted);max-width:280px}
+
+  .phase2{border-radius:var(--radius-md);background:var(--surface-muted);border:1px dashed var(--border-strong);padding:24px 26px;display:flex;flex-direction:column;gap:14px}
+  .phase2-head{display:flex;gap:14px;align-items:center}
+  .phase2-icon{flex:0 0 auto;width:44px;height:44px;border-radius:var(--radius-sm);background:#fff;border:1px dashed var(--border-strong);display:flex;align-items:center;justify-content:center}
+  .phase2-head h3{margin:0 0 4px;font-size:15px;color:var(--text-muted)}
+  .phase2-head p{margin:0;font-size:12px;line-height:1.6;color:var(--teal-stone-2)}
+
+  .footer-grid{padding:64px 0 40px;border-top:1px solid var(--border-subtle);margin-top:64px}
+  .footer-cards{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px}
+  @media (max-width:800px){ .footer-cards{grid-template-columns:1fr} }
+  .footer-card{padding:22px;display:flex;flex-direction:column;gap:14px}
+  .footer-card .ic{width:36px;height:36px;border-radius:var(--radius-sm);background:var(--surface-muted);display:flex;align-items:center;justify-content:center}
+  .footer-card .t{font-size:15px;font-weight:800;color:var(--teal)}
+  .footer-card p{margin:0;font-family:var(--font-serif);font-size:13.5px;line-height:1.6;color:var(--teal-stone-2)}
+
+  /* ---- pins ---- */
+  .pin-layer{position:relative}
+  .pin-click-catcher{position:absolute;inset:0;z-index:55;cursor:crosshair;background:rgba(255,84,0,.04)}
+  .pin{all:unset;cursor:pointer;position:absolute;z-index:56;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;box-shadow:0 0 0 2px #fff,var(--shadow-card);transform:translate(-50%,-50%)}
+
+  /* ---- overlays ---- */
+  .scrim{position:fixed;inset:0;background:rgba(26,57,72,.6);z-index:70;display:flex;align-items:center;justify-content:center;padding:24px}
+  .modal{background:var(--surface-card);border-radius:var(--radius-md);max-width:520px;width:100%;max-height:88vh;overflow:auto;box-shadow:var(--shadow-overlay)}
+  .modal-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 20px;border-bottom:1px solid var(--border-subtle)}
+  .icon-btn{all:unset;cursor:pointer;width:26px;height:26px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;color:var(--teal-stone-2)}
+  .icon-btn:hover{background:var(--ivory-stone-1)}
+  .modal-body{padding:18px 20px;display:flex;flex-direction:column;gap:14px;max-height:42vh;overflow:auto}
+  .msg{border-left:2px solid var(--border-strong);padding-left:12px}
+  .msg .author{font-size:11px;font-weight:800;color:var(--accent-hover);margin-bottom:2px}
+  .msg p{margin:0 0 6px;font-size:13px;line-height:1.55;color:var(--teal)}
+  .modal-composer{padding:16px 20px;border-top:1px solid var(--border-subtle);display:flex;flex-direction:column;gap:10px}
+  textarea, input[type=text]{width:100%;font-family:inherit;font-size:13px;padding:10px 12px;border-radius:var(--radius-sm);border:1px solid var(--border-strong);color:var(--teal);box-sizing:border-box}
+  textarea{min-height:64px;resize:vertical}
+  select{font-family:inherit;font-size:11px;font-weight:700;padding:4px 8px;border-radius:var(--radius-sm);border:1px solid var(--border-strong);background:#fff;color:var(--teal)}
+  .composer-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .attach-row{display:flex;flex-wrap:wrap;gap:6px}
+  .attach-chip{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;padding:3px 7px;border-radius:var(--radius-sm);background:var(--ivory-stone-1);color:var(--teal)}
+  .attach-chip button{all:unset;cursor:pointer;color:var(--teal-stone-2)}
+  .small-link{font-size:11px}
+
+  .dashboard-panel{position:fixed;inset:0;z-index:65;display:flex;justify-content:flex-end}
+  .dashboard-inner{width:380px;max-width:92vw;height:100%;background:var(--surface-card);box-shadow:var(--shadow-overlay);display:flex;flex-direction:column;border-left:1px solid var(--border-subtle)}
+  .dashboard-head{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid var(--border-subtle)}
+  .dashboard-head span{font-size:13px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--teal)}
+  .dashboard-list{flex:1;overflow:auto;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+  .dc-item{all:unset;cursor:pointer;text-align:left;padding:12px 14px;border:1px solid var(--border-subtle);border-radius:var(--radius-sm);background:var(--ivory);display:block}
+  .dc-item:hover{border-color:var(--flame)}
+  .dc-top{display:flex;align-items:center;gap:6px;margin-bottom:6px;flex-wrap:wrap}
+  .dc-pri{font-size:10px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:2px 7px;border-radius:var(--radius-sm)}
+  .dc-tag{font-size:10.5px;font-weight:700;color:var(--teal-stone-2)}
+  .dc-snip{margin:0 0 6px;font-size:12.5px;line-height:1.5;color:var(--teal)}
+  .dc-meta{font-size:10.5px;color:var(--text-muted)}
+  .empty-note{margin:20px 4px;font-size:12.5px;color:var(--text-muted)}
+  .sync-note{position:fixed;bottom:16px;left:16px;z-index:80;font-size:11px;color:var(--text-muted);background:#fff;border:1px solid var(--border-subtle);padding:6px 12px;border-radius:var(--radius-sm);box-shadow:var(--shadow-card);opacity:0;transition:opacity .3s ease;pointer-events:none}
+  .sync-note.show{opacity:1}
+</style>
+</head>
+<body>
+
+<div class="wrap" style="padding-top:56px;padding-bottom:24px">
+
+  <div class="hero">
+    <div class="hero-copy">
+      <div class="hero-eyebrow">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect></svg>
+        <span>Structural blueprint · AI Centrum</span>
+      </div>
+      <h1>The architecture of AI Centrum at RFE/RL</h1>
+      <p>This document shows the educational structure of the AI Centrum alongside the Lightning Chat — a 25‑minute public announcement presentation. Every segment of the presentation is paired 1:1 with a section of the AI Centrum.</p>
+    </div>
+    <div class="hero-img"><img src="assets/hero.jpg" alt=""></div>
+  </div>
+
+  <div class="toolbar card">
+    <div class="toolbar-left">
+      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="var(--flame)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+      <span class="cap" style="text-transform:uppercase;color:var(--teal)">Team review</span>
+      <span class="meta" id="pinModeHint" style="font-weight:400">Drop a comment on any point in the blueprint</span>
+    </div>
+    <div class="toolbar-right">
+      <span class="reviewer-chip">Reviewing as <strong id="reviewerName">—</strong> <button id="editReviewer">change</button></span>
+      <button class="btn btn-flame" id="pinModeBtn">+ Add comment</button>
+      <button class="btn btn-outline" id="dashboardBtn">Comments dashboard (<span id="commentCount">0</span>)</button>
+    </div>
+  </div>
+
+  <div class="pin-layer" id="pinLayer">
+    <div id="pinClickCatcher" class="pin-click-catcher" style="display:none"></div>
+    <div id="pinsContainer"></div>
+
+    <div class="layout" id="layout">
+      <div class="sidebar card">
+        <div class="sidebar-head" id="sidebarHead">
+          <div class="sidebar-head-label" id="sidebarHeadLabel">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="var(--flame)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+            <span>Lightning Chat</span>
+          </div>
+          <button class="sidebar-toggle" id="collapseBtn" aria-label="Collapse Lightning Chat panel" title="Collapse Lightning Chat panel">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg>
+          </button>
+        </div>
+        <div class="sidebar-intro" id="sidebarIntro">
+          <h2>"AI Is Already in Your Newsroom"</h2>
+          <div class="meta" style="margin-bottom:16px;font-weight:400;color:var(--text-caption)">22 min · Online · Public announcement + onboarding</div>
+          <div class="annot">
+            <span class="annot-label">Presentation goal</span>
+            <p class="annot-body">Spark curiosity. Lower the fear barrier. Drive every attendee to visit and bookmark the AI Centrum within 24 hours of watching.</p>
+          </div>
+        </div>
+        <div class="segs" id="segs"></div>
+        <div class="sidebar-foot" id="sidebarFoot">
+          <p>The presentation is the trailer. The AI Centrum is the film. Every segment ends with an open door.</p>
+        </div>
+      </div>
+
+      <div class="hubs" id="hubs"></div>
+    </div>
+  </div>
+
+  <div class="footer-grid">
+    <div class="footer-cards" id="footerCards"></div>
+  </div>
+</div>
+
+<!-- Segment detail modal -->
+<div class="scrim" id="segModalScrim" style="display:none"></div>
+
+<!-- Comment thread modal -->
+<div class="scrim" id="threadScrim" style="display:none"></div>
+
+<!-- Comments dashboard -->
+<div class="dashboard-panel" id="dashboardPanel" style="display:none"></div>
+
+<div class="sync-note" id="syncNote">Saved</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ============================= Supabase ============================= */
+  const SUPABASE_URL = "https://yiewnykbchfadipznpet.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_SzVtJbVL--379ISTr-_-LQ_q0sDxshQ";
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  const THREADS = "aicentrum_comment_threads";
+  const MESSAGES = "aicentrum_comment_messages";
+  const BUCKET = "aicentrum-attachments";
+
+  function showSync(label){
+    const n = document.getElementById("syncNote");
+    n.textContent = label || "Saved";
+    n.classList.add("show");
+    clearTimeout(showSync._t);
+    showSync._t = setTimeout(() => n.classList.remove("show"), 1400);
+  }
+
+  /* ============================= Content data ============================= */
+  const briefItems = [
+    { icon:'crosshair', label:'Scope', value:'Phase 1: the Lightning Chat presentation plus 8 AI Centrum hub sections (A–H). Sections I–K and deeper content production are Phase 2.' },
+    { icon:'users', label:'Target audience', value:'All RFE/RL staff across all language services — from AI-skeptical veterans to early adopters.' },
+    { icon:'calendar-clock', label:'Timeline of execution', value:'Blueprint approval → Lightning Chat build → hub content production → soft launch, phased across one quarter.' },
+    { icon:'shield-check', label:'Stakeholders', value:'Editorial leadership, digital strategy, and language service managers own review and sign-off.' },
+  ];
+
+  const segments = [
+    { n:1, title:'The Hook — What Is AI?', time:'0:00 – 3:00', desc:'Open with a live typed prompt in ChatGPT. No slides. Immediate proof of concept. No theory.', hubId:'A', hubLabel:'AI Foundations' },
+    { n:2, title:'Myth vs. Reality', time:'3:00 – 7:00', desc:'Audience votes live on 5 AI statements. Reveals misconceptions specific to journalists.', hubId:'D', hubLabel:'Interactive Zone' },
+    { n:3, title:'The Perfect Prompt', time:'7:00 – 12:00', desc:'Live side-by-side: a bad prompt vs. a well-engineered one. Audience sees the ROI immediately.', hubId:'B', hubLabel:'Prompt Library' },
+    { n:4, title:'Tools Tour (60 sec each)', time:'12:00 – 16:00', desc:'Flash tour of 3 tools journalists can use today, each tied to a real RFE/RL story type.', hubId:'C', hubLabel:'Tool Library' },
+    { n:5, title:"A Journalist's Workflow", time:'16:00 – 19:00', desc:'2-min video clip showing AI in a real editorial workflow. Raw demonstration, no commentary.', hubId:'E', hubLabel:'Video Library' },
+    { n:6, title:"What's Next — Workshops & Hub", time:'19:00 – 22:00', desc:'Screen-share the AI Centrum. Walk each section. Point to the next workshop. End with bookmark CTA.', hubId:'F', hubLabel:'Workshops' },
+    { n:7, title:'Questions', time:'22:00 – 25:00', desc:'Open floor. Field live questions from the room, point skeptics to the relevant AI Centrum section as answers come up.', hubId:'F', hubLabel:'Workshops' },
+  ];
+
+  function chipSet(icon1,l1,l2,l3,l4,l5,l6){
+    return [
+      { icon:icon1, label:l1 },{ icon:'bar-chart-2', label:l2 },{ icon:'book-open', label:l3 },
+      { icon:'gallery-horizontal', label:l4 },{ icon:'hash', label:l5 },{ icon:'bookmark', label:l6 },
+    ];
+  }
+
+  const chartXs=[10,120,230,340,450,550], chartY1s=[158,140,112,78,46,26];
+  const chartPoints = chartXs.map((x,i)=>({x,y1:chartY1s[i]}));
+
+  const hubSections = [
+    { id:'A', title:'AI Foundations', segment:'Segment 1', hook:'"The Hook — What Is AI?"',
+      purpose:"Give every journalist — regardless of background — a shared vocabulary and mental model for AI. No jargon, no assumptions.",
+      managerGoal:"Reduce the 'I don't understand AI' barrier to zero. After this section, any staff member can participate in AI discussions without feeling lost.",
+      chips:chipSet('layers','Flashcards','Infographics','Explainer Articles','Slideshow','Key Stats','Glossary'),
+      wire:['How LLMs work · AI in journalism','Infographic embed (Datawrapper / static)','Horizontal bar stats — 61% · 94% · 47%'] },
+    { id:'B', title:'Prompt Library', segment:'Segment 3', hook:'"The Perfect Prompt"',
+      purpose:"A searchable, categorized collection of journalist-optimized prompts — not generic ones. Every prompt is contextual to RFE/RL workflows: fact-checking, translation, summarization, interviews.",
+      managerGoal:"Make prompt engineering replicable. A reporter who saw a good prompt in the Lightning Chat can find it, copy it, and adapt it in under 60 seconds.",
+      chips:chipSet('shuffle','Search & Filter','Copy-to-clipboard','Tags by use case','Community rated','Submit a prompt','Drag to remix'),
+      wire:["Prompt card — “I'm interviewing [person] about [topic]. Generate 10 sharp questions.”"] },
+    { id:'C', title:'Tool Library', segment:'Segment 4', hook:'"Tools Tour"',
+      purpose:"A curated, opinionated directory of AI tools relevant to journalism — not every tool, just the ones that work within RFE/RL's scale and security requirements.",
+      managerGoal:"Eliminate decision paralysis. Staff leave with 1–2 tools they can start using today, not a 200-item list. Each tool card carries a security rating and a language support tag.",
+      chips:chipSet('tag','Tool cards','Security rating','Language support','Free / Paid flag','Demo video link','Category filter'),
+      wire:['Tool card — Research','Tool card — Writing','Tool card — Perplexity (Research)'] },
+    { id:'D', title:'Interactive Learning Zone', segment:'Segment 2', hook:'"Myth vs. Reality Quiz"',
+      purpose:"Active learning outperforms passive reading. Games, quizzes, and drag-and-drop exercises make AI concepts stick — especially for staff who are resistant or skeptical.",
+      managerGoal:"Make learning feel like play, not training. Completion rates for interactive modules are 3–5× higher than static articles. This section is the engagement engine of the entire Hub.",
+      chips:chipSet('gamepad-2','Games','Quizzes','Drag & Drop','Scenario builder','Leaderboard','Progress tracker'),
+      wire:["Myth statement — “AI can replace a journalist's editorial judgment.”",'Leaderboard module'] },
+    { id:'E', title:'Video Library', segment:'Segment 5', hook:'"A Journalist\'s Workflow"',
+      purpose:"Journalists learn by seeing, not reading. Short-form videos (2–5 min) showing real workflows are more persuasive than any written guide.",
+      managerGoal:"Build a living archive of AI use cases in action. Prioritize internal RFE/RL examples over generic tutorials — 'one of us using it' is 10× more convincing than a vendor demo.",
+      chips:chipSet('clapperboard','Tutorial videos','Workflow walkthroughs','YouTube / Vimeo embed','Curated playlists','Bookmarking','Runtime labels'),
+      wire:['"Whisper for audio transcription" — 4:22 · RFE/RL Digital'] },
+    { id:'F', title:'Workshops & Events', segment:'Segment 6', hook:'"What\'s Next — Workshops & Hub"',
+      purpose:"Move learning from passive to active. Workshops are where journalists apply skills with expert guidance. The Hub's calendar makes participation visible and recurring.",
+      managerGoal:"Maintain cadence. A single workshop is a one-off event. A visible calendar of recurring sessions makes the AI Centrum feel like a living institution, not a one-time campaign.",
+      chips:chipSet('users','Event calendar','Registration links','Reminder sign-up','Upcoming + Past','Workshop materials','Facilitator profiles'),
+      wire:['SEP 18 — AI for Fact-Checking · 2/15 seats','Second session · 8/20 seats'] },
+    { id:'G', title:'Articles & Reading Room', segment:'Self-directed', hook:'"The Hook — context building"',
+      purpose:"For the self-directed learner who wants depth. Curated reading — internal pieces, international case studies, opinion — organized by skill level and topic.",
+      managerGoal:"Position the AI Centrum as a thought-leader resource, not just a how-to guide. If the reading room is excellent, the entire Hub gains credibility with skeptical senior staff.",
+      chips:chipSet('link','RFE/RL originals','External case studies','Beginner / Advanced tags','Save for later','Discussion thread','Related resources'),
+      wire:['How the BBC uses AI for multilingual content at scale','What journalists need to know about large language models'] },
+    { id:'H', title:'Charts & Adoption Dashboard', segment:'Self-directed', hook:'"The Hook — evidence layer"',
+      purpose:"Numbers create urgency. Showing global and internal AI adoption rates — and the gap between where RFE/RL is and where the industry is going — makes the educational mission feel urgent, not optional.",
+      managerGoal:"Convert skeptics. A journalist who sees '78% of newsrooms experimenting with AI' immediately understands why the AI Centrum exists. Data legitimizes the entire project.",
+      chips:chipSet('lightbulb','Adoption trend line','Newsroom benchmark map','Interactive filters','Export / Share','Live data updates','Contextual annotations'),
+      wire:['AI Adoption in Newsrooms — 2022→2026','78% overall · Europe 71% (2023→2024)'], isChart:true },
+  ];
+
+  const footerCards = [
+    { icon:'target', title:'The Core Logic', body:'Lightning Chat creates appetite. The AI Centrum satisfies it. Every moment in the 22-minute presentation is engineered to leave an open question that the AI Centrum answers.' },
+    { icon:'ruler', title:'Why Annotated Structure?', body:'A beautiful page without rationale is decoration. Every section in this blueprint explains its purpose so that editorial and management can evaluate design decisions, not just aesthetics.' },
+    { icon:'rocket', title:'What Comes Next', body:'Once approved: (1) content production starts per section, (2) the Lightning Chat deck is built from the segment map, (3) Phase 1 soft-launches after the first presentation.' },
+  ];
+
+  /* ============================= State ============================= */
+  const state = {
+    collapsed:false,
+    activeHub:null,
+    openSegN:null,
+    threads:[],          // [{id,x_pct,y_px,tag,priority,resolved,created_at,messages:[...]}]
+    pinMode:false,
+    activeThreadId:null,
+    dashboardOpen:false,
+    draft:{ text:'', link:'', mention:'', images:[] },
+  };
+
+  function reviewerName(){
+    return localStorage.getItem('aicentrum_reviewer_name') || '';
+  }
+  function setReviewerName(name){
+    localStorage.setItem('aicentrum_reviewer_name', name);
+    document.getElementById('reviewerName').textContent = name || 'Anonymous';
+  }
+
+  /* ============================= Rendering ============================= */
+  function el(tag, attrs, children){
+    const e = document.createElement(tag);
+    if (attrs) for (const k in attrs){
+      if (k === 'class') e.className = attrs[k];
+      else if (k === 'html') e.innerHTML = attrs[k];
+      else if (k.startsWith('on') && typeof attrs[k] === 'function') e.addEventListener(k.slice(2), attrs[k]);
+      else e.setAttribute(k, attrs[k]);
+    }
+    (children||[]).forEach(c => { if (c) e.appendChild(typeof c === 'string' ? document.createTextNode(c) : c); });
+    return e;
+  }
+  function loadIcons(){ if (window.lucide) window.lucide.createIcons(); }
+
+  function renderSegs(){
+    const wrap = document.getElementById('segs');
+    wrap.innerHTML = '';
+    segments.forEach(seg => {
+      if (!state.collapsed){
+        const btn = el('button', { class:'seg-btn', onclick:() => scrollToHub(seg.hubId) }, [
+          el('div', { class:'seg-num' }, [String(seg.n)]),
+          el('div', { class:'seg-body' }, [
+            el('div', { class:'seg-title-row' }, [
+              el('span', { class:'t' }, [seg.title]),
+              el('span', { class:'seg-time' }, [seg.time]),
+            ]),
+            el('p', { class:'seg-desc' }, [seg.desc]),
+            el('div', { class:'seg-hub' }, [
+              el('span', { class:'l' }, ['AI Centrum section']),
+              el('span', { class:'v' }, [seg.hubLabel]),
+            ]),
+          ]),
+        ]);
+        wrap.appendChild(btn);
+      } else {
+        const btn = el('button', { class:'seg-collapsed', title:seg.title, 'aria-label':seg.title, onclick:() => scrollToHub(seg.hubId) }, [String(seg.n)]);
+        wrap.appendChild(btn);
+      }
+    });
+  }
+
+  function renderHubs(){
+    const wrap = document.getElementById('hubs');
+    wrap.innerHTML = '';
+    hubSections.forEach(hub => {
+      const isActive = state.activeHub === hub.id;
+      const card = el('div', { class:'hub card' + (isActive ? ' active' : ''), id:'hub-'+hub.id }, [
+        el('div', { class:'hub-head' }, [
+          el('div', { class:'hub-id' }, [hub.id]),
+          el('div', {}, [
+            el('h3', {}, [hub.title]),
+            el('div', { class:'hub-tags' }, [
+              el('span', { class:'hub-seg-tag' }, [hub.segment]),
+              el('span', { class:'hub-hook' }, [hub.hook]),
+            ]),
+          ]),
+        ]),
+      ]);
+      const body = el('div', { class:'hub-body' });
+      body.appendChild(el('div', { class:'hub-annots' }, [
+        el('div', { class:'annot', style:'background-color:#F4E2DA' }, [
+          el('span', { class:'annot-label' }, ['Purpose']),
+          el('p', { class:'annot-body' }, [hub.purpose]),
+        ]),
+        el('div', { class:'annot', style:'background-color:#F3EAEB' }, [
+          el('span', { class:'annot-label' }, ['DTD goal']),
+          el('p', { class:'annot-body', style:'color:var(--teal)' }, [hub.managerGoal]),
+        ]),
+      ]));
+      const chipsWrap = el('div', {}, [
+        el('div', { class:'cap', style:'margin-bottom:10px' }, ['Content types in this section']),
+        el('div', { class:'chips' }, hub.chips.map(c => el('span', { class:'chip' }, [
+          el('i', { 'data-lucide':c.icon, style:'width:12px;height:12px;stroke:var(--teal-stone-2)' }), c.label
+        ]))),
+      ]);
+      body.appendChild(chipsWrap);
+
+      const layoutWrap = el('div', {}, [ el('div', { class:'cap', style:'margin-bottom:10px' }, ['Layout reference']) ]);
+      if (hub.isChart){
+        const svgNS = "http://www.w3.org/2000/svg";
+        const svg = document.createElementNS(svgNS, 'svg');
+        svg.setAttribute('viewBox','0 0 560 190'); svg.setAttribute('style','width:100%;height:auto;display:block');
+        [[0,30,560,30],[0,80,560,80],[0,130,560,130]].forEach(l=>{
+          const line = document.createElementNS(svgNS,'line');
+          line.setAttribute('x1',l[0]);line.setAttribute('y1',l[1]);line.setAttribute('x2',l[2]);line.setAttribute('y2',l[3]);
+          line.setAttribute('stroke','var(--border-subtle)');line.setAttribute('stroke-width','1');
+          svg.appendChild(line);
+        });
+        const base = document.createElementNS(svgNS,'line');
+        base.setAttribute('x1',0);base.setAttribute('y1',178);base.setAttribute('x2',560);base.setAttribute('y2',178);
+        base.setAttribute('stroke','var(--border-strong)');base.setAttribute('stroke-width','1');
+        svg.appendChild(base);
+        const p1 = document.createElementNS(svgNS,'polyline');
+        p1.setAttribute('points','10,158 120,140 230,112 340,78 450,46 550,26');
+        p1.setAttribute('fill','none');p1.setAttribute('stroke','var(--flame)');p1.setAttribute('stroke-width','1.5');
+        svg.appendChild(p1);
+        const p2 = document.createElementNS(svgNS,'polyline');
+        p2.setAttribute('points','10,164 120,152 230,132 340,108 450,86 550,66');
+        p2.setAttribute('fill','none');p2.setAttribute('stroke','var(--teal)');p2.setAttribute('stroke-width','1.5');
+        svg.appendChild(p2);
+        chartPoints.forEach(pt=>{
+          const c = document.createElementNS(svgNS,'circle');
+          c.setAttribute('cx',pt.x);c.setAttribute('cy',pt.y1);c.setAttribute('r','4');c.setAttribute('fill','var(--flame)');
+          svg.appendChild(c);
+        });
+        const t1 = document.createElementNS(svgNS,'text'); t1.setAttribute('x',10);t1.setAttribute('y',188);t1.setAttribute('font-size','10');t1.setAttribute('fill','var(--text-muted)');t1.textContent='2022';
+        const t2 = document.createElementNS(svgNS,'text'); t2.setAttribute('x',530);t2.setAttribute('y',188);t2.setAttribute('font-size','10');t2.setAttribute('fill','var(--text-muted)');t2.textContent='2026';
+        svg.appendChild(t1); svg.appendChild(t2);
+
+        const chartBox = el('div', { class:'well', style:'padding:20px' }, [
+          el('div', { style:'display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px' }, [
+            el('div', { style:'font-size:12.5px;font-weight:800;color:var(--teal)' }, ['AI adoption in newsrooms — 2022 → 2026']),
+            el('div', { style:'display:flex;gap:14px' }, [
+              el('div', { style:'display:flex;align-items:center;gap:6px' }, [el('span', { style:'width:10px;height:10px;background:var(--flame);display:inline-block' }), el('span', { style:'font-size:10.5px;color:var(--text-muted)' }, ['Overall'])]),
+              el('div', { style:'display:flex;align-items:center;gap:6px' }, [el('span', { style:'width:10px;height:10px;background:var(--stone);display:inline-block' }), el('span', { style:'font-size:10.5px;color:var(--text-muted)' }, ['Europe'])]),
+            ]),
+          ]),
+          svg,
+          el('div', { style:'display:flex;gap:24px;margin-top:14px;padding-top:14px;border-top:1px solid var(--border-subtle)' }, [
+            el('div', {}, [el('div', { style:'font-size:26px;font-weight:800;color:var(--flame)' }, ['78%']), el('div', { style:'font-size:11px;color:var(--text-muted)' }, ['Newsrooms experimenting overall'])]),
+            el('div', {}, [el('div', { style:'font-size:26px;font-weight:800;color:var(--teal)' }, ['71%']), el('div', { style:'font-size:11px;color:var(--text-muted)' }, ['Europe, 2023 → 2024'])]),
+          ]),
+        ]);
+        layoutWrap.appendChild(chartBox);
+      } else {
+        layoutWrap.appendChild(el('div', { class:'well wire-row' }, hub.wire.map(w => el('div', { class:'wire-item' }, [w]))));
+      }
+      body.appendChild(layoutWrap);
+      card.appendChild(body);
+      wrap.appendChild(card);
+    });
+
+    wrap.appendChild(el('div', { class:'phase2' }, [
+      el('div', { class:'phase2-head' }, [
+        el('div', { class:'phase2-icon' }, [ el('i', { 'data-lucide':'plus', style:'width:18px;height:18px;stroke:var(--teal-stone-2)' }) ]),
+        el('div', {}, [
+          el('h3', {}, ['Sections I, J, K — Reserved for Phase 2']),
+          el('p', {}, ['Candidates: Community Forum · Expert Q&A · Language-Specific Resources (Persian, Ukrainian, Georgian) · Newsletter Archive']),
+        ]),
+      ]),
+      el('div', { class:'annot' }, [
+        el('span', { class:'annot-label' }, ['Design principle']),
+        el('p', { class:'annot-body' }, ['Phase 1 prioritizes depth over breadth. 8 strong sections beat 14 shallow ones. Expand only when there is content to fill each section — empty sections undermine trust in the Hub.']),
+      ]),
+    ]));
+    loadIcons();
+  }
+
+  function renderFooter(){
+    const wrap = document.getElementById('footerCards');
+    wrap.innerHTML = '';
+    footerCards.forEach(fc => {
+      wrap.appendChild(el('div', { class:'footer-card card' }, [
+        el('div', { class:'ic' }, [ el('i', { 'data-lucide':fc.icon, style:'width:17px;height:17px;stroke:var(--flame)' }) ]),
+        el('div', { class:'t' }, [fc.title]),
+        el('p', {}, [fc.body]),
+      ]));
+    });
+    loadIcons();
+  }
+
+  function scrollToHub(id){
+    const target = document.getElementById('hub-' + id);
+    if (!target) return;
+    const top = target.getBoundingClientRect().top + window.scrollY - 28;
+    window.scrollTo({ top, behavior:'smooth' });
+    state.activeHub = id;
+    renderHubs();
+    clearTimeout(scrollToHub._t);
+    scrollToHub._t = setTimeout(() => { state.activeHub = null; renderHubs(); }, 1800);
+  }
+
+  function applyCollapsedLayout(){
+    document.getElementById('layout').classList.toggle('collapsed', state.collapsed);
+    document.getElementById('collapseBtn').innerHTML = state.collapsed
+      ? '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"></path></svg>'
+      : '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg>';
+    document.getElementById('collapseBtn').title = state.collapsed ? 'Expand Lightning Chat panel' : 'Collapse Lightning Chat panel';
+    document.getElementById('sidebarHeadLabel').style.display = state.collapsed ? 'none' : 'flex';
+    document.getElementById('sidebarIntro').style.display = state.collapsed ? 'none' : 'block';
+    document.getElementById('sidebarFoot').style.display = state.collapsed ? 'none' : 'block';
+    renderSegs();
+  }
+
+  /* ============================= Pins & comments (Supabase) ============================= */
+  function priorityColors(p){
+    if (p === 'High') return { bg:'var(--flame)', fg:'#fff' };
+    if (p === 'Low') return { bg:'var(--stone)', fg:'var(--teal)' };
+    return { bg:'var(--teal)', fg:'var(--ivory)' };
+  }
+
+  async function loadThreads(){
+    const { data, error } = await sb
+      .from(THREADS)
+      .select('*, ' + MESSAGES + '(id, author, text, images, links, files, mentions, created_at)')
+      .order('created_at', { ascending:true });
+    if (error){ console.error(error); return; }
+    state.threads = (data||[]).map(t => ({
+      ...t,
+      messages: (t[MESSAGES]||[]).sort((a,b)=> new Date(a.created_at) - new Date(b.created_at)),
+    }));
+    renderPins();
+    renderCommentCount();
+    if (state.dashboardOpen) renderDashboard();
+    if (state.activeThreadId) renderThreadModal();
+  }
+
+  function renderCommentCount(){
+    document.getElementById('commentCount').textContent = state.threads.length;
+  }
+
+  function renderPins(){
+    const wrap = document.getElementById('pinsContainer');
+    wrap.innerHTML = '';
+    state.threads.forEach(t => {
+      const pc = priorityColors(t.priority);
+      const btn = el('button', {
+        class:'pin', title:t.tag, 'aria-label':'Open comment thread',
+        style:`left:${t.x_pct}%;top:${t.y_px}px;background:${pc.bg};color:${pc.fg}`,
+        onclick: () => openThread(t.id),
+      }, [String(t.messages.length)]);
+      wrap.appendChild(btn);
+    });
+  }
+
+  function togglePinMode(force){
+    state.pinMode = typeof force === 'boolean' ? force : !state.pinMode;
+    const btn = document.getElementById('pinModeBtn');
+    btn.textContent = state.pinMode ? 'Cancel' : '+ Add comment';
+    btn.classList.toggle('is-active', state.pinMode);
+    document.getElementById('pinModeHint').textContent = state.pinMode
+      ? 'Click anywhere on the page to drop a pin' : 'Drop a comment on any point in the blueprint';
+    document.getElementById('pinClickCatcher').style.display = state.pinMode ? 'block' : 'none';
+  }
+
+  async function handleCanvasClick(e){
+    const rect = document.getElementById('pinLayer').getBoundingClientRect();
+    const xPct = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = e.clientY - rect.top;
+    togglePinMode(false);
+    const name = ensureReviewerName();
+    if (!name) return;
+    const { data, error } = await sb.from(THREADS).insert({
+      x_pct: Math.round(xPct*100)/100, y_px: Math.round(y), tag:'General', priority:'Medium',
+    }).select().single();
+    if (error){ console.error(error); alert('Could not create comment pin: ' + error.message); return; }
+    showSync('Pin dropped');
+    await loadThreads();
+    openThread(data.id);
+  }
+
+  function ensureReviewerName(){
+    let name = reviewerName();
+    if (!name){
+      name = prompt('Your name, for this comment thread:');
+      if (name && name.trim()) setReviewerName(name.trim());
+      else return null;
+    }
+    return reviewerName();
+  }
+
+  function openThread(id){
+    resetDraft();
+    state.activeThreadId = id;
+    state.dashboardOpen = false;
+    document.getElementById('dashboardPanel').style.display = 'none';
+    renderThreadModal();
+  }
+  function closeThread(){
+    const t = state.threads.find(x => x.id === state.activeThreadId);
+    state.activeThreadId = null;
+    document.getElementById('threadScrim').style.display = 'none';
+    document.getElementById('threadScrim').innerHTML = '';
+    if (t && t.messages.length === 0){
+      sb.from(THREADS).delete().eq('id', t.id).then(() => loadThreads());
+    }
+  }
+
+  async function setThreadField(field, value){
+    const t = state.threads.find(x => x.id === state.activeThreadId);
+    if (!t) return;
+    await sb.from(THREADS).update({ [field]: value }).eq('id', t.id);
+    showSync('Updated');
+    await loadThreads();
+  }
+
+  function resetDraft(){
+    state.draft = { text:'', link:'', mention:'', images:[] };
+  }
+
+  async function postMessage(){
+    const t = state.threads.find(x => x.id === state.activeThreadId);
+    if (!t) return;
+    const text = (state.draft.text||'').trim();
+    const hasAttach = state.draft.images.length || state.draft.link;
+    if (!text && !hasAttach) return;
+    const name = ensureReviewerName();
+    if (!name) return;
+    const payload = {
+      thread_id: t.id, author: name, text,
+      images: state.draft.images, links: state.draft.link ? [state.draft.link] : [], files: [],
+      mentions: state.draft.mention ? ['@'+state.draft.mention.replace(/^@/,'')] : [],
+    };
+    const { error } = await sb.from(MESSAGES).insert(payload);
+    if (error){ console.error(error); alert('Could not post comment: ' + error.message); return; }
+    showSync('Comment posted');
+    resetDraft();
+    await loadThreads();
+    openThread(t.id);
+  }
+
+  async function uploadImage(file){
+    const path = `${Date.now()}-${file.name}`.replace(/\s+/g,'_');
+    const { error } = await sb.storage.from(BUCKET).upload(path, file);
+    if (error){ console.error(error); alert('Image upload failed: ' + error.message); return; }
+    const { data } = sb.storage.from(BUCKET).getPublicUrl(path);
+    state.draft.images.push({ name:file.name, dataUrl:data.publicUrl });
+    renderThreadModal();
+  }
+
+  function renderThreadModal(){
+    const scrim = document.getElementById('threadScrim');
+    const t = state.threads.find(x => x.id === state.activeThreadId);
+    if (!t){ scrim.style.display = 'none'; scrim.innerHTML = ''; return; }
+    scrim.style.display = 'flex';
+    scrim.innerHTML = '';
+    scrim.onclick = closeThread;
+
+    const modal = el('div', { class:'modal', onclick:(e)=>e.stopPropagation() });
+
+    const tagSelect = el('select', { onchange:(e)=>setThreadField('tag', e.target.value) },
+      ['General','A','B','C','D','E','F','G','H'].map(opt => el('option', { value:opt, selected: opt===t.tag ? 'selected' : null }, [opt])));
+    const prioritySelect = el('select', { onchange:(e)=>setThreadField('priority', e.target.value) },
+      ['Low','Medium','High'].map(opt => el('option', { value:opt, selected: opt===t.priority ? 'selected' : null }, [opt])));
+
+    modal.appendChild(el('div', { class:'modal-head' }, [
+      el('div', { style:'display:flex;gap:8px;align-items:center;flex-wrap:wrap' }, [tagSelect, prioritySelect]),
+      el('button', { class:'icon-btn', 'aria-label':'Close', onclick:closeThread }, [
+        el('svg', { viewBox:'0 0 24 24', width:'15', height:'15', fill:'none', stroke:'currentColor', 'stroke-width':'2', 'stroke-linecap':'round', 'stroke-linejoin':'round', html:'<path d="M18 6L6 18M6 6l12 12"></path>' })
+      ]),
+    ]));
+
+    const body = el('div', { class:'modal-body' });
+    if (t.messages.length === 0){
+      body.appendChild(el('p', { class:'empty-note' }, ['Start the thread — write the first comment below.']));
+    }
+    t.messages.forEach(m => {
+      const msg = el('div', { class:'msg' }, [
+        el('div', { class:'author' }, [m.author || 'Anonymous']),
+        el('p', {}, [m.text]),
+      ]);
+      const chipsRow = el('div', { style:'display:flex;gap:6px;flex-wrap:wrap' });
+      (m.images||[]).forEach(im => { if (im.dataUrl) chipsRow.appendChild(el('img', { src:im.dataUrl, alt:im.name||'', style:'width:64px;height:64px;object-fit:cover;border-radius:var(--radius-sm);border:1px solid var(--border-subtle)' })); });
+      (m.links||[]).forEach(lk => chipsRow.appendChild(el('a', { href:lk, target:'_blank', rel:'noopener', class:'small-link chip', style:'text-decoration:none;color:var(--flame)' }, [lk])));
+      (m.mentions||[]).forEach(mn => chipsRow.appendChild(el('span', { class:'chip', style:'background:var(--tender);font-weight:700' }, [mn])));
+      msg.appendChild(chipsRow);
+      body.appendChild(msg);
+    });
+    modal.appendChild(body);
+
+    const composer = el('div', { class:'modal-composer' });
+    const ta = el('textarea', { placeholder:'Write a comment or follow-up…', oninput:(e)=>{ state.draft.text = e.target.value; } });
+    ta.value = state.draft.text;
+    composer.appendChild(ta);
+
+    const attachRow = el('div', { class:'attach-row' });
+    state.draft.images.forEach((im, i) => attachRow.appendChild(el('span', { class:'attach-chip' }, [im.name, el('button', { onclick:()=>{ state.draft.images.splice(i,1); renderThreadModal(); } }, ['×'])])));
+    if (state.draft.link) attachRow.appendChild(el('span', { class:'attach-chip' }, [state.draft.link, el('button', { onclick:()=>{ state.draft.link=''; renderThreadModal(); } }, ['×'])]));
+    if (state.draft.mention) attachRow.appendChild(el('span', { class:'attach-chip', style:'background:var(--tender)' }, ['@'+state.draft.mention.replace(/^@/,''), el('button', { onclick:()=>{ state.draft.mention=''; renderThreadModal(); } }, ['×'])]));
+    composer.appendChild(attachRow);
+
+    const linkInput = el('input', { type:'text', placeholder:'Paste a link…', style:'max-width:160px', oninput:(e)=>{ state.draft.link = e.target.value; } });
+    const mentionInput = el('input', { type:'text', placeholder:'@mention', style:'max-width:120px', oninput:(e)=>{ state.draft.mention = e.target.value; } });
+    const fileInput = el('input', { type:'file', accept:'image/*', style:'display:none', onchange:(e)=>{ const f = e.target.files && e.target.files[0]; if (f) uploadImage(f); e.target.value=''; } });
+    const row = el('div', { class:'composer-row' }, [
+      el('button', { class:'btn btn-outline', onclick:()=>fileInput.click() }, ['Add image']),
+      fileInput, linkInput, mentionInput,
+      el('span', { style:'flex:1' }),
+      el('button', { class:'btn btn-flame', onclick:postMessage }, ['Post']),
+    ]);
+    composer.appendChild(row);
+    modal.appendChild(composer);
+
+    scrim.appendChild(modal);
+    ta.focus();
+  }
+
+  function toggleDashboard(){
+    state.dashboardOpen = !state.dashboardOpen;
+    document.getElementById('dashboardPanel').style.display = state.dashboardOpen ? 'flex' : 'none';
+    if (state.dashboardOpen) renderDashboard();
+    else document.getElementById('dashboardPanel').innerHTML = '';
+  }
+
+  function renderDashboard(){
+    const panel = document.getElementById('dashboardPanel');
+    panel.innerHTML = '';
+    panel.onclick = (e) => { if (e.target === panel) toggleDashboard(); };
+    const rank = { High:0, Medium:1, Low:2 };
+    const sorted = [...state.threads].sort((a,b) => (rank[a.priority]??1) - (rank[b.priority]??1));
+    const inner = el('div', { class:'dashboard-inner', onclick:(e)=>e.stopPropagation() }, [
+      el('div', { class:'dashboard-head' }, [
+        el('span', {}, ['Comments dashboard']),
+        el('button', { class:'icon-btn', 'aria-label':'Close', onclick:toggleDashboard }, [
+          el('svg', { viewBox:'0 0 24 24', width:'15', height:'15', fill:'none', stroke:'currentColor', 'stroke-width':'2', 'stroke-linecap':'round', 'stroke-linejoin':'round', html:'<path d="M18 6L6 18M6 6l12 12"></path>' })
+        ]),
+      ]),
+    ]);
+    const list = el('div', { class:'dashboard-list' });
+    if (sorted.length === 0){
+      list.appendChild(el('p', { class:'empty-note' }, ['No comments yet. Click "Add comment" and drop a pin anywhere on the blueprint.']));
+    }
+    sorted.forEach(t => {
+      const pc = priorityColors(t.priority);
+      const snippet = t.messages.length ? (t.messages[0].text || '(attachment only)') : '(empty thread)';
+      const metaLine = t.messages.length + (t.messages.length === 1 ? ' message' : ' messages');
+      list.appendChild(el('button', { class:'dc-item', onclick:()=>openThread(t.id) }, [
+        el('div', { class:'dc-top' }, [
+          el('span', { class:'dc-pri', style:`background:${pc.bg};color:${pc.fg}` }, [t.priority]),
+          el('span', { class:'dc-tag' }, ['Section ' + t.tag]),
+        ]),
+        el('p', { class:'dc-snip' }, [snippet]),
+        el('div', { class:'dc-meta' }, [metaLine]),
+      ]));
+    });
+    inner.appendChild(list);
+    panel.appendChild(inner);
+  }
+
+  /* ============================= Init ============================= */
+  function init(){
+    document.getElementById('collapseBtn').addEventListener('click', () => { state.collapsed = !state.collapsed; applyCollapsedLayout(); });
+    document.getElementById('pinModeBtn').addEventListener('click', () => togglePinMode());
+    document.getElementById('pinClickCatcher').addEventListener('click', handleCanvasClick);
+    document.getElementById('dashboardBtn').addEventListener('click', toggleDashboard);
+    document.getElementById('editReviewer').addEventListener('click', () => {
+      const name = prompt('Your name, for comment threads:', reviewerName());
+      if (name !== null && name.trim()) setReviewerName(name.trim());
+    });
+
+    setReviewerName(reviewerName() || 'Anonymous');
+    renderSegs();
+    renderHubs();
+    renderFooter();
+    applyCollapsedLayout();
+    loadThreads();
+
+    // Live updates: reflect comments posted by other reviewers without a manual refresh.
+    sb.channel('aicentrum-comments')
+      .on('postgres_changes', { event:'*', schema:'public', table:THREADS }, () => loadThreads())
+      .on('postgres_changes', { event:'*', schema:'public', table:MESSAGES }, () => loadThreads())
+      .subscribe();
+  }
+
+  document.addEventListener('DOMContentLoaded', init);
+})();
+</script>
+</body>
+</html>
