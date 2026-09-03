@@ -1,9 +1,22 @@
-import { useState, useEffect, useLayoutEffect, useRef } from "react";
-import {
-  Compass, CalendarClock, LayoutPanelLeft, Share2, Globe, Shield, SlidersHorizontal,
-  Map, ListChecks, Megaphone, Clapperboard, CalendarDays, MapPin, Rocket, Newspaper,
-  Palette, Settings2, FileText, Users, Server, KeyRound, Search, Menu, X, ChevronDown,
-} from "lucide-react";
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hub navigation mockup</title>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+<style>
+  html, body { margin: 0; height: 100%; background: #0B1016; }
+  #root { height: 100%; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useLayoutEffect, useRef } = React;
 
 // ---- Real Lucerna token values, pulled directly from lucerna.css. ----
 const T = {
@@ -24,15 +37,23 @@ const T = {
   fontSans: "'Segoe UI', system-ui, sans-serif",
 };
 
+// Vanilla lucide.js (not lucide-react) works by scanning the DOM for
+// <i data-lucide="..."> placeholders and replacing their content with real
+// SVG — it does NOT give us importable icon components. This wrapper keeps
+// the rest of the code looking the same as the React/JSX version.
+function Icon({ name, size = 16, style }) {
+  return <i key={name} data-lucide={name} style={{ width: size, height: size, display: "inline-flex", flex: "0 0 auto", ...style }}></i>;
+}
+
 const ICONS = {
-  "service-overview": Compass, scheduler: CalendarClock, "custom-pages": LayoutPanelLeft,
-  shared: Share2, external: Globe, admin: Shield, "control-center": SlidersHorizontal,
-  roadmap: Map, "action-items": ListChecks, "social-guide": Megaphone,
-  stories: Clapperboard, "content-calendar": CalendarDays,
-  "afghan-roadmap": MapPin, "launch-brief": Rocket,
-  "shared-social": Share2, "shared-news": Newspaper, "ext-brand": Palette,
-  "manage-service": Settings2, "manage-general": SlidersHorizontal,
-  "cc-pages": FileText, "cc-users": Users, "cc-services": Server, "cc-access": KeyRound,
+  "service-overview": "compass", scheduler: "calendar-clock", "custom-pages": "layout-panel-left",
+  shared: "share-2", external: "globe", admin: "shield", "control-center": "sliders-horizontal",
+  roadmap: "map", "action-items": "list-checks", "social-guide": "megaphone",
+  stories: "clapperboard", "content-calendar": "calendar-days",
+  "afghan-roadmap": "map-pin", "launch-brief": "rocket",
+  "shared-social": "share-2", "shared-news": "newspaper", "ext-brand": "palette",
+  "manage-service": "settings-2", "manage-general": "sliders-horizontal",
+  "cc-pages": "file-text", "cc-users": "users", "cc-services": "server", "cc-access": "key-round",
 };
 
 const SERVICES = ["Radio Farda", "Current Time", "Radio Free Europe"];
@@ -79,7 +100,7 @@ const SEARCH_INDEX = [
   { label: "Afghan service Q3 roadmap notes", cat: "custom-pages", sub: "afghan-roadmap", subLabel: "Afghan service roadmap" },
 ];
 
-function SideLink({ active, nested, icon: Icon, onClick, children }) {
+function SideLink({ active, nested, iconName, onClick, children }) {
   return (
     <a
       onClick={onClick}
@@ -93,13 +114,13 @@ function SideLink({ active, nested, icon: Icon, onClick, children }) {
         transition: "background 120ms ease-out, color 120ms ease-out",
       }}
     >
-      {Icon && <Icon size={15} style={{ flex: "0 0 auto" }} />}
+      {iconName && <Icon name={iconName} size={15} />}
       <span>{children}</span>
     </a>
   );
 }
 
-export default function HubNavMockup() {
+function HubNavMockup() {
   const [category, setCategory] = useState(null);
   const [subPage, setSubPage] = useState(null);
   const [service, setService] = useState(0);
@@ -112,6 +133,7 @@ export default function HubNavMockup() {
   const containerRef = useRef(null);
   const pillRef = useRef(null);
   const tabRefs = useRef({});
+  const wasDockedRef = useRef(false);
 
   useEffect(() => {
     const el = containerRef.current;
@@ -121,12 +143,17 @@ export default function HubNavMockup() {
     return () => ro.disconnect();
   }, []);
 
+  // Re-run lucide's DOM scan after every render, since which data-lucide
+  // placeholders exist changes as categories/sub-pages change.
+  useEffect(() => {
+    if (window.lucide) window.lucide.createIcons();
+  });
+
   const isMobile = forceMobile || width < 760;
   const isNarrowPill = isMobile || width < 980;
   const cat = CATEGORIES.find((c) => c.key === category) || null;
   const picked = !!(cat && subPage);
   const picker = !!(cat && !subPage);
-  const wasDockedRef = useRef(false);
 
   function measureIndicator() {
     if (!category || !subPage || !pillRef.current || isNarrowPill) { setIndicator(null); return; }
@@ -139,17 +166,10 @@ export default function HubNavMockup() {
   useLayoutEffect(() => {
     if (isNarrowPill || !subPage) { setIndicator(null); wasDockedRef.current = false; return; }
     if (!wasDockedRef.current) {
-      // Just docked from the centered picker — the buttons are still mid
-      // way through their own size-shrink transition (large -> small) at
-      // this exact instant, so measuring now bakes in their STALE, larger
-      // dimensions. That's the oversized "tail" bug (see chat) — wait for
-      // the dock/resize transition to actually finish before measuring.
       setIndicator(null);
       const t = setTimeout(() => { measureIndicator(); wasDockedRef.current = true; }, 500);
       return () => clearTimeout(t);
     }
-    // Already docked, just switching between tabs at the same size — safe
-    // to measure immediately for a clean, responsive slide.
     measureIndicator();
   }, [category, subPage, isNarrowPill]);
 
@@ -174,12 +194,11 @@ export default function HubNavMockup() {
   const filtered = query.trim()
     ? SEARCH_INDEX.filter((r) => r.label.toLowerCase().includes(query.trim().toLowerCase()))
     : [];
-  const CatIcon = cat ? ICONS[cat.key] : null;
   const activeSub = cat && subPage ? cat.subPages.find((sp) => sp.key === subPage) : null;
 
   return (
     <div ref={containerRef} style={{
-      fontFamily: T.fontSans, position: "relative", height: 720, overflow: "hidden", borderRadius: 16,
+      fontFamily: T.fontSans, position: "relative", height: "100vh", overflow: "hidden", borderRadius: 16,
       display: "flex", flexDirection: "column",
       background:
         "radial-gradient(560px 420px at 8% -6%, rgba(255,84,0,0.10), transparent 62%)," +
@@ -207,9 +226,8 @@ export default function HubNavMockup() {
       </div>
 
       <div style={{ display: "flex", flex: "1 1 auto", minHeight: 0, position: "relative" }}>
-        {/* ---- Sidebar — identity, service switcher, and sign out live here per our decision ---- */}
         {(!isMobile || mobileOpen) && (
-          <>
+          <React.Fragment>
             {isMobile && (
               <div onClick={() => setMobileOpen(false)} style={{
                 position: "absolute", inset: 0, background: "rgba(4,12,16,0.5)",
@@ -254,10 +272,9 @@ export default function HubNavMockup() {
                 color: T.lt4, padding: "4px 14px 8px", fontFamily: T.fontSans, textShadow: T.ts,
               }}>Navigate</div>
 
-              {/* Nested sub-links are always visible under every category — no accordion */}
               {CATEGORIES.map((c) => (
                 <div key={c.key} style={{ marginBottom: 4 }}>
-                  <SideLink active={category === c.key && !picked} icon={ICONS[c.key]} onClick={() => openCategory(c.key)}>
+                  <SideLink active={category === c.key && !picked} iconName={ICONS[c.key]} onClick={() => openCategory(c.key)}>
                     {c.label}
                   </SideLink>
                   {c.subPages.map((sp) => (
@@ -269,12 +286,10 @@ export default function HubNavMockup() {
                 </div>
               ))}
             </nav>
-          </>
+          </React.Fragment>
         )}
 
-        {/* ---- Main column ---- */}
         <div style={{ flex: "1 1 auto", minWidth: 0, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-          {/* Header — brand only (clickable, returns home) + hamburger on mobile */}
           <div style={{ padding: "14px 22px 0", flex: "0 0 auto" }}>
             <div style={{
               display: "flex", alignItems: "center", gap: 14, height: 50, padding: "0 18px",
@@ -287,7 +302,7 @@ export default function HubNavMockup() {
                 <button onClick={() => setMobileOpen(true)} aria-label="Open menu" style={{
                   width: 30, height: 30, borderRadius: "50%", border: "none", background: T.chip,
                   cursor: "pointer", flex: "0 0 auto", display: "flex", alignItems: "center", justifyContent: "center", color: T.lt1,
-                }}><Menu size={16} /></button>
+                }}><Icon name="menu" size={16} /></button>
               )}
               <span onClick={goHome} style={{ fontSize: 17, fontWeight: 800, color: T.lt1, fontFamily: T.fontHead, cursor: "pointer" }}>
                 Hub<span style={{ color: T.flame }}>.</span>
@@ -297,7 +312,6 @@ export default function HubNavMockup() {
             </div>
           </div>
 
-          {/* Content pane */}
           <div className="hub-scroll" style={{ flex: "1 1 auto", position: "relative", overflowY: "auto", padding: "0 28px 40px" }}>
             {!cat ? (
               <div style={{ maxWidth: 560, margin: "80px auto 0", textAlign: "center" }}>
@@ -308,13 +322,13 @@ export default function HubNavMockup() {
                   What are you looking for?
                 </h1>
                 <div style={{ position: "relative" }}>
-                  <Search size={15} style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", color: T.lt4, pointerEvents: "none" }} />
+                  <Icon name="search" size={15} style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", color: T.lt4, pointerEvents: "none" }} />
                   <input
                     value={query} onChange={(e) => setQuery(e.target.value)}
                     placeholder="Search this service — goals, steps, pages…"
                     style={{
                       width: "100%", fontSize: 14, padding: "13px 18px 13px 42px", borderRadius: 100, border: "none",
-                      background: T.chip, color: T.lt1, boxShadow: T.rimSm, fontFamily: T.fontSans,
+                      background: T.chip, color: T.lt1, boxShadow: T.rimSm, fontFamily: T.fontSans, boxSizing: "border-box",
                     }}
                   />
                   {filtered.length > 0 && (
@@ -339,7 +353,6 @@ export default function HubNavMockup() {
               </div>
             ) : (
               <div style={{ position: "relative", height: 600 }}>
-                {/* Category hero — icon, name, description. Fades (not unmounts) once picked */}
                 <div style={{
                   position: "absolute", top: 40, left: 0, right: 0, textAlign: "center",
                   opacity: picked ? 0 : 1,
@@ -352,7 +365,7 @@ export default function HubNavMockup() {
                     display: "flex", alignItems: "center", justifyContent: "center",
                     background: T.chip, boxShadow: T.rimSm, color: T.honey,
                   }}>
-                    {CatIcon && <CatIcon size={22} />}
+                    <Icon name={ICONS[cat.key]} size={22} />
                   </div>
                   <h1 style={{ fontFamily: T.fontHead, fontSize: 26, fontWeight: 700, color: T.lt1, margin: "0 0 8px", textShadow: T.ts }}>
                     {cat.label}
@@ -362,14 +375,12 @@ export default function HubNavMockup() {
                   </p>
                 </div>
 
-                {/* Decorative glow behind the picker state — fades once picked */}
                 <div style={{
                   position: "absolute", top: 130, left: "50%", width: 460, height: 220, transform: "translateX(-50%)",
                   background: "radial-gradient(ellipse, rgba(255,84,0,0.16), transparent 70%)",
                   opacity: picked ? 0 : 1, transition: "opacity 420ms ease-out", pointerEvents: "none", zIndex: 1,
                 }} />
 
-                {/* The pill — resizes and re-docks between picker and picked states */}
                 {(!picked || !isNarrowPill) && (
                   <div ref={pillRef} style={{
                     position: "absolute", left: "50%", zIndex: 5,
@@ -387,28 +398,24 @@ export default function HubNavMockup() {
                         transition: "left 320ms cubic-bezier(.2,.8,.3,1), width 320ms cubic-bezier(.2,.8,.3,1)", zIndex: 0,
                       }} />
                     )}
-                    {cat.subPages.map((sp, i) => {
-                      const Icon = ICONS[sp.key];
-                      return (
-                        <button key={sp.key} ref={(el) => { tabRefs.current[sp.key] = el; }}
-                                onClick={() => openSubPage(cat.key, sp.key)} className="hub-pill-btn" style={{
-                          position: "relative", zIndex: 1, border: "none", cursor: "pointer",
-                          fontSize: picker ? 14.5 : 12.5, fontWeight: 600, whiteSpace: "nowrap", fontFamily: T.fontSans,
-                          padding: picker ? "11px 22px" : "7px 16px", borderRadius: 100,
-                          display: "inline-flex", alignItems: "center", gap: picker ? 8 : 6, background: "none",
-                          color: subPage === sp.key ? "#fff" : T.lt3, textShadow: T.ts,
-                          boxShadow: !picker && i < cat.subPages.length - 1 ? "inset -1px 0 0 rgba(255,255,255,.14)" : "none",
-                          transition: "color 140ms ease-out, transform 140ms ease-out, font-size 420ms cubic-bezier(.2,.8,.3,1), padding 420ms cubic-bezier(.2,.8,.3,1)",
-                        }}>
-                          {Icon && <Icon size={picker ? 16 : 14} />}
-                          <span>{sp.label}</span>
-                        </button>
-                      );
-                    })}
+                    {cat.subPages.map((sp, i) => (
+                      <button key={sp.key} ref={(el) => { tabRefs.current[sp.key] = el; }}
+                              onClick={() => openSubPage(cat.key, sp.key)} className="hub-pill-btn" style={{
+                        position: "relative", zIndex: 1, border: "none", cursor: "pointer",
+                        fontSize: picker ? 14.5 : 12.5, fontWeight: 600, whiteSpace: "nowrap", fontFamily: T.fontSans,
+                        padding: picker ? "11px 22px" : "7px 16px", borderRadius: 100,
+                        display: "inline-flex", alignItems: "center", gap: picker ? 8 : 6, background: "none",
+                        color: subPage === sp.key ? "#fff" : T.lt3, textShadow: T.ts,
+                        boxShadow: !picker && i < cat.subPages.length - 1 ? "inset -1px 0 0 rgba(255,255,255,.14)" : "none",
+                        transition: "color 140ms ease-out, transform 140ms ease-out, font-size 420ms cubic-bezier(.2,.8,.3,1), padding 420ms cubic-bezier(.2,.8,.3,1)",
+                      }}>
+                        <Icon name={ICONS[sp.key]} size={picker ? 16 : 14} />
+                        <span>{sp.label}</span>
+                      </button>
+                    ))}
                   </div>
                 )}
 
-                {/* Narrow-screen collapse: once picked, the row becomes a single dropdown button */}
                 {picked && isNarrowPill && (
                   <div style={{ position: "absolute", left: "50%", top: 8, transform: "translateX(-50%)", zIndex: 5 }}>
                     <button onClick={() => setPillMenuOpen((v) => !v)} className="hub-pill-btn" style={{
@@ -416,7 +423,7 @@ export default function HubNavMockup() {
                       padding: "8px 16px", borderRadius: 100, color: "#fff", background: T.chip, boxShadow: T.rimSm,
                       display: "flex", alignItems: "center", gap: 6,
                     }}>
-                      {activeSub?.label} <ChevronDown size={14} />
+                      {activeSub ? activeSub.label : ""} <Icon name="chevron-down" size={14} />
                     </button>
                     {pillMenuOpen && (
                       <div style={{
@@ -437,7 +444,6 @@ export default function HubNavMockup() {
                   </div>
                 )}
 
-                {/* Sub-page content — heading + category badge, replacing the old redundant eyebrow */}
                 {picked && (
                   <div style={{
                     position: "absolute", top: 76, left: 0, right: 0,
@@ -445,10 +451,11 @@ export default function HubNavMockup() {
                     background: "linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.04)), " + T.glassBase,
                     boxShadow: T.ambientLg + ", " + T.rim,
                     animation: "hubFadeIn 320ms ease-out both",
+                    boxSizing: "border-box",
                   }}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 8, flexWrap: "wrap" }}>
                       <h1 style={{ fontFamily: T.fontHead, fontSize: 22, fontWeight: 700, color: T.lt1, margin: 0, textShadow: T.ts }}>
-                        {activeSub?.label}
+                        {activeSub ? activeSub.label : ""}
                       </h1>
                       <span style={{
                         fontSize: 10.5, fontWeight: 700, letterSpacing: ".03em", textTransform: "uppercase",
@@ -468,3 +475,9 @@ export default function HubNavMockup() {
     </div>
   );
 }
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(<HubNavMockup />);
+</script>
+</body>
+</html>
