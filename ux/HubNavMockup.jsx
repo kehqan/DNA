@@ -1,0 +1,470 @@
+import { useState, useEffect, useLayoutEffect, useRef } from "react";
+import {
+  Compass, CalendarClock, LayoutPanelLeft, Share2, Globe, Shield, SlidersHorizontal,
+  Map, ListChecks, Megaphone, Clapperboard, CalendarDays, MapPin, Rocket, Newspaper,
+  Palette, Settings2, FileText, Users, Server, KeyRound, Search, Menu, X, ChevronDown,
+} from "lucide-react";
+
+// ---- Real Lucerna token values, pulled directly from lucerna.css. ----
+const T = {
+  flame: "#FF5400",
+  honey: "#FFC047",
+  ink: "#0B1016",
+  lt1: "#FFFFFF", lt2: "rgba(255,255,255,0.92)", lt3: "rgba(255,255,255,0.74)", lt4: "rgba(255,255,255,0.52)",
+  border: "rgba(255,255,255,0.16)",
+  glassBase: "#141B26",
+  chip: "rgba(255,255,255,0.10)",
+  opaque: "rgba(22,27,36,0.90)",
+  accentWell: "rgba(255,84,0,0.28)", accentOnWell: "#FFE0CC",
+  rim: "inset 0 0 0 1px rgba(255,255,255,0.14), inset 0 1.5px 2px rgba(255,255,255,0.34), inset 0 -2px 3px rgba(4,12,16,0.20)",
+  rimSm: "inset 0 0 0 1px rgba(255,255,255,0.11), inset 0 1px 1.5px rgba(255,255,255,0.26), inset 0 -1.5px 2px rgba(4,12,16,0.18)",
+  ambientLg: "0 1px 2px rgba(6,20,28,0.46), 0 14px 36px rgba(6,20,28,0.40), 0 44px 90px rgba(6,20,28,0.38)",
+  ts: "0 1px 2px rgba(4,12,16,0.85), 0 2px 10px rgba(4,12,16,0.55)",
+  fontHead: "Georgia, 'Times New Roman', serif",
+  fontSans: "'Segoe UI', system-ui, sans-serif",
+};
+
+const ICONS = {
+  "service-overview": Compass, scheduler: CalendarClock, "custom-pages": LayoutPanelLeft,
+  shared: Share2, external: Globe, admin: Shield, "control-center": SlidersHorizontal,
+  roadmap: Map, "action-items": ListChecks, "social-guide": Megaphone,
+  stories: Clapperboard, "content-calendar": CalendarDays,
+  "afghan-roadmap": MapPin, "launch-brief": Rocket,
+  "shared-social": Share2, "shared-news": Newspaper, "ext-brand": Palette,
+  "manage-service": Settings2, "manage-general": SlidersHorizontal,
+  "cc-pages": FileText, "cc-users": Users, "cc-services": Server, "cc-access": KeyRound,
+};
+
+const SERVICES = ["Radio Farda", "Current Time", "Radio Free Europe"];
+
+const CATEGORIES = [
+  { key: "service-overview", label: "Service overview", description: "Roadmap, action items and the social guide for this service.", subPages: [
+    { key: "roadmap", label: "Product roadmap" },
+    { key: "action-items", label: "Action items" },
+    { key: "social-guide", label: "Social media guide" },
+  ]},
+  { key: "scheduler", label: "Scheduler", description: "Plan and track everything going out this month.", subPages: [
+    { key: "stories", label: "Stories" },
+    { key: "content-calendar", label: "Content calendar" },
+  ]},
+  { key: "custom-pages", label: "Custom pages", description: "Pages built for this service alone.", subPages: [
+    { key: "afghan-roadmap", label: "Afghan service roadmap" },
+    { key: "launch-brief", label: "App launch brief" },
+  ]},
+  { key: "shared", label: "Shared", description: "Guidance and news shared across every service.", subPages: [
+    { key: "shared-social", label: "Social media practices" },
+    { key: "shared-news", label: "Company news" },
+  ]},
+  { key: "external", label: "External", description: "Reference material from outside the hub.", subPages: [
+    { key: "ext-brand", label: "RFE/RL brand guide" },
+  ]},
+  { key: "admin", label: "Admin", description: "Manage this service and general settings.", subPages: [
+    { key: "manage-service", label: "Manage service" },
+    { key: "manage-general", label: "Manage general" },
+  ]},
+  { key: "control-center", label: "Control center", description: "Pages, users, services and access levels.", subPages: [
+    { key: "cc-pages", label: "Pages" },
+    { key: "cc-users", label: "Users" },
+    { key: "cc-services", label: "Services" },
+    { key: "cc-access", label: "Access levels" },
+  ]},
+];
+
+const SEARCH_INDEX = [
+  { label: "Standardize daily audio bulletins", cat: "service-overview", sub: "action-items", subLabel: "Action items" },
+  { label: "Scale WhatsApp channel subscribers beyond 550K", cat: "service-overview", sub: "action-items", subLabel: "Action items" },
+  { label: "Q4 milestones and shipping dates", cat: "service-overview", sub: "roadmap", subLabel: "Product roadmap" },
+  { label: "Instagram posting cadence guidance", cat: "service-overview", sub: "social-guide", subLabel: "Social media guide" },
+  { label: "November content calendar draft", cat: "scheduler", sub: "content-calendar", subLabel: "Content calendar" },
+  { label: "Afghan service Q3 roadmap notes", cat: "custom-pages", sub: "afghan-roadmap", subLabel: "Afghan service roadmap" },
+];
+
+function SideLink({ active, nested, icon: Icon, onClick, children }) {
+  return (
+    <a
+      onClick={onClick}
+      style={{
+        display: "flex", alignItems: "center", gap: 9, width: "100%", textAlign: "left", cursor: "pointer", textDecoration: "none",
+        padding: nested ? "5px 14px 5px 32px" : "9px 14px", marginBottom: nested ? 1 : 2, borderRadius: 100,
+        fontFamily: T.fontSans, fontWeight: nested ? 400 : 700, fontSize: nested ? 11.5 : 13,
+        color: active ? "#fff" : (nested ? T.lt4 : T.lt3), textShadow: T.ts,
+        background: active ? T.chip : "transparent",
+        boxShadow: active ? T.rimSm : "none",
+        transition: "background 120ms ease-out, color 120ms ease-out",
+      }}
+    >
+      {Icon && <Icon size={15} style={{ flex: "0 0 auto" }} />}
+      <span>{children}</span>
+    </a>
+  );
+}
+
+export default function HubNavMockup() {
+  const [category, setCategory] = useState(null);
+  const [subPage, setSubPage] = useState(null);
+  const [service, setService] = useState(0);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [forceMobile, setForceMobile] = useState(false);
+  const [width, setWidth] = useState(1200);
+  const [query, setQuery] = useState("");
+  const [indicator, setIndicator] = useState(null);
+  const [pillMenuOpen, setPillMenuOpen] = useState(false);
+  const containerRef = useRef(null);
+  const pillRef = useRef(null);
+  const tabRefs = useRef({});
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver((entries) => setWidth(entries[0].contentRect.width));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  const isMobile = forceMobile || width < 760;
+  const isNarrowPill = isMobile || width < 980;
+  const cat = CATEGORIES.find((c) => c.key === category) || null;
+  const picked = !!(cat && subPage);
+  const picker = !!(cat && !subPage);
+  const wasDockedRef = useRef(false);
+
+  function measureIndicator() {
+    if (!category || !subPage || !pillRef.current || isNarrowPill) { setIndicator(null); return; }
+    const node = tabRefs.current[subPage];
+    if (!node) return;
+    const pillRect = pillRef.current.getBoundingClientRect();
+    const rect = node.getBoundingClientRect();
+    setIndicator({ left: Math.round(rect.left - pillRect.left), width: Math.round(rect.width) });
+  }
+  useLayoutEffect(() => {
+    if (isNarrowPill || !subPage) { setIndicator(null); wasDockedRef.current = false; return; }
+    if (!wasDockedRef.current) {
+      // Just docked from the centered picker — the buttons are still mid
+      // way through their own size-shrink transition (large -> small) at
+      // this exact instant, so measuring now bakes in their STALE, larger
+      // dimensions. That's the oversized "tail" bug (see chat) — wait for
+      // the dock/resize transition to actually finish before measuring.
+      setIndicator(null);
+      const t = setTimeout(() => { measureIndicator(); wasDockedRef.current = true; }, 500);
+      return () => clearTimeout(t);
+    }
+    // Already docked, just switching between tabs at the same size — safe
+    // to measure immediately for a clean, responsive slide.
+    measureIndicator();
+  }, [category, subPage, isNarrowPill]);
+
+  function openCategory(catKey) {
+    setCategory(catKey);
+    setSubPage(null);
+    setPillMenuOpen(false);
+    if (isMobile) setMobileOpen(false);
+  }
+  function openSubPage(catKey, subKey) {
+    setCategory(catKey);
+    setSubPage(subKey);
+    setQuery("");
+    setPillMenuOpen(false);
+    if (isMobile) setMobileOpen(false);
+  }
+  function goHome() {
+    setCategory(null);
+    setSubPage(null);
+  }
+
+  const filtered = query.trim()
+    ? SEARCH_INDEX.filter((r) => r.label.toLowerCase().includes(query.trim().toLowerCase()))
+    : [];
+  const CatIcon = cat ? ICONS[cat.key] : null;
+  const activeSub = cat && subPage ? cat.subPages.find((sp) => sp.key === subPage) : null;
+
+  return (
+    <div ref={containerRef} style={{
+      fontFamily: T.fontSans, position: "relative", height: 720, overflow: "hidden", borderRadius: 16,
+      display: "flex", flexDirection: "column",
+      background:
+        "radial-gradient(560px 420px at 8% -6%, rgba(255,84,0,0.10), transparent 62%)," +
+        "radial-gradient(720px 540px at 96% 4%, rgba(85,162,206,0.12), transparent 65%)," +
+        "radial-gradient(640px 560px at 82% 92%, rgba(160,21,127,0.10), transparent 60%)," +
+        "radial-gradient(520px 440px at 14% 88%, rgba(91,204,163,0.08), transparent 62%)," +
+        T.ink,
+    }}>
+      <style>{`
+        @keyframes hubFadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+        .hub-pill-btn:hover { color: #fff !important; transform: translateY(-1px); }
+        .hub-scroll { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.18) transparent; }
+        .hub-scroll::-webkit-scrollbar { width: 7px; }
+        .hub-scroll::-webkit-scrollbar-track { background: transparent; }
+        .hub-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.18); border-radius: 100px; border: 1px solid transparent; background-clip: padding-box; }
+        .hub-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.32); background-clip: padding-box; }
+      `}</style>
+
+      <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, padding: "10px 14px 0", flex: "0 0 auto" }}>
+        <button onClick={() => setForceMobile((v) => !v)} style={{
+          fontSize: 11, fontWeight: 600, fontFamily: T.fontSans,
+          background: forceMobile ? T.honey : T.chip, padding: "6px 12px", borderRadius: 100,
+          border: "none", cursor: "pointer", color: forceMobile ? "#3a2400" : T.lt3,
+        }}>{forceMobile ? "Mobile preview: on" : "Preview mobile layout"}</button>
+      </div>
+
+      <div style={{ display: "flex", flex: "1 1 auto", minHeight: 0, position: "relative" }}>
+        {/* ---- Sidebar — identity, service switcher, and sign out live here per our decision ---- */}
+        {(!isMobile || mobileOpen) && (
+          <>
+            {isMobile && (
+              <div onClick={() => setMobileOpen(false)} style={{
+                position: "absolute", inset: 0, background: "rgba(4,12,16,0.5)",
+                backdropFilter: "blur(2px)", zIndex: 40,
+              }} />
+            )}
+            <nav className="hub-scroll" style={{
+              width: 240, flex: "0 0 auto", position: isMobile ? "absolute" : "relative",
+              top: 0, bottom: 0, left: 0, zIndex: 41, overflowY: "auto",
+              background: T.opaque,
+              boxShadow: isMobile ? "8px 0 30px rgba(0,0,0,.4)" : "inset -1px 0 0 rgba(255,255,255,0.08)",
+              padding: "18px 12px 22px",
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "4px 10px 14px" }}>
+                <div style={{
+                  width: 36, height: 36, borderRadius: "50%", background: T.flame, flex: "0 0 auto",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  color: "#fff", fontWeight: 800, fontSize: 14,
+                }}>KD</div>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: T.lt1, textShadow: T.ts }}>Kasra Dehghan</div>
+                  <div style={{ fontSize: 11, color: T.honey, textShadow: T.ts }}>Maintainer</div>
+                </div>
+              </div>
+
+              <select value={service} onChange={(e) => setService(+e.target.value)} style={{
+                appearance: "none", width: "100%", background: T.chip, color: T.lt1, border: "none",
+                borderRadius: 100, boxShadow: T.rimSm, padding: "9px 14px", marginBottom: 6,
+                fontWeight: 600, fontSize: 13, fontFamily: T.fontSans, textShadow: T.ts, cursor: "pointer",
+              }}>
+                {SERVICES.map((s, i) => <option key={s} value={i} style={{ color: "#000" }}>{s}</option>)}
+              </select>
+
+              <a onClick={() => alert("Sign out (mockup only)")} style={{
+                display: "block", padding: "6px 14px 16px", fontSize: 12, fontWeight: 600,
+                color: T.lt4, cursor: "pointer", fontFamily: T.fontSans,
+              }}>Sign out</a>
+
+              <div style={{ height: 1, background: T.border, margin: "0 6px 8px" }} />
+              <div style={{
+                fontSize: 10, fontWeight: 700, letterSpacing: ".08em", textTransform: "uppercase",
+                color: T.lt4, padding: "4px 14px 8px", fontFamily: T.fontSans, textShadow: T.ts,
+              }}>Navigate</div>
+
+              {/* Nested sub-links are always visible under every category — no accordion */}
+              {CATEGORIES.map((c) => (
+                <div key={c.key} style={{ marginBottom: 4 }}>
+                  <SideLink active={category === c.key && !picked} icon={ICONS[c.key]} onClick={() => openCategory(c.key)}>
+                    {c.label}
+                  </SideLink>
+                  {c.subPages.map((sp) => (
+                    <SideLink key={sp.key} nested active={category === c.key && subPage === sp.key}
+                              onClick={() => openSubPage(c.key, sp.key)}>
+                      {sp.label}
+                    </SideLink>
+                  ))}
+                </div>
+              ))}
+            </nav>
+          </>
+        )}
+
+        {/* ---- Main column ---- */}
+        <div style={{ flex: "1 1 auto", minWidth: 0, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+          {/* Header — brand only (clickable, returns home) + hamburger on mobile */}
+          <div style={{ padding: "14px 22px 0", flex: "0 0 auto" }}>
+            <div style={{
+              display: "flex", alignItems: "center", gap: 14, height: 50, padding: "0 18px",
+              borderRadius: 100,
+              background: "linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.04)), " + T.glassBase,
+              backdropFilter: "blur(20px) saturate(1.8)",
+              boxShadow: T.ambientLg + ", " + T.rim,
+            }}>
+              {isMobile && (
+                <button onClick={() => setMobileOpen(true)} aria-label="Open menu" style={{
+                  width: 30, height: 30, borderRadius: "50%", border: "none", background: T.chip,
+                  cursor: "pointer", flex: "0 0 auto", display: "flex", alignItems: "center", justifyContent: "center", color: T.lt1,
+                }}><Menu size={16} /></button>
+              )}
+              <span onClick={goHome} style={{ fontSize: 17, fontWeight: 800, color: T.lt1, fontFamily: T.fontHead, cursor: "pointer" }}>
+                Hub<span style={{ color: T.flame }}>.</span>
+              </span>
+              <span style={{ flex: 1 }} />
+              {!cat && <span style={{ fontSize: 12, color: T.lt4 }}>{SERVICES[service]}</span>}
+            </div>
+          </div>
+
+          {/* Content pane */}
+          <div className="hub-scroll" style={{ flex: "1 1 auto", position: "relative", overflowY: "auto", padding: "0 28px 40px" }}>
+            {!cat ? (
+              <div style={{ maxWidth: 560, margin: "80px auto 0", textAlign: "center" }}>
+                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: ".08em", textTransform: "uppercase", color: T.lt4, marginBottom: 10 }}>
+                  {SERVICES[service]}
+                </div>
+                <h1 style={{ fontFamily: T.fontHead, fontSize: 34, fontWeight: 700, color: T.lt1, margin: "0 0 22px", textShadow: T.ts }}>
+                  What are you looking for?
+                </h1>
+                <div style={{ position: "relative" }}>
+                  <Search size={15} style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", color: T.lt4, pointerEvents: "none" }} />
+                  <input
+                    value={query} onChange={(e) => setQuery(e.target.value)}
+                    placeholder="Search this service — goals, steps, pages…"
+                    style={{
+                      width: "100%", fontSize: 14, padding: "13px 18px 13px 42px", borderRadius: 100, border: "none",
+                      background: T.chip, color: T.lt1, boxShadow: T.rimSm, fontFamily: T.fontSans,
+                    }}
+                  />
+                  {filtered.length > 0 && (
+                    <div style={{
+                      position: "absolute", top: "calc(100% + 8px)", left: 0, right: 0, textAlign: "left",
+                      borderRadius: 14, padding: 6, background: T.glassBase, boxShadow: T.ambientLg + ", " + T.rim, zIndex: 10,
+                    }}>
+                      {filtered.map((r) => (
+                        <div key={r.label} onClick={() => openSubPage(r.cat, r.sub)} style={{
+                          padding: "10px 12px", borderRadius: 8, cursor: "pointer",
+                        }}>
+                          <div style={{ fontSize: 13, fontWeight: 600, color: T.lt1 }}>{r.label}</div>
+                          <div style={{ fontSize: 11, color: T.lt4, marginTop: 2 }}>{r.subLabel}</div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <p style={{ fontSize: 13, color: T.lt4, marginTop: 18, fontFamily: T.fontSans }}>
+                  Or pick a module from the sidebar.
+                </p>
+              </div>
+            ) : (
+              <div style={{ position: "relative", height: 600 }}>
+                {/* Category hero — icon, name, description. Fades (not unmounts) once picked */}
+                <div style={{
+                  position: "absolute", top: 40, left: 0, right: 0, textAlign: "center",
+                  opacity: picked ? 0 : 1,
+                  transform: picked ? "translateY(-10px)" : "translateY(0)",
+                  pointerEvents: picked ? "none" : "auto",
+                  transition: "opacity 320ms ease-out, transform 320ms ease-out",
+                }}>
+                  <div style={{
+                    width: 52, height: 52, borderRadius: "50%", margin: "0 auto 16px",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    background: T.chip, boxShadow: T.rimSm, color: T.honey,
+                  }}>
+                    {CatIcon && <CatIcon size={22} />}
+                  </div>
+                  <h1 style={{ fontFamily: T.fontHead, fontSize: 26, fontWeight: 700, color: T.lt1, margin: "0 0 8px", textShadow: T.ts }}>
+                    {cat.label}
+                  </h1>
+                  <p style={{ fontFamily: "Georgia, serif", fontSize: 14.5, lineHeight: 1.6, color: T.lt3, margin: "0 auto", maxWidth: 420 }}>
+                    {cat.description}
+                  </p>
+                </div>
+
+                {/* Decorative glow behind the picker state — fades once picked */}
+                <div style={{
+                  position: "absolute", top: 130, left: "50%", width: 460, height: 220, transform: "translateX(-50%)",
+                  background: "radial-gradient(ellipse, rgba(255,84,0,0.16), transparent 70%)",
+                  opacity: picked ? 0 : 1, transition: "opacity 420ms ease-out", pointerEvents: "none", zIndex: 1,
+                }} />
+
+                {/* The pill — resizes and re-docks between picker and picked states */}
+                {(!picked || !isNarrowPill) && (
+                  <div ref={pillRef} style={{
+                    position: "absolute", left: "50%", zIndex: 5,
+                    top: picked ? 8 : 240,
+                    transform: "translateX(-50%)",
+                    transition: "top 480ms cubic-bezier(.2,.8,.3,1)",
+                    display: "inline-flex", flexWrap: "nowrap", justifyContent: "center",
+                    gap: 4, padding: 4, borderRadius: 100,
+                    background: "rgba(255,255,255,.06)", boxShadow: T.rimSm,
+                  }}>
+                    {indicator && (
+                      <div style={{
+                        position: "absolute", top: 4, bottom: 4, left: indicator.left, width: indicator.width,
+                        borderRadius: 100, background: T.chip, boxShadow: T.rimSm,
+                        transition: "left 320ms cubic-bezier(.2,.8,.3,1), width 320ms cubic-bezier(.2,.8,.3,1)", zIndex: 0,
+                      }} />
+                    )}
+                    {cat.subPages.map((sp, i) => {
+                      const Icon = ICONS[sp.key];
+                      return (
+                        <button key={sp.key} ref={(el) => { tabRefs.current[sp.key] = el; }}
+                                onClick={() => openSubPage(cat.key, sp.key)} className="hub-pill-btn" style={{
+                          position: "relative", zIndex: 1, border: "none", cursor: "pointer",
+                          fontSize: picker ? 14.5 : 12.5, fontWeight: 600, whiteSpace: "nowrap", fontFamily: T.fontSans,
+                          padding: picker ? "11px 22px" : "7px 16px", borderRadius: 100,
+                          display: "inline-flex", alignItems: "center", gap: picker ? 8 : 6, background: "none",
+                          color: subPage === sp.key ? "#fff" : T.lt3, textShadow: T.ts,
+                          boxShadow: !picker && i < cat.subPages.length - 1 ? "inset -1px 0 0 rgba(255,255,255,.14)" : "none",
+                          transition: "color 140ms ease-out, transform 140ms ease-out, font-size 420ms cubic-bezier(.2,.8,.3,1), padding 420ms cubic-bezier(.2,.8,.3,1)",
+                        }}>
+                          {Icon && <Icon size={picker ? 16 : 14} />}
+                          <span>{sp.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Narrow-screen collapse: once picked, the row becomes a single dropdown button */}
+                {picked && isNarrowPill && (
+                  <div style={{ position: "absolute", left: "50%", top: 8, transform: "translateX(-50%)", zIndex: 5 }}>
+                    <button onClick={() => setPillMenuOpen((v) => !v)} className="hub-pill-btn" style={{
+                      border: "none", cursor: "pointer", fontSize: 12.5, fontWeight: 600, fontFamily: T.fontSans,
+                      padding: "8px 16px", borderRadius: 100, color: "#fff", background: T.chip, boxShadow: T.rimSm,
+                      display: "flex", alignItems: "center", gap: 6,
+                    }}>
+                      {activeSub?.label} <ChevronDown size={14} />
+                    </button>
+                    {pillMenuOpen && (
+                      <div style={{
+                        position: "absolute", top: "calc(100% + 6px)", left: "50%", transform: "translateX(-50%)",
+                        minWidth: 180, zIndex: 20, borderRadius: 12, padding: 6,
+                        background: T.glassBase, boxShadow: T.ambientLg + ", " + T.rim,
+                      }}>
+                        {cat.subPages.map((sp) => (
+                          <div key={sp.key} onClick={() => openSubPage(cat.key, sp.key)} style={{
+                            padding: "8px 10px", borderRadius: 8, cursor: "pointer", fontSize: 12.5,
+                            fontWeight: 600, fontFamily: T.fontSans,
+                            color: subPage === sp.key ? "#fff" : T.lt3,
+                            background: subPage === sp.key ? T.chip : "transparent",
+                          }}>{sp.label}</div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Sub-page content — heading + category badge, replacing the old redundant eyebrow */}
+                {picked && (
+                  <div style={{
+                    position: "absolute", top: 76, left: 0, right: 0,
+                    borderRadius: 24, padding: "36px 32px", minHeight: 300,
+                    background: "linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.04)), " + T.glassBase,
+                    boxShadow: T.ambientLg + ", " + T.rim,
+                    animation: "hubFadeIn 320ms ease-out both",
+                  }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 8, flexWrap: "wrap" }}>
+                      <h1 style={{ fontFamily: T.fontHead, fontSize: 22, fontWeight: 700, color: T.lt1, margin: 0, textShadow: T.ts }}>
+                        {activeSub?.label}
+                      </h1>
+                      <span style={{
+                        fontSize: 10.5, fontWeight: 700, letterSpacing: ".03em", textTransform: "uppercase",
+                        padding: "4px 11px", borderRadius: 100, background: T.accentWell, color: T.accentOnWell,
+                      }}>{cat.label}</span>
+                    </div>
+                    <p style={{ fontFamily: "Georgia, serif", fontSize: 14.5, lineHeight: 1.65, color: T.lt3, margin: 0 }}>
+                      This mockup previews navigation only — real content renders here in the actual app.
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
